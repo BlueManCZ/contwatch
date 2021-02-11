@@ -1,5 +1,5 @@
 from .device_interface import DeviceInterface
-from ..log import logger
+from modules.logging.logger import logger
 
 from threading import Thread
 from time import sleep

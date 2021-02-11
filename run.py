@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import modules.devices.serial_device
-from modules.log import logger
+from modules.logging.logger import logger
 
 from signal import signal, SIGINT
 from time import sleep
