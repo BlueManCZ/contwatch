@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
 import modules.devices.serial_device
+from modules.log import logger
 
 from signal import signal, SIGINT
 from time import sleep
-
-active = True
-arduino = modules.devices.serial_device.SerialDevice(port='/dev/ttyUSB0')
+from os import path, remove
 
 
 def _quit_handler(_, __):
@@ -14,14 +13,25 @@ def _quit_handler(_, __):
     global active, arduino
     active = False
     arduino.exit()
-    quit()
+    log.info('Quiting application')
 
 
 if __name__ == '__main__':
 
     signal(SIGINT, _quit_handler)
 
-    while True:
+    # TODO: For temporary debug clarity only
+    if path.isfile('contwatch.log'):
+        remove('contwatch.log')
+
+    log = logger('Main')
+
+    log.info('Starting application')
+
+    active = True
+    arduino = modules.devices.serial_device.SerialDevice(port='/dev/ttyUSB0', auto_reconnect=True)
+
+    while active:
         if arduino.ready_to_read():
             print(arduino.read_message())
         sleep(0.1)
