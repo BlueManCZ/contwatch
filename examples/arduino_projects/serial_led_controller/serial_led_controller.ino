@@ -4,20 +4,16 @@ void setup() {
   }
   
   Serial.begin(9600);
-  Serial.println("Ready to read");
-  Serial.println("Send \"LED,[ON/OFF],[([1-6],)*/ALL]\"\n");
+//  Serial.println("Ready to read");
+//  Serial.println("Send \"LED,[ON/OFF],[([1-6],)*/ALL]\"\n");
 }
 
 void loop() {
   char* data[10];
   int count = getSerialData(data, Serial, ',', 20);
 
+  int index = 0;
   if (count) {
-    int index = 0;
-    while (index < count) {
-      Serial.println(data[index++]);
-    }
-    
     if (!strcmp(data[0], "LED")) {
       index = 2;
       if (!strcmp(data[1], "ON") || !strcmp(data[1], "OFF")) {
@@ -31,7 +27,12 @@ void loop() {
           digitalWrite(atoi(data[index++]) + 1, (strcmp(data[1], "OFF")) ? HIGH : LOW);
         }
       }
-    }
+    }  
+  }
+
+  index = 0;
+  while (index < count) {
+    delete data[index++];
   }
 }
 
