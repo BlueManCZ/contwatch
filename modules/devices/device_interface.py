@@ -15,9 +15,11 @@ class DeviceInterface:
 
     def is_connected(self):
         """Returns True if the device is connected and can communicate."""
+        pass
 
     def reconnect(self):
         """Try to reconnect the device."""
+        pass
 
     def exit(self):
         """Signal to disconnect from device and exit all threads."""

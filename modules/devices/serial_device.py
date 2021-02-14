@@ -11,54 +11,51 @@ import serial
 class SerialDevice(DeviceInterface):
     """Class representing device connected by serial port."""
 
-    active = False
-    connected = False
-    connection = None
-    auto_reconnect = False
-    message_queue = []  # TODO: The list will be used in multiple threads
-
     def _message_watcher(self):
-        self.log.debug(f'Starting message watcher for {self.port}')
+        print(f'Creating {self.connection.port}')
+        self.log.debug(f'Starting message watcher')
         while self.active:
-            if path.exists(self.port):
+            if path.exists(self.connection.port):
                 try:
                     data = self.connection.readline()
                     if data:
                         self.message_queue.append(data)
                 except serial.SerialException:
-                    self.log.warning(f'Failed to read from device {self.port}')
+                    self.log.warning(f'Failed to read from device')
             else:
-                self.log.warning(f'Lost connection with device {self.port}')
+                self.log.warning(f'Lost connection with device')
                 self.connection.close()
-                self.connected = False
                 if self.auto_reconnect:
                     Thread(target=self._reconnect_watcher).start()
                 break
-        self.log.debug(f'Stopping message watcher for {self.port}')
+        self.log.debug(f'Stopping message watcher')
 
     def _reconnect_watcher(self):
-        self.log.debug(f'Starting reconnect watcher for {self.port}')
+        self.log.debug(f'Starting reconnect watcher')
         while self.active:
-            if path.exists(self.port):
+            if path.exists(self.connection.port):
                 if self.reconnect():
                     Thread(target=self._message_watcher).start()
                 break
             else:
                 sleep(0.1)
-        self.log.debug(f'Stopping reconnect watcher for {self.port}')
+        self.log.debug(f'Stopping reconnect watcher')
 
     def __init__(self, *_, port, baudrate=9600, timeout=.1, auto_reconnect=False):
-        self.log = logger('SerialDevice')
-        self.port = port
-        self.baudrate = baudrate
-        self.timeout = timeout
+        self.log = logger(f'SerialDevice {port}')
+        self.connection = serial.Serial()
+        self.connection.port = port
+        self.connection.baudrate = baudrate
+        self.connection.timeout = timeout
+        self.message_queue = []  # TODO: The list will be used in multiple threads
         self.auto_reconnect = auto_reconnect
         if self.reconnect():
             self.active = True
             Thread(target=self._message_watcher).start()
 
     def send_message(self, message):
-        self.connection.write(bytes(message))
+        if self.connection.is_open:
+            self.connection.write(bytes(message, 'utf-8'))
 
     def ready_to_read(self):
         return len(self.message_queue) > 0
@@ -69,23 +66,22 @@ class SerialDevice(DeviceInterface):
         return None
 
     def is_connected(self):
-        return self.connected
+        return self.connection.is_open
 
     def reconnect(self):
         try:
-            self.connection = serial.Serial(port=self.port, baudrate=self.baudrate, timeout=self.timeout)
-            self.connected = True
-            self.log.info(f'Established connection with {self.port}')
+            self.connection.open()
+            self.log.info(f'Established connection')
             return True
         except serial.SerialException:
-            if path.exists(self.port):
-                self.log.error(f'Failed to establish connection with {self.port} - Permission denied')
+            if path.exists(self.connection.port):
+                self.log.error(f'Failed to establish connection - Permission denied')
                 self.log.info(f'Repeating action in 1 sec')
                 sleep(1)
                 return self.reconnect()
             else:
-                self.log.error(f'Failed to establish connection with {self.port} - Device does not exist')
-            self.connected = False
+                self.log.error(f'Failed to establish connection - Device does not exist')
+            self.connection.close()
             return False
 
     def exit(self):
