@@ -1,17 +1,18 @@
 from modules.devices.device_interface import DeviceInterface
 from modules.logging.logger import logger
 
-from time import sleep, time
 from threading import Thread
+from time import sleep, time
+
 from requests import get
 from requests.exceptions import ConnectionError
 
 
-class HttpJsonDevice(DeviceInterface):
-    """Class representing HTTP JSON API data fetcher."""
+class HttpDevice(DeviceInterface):
+    """Class representing HTTP device."""
 
     def _fetcher(self):
-        self.log.debug(f'Starting fetcher')
+        self.log.debug(f'Starting HTTP data fetcher')
         success = True
         last_secs = int(time())
         while self.active:
@@ -21,11 +22,17 @@ class HttpJsonDevice(DeviceInterface):
                 try:
                     response = get(self.url, params=self.params, timeout=self.timeout)
                     if response.status_code == 200:
-                        self.message_queue.append(response.json())
+                        message = response.text
+                        if self.json:
+                            message = response.json()
+                        self.message_queue.append(message)
                         last_secs = secs
                         success = True
                     elif response.status_code == 404:
-                        print(response.url, response.json())
+                        message = response.text
+                        if self.json:
+                            message = response.json()
+                        print(response.url, message)
                         last_secs = secs
                         success = True
                     else:
@@ -51,12 +58,13 @@ class HttpJsonDevice(DeviceInterface):
                 pass
         self.log.debug(f'Stopping reconnect watcher')
 
-    def __init__(self, *_, url, params=None, interval=10, timeout=3):
-        self.log = logger(f'JSON fetcher {url}')
+    def __init__(self, *_, url, params=None, interval=10, timeout=3, json=False):
+        self.log = logger(f'Plaintext fetcher {url}')
         self.url = url
         self.params = params
         self.interval = interval
         self.timeout = timeout
+        self.json = json
         self.message_queue = []
         self.active = True
         Thread(target=self._fetcher).start()
