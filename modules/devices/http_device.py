@@ -5,7 +5,7 @@ from threading import Thread
 from time import sleep, time
 
 from requests import get
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, ReadTimeout
 
 
 class HttpDevice(DeviceInterface):
@@ -38,11 +38,14 @@ class HttpDevice(DeviceInterface):
                     else:
                         success = False
                 except ConnectionError as error:
-                    self.log.warning(f'Failed to establish a new connection')
+                    self.log.warning(f'Failed to establish a connection')
                     self.log.error(error)
                     print(error)
                     Thread(target=self._reconnect_watcher).start()
                     break
+                except ReadTimeout as error:
+                    self.log.warning(f'Connection timeout')
+                    success = False
             sleep(0.1)
         self.log.debug(f'Stopping fetcher')
 

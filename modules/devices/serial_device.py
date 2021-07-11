@@ -22,6 +22,7 @@ class SerialDevice(DeviceInterface):
                         self.message_queue.append(data)
                 except serial.SerialException:
                     self.log.warning(f'Failed to read from device')
+                    sleep(0.1)
             else:
                 self.log.warning(f'Lost connection with device')
                 self.connection.close()
