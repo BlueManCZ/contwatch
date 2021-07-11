@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Contwatch</title>
+</head>
+<body>
+    <table>
+    {% for device in devices %}
+        <tr>
+            <td>Device <b>{{devices[device].connection.port}}</b> is {% if devices[device].is_connected() %}connected{% else %}disconnected{% endif %}</td>
+        </tr>
+    {% endfor %}
+    </table>
+</body>
+</html>
