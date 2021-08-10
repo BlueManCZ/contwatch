@@ -35,7 +35,7 @@ if __name__ == '__main__':
     arduino_nano = SerialDevice(port='/dev/ttyUSB1', auto_reconnect=True)
     # url = 'https://api.openweathermap.org/data/2.5/weather'
     # url = 'http://10.0.0.57/temp'
-    # params = {'id': '3069011', 'appid': '4c824bb19071dddfe8159caff73162a8', 'units': 'metric'}
+    # params = {'id': '3069011', 'appid': 'token', 'units': 'metric'}
     # http_device = HttpDevice(url=url, params=params, interval=3, json=True)
     # http_device = HttpDevice(url=url, interval=5, timeout=10)
     # arduino = SerialDevice(port='/dev/ttyUSB0', auto_reconnect=True)
