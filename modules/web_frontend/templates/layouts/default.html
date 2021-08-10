@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+{% with url="" %}
+<head>
+    <title>{% block title %}ContWatch{% endblock %}</title>
+    <meta charset="utf-8">
+    <meta name="description" content="{% block description %}System for controlling single-board microcontrollers powered by Python.{% endblock %}">
+    <meta name="author" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta property="og:title" content="{% block og_title %}ContWatch{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}System for controlling single-board microcontrollers powered by Python.{% endblock %}">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="{% block og_image %}{{url}}{{ url_for('static', filename='touchicon.png') }}{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{url}}{% endblock %}">
+
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.png') }}">
+    <link rel="apple-touch-icon" sizes="152x152" href="{{ url_for('static', filename='touchicon.png') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='GifLoader.js/src/css/loader.css') }}">
+    <script src="{{ url_for('static', filename='GifLoader.js/src/js/loader.js') }}"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/main.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    {% block styles %}{% endblock %}
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <script>
+        let loader = new Loader("{{ url_for('static', filename='GifLoader.js/src/images/hex-loader.gif') }}", true);
+
+        let socket = io();
+
+        socket.on('content-change-notification', function(data) {
+            if (currentPage === data) {
+                console.log(data);
+                displayPage(data);
+            }
+        });
+
+        let currentPage = "";
+
+        function navButtonClick(button, pagename) {
+            let buttons = document.getElementsByClassName("nav-item");
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('active');
+            }
+            button.classList.add('active');
+
+            displayPage(pagename);
+        }
+
+        function displayPage(pagename) {
+            currentPage = pagename;
+
+            const request = new XMLHttpRequest();
+            request.open('POST', `/${pagename}`);
+            request.onload = () => {
+                document.getElementById("content-container").innerHTML = request.responseText;
+            };
+            request.send();
+        }
+    </script>
+    {% include 'partials/navbar.html' %}
+    <div id="content-container">{% include 'pages/overview.html' %}</div>
+    {% block body %}{% endblock %}
+    {% block scripts %}{% endblock %}
+</body>
+
+{% endwith %}
+</html>

@@ -3,3 +3,6 @@
 
 # Logs
 *.log*
+
+# SASS
+.sass-cache/

@@ -62,6 +62,7 @@ class HttpDevice(DeviceInterface):
         self.log.debug(f'Stopping reconnect watcher')
 
     def __init__(self, *_, url, params=None, interval=10, timeout=3, json=False):
+        self.type = "http"
         self.log = logger(f'Plaintext fetcher {url}')
         self.url = url
         self.params = params
