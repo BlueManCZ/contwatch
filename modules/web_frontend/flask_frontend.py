@@ -1,6 +1,8 @@
 import platform
 import time
 
+from modules.devices import loaded_devices
+
 from flask import Flask, render_template
 from flask_socketio import SocketIO
 from threading import Thread
@@ -50,6 +52,12 @@ class FlaskFrontend:
                 "uptime": time.strftime('%H:%M:%S', time.gmtime(time.time() - self.start_time))
             }
             return render_template("pages/details.html", data=data)
+
+        @self.app.route("/dialog/<dialog_name>", methods=["POST"])
+        def dialog(dialog_name):
+            if dialog_name == "add_device":
+                return render_template("dialogs/add_device.html", loaded_devices=loaded_devices)
+            return dialog_name
 
         def content_change_watcher():
             while self.active:

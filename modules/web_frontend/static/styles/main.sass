@@ -66,8 +66,6 @@ nav
 #content-container
   padding: 20px
   padding-left: 0
-  font-family: $font1
-  color: #555555
 
   h2
     margin-left: 40px
@@ -75,68 +73,108 @@ nav
     font-weight: bold
     margin-top: 7px
 
+.tile
+  display: inline-block
+  background-color: white
+  padding: 20px 25px
+  border-radius: 15px
+  width: calc(50% - 40px)
+  margin-left: 40px
+  margin-top: 20px
+  box-shadow: 2px 2px 3px #dfdfdf
+
+  h1
+    font-size: 22px
+    color: #555
+    font-weight: bold
+
+  table
+    width: 100%
+
+
+    th
+      color: #555
+      padding-top: 10px
+
+    td
+      color: #777
+
+.tile-list
   .tile
-    display: inline-block
-    background-color: white
-    padding: 20px 25px
-    border-radius: 15px
-    width: calc(50% - 40px)
-    margin-left: 40px
-    margin-top: 20px
-    box-shadow: 2px 2px 3px #dfdfdf
+    width: 230px !important
+    padding: 15px 15px !important
+    vertical-align: top
+
+    img
+      width: 38px
+      opacity: 0.6
+      float: left
+      margin-right: 5px
+
+    h3
+      font-size: 15px
+      text-transform: capitalize
+      font-weight: bolder
+      margin-bottom: 0
+      color: #555555
+
+    .small
+      margin-bottom: 0
+
+    .notif
+      display: inline list-item
+      margin-left: 5px
+      font-size: 20px
+      float: right
+      top: -3px
+      position: relative
+
+  .add
+    height: 69px
+    width: 69px !important
+    border-radius: 100% !important
+    cursor: pointer
+    background-image: url("/static/images/icons/plus.png")
+    background-size: 60%
+    background-repeat: no-repeat
+    background-position: center
+    opacity: 0.8
+
+#dialog-container
+  display: flex
+  position: fixed
+  left: 0
+  top: 0
+  width: 100%
+  height: 100%
+  background-color: rgba(0, 0, 0, 0.3)
+  transition: opacity 0.2s cubic-bezier(0.62, 1.71, 1, 1.64), margin-top 0.2s step-start
+  transition-timing-function: cubic-bezier(0.62, 1.71, 1, 1.64), steps(1, start)
+
+  dialog
+    position: relative
+    border: none
+    border-radius: 20px
+    width: 600px
+    height: 400px
+    transition: 0.2s cubic-bezier(.5,-.7,.6,1)
+    padding: 25px 30px
+    background-color: #f1f0f6
 
     h1
       font-size: 22px
-      color: #555
       font-weight: bold
+      color: #555555
 
-    table
-      width: 100%
-
-
-      th
-        color: #555
-        padding-top: 10px
-
-      td
-        color: #777
-
-  .tile-list
     .tile
-      width: 230px
-      padding: 15px 15px
-      vertical-align: top
+      margin-left: 0
+      margin-right: 30px
 
-      img
-        width: 38px
-        opacity: 0.6
-        float: left
-        margin-right: 5px
+.dialog-hidden
+  opacity: 0 !important
+  margin-top: -1000%
+  transition-timing-function: cubic-bezier(0.62, 1.71, 1, 1.64), step-end !important
 
-      h3
-        font-size: 15px
-        text-transform: capitalize
-        font-weight: bolder
-        margin-bottom: 0
-
-      .small
-        margin-bottom: 0
-
-      .notif
-        display: inline list-item
-        margin-left: 5px
-        font-size: 20px
-        float: right
-        top: -3px
-        position: relative
-
-    .add
-      height: 69px
-      width: 69px
-      border-radius: 100%
-      cursor: pointer
-      background-image: url("/static/images/icons/plus.png")
-      background-size: 60%
-      background-repeat: no-repeat
-      background-position: center
-      opacity: 0.8
+  dialog
+    transform: scale(0)
+    opacity: 0

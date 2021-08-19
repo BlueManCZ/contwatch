@@ -11,6 +11,8 @@ from requests.exceptions import ConnectionError, ReadTimeout
 class HttpDevice(DeviceInterface):
     """Class representing HTTP device."""
 
+    type = "http"
+
     def _fetcher(self):
         self.log.debug(f'Starting HTTP data fetcher')
         success = True
@@ -62,7 +64,6 @@ class HttpDevice(DeviceInterface):
         self.log.debug(f'Stopping reconnect watcher')
 
     def __init__(self, *_, url, params=None, interval=10, timeout=3, json=False):
-        self.type = "http"
         self.log = logger(f'Plaintext fetcher {url}')
         self.url = url
         self.params = params

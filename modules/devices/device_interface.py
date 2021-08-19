@@ -2,6 +2,7 @@ class DeviceInterface:
     """Interface which specifies methods each device module should implement."""
 
     type = ""  # Represents type of the device. For example for determining correct icon in GUI.
+    fields = []  # Dictionary of arguments required for initialization from GUI.
     changed = False  # Set this to True if there is a need to refresh GUI.
 
     def send_message(self, message):

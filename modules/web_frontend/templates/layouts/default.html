@@ -62,9 +62,32 @@
             };
             request.send();
         }
+
+        function showDialog(dialogname) {
+            const request = new XMLHttpRequest();
+            request.open('POST', `/dialog/${dialogname}`);
+            request.onload = () => {
+                document.getElementById("dialog-container").firstChild.innerHTML = request.responseText;
+                document.getElementById("dialog-container").classList.remove('dialog-hidden');
+            };
+            request.send();
+        }
+
+        function hideDialog() {
+            document.getElementById("dialog-container").classList.add('dialog-hidden');
+        }
     </script>
     {% include 'partials/navbar.html' %}
     <div id="content-container">{% include 'pages/overview.html' %}</div>
+    <div id="dialog-container" class="dialog-hidden" onclick="hideDialog()"><dialog open></dialog></div>
+
+    <script>
+        function stopPropagation(e) {
+            e.stopPropagation();
+        }
+
+        document.getElementById("dialog-container").firstChild.addEventListener("click", stopPropagation);
+    </script>
     {% block body %}{% endblock %}
     {% block scripts %}{% endblock %}
 </body>

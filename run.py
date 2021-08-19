@@ -6,7 +6,6 @@ from modules.managers.device_manager import DeviceManager
 from modules.web_frontend.flask_frontend import FlaskFrontend
 
 from signal import signal, SIGINT
-from time import sleep, time
 from os import path, remove
 
 
@@ -31,8 +30,17 @@ if __name__ == '__main__':
     log.info('Starting application')
 
     active = True
-    arduino_uno = SerialDevice(port='/dev/ttyUSB0', auto_reconnect=True)
-    arduino_nano = SerialDevice(port='/dev/ttyUSB1', auto_reconnect=True)
+
+    uno_config = DeviceConfig()
+    uno_config.port = "/dev/ttyUSB0"
+    uno_config.auto_reconnect = True
+
+    nano_config = DeviceConfig()
+    nano_config.port = "/dev/ttyUSB1"
+    nano_config.auto_reconnect = True
+
+    arduino_uno = SerialDevice(device_config=uno_config)
+    arduino_nano = SerialDevice(device_config=nano_config)
     # url = 'https://api.openweathermap.org/data/2.5/weather'
     # url = 'http://10.0.0.57/temp'
     # params = {'id': '3069011', 'appid': 'token', 'units': 'metric'}
@@ -65,4 +73,4 @@ if __name__ == '__main__':
     #         if saved_time != int(time()):
     #             saved_time = int(time())
     #             status = ['ON', 'OFF'][saved_time % 2]
-    #             # arduino_nano.send_message(f'LED,{status},5\0')
+    #             # arduino_nano.send_message(f"LED,{status},5\0")

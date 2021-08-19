@@ -43,15 +43,27 @@ class SerialDevice(DeviceInterface):
                 sleep(0.1)
         self.log.debug(f'Stopping reconnect watcher')
 
-    def __init__(self, *_, port, baudrate=9600, timeout=.1, auto_reconnect=False):
-        self.type = "serial"
-        self.log = logger(f'SerialDevice {port}')
+    type = "serial"
+    fields = {
+        "port": ["string", "Device port (e.g., /dev/ttyUSB0)"],
+        "baudrate": ["int", "Baudrate", 9600],
+        "timeout": ["float", "Timeout in seconds", .1],
+        "auto_reconnect": ["bool", "Auto reconnect", True]
+    }
+
+    # def __init__(self, *_, port, baudrate=9600, timeout=.1, auto_reconnect=False):
+    def __init__(self, *_, device_config):
+        self.log = logger(f'SerialDevice {device_config.port}')
         self.connection = serial.Serial()
-        self.connection.port = port
-        self.connection.baudrate = baudrate
-        self.connection.timeout = timeout
+        self.connection.port = device_config.port
+        if not hasattr(device_config, 'baudrate'):
+            device_config.baudrate = 9600
+        self.connection.baudrate = device_config.baudrate
+        if not hasattr(device_config, 'timeout'):
+            device_config.timeout = .1
+        self.connection.timeout = device_config.timeout
         self.message_queue = []  # TODO: The list will be used in multiple threads
-        self.auto_reconnect = auto_reconnect
+        self.auto_reconnect = device_config.auto_reconnect
         self.active = False
         if self.reconnect():
             self.active = True

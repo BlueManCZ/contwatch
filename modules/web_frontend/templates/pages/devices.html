@@ -1,12 +1,12 @@
 <h2>List of configured devices</h2>
 <div class="tile-list">
     {% for device in devices %}<div class="tile" style="border-left: solid 5px {{'#0b0' if devices[device].is_connected() else '#ff6f6f'}}">
-        <img src="{{ url_for('static', filename='images/icons/types/'+devices[device].type+'.png') }}">
+        <img src="{{ url_for('static', filename='images/icons/types/'+devices[device].type+'.png') }}" alt="Device icon">
         <h3>{{devices[device].type}} device {{device}}</h3>
         <p class="small">
             {% if devices[device].connection.port %}
                 {{devices[device].connection.port}}
             {% endif %}
         </p>
-    </div>{% endfor %}<div class="tile add" title="Configure new device"></div>
+    </div>{% endfor %}<div class="tile add" title="Configure new device" onclick="showDialog('add_device')"></div>
 </div>
