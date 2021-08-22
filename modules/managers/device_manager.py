@@ -1,5 +1,5 @@
+import time
 from threading import Thread
-from time import sleep
 
 
 class DeviceManager:
@@ -12,14 +12,18 @@ class DeviceManager:
                 if device.ready_to_read():
                     message = device.read_message()
                     print(message)
-                    if device_id == 1:
-                        self.registered_devices[2].send_message(message + ' C\n')
+                    self.last_messages[device_id] = (time.strftime('%H:%M:%S', time.localtime())), message
+                    self.changed = True
+                    # if device_id == 1:
+                    #     self.registered_devices[2].send_message(message + ' C\n')
                     # TODO: Message handling here
-            sleep(0.1)
+            time.sleep(0.1)
 
     def __init__(self):
         self.registered_devices = {}
+        self.last_messages = {}
         self.active = True
+        self.changed = False
         Thread(target=self._device_watcher).start()
 
     def register_device(self, device, device_id):

@@ -31,11 +31,11 @@ class FlaskFrontend:
         @self.app.route("/")
         @self.app.route("/index")
         def index():
-            return render_template("layouts/default.html")
+            return render_template("layouts/default.html", manager=self.manager)
 
         @self.app.route("/overview", methods=["POST"])
         def overview():
-            return render_template("pages/overview.html")
+            return render_template("pages/overview.html", manager=self.manager)
 
         @self.app.route("/devices", methods=["POST"])
         def devices():
@@ -109,14 +109,19 @@ class FlaskFrontend:
                         if self.manager.registered_devices[device].changed:
                             self.sio.emit("content-change-notification", "devices", namespace='/')
                             self.manager.registered_devices[device].changed = False
+
+                    if self.manager.changed:
+                        self.sio.emit("content-change-notification", "overview", namespace='/')
+                        self.manager.changed = False
+
                 time.sleep(1)
 
         Thread(target=content_change_watcher).start()
 
-        # self.serverThread = Thread(target=self._run)
-        # self.serverThread.daemon = True
-        # self.serverThread.start()
-        self.app.run(self.host, self.port, use_reloader=True, debug=True)
+        self.serverThread = Thread(target=self._run)
+        self.serverThread.daemon = True
+        self.serverThread.start()
+        # self.app.run(self.host, self.port, use_reloader=True, debug=True)
 
     def _run(self):
         self.app.run(self.host, self.port)

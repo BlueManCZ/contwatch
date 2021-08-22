@@ -117,6 +117,8 @@ nav {
     font-size: 22px;
     color: #555;
     font-weight: bold; }
+  .tile h3 {
+    font-size: 17px; }
   .tile table {
     width: 100%; }
     .tile table th {
@@ -124,6 +126,12 @@ nav {
       padding-top: 10px; }
     .tile table td {
       color: #777; }
+  .tile pre {
+    white-space: normal;
+    background: #f1f0f6;
+    padding: 12px;
+    border-radius: 10px;
+    margin-top: 15px; }
 
 .tile-list .tile {
   width: 230px !important;
