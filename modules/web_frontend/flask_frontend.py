@@ -1,9 +1,9 @@
 import platform
 import time
 
-from modules.devices import loaded_devices
+from modules.devices import *
 
-from flask import Flask, render_template
+from flask import Flask, redirect, render_template, request
 from flask_socketio import SocketIO
 from threading import Thread
 
@@ -55,9 +55,52 @@ class FlaskFrontend:
 
         @self.app.route("/dialog/<dialog_name>", methods=["POST"])
         def dialog(dialog_name):
-            if dialog_name == "add_device":
-                return render_template("dialogs/add_device.html", loaded_devices=loaded_devices)
-            return dialog_name
+            if "configure_device" in dialog_name:
+                device_type = dialog_name.split("_")[2]
+                for device in loaded_devices:
+                    if device.type == device_type:
+                        fields = device.fields
+                        return render_template("dialogs/configure_device.html", fields=fields, device_type=device_type)
+
+            return render_template(f"dialogs/{dialog_name}.html", loaded_devices=loaded_devices)
+
+        @self.app.route("/configure_new_device", methods=["POST"])
+        def configure_new_device():
+            device_class = None
+            for device in loaded_devices:
+                if device.type == request.form["device_type"]:
+                    device_class = device
+
+            config = DeviceConfig()
+
+            for field in device_class.fields:
+                if len(device_class.fields[field]) >= 3:
+                    setattr(config, field, device_class.fields[field][2])
+
+            for field in request.form:
+                if field == "device_type":
+                    continue
+
+                field_type = device_class.fields[field][0]
+                field_data = request.form[field]
+                value = field_data
+                if field_type == "int":
+                    value = int(field_data)
+                elif field_type == "float":
+                    value = float(field_data)
+                elif field_type == "bool":
+                    value = bool(field_data)
+                setattr(config, field, value)
+
+            for field in device_class.fields:
+                if device_class.fields[field][0] == "bool":
+                    if field not in request.form:
+                        setattr(config, field, False)
+
+            new_device = device_class(device_config=config)
+            self.manager.register_device(new_device, len(self.manager.registered_devices) + 1)  # TODO: UUID
+
+            return redirect("/index")
 
         def content_change_watcher():
             while self.active:

@@ -1,7 +1,7 @@
-<h1>Configure new device</h1>
+<h1>Add new device</h1>
 <div class="tile-list">
-    {% for device in loaded_devices %}<div class="tile">
-        <img src="{{ url_for('static', filename='images/icons/types/'+device.type+'.png') }}">
+    {% for device in loaded_devices %}<div class="tile" onclick="showDialog('configure_device_{{ device.type }}')">
+        <img src="{{ url_for('static', filename='images/icons/types/'+device.type+'.png') }}" alt="Device icon">
         <h3>{{device.type}} device</h3>
     </div>{% endfor %}
 </div>

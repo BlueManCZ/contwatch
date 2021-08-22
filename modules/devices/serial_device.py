@@ -55,14 +55,21 @@ class SerialDevice(DeviceInterface):
     def __init__(self, *_, device_config):
         self.log = logger(f'SerialDevice {device_config.port}')
         self.connection = serial.Serial()
+
+        if not hasattr(device_config, 'port'):
+            device_config.port = self.fields["port"][2]
         self.connection.port = device_config.port
+
         if not hasattr(device_config, 'baudrate'):
-            device_config.baudrate = 9600
+            device_config.baudrate = self.fields["baudrate"][2]
         self.connection.baudrate = device_config.baudrate
+
         if not hasattr(device_config, 'timeout'):
-            device_config.timeout = .1
+            device_config.timeout = self.fields["timeout"][2]
         self.connection.timeout = device_config.timeout
+
         self.message_queue = []  # TODO: The list will be used in multiple threads
+
         self.auto_reconnect = device_config.auto_reconnect
         self.active = False
         if self.reconnect():

@@ -11,16 +11,14 @@ from requests.exceptions import ConnectionError, ReadTimeout
 class HttpDevice(DeviceInterface):
     """Class representing HTTP device."""
 
-    type = "http"
-
     def _fetcher(self):
         self.log.debug(f'Starting HTTP data fetcher')
-        success = True
+        self.success = True
         last_secs = int(time())
         while self.active:
             # TODO: Timing needs improvement
             secs = int(time())
-            if ((secs % self.interval == 0) or not success) and secs != last_secs:
+            if ((secs % self.interval == 0) or not self.success) and secs != last_secs:
                 try:
                     response = get(self.url, params=self.params, timeout=self.timeout)
                     if response.status_code == 200:
@@ -29,25 +27,28 @@ class HttpDevice(DeviceInterface):
                             message = response.json()
                         self.message_queue.append(message)
                         last_secs = secs
-                        success = True
+                        self.success = True
                     elif response.status_code == 404:
                         message = response.text
                         if self.json:
                             message = response.json()
                         print(response.url, message)
                         last_secs = secs
-                        success = True
+                        self.success = True
                     else:
-                        success = False
+                        self.success = False
                 except ConnectionError as error:
                     self.log.warning(f'Failed to establish a connection')
                     self.log.error(error)
                     print(error)
+                    self.success = False
                     Thread(target=self._reconnect_watcher).start()
                     break
                 except ReadTimeout as error:
                     self.log.warning(f'Connection timeout')
-                    success = False
+                    self.log.error(error)
+                    print(error)
+                    self.success = False
             sleep(0.1)
         self.log.debug(f'Stopping fetcher')
 
@@ -63,14 +64,24 @@ class HttpDevice(DeviceInterface):
                 pass
         self.log.debug(f'Stopping reconnect watcher')
 
-    def __init__(self, *_, url, params=None, interval=10, timeout=3, json=False):
-        self.log = logger(f'Plaintext fetcher {url}')
-        self.url = url
-        self.params = params
-        self.interval = interval
-        self.timeout = timeout
-        self.json = json
+    type = "http"
+    fields = {
+        "url": ["string", "URL address"],
+        "interval": ["int", "Fetching interval in seconds", 10],
+        "timeout": ["float", "Timeout in seconds", 3],
+        "json": ["bool", "Parse as a JSON", False]
+    }
+
+    # def __init__(self, *_, url, params=None, interval=10, timeout=3, json=False):
+    def __init__(self, *_, device_config):
+        self.log = logger(f'Plaintext fetcher {device_config.url}')
+        self.url = device_config.url
+        self.params = None
+        self.interval = device_config.interval
+        self.timeout = device_config.timeout
+        self.json = device_config.json
         self.message_queue = []
+        self.success = False
         self.active = True
         Thread(target=self._fetcher).start()
 
@@ -81,6 +92,9 @@ class HttpDevice(DeviceInterface):
         if len(self.message_queue) > 0:
             return self.message_queue.pop(0)
         return None
+
+    def is_connected(self):
+        return self.success
 
     def exit(self):
         self.active = False

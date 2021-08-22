@@ -39,6 +39,9 @@ a {
   a:hover {
     text-decoration: underline !important; }
 
+label {
+  color: #555555; }
+
 nav {
   position: fixed;
   width: 320px;
@@ -125,7 +128,8 @@ nav {
 .tile-list .tile {
   width: 230px !important;
   padding: 15px 15px !important;
-  vertical-align: top; }
+  vertical-align: top;
+  overflow: hidden; }
   .tile-list .tile img {
     width: 38px;
     opacity: 0.6;
@@ -137,8 +141,9 @@ nav {
     font-weight: bolder;
     margin-bottom: 0;
     color: #555555; }
-  .tile-list .tile .small {
-    margin-bottom: 0; }
+  .tile-list .tile .description {
+    margin-bottom: 0;
+    white-space: nowrap; }
   .tile-list .tile .notif {
     display: inline list-item;
     margin-left: 5px;

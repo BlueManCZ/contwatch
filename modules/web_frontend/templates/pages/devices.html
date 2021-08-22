@@ -3,9 +3,12 @@
     {% for device in devices %}<div class="tile" style="border-left: solid 5px {{'#0b0' if devices[device].is_connected() else '#ff6f6f'}}">
         <img src="{{ url_for('static', filename='images/icons/types/'+devices[device].type+'.png') }}" alt="Device icon">
         <h3>{{devices[device].type}} device {{device}}</h3>
-        <p class="small">
-            {% if devices[device].connection.port %}
+        <p class="description small">
+            {# TODO: Description should be standardized #}
+            {% if devices[device].connection and devices[device].connection.port %}
                 {{devices[device].connection.port}}
+            {% elif devices[device].url %}
+                {{devices[device].url}}
             {% endif %}
         </p>
     </div>{% endfor %}<div class="tile add" title="Configure new device" onclick="showDialog('add_device')"></div>
