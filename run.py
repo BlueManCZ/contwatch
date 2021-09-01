@@ -31,13 +31,8 @@ if __name__ == '__main__':
 
     active = True
 
-    uno_config = DeviceConfig()
-    uno_config.port = "/dev/ttyUSB0"
-    uno_config.auto_reconnect = True
-
-    nano_config = DeviceConfig()
-    nano_config.port = "/dev/ttyUSB1"
-    nano_config.auto_reconnect = True
+    uno_config = {"port": "/dev/ttyUSB0", "auto_reconnect": True}
+    nano_config = {"port": "/dev/ttyUSB1", "auto_reconnect": True}
 
     arduino_uno = SerialDevice(device_config=uno_config)
     arduino_nano = SerialDevice(device_config=nano_config)

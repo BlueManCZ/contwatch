@@ -74,12 +74,12 @@ class HttpDevice(DeviceInterface):
 
     # def __init__(self, *_, url, params=None, interval=10, timeout=3, json=False):
     def __init__(self, *_, device_config):
-        self.log = logger(f'Plaintext fetcher {device_config.url}')
-        self.url = device_config.url
+        self.log = logger(f'Plaintext fetcher {device_config["url"]}')
+        self.url = device_config["url"]
         self.params = None
-        self.interval = device_config.interval
-        self.timeout = device_config.timeout
-        self.json = device_config.json
+        self.interval = device_config["interval"]
+        self.timeout = device_config["timeout"]
+        self.json = device_config["json"]
         self.message_queue = []
         self.success = False
         self.active = True

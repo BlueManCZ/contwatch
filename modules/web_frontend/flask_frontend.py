@@ -71,11 +71,11 @@ class FlaskFrontend:
                 if device.type == request.form["device_type"]:
                     device_class = device
 
-            config = DeviceConfig()
+            config = {}
 
             for field in device_class.fields:
                 if len(device_class.fields[field]) >= 3:
-                    setattr(config, field, device_class.fields[field][2])
+                    config[field] = device_class.fields[field][2]
 
             for field in request.form:
                 if field == "device_type":
@@ -90,12 +90,12 @@ class FlaskFrontend:
                     value = float(field_data)
                 elif field_type == "bool":
                     value = bool(field_data)
-                setattr(config, field, value)
+                config[field] = value
 
             for field in device_class.fields:
                 if device_class.fields[field][0] == "bool":
                     if field not in request.form:
-                        setattr(config, field, False)
+                        config[field] = False
 
             new_device = device_class(device_config=config)
             self.manager.register_device(new_device, len(self.manager.registered_devices) + 1)  # TODO: UUID
