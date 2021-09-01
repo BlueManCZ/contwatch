@@ -14,20 +14,20 @@ def _quit_handler(_, __):
     global active
     active = False
     manager.exit()
-    log.info('Quiting application')
+    log.info("Quiting application")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     signal(SIGINT, _quit_handler)
 
     # TODO: For temporary debug clarity only
-    if path.isfile('contwatch.log'):
-        remove('contwatch.log')
+    if path.isfile("contwatch.log"):
+        remove("contwatch.log")
 
-    log = logger('Main')
+    log = logger("Main")
 
-    log.info('Starting application')
+    log.info("Starting application")
 
     active = True
 

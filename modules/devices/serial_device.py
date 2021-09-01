@@ -12,8 +12,8 @@ class SerialDevice(DeviceInterface):
     """Class representing device connected by serial port."""
 
     def _message_watcher(self):
-        print(f'Creating {self.connection.port}')
-        self.log.debug(f'Starting message watcher')
+        print(f"Creating {self.connection.port}")
+        self.log.debug("Starting message watcher")
         while self.active:
             if path.exists(self.connection.port):
                 try:
@@ -21,19 +21,19 @@ class SerialDevice(DeviceInterface):
                     if data:
                         self.message_queue.append(data)
                 except serial.SerialException:
-                    self.log.warning(f'Failed to read from device')
+                    self.log.warning("Failed to read from device")
                     sleep(0.1)
             else:
-                self.log.warning(f'Lost connection with device')
+                self.log.warning("Lost connection with device")
                 self.connection.close()
                 self.changed = True
                 if self.auto_reconnect:
                     Thread(target=self._reconnect_watcher).start()
                 break
-        self.log.debug(f'Stopping message watcher')
+        self.log.debug("Stopping message watcher")
 
     def _reconnect_watcher(self):
-        self.log.debug(f'Starting reconnect watcher')
+        self.log.debug("Starting reconnect watcher")
         while self.active:
             if path.exists(self.connection.port):
                 if self.reconnect():
@@ -41,7 +41,7 @@ class SerialDevice(DeviceInterface):
                 break
             else:
                 sleep(0.1)
-        self.log.debug(f'Stopping reconnect watcher')
+        self.log.debug("Stopping reconnect watcher")
 
     type = "serial"
     fields = {
@@ -53,7 +53,7 @@ class SerialDevice(DeviceInterface):
 
     # def __init__(self, *_, port, baudrate=9600, timeout=.1, auto_reconnect=False):
     def __init__(self, *_, device_config):
-        self.log = logger(f'SerialDevice {device_config["port"]}')
+        self.log = logger(f"SerialDevice {device_config['port']}")
         self.connection = serial.Serial()
 
         self.connection.port = device_config["port"]
@@ -76,7 +76,7 @@ class SerialDevice(DeviceInterface):
 
     def send_message(self, message):
         if self.connection.is_open:
-            self.connection.write(bytes(message, 'utf-8'))
+            self.connection.write(bytes(message, "utf-8"))
 
     def ready_to_read(self):
         return len(self.message_queue) > 0
@@ -92,22 +92,22 @@ class SerialDevice(DeviceInterface):
     def reconnect(self):
         try:
             self.connection.open()
-            self.log.info(f'Established connection')
+            self.log.info("Established connection")
             self.changed = True
             return True
         except serial.SerialException:
             if path.exists(self.connection.port):
-                self.log.error(f'Failed to establish connection - Permission denied')
-                self.log.info(f'Repeating action in 1 sec')
+                self.log.error("Failed to establish connection - Permission denied")
+                self.log.info("Repeating action in 1 sec")
                 sleep(1)
                 return self.reconnect()
             else:
-                self.log.error(f'Failed to establish connection - Device does not exist')
+                self.log.error("Failed to establish connection - Device does not exist")
             self.connection.close()
             return False
 
     def exit(self):
         self.active = False
         if self.connection:
-            self.log.info('Closing connection')
+            self.log.info("Closing connection")
             self.connection.close()

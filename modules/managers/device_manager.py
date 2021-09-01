@@ -12,7 +12,7 @@ class DeviceManager:
                 if device.ready_to_read():
                     message = device.read_message()
                     print(message)
-                    self.last_messages[device_id] = (time.strftime('%H:%M:%S', time.localtime())), message
+                    self.last_messages[device_id] = (time.strftime("%H:%M:%S", time.localtime())), message
                     self.changed = True
                     # if device_id == 1:
                     #     self.registered_devices[2].send_message(message + ' C\n')

@@ -12,7 +12,7 @@ class HttpDevice(DeviceInterface):
     """Class representing HTTP device."""
 
     def _fetcher(self):
-        self.log.debug(f'Starting HTTP data fetcher')
+        self.log.debug("Starting HTTP data fetcher")
         self.success = True
         last_secs = int(time())
         while self.active:
@@ -38,22 +38,22 @@ class HttpDevice(DeviceInterface):
                     else:
                         self.success = False
                 except ConnectionError as error:
-                    self.log.warning(f'Failed to establish a connection')
+                    self.log.warning("Failed to establish a connection")
                     self.log.error(error)
                     print(error)
                     self.success = False
                     Thread(target=self._reconnect_watcher).start()
                     break
                 except ReadTimeout as error:
-                    self.log.warning(f'Connection timeout')
+                    self.log.warning("Connection timeout")
                     self.log.error(error)
                     print(error)
                     self.success = False
             sleep(0.1)
-        self.log.debug(f'Stopping fetcher')
+        self.log.debug("Stopping fetcher")
 
     def _reconnect_watcher(self):
-        self.log.debug(f'Starting reconnect watcher')
+        self.log.debug("Starting reconnect watcher")
         while self.active:
             try:
                 response = get(self.url, params=self.params, timeout=self.timeout)
@@ -62,7 +62,7 @@ class HttpDevice(DeviceInterface):
                     break
             except ConnectionError:
                 pass
-        self.log.debug(f'Stopping reconnect watcher')
+        self.log.debug("Stopping reconnect watcher")
 
     type = "http"
     fields = {
@@ -74,7 +74,7 @@ class HttpDevice(DeviceInterface):
 
     # def __init__(self, *_, url, params=None, interval=10, timeout=3, json=False):
     def __init__(self, *_, device_config):
-        self.log = logger(f'Plaintext fetcher {device_config["url"]}')
+        self.log = logger(f"Plaintext fetcher {device_config['url']}")
         self.url = device_config["url"]
         self.params = None
         self.interval = device_config["interval"]

@@ -20,11 +20,11 @@ class FlaskFrontend:
         self.connections = 0
         self.active = True
 
-        @self.sio.on('connect')
+        @self.sio.on("connect")
         def connect():
             self.connections += 1
 
-        @self.sio.on('disconnect')
+        @self.sio.on("disconnect")
         def disconnect():
             self.connections -= 1
 

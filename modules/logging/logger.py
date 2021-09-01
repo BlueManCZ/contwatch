@@ -6,12 +6,12 @@ import logging.handlers
 
 def logger(name=None):
     formatter = logging.Formatter(
-        '%(asctime)s - %(threadName)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S')
+        "%(asctime)s - %(threadName)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S")
 
     handler = logging.handlers.RotatingFileHandler(
         filename=settings.LOG_FILE,
-        mode='a',
+        mode="a",
         maxBytes=settings.MAX_BYTES,
         backupCount=settings.MAX_BACKUP_COUNT
     )
