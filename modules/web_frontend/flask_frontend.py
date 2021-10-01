@@ -10,7 +10,7 @@ from threading import Thread
 
 class FlaskFrontend:
 
-    def __init__(self, host, port, manager):
+    def __init__(self, host, port, manager, database):
         self.app = Flask(__name__)
         self.host = host
         self.port = port
@@ -66,10 +66,7 @@ class FlaskFrontend:
 
         @self.app.route("/configure_new_device", methods=["POST"])
         def configure_new_device():
-            device_class = None
-            for device in loaded_devices:
-                if device.type == request.form["device_type"]:
-                    device_class = device
+            device_class = get_device_class(request.form["device_type"])
 
             config = {}
 
@@ -97,8 +94,11 @@ class FlaskFrontend:
                     if field not in request.form:
                         config[field] = False
 
-            new_device = device_class(device_config=config)
-            self.manager.register_device(new_device, len(self.manager.registered_devices) + 1)  # TODO: UUID
+            new_device = device_class(config)
+
+            database_device = database.add_device(new_device)
+
+            self.manager.register_device(new_device, database_device.id)
 
             return redirect("/index")
 

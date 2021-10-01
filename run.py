@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from modules.devices import *
+from modules.database import database
 from modules.logging.logger import logger
 from modules.managers.device_manager import DeviceManager
 from modules.web_frontend.flask_frontend import FlaskFrontend
@@ -29,13 +29,16 @@ if __name__ == "__main__":
 
     log.info("Starting application")
 
+    db = database.Database()
+
     active = True
 
-    uno_config = {"port": "/dev/ttyUSB0", "auto_reconnect": True}
-    nano_config = {"port": "/dev/ttyUSB1", "auto_reconnect": True}
+    # uno_config = {"port": "/dev/ttyUSB0", "auto_reconnect": True}
+    # nano_config = {"port": "/dev/ttyUSB1", "auto_reconnect": True}
+    #
+    # arduino_uno = SerialDevice(device_config=uno_config)
+    # arduino_nano = SerialDevice(device_config=nano_config)
 
-    arduino_uno = SerialDevice(device_config=uno_config)
-    arduino_nano = SerialDevice(device_config=nano_config)
     # url = 'https://api.openweathermap.org/data/2.5/weather'
     # url = 'http://10.0.0.57/temp'
     # params = {'id': '3069011', 'appid': 'token', 'units': 'metric'}
@@ -45,15 +48,15 @@ if __name__ == "__main__":
 
     # saved_time = time()
 
-    manager = DeviceManager()
+    manager = DeviceManager(db)
 
     # manager.register_device(http_device, 1)
     # manager.register_device(arduino, 2)
 
-    manager.register_device(arduino_uno, 1)
-    manager.register_device(arduino_nano, 2)
+    # manager.register_device(arduino_uno, 1)
+    # manager.register_device(arduino_nano, 2)
 
-    web = FlaskFrontend("0.0.0.0", 5000, manager)
+    web = FlaskFrontend("0.0.0.0", 5000, manager, db)
 
     # while active:
     #     if json_fetcher.ready_to_read():
