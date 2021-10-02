@@ -59,22 +59,37 @@ class SerialDevice(DeviceInterface):
         self.connection = serial.Serial()
 
         self.connection.port = device_config["port"]
-
-        if "baudrate" not in device_config:
-            device_config["baudrate"] = self.fields["baudrate"][2]
         self.connection.baudrate = device_config["baudrate"]
-
-        if "timeout" not in device_config:
-            device_config["timeout"] = self.fields["timeout"][2]
         self.connection.timeout = device_config["timeout"]
+        self.auto_reconnect = device_config["auto_reconnect"]
 
         self.message_queue = []  # TODO: The list will be used in multiple threads
 
-        self.auto_reconnect = device_config["auto_reconnect"]
         self.active = False
+        self.changed = True
+
         if self.reconnect():
             self.active = True
             Thread(target=self._message_watcher).start()
+
+    def update_config(self, new_config):
+        self.active = False
+
+        self.config = new_config
+
+        # TODO: Semaphore may be required
+        self.connection.close()
+
+        self.connection.port = new_config["port"]
+        self.connection.baudrate = new_config["baudrate"]
+        self.connection.timeout = new_config["timeout"]
+        self.auto_reconnect = new_config["auto_reconnect"]
+
+        if self.reconnect():
+            self.active = True
+            Thread(target=self._message_watcher).start()
+
+        self.changed = True
 
     def send_message(self, message):
         if self.connection.is_open:

@@ -6,6 +6,34 @@ from modules.devices import *
 from flask import Flask, redirect, render_template, request
 from flask_socketio import SocketIO
 from threading import Thread
+from waitress import serve
+
+
+def parse_config(http_form, device_class):
+    config = {}
+
+    for field in http_form:
+        if field in device_class.fields:
+            field_type = device_class.fields[field][0]
+            field_data = request.form[field]
+            value = field_data
+            if field_type == "int":
+                value = int(field_data)
+            elif field_type == "float":
+                value = float(field_data)
+            elif field_type == "bool":
+                value = bool(field_data)
+            config[field] = value
+
+    for field in device_class.fields:
+        if len(device_class.fields[field]) > 2 and field not in config:
+            config[field] = device_class.fields[field][2]
+
+        if device_class.fields[field][0] == "bool":
+            if field not in http_form:
+                config[field] = False
+
+    return config
 
 
 class FlaskFrontend:
@@ -29,9 +57,16 @@ class FlaskFrontend:
             self.connections -= 1
 
         @self.app.route("/")
-        @self.app.route("/index")
         def index():
-            return render_template("layouts/default.html", manager=self.manager)
+            return redirect('overview')
+
+        @self.app.route("/index")
+        def index_redirect():
+            return redirect('/')
+
+        @self.app.route("/<page_name>")
+        def page(page_name):
+            return render_template("layouts/default.html", manager=self.manager, page=page_name)
 
         @self.app.route("/overview", methods=["POST"])
         def overview():
@@ -62,45 +97,33 @@ class FlaskFrontend:
                         fields = device.fields
                         return render_template("dialogs/configure_device.html", fields=fields, device_type=device_type)
 
+            if "edit_device" in dialog_name:
+                device_id = int(dialog_name.split("_")[2])
+                device = self.manager.registered_devices[device_id]
+                print(device.fields)
+                return render_template("dialogs/edit_device.html", id=device_id, device=device)
+
             return render_template(f"dialogs/{dialog_name}.html", loaded_devices=loaded_devices)
 
         @self.app.route("/configure_new_device", methods=["POST"])
         def configure_new_device():
             device_class = get_device_class(request.form["device_type"])
-
-            config = {}
-
-            for field in device_class.fields:
-                if len(device_class.fields[field]) >= 3:
-                    config[field] = device_class.fields[field][2]
-
-            for field in request.form:
-                if field == "device_type":
-                    continue
-
-                field_type = device_class.fields[field][0]
-                field_data = request.form[field]
-                value = field_data
-                if field_type == "int":
-                    value = int(field_data)
-                elif field_type == "float":
-                    value = float(field_data)
-                elif field_type == "bool":
-                    value = bool(field_data)
-                config[field] = value
-
-            for field in device_class.fields:
-                if device_class.fields[field][0] == "bool":
-                    if field not in request.form:
-                        config[field] = False
-
+            config = parse_config(request.form, device_class)
             new_device = device_class(config)
-
             database_device = database.add_device(new_device)
-
             self.manager.register_device(new_device, database_device.id)
 
-            return redirect("/index")
+            return redirect("/devices")
+
+        @self.app.route("/edit_device", methods=["POST"])
+        def edit_device():
+            device_class = get_device_class(request.form["device_type"])
+            config = parse_config(request.form, device_class)
+            device_id = int(request.form["device_id"])
+            database.update_device_config(device_id, config)
+            self.manager.registered_devices[device_id].update_config(config)
+
+            return redirect("/devices")
 
         def content_change_watcher():
             while self.active:
@@ -114,7 +137,7 @@ class FlaskFrontend:
                         self.sio.emit("content-change-notification", "overview", namespace='/')
                         self.manager.changed = False
 
-                time.sleep(1)
+                time.sleep(0.1)
 
         Thread(target=content_change_watcher).start()
 
@@ -125,3 +148,4 @@ class FlaskFrontend:
 
     def _run(self):
         self.app.run(self.host, self.port)
+        #serve(self.app, host=self.host, port=self.port)

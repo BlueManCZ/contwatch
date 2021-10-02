@@ -7,6 +7,10 @@ class DeviceInterface:
     fields = {}  # Dictionary of arguments required for initialization from GUI.
     changed = False  # Set this to True if there is a need to refresh GUI.
 
+    def update_config(self, new_config):
+        """Update device configuration accordingly."""
+        self.config = new_config
+
     def send_message(self, message):
         """Send the message to the device."""
         pass

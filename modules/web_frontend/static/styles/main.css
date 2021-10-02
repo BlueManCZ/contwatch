@@ -137,7 +137,11 @@ nav {
   width: 230px !important;
   padding: 15px 15px !important;
   vertical-align: top;
-  overflow: hidden; }
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform ease-in-out 50ms; }
+  .tile-list .tile:hover {
+    transform: scale(1.03); }
   .tile-list .tile img {
     width: 38px;
     opacity: 0.6;

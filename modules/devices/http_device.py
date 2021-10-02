@@ -77,15 +77,28 @@ class HttpDevice(DeviceInterface):
         self.config = device_config
 
         self.log = logger(f"Plaintext fetcher {device_config['url']}")
+
         self.url = device_config["url"]
-        self.params = None
         self.interval = device_config["interval"]
         self.timeout = device_config["timeout"]
         self.json = device_config["json"]
+
+        self.params = None
         self.message_queue = []
         self.success = False
         self.active = True
+        self.changed = True
+
         Thread(target=self._fetcher).start()
+
+    def update_config(self, new_config):
+        self.config = new_config
+
+        self.url = new_config["url"]
+        self.interval = new_config["interval"]
+        self.timeout = new_config["timeout"]
+        self.json = new_config["json"]
+        self.changed = True
 
     def ready_to_read(self):
         return len(self.message_queue) > 0

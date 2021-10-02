@@ -3,17 +3,17 @@
     <div class="section">
         <h5>Navigation</h5>
         <ul>
-            <li class="nav-item active" onclick="navButtonClick(this, 'overview')">
+            <li class="nav-item active" id='menu-item-overview' onclick="displayPage('overview')">
                 <img src="{{ url_for('static', filename='images/icons/overview.png') }}" style="background-color:#7233ff;" alt="List icon">
                 <p class="title">Overview</p>
                 <p class="description">Watch realtime data</p>
             </li>
-            <li class="nav-item" onclick="navButtonClick(this, 'devices')">
+            <li class="nav-item" id='menu-item-devices' onclick="displayPage('devices')">
                 <img src="{{ url_for('static', filename='images/icons/cpu2.png') }}" style="background-color:#fd8f64;" alt="Cpu icon">
                 <p class="title">Device manager</p>
                 <p class="description">Manage configured devices</p>
             </li>
-            <li class="nav-item" onclick="navButtonClick(this, 'details')">
+            <li class="nav-item" id='menu-item-details' onclick="displayPage('details')">
                 <img src="{{ url_for('static', filename='images/icons/info2.png') }}" style="background-color:#ffcd41;" alt="Info icon">
                 <p class="title">Details</p>
                 <p class="description">Display advanced information</p>

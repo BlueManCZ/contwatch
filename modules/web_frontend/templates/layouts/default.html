@@ -42,23 +42,20 @@
 
         let currentPage = "";
 
-        function navButtonClick(button, pagename) {
+        function displayPage(pagename) {
+            currentPage = pagename;
+
             let buttons = document.getElementsByClassName("nav-item");
             for (let i = 0; i < buttons.length; i++) {
                 buttons[i].classList.remove('active');
             }
-            button.classList.add('active');
-
-            displayPage(pagename);
-        }
-
-        function displayPage(pagename) {
-            currentPage = pagename;
+            document.getElementById('menu-item-' + pagename).classList.add('active');
 
             const request = new XMLHttpRequest();
             request.open('POST', `/${pagename}`);
             request.onload = () => {
                 document.getElementById("content-container").innerHTML = request.responseText;
+                window.history.replaceState(pagename, pagename, '/' + pagename);
             };
             request.send();
         }
@@ -88,8 +85,15 @@
 
         document.getElementById("dialog-container").firstChild.addEventListener("click", stopPropagation);
     </script>
+
     {% block body %}{% endblock %}
-    {% block scripts %}{% endblock %}
+    {% block scripts %}
+        <script>
+            {% if page %}
+                displayPage("{{ page }}");
+            {% endif %}
+        </script>
+    {% endblock %}
 </body>
 
 {% endwith %}
