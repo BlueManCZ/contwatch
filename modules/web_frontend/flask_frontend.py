@@ -167,3 +167,6 @@ class FlaskFrontend:
     def _run(self):
         self.app.run(self.host, self.port)
         #serve(self.app, host=self.host, port=self.port)
+
+    def exit(self):
+        self.active = False

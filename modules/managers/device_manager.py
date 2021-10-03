@@ -1,4 +1,5 @@
 from modules.devices import *
+from modules.logging.logger import logger
 
 from threading import Thread
 
@@ -29,7 +30,11 @@ class DeviceManager:
         self.active = True
         self.changed = False
 
+        self.log = logger(f"Device manager")
+
         devices = database.get_devices()
+
+        self.log.info(f"Loaded {len(devices)} devices from database")
 
         for device in devices:
             device_class = get_device_class(device.type)
@@ -54,3 +59,4 @@ class DeviceManager:
         for device in self.registered_devices:
             self.registered_devices[device].exit()
         self.active = False
+        self.log.info(f"Terminating")

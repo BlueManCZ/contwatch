@@ -14,6 +14,7 @@ def _quit_handler(_, __):
     global active
     active = False
     manager.exit()
+    web.exit()
     log.info("Quiting application")
 
 
