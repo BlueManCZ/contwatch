@@ -32,14 +32,18 @@ class Database:
 
     @orm.db_session
     def get_devices(self):
-        return orm.select(d for d in self.Device)[:]
+        return self.Device.select(lambda d: d)[:]
 
     @orm.db_session
     def get_device_by_id(self, device_id):
-        return orm.select(d for d in self.Device if d.id == device_id)[:][0]
+        return self.Device.select(lambda d: d.id == device_id)[:][0]
 
     @orm.db_session
     def update_device_config(self, device_id, new_config):
         device = self.get_device_by_id(device_id)
-        print(device)
         device.config = json.dumps(new_config)
+
+    @orm.db_session
+    def delete_device(self, device_id):
+        device = self.get_device_by_id(device_id)
+        device.delete()

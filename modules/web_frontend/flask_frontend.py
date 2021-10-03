@@ -38,11 +38,12 @@ def parse_config(http_form, device_class):
 
 class FlaskFrontend:
 
-    def __init__(self, host, port, manager, database):
+    def __init__(self, _host, _port, _manager, _database):
         self.app = Flask(__name__)
-        self.host = host
-        self.port = port
-        self.manager = manager
+        self.host = _host
+        self.port = _port
+        self.manager = _manager
+        self.database = _database
         self.start_time = time.time()
         self.sio = SocketIO(self.app)
         self.connections = 0
@@ -74,7 +75,7 @@ class FlaskFrontend:
 
         @self.app.route("/devices", methods=["POST"])
         def devices():
-            return render_template("pages/devices.html", devices=self.manager.registered_devices)
+            return render_template("pages/devices.html", devices=self.manager.get_devices())
 
         @self.app.route("/details", methods=["POST"])
         def details():
@@ -90,48 +91,65 @@ class FlaskFrontend:
 
         @self.app.route("/dialog/<dialog_name>", methods=["POST"])
         def dialog(dialog_name):
-            if "configure_device" in dialog_name:
-                device_type = dialog_name.split("_")[2]
+            if "add_new_device" in dialog_name:
+                device_type = dialog_name.split("_")[-1]
                 for device in loaded_devices:
                     if device.type == device_type:
                         fields = device.fields
-                        return render_template("dialogs/configure_device.html", fields=fields, device_type=device_type)
+                        return render_template("dialogs/add_new_device.html", fields=fields, device_type=device_type)
 
             if "edit_device" in dialog_name:
-                device_id = int(dialog_name.split("_")[2])
-                device = self.manager.registered_devices[device_id]
+                device_id = int(dialog_name.split("_")[-1])
+                device = self.manager.get_device(device_id)
                 print(device.fields)
                 return render_template("dialogs/edit_device.html", id=device_id, device=device)
 
             return render_template(f"dialogs/{dialog_name}.html", loaded_devices=loaded_devices)
 
-        @self.app.route("/configure_new_device", methods=["POST"])
-        def configure_new_device():
+        @self.app.route("/add_new_device", methods=["POST"])
+        def add_new_device():
             device_class = get_device_class(request.form["device_type"])
             config = parse_config(request.form, device_class)
             new_device = device_class(config)
-            database_device = database.add_device(new_device)
+            database_device = self.database.add_device(new_device)
             self.manager.register_device(new_device, database_device.id)
 
-            return redirect("/devices")
+            return "ok"
 
-        @self.app.route("/edit_device", methods=["POST"])
-        def edit_device():
+        @self.app.route("/edit_device/<int:device_id>", methods=["POST"])
+        def edit_device(device_id):
             device_class = get_device_class(request.form["device_type"])
             config = parse_config(request.form, device_class)
-            device_id = int(request.form["device_id"])
-            database.update_device_config(device_id, config)
-            self.manager.registered_devices[device_id].update_config(config)
+            self.database.update_device_config(device_id, config)
+            self.manager.get_device(device_id).update_config(config)
 
             return redirect("/devices")
 
+        @self.app.route("/delete_device/<int:device_id>", methods=["POST"])
+        def delete_device(device_id):
+
+            self.database.delete_device(device_id)
+            device = self.manager.get_device(device_id)
+            device.exit()
+            self.manager.delete_device(device_id)
+
+            return "ok"
+
         def content_change_watcher():
+            last_devices_count = 0
             while self.active:
                 if self.connections > 0:
-                    for device in self.manager.registered_devices:
-                        if self.manager.registered_devices[device].changed:
+                    devices_count = len(self.manager.get_devices())
+
+                    if devices_count != last_devices_count:
+                        self.sio.emit("content-change-notification", "devices", namespace='/')
+                        self.sio.emit("content-change-notification", "overview", namespace='/')
+                        last_devices_count = devices_count
+
+                    for device in self.manager.get_devices().values():
+                        if device.changed:
                             self.sio.emit("content-change-notification", "devices", namespace='/')
-                            self.manager.registered_devices[device].changed = False
+                            device.changed = False
 
                     if self.manager.changed:
                         self.sio.emit("content-change-notification", "overview", namespace='/')

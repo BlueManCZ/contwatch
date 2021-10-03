@@ -41,6 +41,15 @@ class DeviceManager:
     def register_device(self, device, device_id):
         self.registered_devices[device_id] = device
 
+    def get_device(self, device_id):
+        return self.registered_devices[device_id]
+
+    def get_devices(self):
+        return self.registered_devices
+
+    def delete_device(self, device_id):
+        self.registered_devices.pop(device_id)
+
     def exit(self):
         for device in self.registered_devices:
             self.registered_devices[device].exit()
