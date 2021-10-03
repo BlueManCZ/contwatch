@@ -1,6 +1,11 @@
 <h1>Add new {{ device_type }} device</h1>
 <form id="add_device_form" action="/configure_new_device" method="post">
-    <input type="hidden" value="{{ device_type }}" name="device_type">
+    <input type="hidden" name="__device_type__" value="{{ device_type }}">
+
+    <div class="form-group mt-3">
+        <label for="__device_label__">Device label</label>
+        <input id="__device_label__" name="__device_label__" class="form-control">
+    </div>
 
     {% for field in fields %}
         {% if fields[field].0 == "string" %}

@@ -73,21 +73,17 @@ class SerialDevice(DeviceInterface):
             Thread(target=self._message_watcher).start()
 
     def update_config(self, new_config):
-        self.active = False
 
         self.config = new_config
 
         # TODO: Semaphore may be required
-        self.connection.close()
 
         self.connection.port = new_config["port"]
         self.connection.baudrate = new_config["baudrate"]
         self.connection.timeout = new_config["timeout"]
         self.auto_reconnect = new_config["auto_reconnect"]
 
-        if self.reconnect():
-            self.active = True
-            Thread(target=self._message_watcher).start()
+        self.connection.close()
 
         self.changed = True
 

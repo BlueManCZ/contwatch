@@ -96,8 +96,7 @@ nav {
       background-color: #f1f0f6; }
 
 #content-container {
-  padding: 20px;
-  padding-left: 0; }
+  padding: 20px 0; }
   #content-container h2 {
     margin-left: 40px;
     font-size: 22px;
@@ -109,10 +108,11 @@ nav {
   background-color: white;
   padding: 20px 25px;
   border-radius: 15px;
-  width: calc(50% - 40px);
   margin-left: 40px;
   margin-top: 20px;
-  box-shadow: 2px 2px 3px #dfdfdf; }
+  vertical-align: top;
+  box-shadow: 2px 2px 3px #dfdfdf;
+  transition: transform ease-in-out 50ms; }
   .tile h1 {
     font-size: 22px;
     color: #555;
@@ -134,12 +134,9 @@ nav {
     margin-top: 15px; }
 
 .tile-list .tile {
-  width: 230px !important;
   padding: 15px 15px !important;
-  vertical-align: top;
   overflow: hidden;
-  cursor: pointer;
-  transition: transform ease-in-out 50ms; }
+  cursor: pointer; }
   .tile-list .tile:hover {
     transform: scale(1.03); }
   .tile-list .tile img {
@@ -148,11 +145,16 @@ nav {
     float: left;
     margin-right: 5px; }
   .tile-list .tile h3 {
+    white-space: nowrap;
     font-size: 15px;
     text-transform: capitalize;
     font-weight: bolder;
     margin-bottom: 0;
     color: #555555; }
+    .tile-list .tile h3 .id {
+      text-transform: none;
+      color: #b3b1b1;
+      font-size: 14px; }
   .tile-list .tile .description {
     margin-bottom: 0;
     white-space: nowrap; }
@@ -174,6 +176,15 @@ nav {
   background-position: center;
   opacity: 0.8; }
 
+#overview .tile {
+  width: calc(50% - 60px); }
+
+#devices .tile h3 {
+  margin-right: 50px; }
+
+#details .tile {
+  width: calc(50% - 60px); }
+
 #dialog-container {
   display: flex;
   position: fixed;
@@ -189,17 +200,25 @@ nav {
     border: none;
     border-radius: 20px;
     width: 600px;
-    height: 400px;
+    min-height: 400px;
+    max-height: calc(100% - 100px);
     transition: 0.2s cubic-bezier(0.5, -0.7, 0.6, 1);
     padding: 25px 30px;
-    background-color: #f1f0f6; }
+    background-color: #f1f0f6;
+    overflow: auto; }
     #dialog-container dialog h1 {
       font-size: 22px;
       font-weight: bold;
-      color: #555555; }
+      color: #555555;
+      text-transform: capitalize; }
+      #dialog-container dialog h1 .id {
+        text-transform: none;
+        color: #939393;
+        font-size: 20px; }
     #dialog-container dialog .tile {
       margin-left: 0;
-      margin-right: 30px; }
+      margin-right: 30px;
+      width: 240px; }
 
 .dialog-hidden {
   opacity: 0 !important;

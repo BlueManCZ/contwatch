@@ -15,6 +15,7 @@ class Database:
         """Database entity device"""
 
         type = orm.Required(str)
+        label = orm.Optional(str)
         config = orm.Required(str)
 
     def __init__(self):
@@ -28,7 +29,7 @@ class Database:
     @orm.db_session
     def add_device(self, device: DeviceInterface):
         json_config = json.dumps(device.config)
-        return self.Device(type=device.type, config=json_config)
+        return self.Device(type=device.type, label=device.label, config=json_config)
 
     @orm.db_session
     def get_devices(self):
@@ -39,9 +40,11 @@ class Database:
         return self.Device.select(lambda d: d.id == device_id)[:][0]
 
     @orm.db_session
-    def update_device_config(self, device_id, new_config):
+    def update_device(self, device_id, *_, label="", config=""):
         device = self.get_device_by_id(device_id)
-        device.config = json.dumps(new_config)
+        if config:
+            device.config = json.dumps(config)
+        device.label = label
 
     @orm.db_session
     def delete_device(self, device_id):

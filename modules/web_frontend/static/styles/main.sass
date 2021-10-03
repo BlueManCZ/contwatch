@@ -64,8 +64,7 @@ nav
       background-color: #f1f0f6
 
 #content-container
-  padding: 20px
-  padding-left: 0
+  padding: 20px 0
 
   h2
     margin-left: 40px
@@ -78,10 +77,11 @@ nav
   background-color: white
   padding: 20px 25px
   border-radius: 15px
-  width: calc(50% - 40px)
   margin-left: 40px
   margin-top: 20px
+  vertical-align: top
   box-shadow: 2px 2px 3px #dfdfdf
+  transition: transform ease-in-out 50ms
 
   h1
     font-size: 22px
@@ -111,12 +111,9 @@ nav
 
 .tile-list
   .tile
-    width: 230px !important
     padding: 15px 15px !important
-    vertical-align: top
     overflow: hidden
     cursor: pointer
-    transition: transform ease-in-out 50ms
 
     &:hover
       transform: scale(1.03)
@@ -128,11 +125,17 @@ nav
       margin-right: 5px
 
     h3
+      white-space: nowrap
       font-size: 15px
       text-transform: capitalize
       font-weight: bolder
       margin-bottom: 0
       color: #555555
+
+      .id
+        text-transform: none
+        color: #b3b1b1
+        font-size: 14px
 
     .description
       margin-bottom: 0
@@ -157,6 +160,19 @@ nav
     background-position: center
     opacity: 0.8
 
+#overview
+  .tile
+    width: calc(50% - 60px)
+
+#devices
+  .tile
+    h3
+      margin-right: 50px
+
+#details
+  .tile
+    width: calc(50% - 60px)
+
 #dialog-container
   display: flex
   position: fixed
@@ -173,19 +189,28 @@ nav
     border: none
     border-radius: 20px
     width: 600px
-    height: 400px
+    min-height: 400px
+    max-height: calc(100% - 100px)
     transition: 0.2s cubic-bezier(.5,-.7,.6,1)
     padding: 25px 30px
     background-color: #f1f0f6
+    overflow: auto
 
     h1
       font-size: 22px
       font-weight: bold
       color: #555555
+      text-transform: capitalize
+
+      .id
+        text-transform: none
+        color: #939393
+        font-size: 20px
 
     .tile
       margin-left: 0
       margin-right: 30px
+      width: 240px
 
 .dialog-hidden
   opacity: 0 !important

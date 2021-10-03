@@ -1,6 +1,11 @@
-<h1>Edit {{ device.type }} device {{ id }}</h1>
+<h1>Edit {% if device.label %}<span style="text-transform: none">{{ device.label }}</span>{% else %}{{ device.type }} device{% endif %} <span class="id">(id:{{ id }})</span></h1>
 <form id="edit_device_form" action="/edit_device" method="post">
-    <input type="hidden" name="device_type" value="{{ device.type }}">
+    <input type="hidden" name="__device_type__" value="{{ device.type }}">
+
+    <div class="form-group mt-3">
+        <label for="__device_label__">Device label</label>
+        <input id="__device_label__" name="__device_label__" class="form-control" value="{{ device.label }}">
+    </div>
 
     {% for field in device.fields %}
         {% if device.fields[field].0 == "string" %}

@@ -1,38 +1,40 @@
 <h2>Advanced information</h2>
-<div class="tile">
-    <h1>Host device</h1>
-    <table>
-        <tr>
-            <th>Name</th>
-            <th>Kernel</th>
-        </tr>
-        <tr>
-            <td>{{ data.node }}</td>
-            <td>{{ data.release }}</td>
-        </tr>
-        <tr>
-            <th>Architecture</th>
-            <th>Machine</th>
-        </tr>
-        <tr>
-            <td>{{ data.architecture.0 }}, {{ data.architecture.1 }}</td>
-            <td>{{ data.machine }}</td>
-        </tr>
-        <tr>
-            <th>Processor</th>
-        </tr>
-        <tr>
-            <td colspan="2">{{ data.processor }}</td>
-        </tr>
-    </table>
-</div><div class="tile">
-    <h1>ContWatch instance</h1>
-    <table>
-        <tr>
-            <th>Uptime</th>
-        </tr>
-        <tr>
-            <td>{{ data.uptime }}</td>
-        </tr>
-    </table>
+<div id="details">
+    <div class="tile">
+        <h1>Host device</h1>
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Kernel</th>
+            </tr>
+            <tr>
+                <td>{{ data.node }}</td>
+                <td>{{ data.release }}</td>
+            </tr>
+            <tr>
+                <th>Architecture</th>
+                <th>Machine</th>
+            </tr>
+            <tr>
+                <td>{{ data.architecture.0 }}, {{ data.architecture.1 }}</td>
+                <td>{{ data.machine }}</td>
+            </tr>
+            <tr>
+                <th>Processor</th>
+            </tr>
+            <tr>
+                <td colspan="2">{{ data.processor }}</td>
+            </tr>
+        </table>
+    </div><div class="tile">
+        <h1>ContWatch instance</h1>
+        <table>
+            <tr>
+                <th>Uptime</th>
+            </tr>
+            <tr>
+                <td>{{ data.uptime }}</td>
+            </tr>
+        </table>
+    </div>
 </div>

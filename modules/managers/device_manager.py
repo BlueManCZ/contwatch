@@ -39,7 +39,9 @@ class DeviceManager:
         for device in devices:
             device_class = get_device_class(device.type)
             device_config = json.loads(device.config)
-            self.register_device(device_class(device_config), device.id)
+            device_instance = device_class(device_config)
+            device_instance.label = device.label
+            self.register_device(device_instance, device.id)
 
         Thread(target=self._device_watcher).start()
 

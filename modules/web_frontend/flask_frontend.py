@@ -101,16 +101,17 @@ class FlaskFrontend:
             if "edit_device" in dialog_name:
                 device_id = int(dialog_name.split("_")[-1])
                 device = self.manager.get_device(device_id)
-                print(device.fields)
                 return render_template("dialogs/edit_device.html", id=device_id, device=device)
 
             return render_template(f"dialogs/{dialog_name}.html", loaded_devices=loaded_devices)
 
         @self.app.route("/add_new_device", methods=["POST"])
         def add_new_device():
-            device_class = get_device_class(request.form["device_type"])
+            device_class = get_device_class(request.form["__device_type__"])
+            device_label = request.form["__device_label__"]
             config = parse_config(request.form, device_class)
             new_device = device_class(config)
+            new_device.label = device_label
             database_device = self.database.add_device(new_device)
             self.manager.register_device(new_device, database_device.id)
 
@@ -118,10 +119,13 @@ class FlaskFrontend:
 
         @self.app.route("/edit_device/<int:device_id>", methods=["POST"])
         def edit_device(device_id):
-            device_class = get_device_class(request.form["device_type"])
+            device_class = get_device_class(request.form["__device_type__"])
+            device_label = request.form["__device_label__"]
             config = parse_config(request.form, device_class)
-            self.database.update_device_config(device_id, config)
-            self.manager.get_device(device_id).update_config(config)
+            self.database.update_device(device_id, label=device_label, config=config)
+            device = self.manager.get_device(device_id)
+            device.update_config(config)
+            device.label = device_label
 
             return redirect("/devices")
 

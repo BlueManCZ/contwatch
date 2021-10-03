@@ -2,10 +2,16 @@ class DeviceInterface:
     """Interface which specifies methods each device module should implement."""
 
     config = {}  # Dictionary containing device configuration.
+    changed = False  # Set this to True if there is a need to refresh GUI.
+
+    # Each device module should have these variables configured.
 
     type = ""  # Represents type of the device. For example for determining correct icon in GUI.
     fields = {}  # Dictionary of arguments required for initialization from GUI.
-    changed = False  # Set this to True if there is a need to refresh GUI.
+
+    # Do not touch these variables.
+
+    label = ""  # Device label configurable via GUI.
 
     def update_config(self, new_config):
         """Update device configuration accordingly."""

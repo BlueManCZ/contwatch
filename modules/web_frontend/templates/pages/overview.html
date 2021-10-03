@@ -1,9 +1,9 @@
 <h2>Overview</h2>
-<div>
+<div id="overview">
     {% for message in manager.last_messages %}
         {% if message in manager.registered_devices %}
         <div class="tile">
-            <h1 style="text-transform: capitalize">{{ manager.registered_devices[message].type }} device {{ message }}</h1>
+            <h1 style="text-transform: capitalize">{% if manager.get_device(message).label %}<span style="text-transform: none">{{ manager.get_device(message).label }}</span>{% else %}{{ manager.get_device(message).type }} device {{ message }}{% endif %}</h1>
             <h3>Message from {{ manager.last_messages[message][0] }}</h3>
             <pre>{{ manager.last_messages[message][1] }}</pre>
         </div>
