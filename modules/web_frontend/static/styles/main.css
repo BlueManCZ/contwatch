@@ -136,7 +136,8 @@ nav {
 .tile-list .tile {
   padding: 15px 15px !important;
   overflow: hidden;
-  cursor: pointer; }
+  cursor: pointer;
+  min-width: 250px; }
   .tile-list .tile:hover {
     transform: scale(1.03); }
   .tile-list .tile img {
@@ -168,6 +169,7 @@ nav {
 .tile-list .add {
   height: 69px;
   width: 69px !important;
+  min-width: auto;
   border-radius: 100% !important;
   cursor: pointer;
   background-image: url("/static/images/icons/plus.png");
@@ -209,8 +211,7 @@ nav {
     #dialog-container dialog h1 {
       font-size: 22px;
       font-weight: bold;
-      color: #555555;
-      text-transform: capitalize; }
+      color: #555555; }
       #dialog-container dialog h1 .id {
         text-transform: none;
         color: #939393;

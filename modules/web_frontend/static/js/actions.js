@@ -48,11 +48,21 @@ function editDevice(deviceId) {
 
 function deleteDevice(deviceId) {
     const request = new XMLHttpRequest();
-    request.open('POST', `/delete_device/${deviceId}`);
     request.onload = () => {
         hideDialog();
     };
+    request.open('POST', `/delete_device/${deviceId}`);
     request.send();
+}
+
+function editJsonAttributesToStore(deviceId) {
+    const request = new XMLHttpRequest();
+    const data = new FormData(document.getElementById('json_attributes_to_store'));
+    request.onload = () => {
+        hideDialog();
+    };
+    request.open('POST', `/edit_json_attributes_to_store/${deviceId}`);
+    request.send(data);
 }
 
 function showDialog(dialogName) {

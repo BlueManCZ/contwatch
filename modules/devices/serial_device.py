@@ -26,7 +26,7 @@ class SerialDevice(DeviceInterface):
             else:
                 self.log.warning("Lost connection with device")
                 self.connection.close()
-                self.changed = True
+                self.add_changed("devices")
                 if self.auto_reconnect:
                     Thread(target=self._reconnect_watcher).start()
                 break
@@ -44,7 +44,7 @@ class SerialDevice(DeviceInterface):
         self.log.debug("Stopping reconnect watcher")
 
     type = "serial"
-    fields = {
+    config_fields = {
         "port": ["string", "Device port (e.g., /dev/ttyUSB0)"],
         "baudrate": ["int", "Baudrate", 9600],
         "timeout": ["float", "Timeout in seconds", .1],
@@ -66,15 +66,14 @@ class SerialDevice(DeviceInterface):
         self.message_queue = []  # TODO: The list will be used in multiple threads
 
         self.active = False
-        self.changed = True
+        self.add_changed("devices")
 
         if self.reconnect():
             self.active = True
             Thread(target=self._message_watcher).start()
 
     def update_config(self, new_config):
-
-        self.config = new_config
+        super(SerialDevice, self).update_config(new_config)
 
         # TODO: Semaphore may be required
 
@@ -85,7 +84,7 @@ class SerialDevice(DeviceInterface):
 
         self.connection.close()
 
-        self.changed = True
+        self.add_changed("devices")
 
     def send_message(self, message):
         if self.connection.is_open:
@@ -106,7 +105,7 @@ class SerialDevice(DeviceInterface):
         try:
             self.connection.open()
             self.log.info("Established connection")
-            self.changed = True
+            self.add_changed("devices")
             return True
         except serial.SerialException:
             if path.exists(self.connection.port):

@@ -2,20 +2,52 @@ class DeviceInterface:
     """Interface which specifies methods each device module should implement."""
 
     config = {}  # Dictionary containing device configuration.
-    changed = False  # Set this to True if there is a need to refresh GUI.
+
+    # Contains appropriate string if there is a need to refresh GUI.
+    # Use add_changed() to append here.
+    changed = []
 
     # Each device module should have these variables configured.
 
     type = ""  # Represents type of the device. For example for determining correct icon in GUI.
-    fields = {}  # Dictionary of arguments required for initialization from GUI.
+    config_fields = {}  # Dictionary of arguments required for initialization from GUI.
 
-    # Do not touch these variables.
+    # Don't touch these variables in code without serious reason. They are configurable through GUI.
 
-    label = ""  # Device label configurable via GUI.
+    _label = ""  # Device label configurable via GUI.
 
     def update_config(self, new_config):
         """Update device configuration accordingly."""
-        self.config = new_config
+        for attribute in new_config:
+            self.config[attribute] = new_config[attribute]
+
+    def add_changed(self, value):
+        """
+        Add appropriate string if there is a need to refresh GUI.
+        ["overview", "devices", "data", "details"]
+        """
+        if value not in self.changed:
+            self.changed.append(value)
+
+    def add_storage_attribute(self, attribute):
+        if "storage_attributes" not in self.config:
+            self.config["storage_attributes"] = []
+        if attribute not in self.config["storage_attributes"]:
+            self.config["storage_attributes"].append(attribute)
+
+    def get_storage_attributes(self):
+        if "storage_attributes" in self.config:
+            return self.config["storage_attributes"]
+        return []
+
+    def clear_storage_attributes(self):
+        self.config["storage_attributes"] = []
+
+    def set_label(self, label):
+        self._label = label
+
+    def get_label(self):
+        return self._label
 
     def send_message(self, message):
         """Send the message to the device."""

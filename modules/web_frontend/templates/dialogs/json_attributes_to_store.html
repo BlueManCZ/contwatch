@@ -1,0 +1,10 @@
+<h1>Select JSON attributes to store in database</h1>
+<form id="json_attributes_to_store" action="">
+    {% for attribute in json %}
+        <label>
+            <input type="checkbox" name="{{ attribute }}" {% if attribute in device.get_storage_attributes() %}checked{% endif %}> {{ attribute }}
+        </label><br>
+    {% endfor %}
+
+    <button type="button" class="mt-3 btn btn-primary btn-sm" onclick="editJsonAttributesToStore({{ id }})"><b>Save</b></button>
+</form>

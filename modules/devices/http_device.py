@@ -5,7 +5,7 @@ from threading import Thread
 from time import sleep, time
 
 from requests import get
-from requests.exceptions import ConnectionError, ReadTimeout
+from requests.exceptions import ConnectionError, ReadTimeout, MissingSchema
 
 
 class HttpDevice(DeviceInterface):
@@ -37,18 +37,29 @@ class HttpDevice(DeviceInterface):
                         self.success = True
                     else:
                         self.success = False
+                        self.add_changed("devices")
                 except ConnectionError as error:
+                    print(error)
                     self.log.warning("Failed to establish a connection")
                     self.log.error(error)
-                    print(error)
                     self.success = False
+                    self.add_changed("devices")
                     Thread(target=self._reconnect_watcher).start()
                     break
                 except ReadTimeout as error:
+                    print(error)
                     self.log.warning("Connection timeout")
                     self.log.error(error)
-                    print(error)
                     self.success = False
+                    self.add_changed("devices")
+                    sleep(1)
+                except MissingSchema as error:
+                    print(error)
+                    self.log.warning("Invalid URL address")
+                    self.log.error(error)
+                    self.success = False
+                    self.add_changed("devices")
+                    self.active = False
             sleep(0.1)
         self.log.debug("Stopping fetcher")
 
@@ -59,13 +70,15 @@ class HttpDevice(DeviceInterface):
                 response = get(self.url, params=self.params, timeout=self.timeout)
                 if response.status_code == 200:
                     Thread(target=self._fetcher).start()
+                    self.add_changed("devices")
                     break
             except ConnectionError:
+                sleep(1)
                 pass
         self.log.debug("Stopping reconnect watcher")
 
     type = "http"
-    fields = {
+    config_fields = {
         "url": ["string", "URL address"],
         "interval": ["int", "Fetching interval in seconds", 10],
         "timeout": ["float", "Timeout in seconds", 3],
@@ -87,18 +100,23 @@ class HttpDevice(DeviceInterface):
         self.message_queue = []
         self.success = False
         self.active = True
-        self.changed = True
+        self.add_changed("devices")
 
         Thread(target=self._fetcher).start()
 
     def update_config(self, new_config):
-        self.config = new_config
+        super(HttpDevice, self).update_config(new_config)
 
         self.url = new_config["url"]
         self.interval = new_config["interval"]
         self.timeout = new_config["timeout"]
         self.json = new_config["json"]
-        self.changed = True
+        self.add_changed("devices")
+
+        self.active = False
+        sleep(2)
+        self.active = True
+        Thread(target=self._fetcher).start()
 
     def ready_to_read(self):
         return len(self.message_queue) > 0
