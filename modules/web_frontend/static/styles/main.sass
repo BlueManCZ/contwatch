@@ -128,7 +128,6 @@ nav
     h3
       white-space: nowrap
       font-size: 15px
-      text-transform: capitalize
       font-weight: bolder
       margin-bottom: 0
       color: #555555
@@ -165,6 +164,52 @@ nav
 #overview
   .tile
     width: calc(50% - 60px)
+
+#data
+  margin-left: 40px
+
+  h3
+    font-weight: bold
+    font-size: 17px
+    margin-top: 14px
+    margin-bottom: 2px
+
+    button
+      border-radius: 3px
+      color: #5e5e5e
+      font-size: 12px
+      background: white
+      display: inline-block
+      padding: 2px 8px
+      vertical-align: top
+      margin-left: 4px
+      margin-top: 1px
+      border: none
+      box-shadow: 0 0 2px #cacaca
+
+      &:hover
+        color: #2a2a2a
+        box-shadow: 0 0 2px #6c6c6c
+
+  .attribute
+    color: #5e5e5e
+    display: inline-block
+    background: white
+    border: solid 1px white
+    padding: 4px 11px
+    margin-top: 10px
+    margin-right: 5px
+    border-radius: 20px
+    box-shadow: 1px 1px 3px #dfdfdf
+    font-size: 12px
+    font-weight: bold
+
+  .ghost
+    @extend .attribute
+    background: transparent
+    border: solid 1px #dbdbdb
+    color: #9b9b9b
+
 
 #devices
   .tile

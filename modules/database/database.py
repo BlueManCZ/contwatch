@@ -72,3 +72,7 @@ class Database:
     @orm.db_session
     def add_data_unit(self, label, value, device: Device):
         return DataUnit(label=label, value=value, device=device, datetime=datetime.now())
+
+    @orm.db_session
+    def get_all_stored_labels(self, device_id):
+        return orm.select(d.label for d in DataUnit if d.device.id == device_id)[:]

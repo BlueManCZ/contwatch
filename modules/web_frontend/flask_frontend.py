@@ -48,6 +48,11 @@ class FlaskFrontend:
         self.sio = SocketIO(self.app)
         self.connections = 0
         self.active = True
+        self.site_config = {}  # TODO: Store JSON in file or database
+
+        ###########
+        # SOCKETS #
+        ###########
 
         @self.sio.on("connect")
         def connect():
@@ -58,6 +63,10 @@ class FlaskFrontend:
         def disconnect():
             self.connections -= 1
             _emit_notification("content-change-notification", "details")
+
+        #########
+        # VIEWS #
+        #########
 
         @self.app.route("/")
         def index():
@@ -81,7 +90,24 @@ class FlaskFrontend:
 
         @self.app.route("/data", methods=["POST"])
         def data():
-            return render_template("pages/data.html")
+            for attribute in request.json:
+                self.site_config[attribute] = request.json[attribute]
+
+            attributes = {}
+            ghost_attributes = {}
+
+            for device_id in self.manager.registered_devices:
+                storage_attributes = self.manager.registered_devices[device_id].get_storage_attributes()
+                labels = self.database.get_all_stored_labels(device_id)
+                attributes[device_id] = []
+                ghost_attributes[device_id] = []
+                for attribute in labels:
+                    if attribute in storage_attributes:
+                        attributes[device_id].append(attribute)
+                    else:
+                        ghost_attributes[device_id].append(attribute)
+
+            return render_template("pages/data.html", site_config=self.site_config, manager=self.manager, attributes=attributes, ghost_attributes=ghost_attributes)
 
         @self.app.route("/details", methods=["POST"])
         def details():
@@ -96,6 +122,10 @@ class FlaskFrontend:
                 "connections": self.connections
             }
             return render_template("pages/details.html", data=dictionary)
+
+        #########
+        # FORMS #
+        #########
 
         @self.app.route("/dialog/<dialog_name>", methods=["POST"])
         def dialog(dialog_name):
@@ -157,8 +187,22 @@ class FlaskFrontend:
             for attribute in request.form:
                 device.add_storage_attribute(attribute)
                 print(attribute)
-            self.database.update_device(device_id, config=device.config)
+            self.database.update_device(device_id, config=device.config, label=device.get_label())
+            self.manager.add_changed("data")
             return "ok"
+
+        #################
+        # JINJA FILTERS #
+        #################
+
+        @self.app.template_filter("generate_device_name")
+        def generate_device_name(device):
+            label = device.get_label()
+            return label if label else device.type + " device"
+
+        #########
+        # OTHER #
+        #########
 
         def _emit_notification(notification_type, value):
             self.sio.emit(notification_type, value, namespace='/')

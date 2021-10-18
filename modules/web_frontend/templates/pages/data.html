@@ -1,4 +1,23 @@
-<h2>Data to be stored</h2>
+<h2>Data stored in the database</h2>
 <div id="data" class="tile-list">
+    <div class="mt-3 mb-4 pb-2 form-check">
+        <input type="checkbox" class="form-check-input" id="exampleCheck1" oninput="setSiteConfigArgument('ghost_data', {% if site_config['ghost_data'] %}false{% else %}true{% endif %}); displayPage('data')" {% if site_config['ghost_data'] %}checked{% endif %}>
+        <label class="form-check-label text-muted" for="exampleCheck1" title="Data remaining in the database that are no longer tracked">Display ghost data (?)</label>
+    </div>
+    {% for device in manager.registered_devices %}
+        <h3>{{ manager.registered_devices[device] | generate_device_name }} <button onclick="showDialog('json_attributes_to_store_{{ device }}')">Settings</button></h3>
 
+        {% if (site_config["ghost_data"] and not attributes[device] and not ghost_attributes[device]) or (not site_config["ghost_data"] and not attributes[device]) %}
+            <div class="text-muted mt-1 mb-4">There is nothing to display.</div>
+        {% else %}
+            {% for attribute in attributes[device] %}
+                <button class="attribute">{{ attribute }}</button>
+            {% endfor %}
+            {% if site_config["ghost_data"] %}
+                {% for attribute in ghost_attributes[device] %}
+                    <button class="ghost">{{ attribute }}</button>
+                {% endfor %}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
 </div>

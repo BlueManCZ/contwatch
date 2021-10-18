@@ -1,3 +1,5 @@
+let siteConfig = {};
+
 let socket = io();
 
 socket.on('content-change-notification', function(data) {
@@ -19,11 +21,12 @@ function displayPage(pageName) {
 
     const request = new XMLHttpRequest();
     request.open('POST', `/${pageName}`);
+    request.setRequestHeader("Content-Type", "application/json");
     request.onload = () => {
         document.getElementById("content-container").innerHTML = request.responseText;
         window.history.replaceState(pageName, pageName, `/${pageName}`);
     };
-    request.send();
+    request.send(JSON.stringify(siteConfig));
 }
 
 function addDevice() {
@@ -77,6 +80,10 @@ function showDialog(dialogName) {
 
 function hideDialog() {
     document.getElementById("dialog-container").classList.add('dialog-hidden');
+}
+
+function setSiteConfigArgument(argument, value) {
+    siteConfig[argument] = value;
 }
 
 function stopPropagation(e) {

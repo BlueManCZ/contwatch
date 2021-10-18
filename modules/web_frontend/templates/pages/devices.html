@@ -2,7 +2,7 @@
 <div id="devices" class="tile-list">
     {% for device in devices %}<div class="tile" style="border-left: solid 5px {{'#0b0' if devices[device].is_connected() else '#ff6f6f'}}" onclick="showDialog('edit_device_{{device}}')">
         <img src="{{ url_for('static', filename='images/icons/types/'+devices[device].type+'.png') }}" alt="Device icon">
-        <h3>{% if devices[device].get_label() %}<span style="text-transform: none">{{ devices[device].get_label() }}</span>{% else %}{{ devices[device].type }} device{% endif %} <span class="id">(id:{{ device }})</span></h3>
+        <h3>{{ devices[device] | generate_device_name }} <span class="id">(id:{{ device }})</span></h3>
         <p class="description small">
             {# TODO: Description should be standardized #}
             {% if devices[device].connection and devices[device].connection.port %}
