@@ -8,13 +8,17 @@ from modules.web_frontend.flask_frontend import FlaskFrontend
 from signal import signal, SIGINT
 from os import path, remove
 
+registered_modules = []
+
+
+def register_module(module):
+    registered_modules.append(module)
+
 
 def _quit_handler(_, __):
     """Handler for exit signal."""
-    global active
-    active = False
-    manager.exit()
-    web.exit()
+    for module in registered_modules:
+        module.exit()
     log.info("Quiting application")
 
 
@@ -27,49 +31,13 @@ if __name__ == "__main__":
         remove("contwatch.log")
 
     log = logger("Main")
-
     log.info("Starting application")
 
+    # Initialize main modules
     db = database.Database()
-
-    active = True
-
-    # uno_config = {"port": "/dev/ttyUSB0", "auto_reconnect": True}
-    # nano_config = {"port": "/dev/ttyUSB1", "auto_reconnect": True}
-    #
-    # arduino_uno = SerialDevice(device_config=uno_config)
-    # arduino_nano = SerialDevice(device_config=nano_config)
-
-    # url = 'https://api.openweathermap.org/data/2.5/weather'
-    # url = 'http://10.0.0.57/temp'
-    # params = {'id': '3069011', 'appid': 'token', 'units': 'metric'}
-    # http_device = HttpDevice(url=url, params=params, interval=3, json=True)
-    # http_device = HttpDevice(url=url, interval=5, timeout=10)
-    # arduino = SerialDevice(port='/dev/ttyUSB0', auto_reconnect=True)
-
-    # saved_time = time()
-
     manager = DeviceManager(db)
-
-    # manager.register_device(http_device, 1)
-    # manager.register_device(arduino, 2)
-
-    # manager.register_device(arduino_uno, 1)
-    # manager.register_device(arduino_nano, 2)
-
     web = FlaskFrontend("0.0.0.0", 5000, manager, db)
 
-    # while active:
-    #     if json_fetcher.ready_to_read():
-    #         print(json_fetcher.read_message())
-    #
-    #     if arduino_uno.ready_to_read():
-    #         message = arduino_uno.read_message()
-    #         arduino_nano.send_message(message)
-    #         print(message, end='')
-    #     else:
-    #         sleep(0.01)
-    #         if saved_time != int(time()):
-    #             saved_time = int(time())
-    #             status = ['ON', 'OFF'][saved_time % 2]
-    #             # arduino_nano.send_message(f"LED,{status},5\0")
+    register_module(db)
+    register_module(manager)
+    register_module(web)

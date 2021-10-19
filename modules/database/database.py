@@ -73,3 +73,6 @@ class Database:
     @orm.db_session
     def get_all_stored_labels(self, device_id):
         return orm.select(d.label for d in DataUnit if d.device.id == device_id)[:]
+
+    def exit(self):
+        pass
