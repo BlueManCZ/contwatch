@@ -1,7 +1,7 @@
 class DeviceInterface:
     """Interface which specifies methods each device module should implement."""
 
-    config = {}  # Dictionary containing device configuration.
+    settings = {}  # Dictionary containing device configuration. It is serialized as a JSON to the database.
 
     # Contains appropriate string if there is a need to refresh GUI.
     # Use add_changed() to append here.
@@ -12,14 +12,27 @@ class DeviceInterface:
     type = ""  # Represents type of the device. For example for determining correct icon in GUI.
     config_fields = {}  # Dictionary of arguments required for initialization from GUI.
 
-    # Don't touch these variables in code without serious reason. They are configurable through GUI.
-
-    _label = ""  # Device label configurable via GUI.
-
     def update_config(self, new_config):
         """Update device configuration accordingly."""
+        if "configuration" not in self.settings:
+            self.settings["configuration"] = {}
         for attribute in new_config:
-            self.config[attribute] = new_config[attribute]
+            self.settings["configuration"][attribute] = new_config[attribute]
+
+    def get_config(self):
+        if "configuration" in self.settings:
+            return self.settings["configuration"]
+        return {}
+
+    def set_config_attribute(self, attribute, value):
+        if "configuration" not in self.settings:
+            self.settings["configuration"] = {}
+        self.settings["configuration"][attribute] = value
+
+    def get_config_attribute(self, attribute):
+        if "configuration" in self.settings and attribute in self.settings["configuration"]:
+            return self.settings["configuration"][attribute]
+        return ""
 
     def add_changed(self, value):
         """
@@ -30,24 +43,26 @@ class DeviceInterface:
             self.changed.append(value)
 
     def add_storage_attribute(self, attribute):
-        if "storage_attributes" not in self.config:
-            self.config["storage_attributes"] = []
-        if attribute not in self.config["storage_attributes"]:
-            self.config["storage_attributes"].append(attribute)
+        if "storage_attributes" not in self.settings:
+            self.settings["storage_attributes"] = []
+        if attribute not in self.settings["storage_attributes"]:
+            self.settings["storage_attributes"].append(attribute)
 
     def get_storage_attributes(self):
-        if "storage_attributes" in self.config:
-            return self.config["storage_attributes"]
+        if "storage_attributes" in self.settings:
+            return self.settings["storage_attributes"]
         return []
 
     def clear_storage_attributes(self):
-        self.config["storage_attributes"] = []
+        self.settings["storage_attributes"] = []
 
     def set_label(self, label):
-        self._label = label
+        self.settings["label"] = label
 
     def get_label(self):
-        return self._label
+        if "label" in self.settings:
+            return self.settings["label"]
+        return ""
 
     def send_message(self, message):
         """Send the message to the device."""

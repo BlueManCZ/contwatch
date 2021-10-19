@@ -52,8 +52,9 @@ class SerialDevice(DeviceInterface):
     }
 
     # def __init__(self, *_, port, baudrate=9600, timeout=.1, auto_reconnect=False):
-    def __init__(self, device_config):
-        self.config = device_config
+    def __init__(self, settings):
+        self.settings = settings
+        device_config = self.get_config()
 
         self.log = logger(f"SerialDevice {device_config['port']}")
         self.connection = serial.Serial()

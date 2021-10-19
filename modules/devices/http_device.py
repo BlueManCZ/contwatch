@@ -86,8 +86,9 @@ class HttpDevice(DeviceInterface):
     }
 
     # def __init__(self, *_, url, params=None, interval=10, timeout=3, json=False):
-    def __init__(self, device_config):
-        self.config = device_config
+    def __init__(self, settings):
+        self.settings = settings
+        device_config = self.get_config()
 
         self.log = logger(f"Plaintext fetcher {device_config['url']}")
 

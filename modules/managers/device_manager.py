@@ -45,13 +45,12 @@ class DeviceManager:
 
         for device in devices:
             device_class = get_device_class(device.type)
-            device_instance = device_class(device.config)
-            device_instance.set_label(device.label)
-            self.register_device(device_instance, device.id)
+            device_instance = device_class(device.settings)
+            self.register_device(device.id, device_instance)
 
         Thread(target=self._device_watcher).start()
 
-    def register_device(self, device, device_id):
+    def register_device(self, device_id, device):
         self.registered_devices[device_id] = device
         for p in ["overview", "devices"]:
             self.add_changed(p)

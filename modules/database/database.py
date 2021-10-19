@@ -12,9 +12,8 @@ class Device(db.Entity):
     """Database entity for storing device configuration"""
 
     type = orm.Required(str)
-    label = orm.Optional(str)
-    config = orm.Required(orm.Json)
-    data = orm.Set('DataUnit')
+    settings = orm.Required(orm.Json)
+    data = orm.Set("DataUnit")
 
 
 class DataUnit(db.Entity):
@@ -43,7 +42,7 @@ class Database:
 
     @orm.db_session
     def add_device(self, device: DeviceInterface):
-        return Device(type=device.type, label=device.label, config=device.config)
+        return Device(type=device.type, settings=device.settings)
 
     @orm.db_session
     def get_devices(self):
@@ -54,11 +53,9 @@ class Database:
         return Device.select(lambda d: d.id == device_id)[:][0]
 
     @orm.db_session
-    def update_device(self, device_id, *_, label="", config=""):
+    def update_device_settings(self, device_id, settings):
         device = self.get_device_by_id(device_id)
-        if config:
-            device.config = config
-        device.label = label
+        device.settings = settings
 
     @orm.db_session
     def delete_device(self, device_id):
