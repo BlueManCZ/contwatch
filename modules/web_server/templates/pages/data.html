@@ -11,11 +11,11 @@
             <div class="text-muted mt-1 mb-4">There is nothing to display.</div>
         {% else %}
             {% for attribute in attributes[device] %}
-                <button class="attribute">{{ attribute }}</button>
+                <a href="/graph/{{ device }}/{{ attribute }}"><button class="attribute">{{ attribute }}</button></a>
             {% endfor %}
             {% if site_config["ghost_data"] %}
                 {% for attribute in ghost_attributes[device] %}
-                    <button class="ghost">{{ attribute }}</button>
+                    <a href="/graph/{{ device }}/{{ attribute }}"><button class="ghost">{{ attribute }}</button></a>
                 {% endfor %}
             {% endif %}
         {% endif %}

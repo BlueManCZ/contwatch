@@ -1,4 +1,4 @@
-<h1>Edit {% if device.label %}<span>{{ device.get_label() }}</span>{% else %}{{ device.type }} device{% endif %} <span class="id">(id:{{ id }})</span></h1>
+<h1>{{ device.get_label() }} <span class="id">(id:{{ id }})</span></h1>
 <form id="edit_device_form">
     <input type="hidden" name="__device_type__" value="{{ device.type }}">
 
@@ -31,6 +31,6 @@
         {% endif %}
     {% endfor %}
 
-    <button type="button" class="mt-3 btn btn-primary btn-sm" onclick="editDevice({{ id }})"><b>Save</b></button>
-    <button type="button" class="mt-3 ml-2 btn btn-danger btn-sm" onclick="deleteDevice({{ id }})"><b>Delete</b></button>
+    <button type="button" class="mt-3 btn btn-primary btn-sm" onclick="editDevice({{ id }})"><b>Save changes</b></button>
+    <button type="button" class="mt-3 ml-2 btn btn-danger btn-sm" onclick="deleteDevice({{ id }})"><b>Delete device</b></button>
 </form>

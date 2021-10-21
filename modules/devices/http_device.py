@@ -52,7 +52,8 @@ class HttpDevice(DeviceInterface):
                     self.log.error(error)
                     self.success = False
                     self.add_changed("devices")
-                    sleep(1)
+                    Thread(target=self._reconnect_watcher).start()
+                    break
                 except MissingSchema as error:
                     print(error)
                     self.log.warning("Invalid URL address")
@@ -73,8 +74,10 @@ class HttpDevice(DeviceInterface):
                     self.add_changed("devices")
                     break
             except ConnectionError:
-                sleep(1)
                 pass
+            except ReadTimeout:
+                pass
+            sleep(1)
         self.log.debug("Stopping reconnect watcher")
 
     type = "http"

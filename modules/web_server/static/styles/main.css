@@ -96,19 +96,20 @@ nav {
       background-color: #f1f0f6; }
 
 #content-container {
-  padding: 20px 0; }
+  padding: 20px 0 20px 40px; }
   #content-container h2 {
-    margin-left: 40px;
     font-size: 22px;
     font-weight: bold;
     margin-top: 7px; }
+  #content-container title {
+    display: block; }
 
 .tile {
   display: inline-block;
   background-color: white;
   padding: 20px 25px;
   border-radius: 15px;
-  margin-left: 40px;
+  margin-right: 40px;
   margin-top: 20px;
   vertical-align: top;
   box-shadow: 2px 2px 3px #dfdfdf;
@@ -177,53 +178,53 @@ nav {
   background-position: center;
   opacity: 0.8; }
 
-#overview .tile {
-  width: calc(50% - 60px); }
+#overview .tile, #inspector .tile, #details .tile {
+  width: calc(50% - 42px); }
 
-#data {
-  margin-left: 40px; }
-  #data h3 {
-    font-weight: bold;
-    font-size: 17px;
-    margin-top: 14px;
-    margin-bottom: 2px; }
-    #data h3 button {
-      border-radius: 3px;
-      color: #5e5e5e;
-      font-size: 12px;
-      background: white;
-      display: inline-block;
-      padding: 2px 8px;
-      vertical-align: top;
-      margin-left: 4px;
-      margin-top: 1px;
-      border: none;
-      box-shadow: 0 0 2px #cacaca; }
-      #data h3 button:hover {
-        color: #2a2a2a;
-        box-shadow: 0 0 2px #6c6c6c; }
-  #data .attribute, #data .ghost {
+#inspector .chart-preview canvas {
+  width: 100%;
+  margin-top: 30px;
+  margin-bottom: 10px; }
+
+#data h3 {
+  font-weight: bold;
+  font-size: 17px;
+  margin-top: 14px;
+  margin-bottom: 2px; }
+  #data h3 button {
+    border-radius: 3px;
     color: #5e5e5e;
-    display: inline-block;
-    background: white;
-    border: solid 1px white;
-    padding: 4px 11px;
-    margin-top: 10px;
-    margin-right: 5px;
-    border-radius: 20px;
-    box-shadow: 1px 1px 3px #dfdfdf;
     font-size: 12px;
-    font-weight: bold; }
-  #data .ghost {
-    background: transparent;
-    border: solid 1px #dbdbdb;
-    color: #9b9b9b; }
+    background: white;
+    display: inline-block;
+    padding: 2px 8px;
+    vertical-align: top;
+    margin-left: 4px;
+    margin-top: 1px;
+    border: none;
+    box-shadow: 0 0 2px #cacaca; }
+    #data h3 button:hover {
+      color: #2a2a2a;
+      box-shadow: 0 0 2px #6c6c6c; }
+#data .attribute, #data .ghost {
+  color: #5e5e5e;
+  display: inline-block;
+  background: white;
+  border: solid 1px white;
+  padding: 4px 11px;
+  margin-top: 10px;
+  margin-right: 5px;
+  border-radius: 20px;
+  box-shadow: 1px 1px 3px #dfdfdf;
+  font-size: 12px;
+  font-weight: bold; }
+#data .ghost {
+  background: transparent;
+  border: solid 1px #dbdbdb;
+  color: #9b9b9b; }
 
 #devices .tile h3 {
   margin-right: 50px; }
-
-#details .tile {
-  width: calc(50% - 60px); }
 
 #dialog-container {
   display: flex;

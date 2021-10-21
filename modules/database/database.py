@@ -71,8 +71,39 @@ class Database:
         return DataUnit(label=label, value=value, device=device, datetime=datetime.now())
 
     @orm.db_session
-    def get_all_stored_labels(self, device_id):
+    def get_all_stored_attributes(self, device_id):
         return orm.select(d.label for d in DataUnit if d.device.id == device_id)[:]
+
+    @orm.db_session
+    def get_device_attribute_data(self, device_id, attribute, datetime_from: datetime, datetime_to: datetime, *_,
+                                  smartround=0):
+        result = orm.select(
+            (d.datetime, d.value) for d in DataUnit
+            if d.device.id == device_id and d.label == attribute
+            and d.datetime >= datetime_from and d.datetime <= datetime_to
+        )[:]
+
+        if smartround:
+            ratio = len(result) / smartround
+            index = 0
+            if ratio > 1:
+                rounded_result = []
+                while int(index) < len(result):
+                    sublist = result[int(index):int(index+ratio)]
+                    rounded_result.append(_smartround_avg(*sublist))
+                    index += ratio
+                print(rounded_result)
+                result = rounded_result
+
+        return result
+
+    @orm.db_session
+    def get_device_attribute_dates(self, device_id, attribute):
+        return orm.select(d for d in DataUnit if d.device.id == device_id and d.label == attribute)
 
     def exit(self):
         pass
+
+
+def _smartround_avg(*items):
+    return items[0][0], round(sum(map(lambda x: x[1], items)) / len(items), 1)

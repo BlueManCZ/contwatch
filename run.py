@@ -3,7 +3,7 @@
 from modules.database import database
 from modules.logging.logger import logger
 from modules.managers.device_manager import DeviceManager
-from modules.web_frontend.flask_frontend import FlaskFrontend
+from modules.web_server.flask_web_server import FlaskWebServer
 
 from signal import signal, SIGINT
 from os import path, remove
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     # Initialize main modules
     db = database.Database()
     manager = DeviceManager(db)
-    web = FlaskFrontend("0.0.0.0", 5000, manager, db)
+    web = FlaskWebServer("0.0.0.0", 5000, manager, db)
 
     register_module(db)
     register_module(manager)

@@ -64,20 +64,22 @@ nav
       background-color: #f1f0f6
 
 #content-container
-  padding: 20px 0
+  padding: 20px 0 20px 40px
 
   h2
-    margin-left: 40px
     font-size: 22px
     font-weight: bold
     margin-top: 7px
+
+  title
+    display: block
 
 .tile
   display: inline-block
   background-color: white
   padding: 20px 25px
   border-radius: 15px
-  margin-left: 40px
+  margin-right: 40px
   margin-top: 20px
   vertical-align: top
   box-shadow: 2px 2px 3px #dfdfdf
@@ -161,13 +163,18 @@ nav
     background-position: center
     opacity: 0.8
 
-#overview
+#overview, #inspector, #details
   .tile
-    width: calc(50% - 60px)
+    width: calc(50% - 42px)
+
+#inspector
+  .chart-preview
+    canvas
+      width: 100%
+      margin-top: 30px
+      margin-bottom: 10px
 
 #data
-  margin-left: 40px
-
   h3
     font-weight: bold
     font-size: 17px
@@ -210,15 +217,10 @@ nav
     border: solid 1px #dbdbdb
     color: #9b9b9b
 
-
 #devices
   .tile
     h3
       margin-right: 50px
-
-#details
-  .tile
-    width: calc(50% - 60px)
 
 #dialog-container
   display: flex

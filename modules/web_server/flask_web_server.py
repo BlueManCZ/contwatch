@@ -3,6 +3,7 @@ import time
 
 from modules.devices import *
 
+from datetime import datetime, timedelta
 from flask import Flask, redirect, render_template, request
 from flask_socketio import SocketIO
 from threading import Thread
@@ -36,7 +37,7 @@ def parse_config(http_form, device_class):
     return config
 
 
-class FlaskFrontend:
+class FlaskWebServer:
 
     def __init__(self, _host, _port, _manager, _database):
         self.app = Flask(__name__)
@@ -84,6 +85,10 @@ class FlaskFrontend:
         def overview():
             return render_template("pages/overview.html", manager=self.manager)
 
+        @self.app.route("/inspector", methods=["POST"])
+        def inspector():
+            return render_template("pages/inspector.html", manager=self.manager)
+
         @self.app.route("/devices", methods=["POST"])
         def devices():
             return render_template("pages/devices.html", devices=self.manager.get_devices())
@@ -98,7 +103,7 @@ class FlaskFrontend:
 
             for device_id in self.manager.registered_devices:
                 storage_attributes = self.manager.registered_devices[device_id].get_storage_attributes()
-                labels = self.database.get_all_stored_labels(device_id)
+                labels = self.database.get_all_stored_attributes(device_id)
                 attributes[device_id] = []
                 ghost_attributes[device_id] = []
                 for attribute in labels:
@@ -128,6 +133,112 @@ class FlaskFrontend:
                 "connections": self.connections
             }
             return render_template("pages/details.html", data=dictionary)
+
+        #######
+        # API #
+        #######
+
+        def json_error(error, message):
+            response = {
+                "error": error,
+                "message": message
+            }
+            return response, error
+
+        @self.app.route("/api")
+        def api():
+            return "Specify your API request"
+
+        @self.app.route("/api/charts")
+        def api_charts():
+            device_id = request.args["device_id"] if "device_id" in request.args else ""
+            query = request.args["query"] if "query" in request.args else ""
+            date_from = request.args["date_from"] if "date_from" in request.args else ""
+            date_to = request.args["date_to"] if "date_to" in request.args else ""
+            smartround = request.args["smartround"] if "smartround" in request.args else 0
+
+            datetime_from = datetime.min
+            datetime_to = datetime.now()
+
+            data_map = {}
+
+            if device_id:
+                try:
+                    device_id = int(device_id)
+                    data_map[device_id] = []
+                except Exception as e:
+                    print(e)
+                    return json_error(400, "Argument 'device_id' has to be an integer.")
+            elif query:
+                try:
+                    query = query.split(",")
+
+                    data_map = {}
+
+                    for entry in query:
+                        print(entry)
+                        specifier = entry.split("-")
+                        d_id = int(specifier[0])
+                        if len(specifier) == 2:
+                            if d_id not in data_map:
+                                data_map[d_id] = []
+                            data_map[d_id].append(specifier[1])
+                        else:
+                            data_map[d_id] = []
+
+                    print(data_map)
+
+                except Exception as e:
+                    print(e)
+                    return json_error(400, "Argument 'query' cannot be successfully parsed")
+            else:
+                return json_error(400, "Either 'device_id' or 'query' has to be provided as an argument.")
+
+            if date_from:
+                try:
+                    datetime_from = datetime.strptime(date_from, "%d-%m-%Y")
+                except Exception as e:
+                    print(e)
+                    return json_error(400, "Argument 'date_from' is not in '%d-%m-%Y' format.")
+
+            if date_to:
+                try:
+                    datetime_to = datetime.strptime(date_to, "%d-%m-%Y")
+                    datetime_to += timedelta(days=1)
+                except Exception as e:
+                    print(e)
+                    return json_error(400, "Argument 'date_to' is not in '%d-%m-%Y' format.")
+
+            if smartround:
+                try:
+                    smartround = int(smartround)
+                except Exception as e:
+                    print(e)
+                    return json_error(400, "Argument 'smartround' has to be an integer.")
+
+            response = {}
+
+            for device in data_map:
+                print(device)
+                attributes = data_map[device] if data_map[device] else self.database.get_all_stored_attributes(device)
+
+                print(attributes)
+
+                chart_data = {}
+
+                for attribute in attributes:
+                    chart_data[attribute] = {"timestamps": [], "values": []}
+                    result = self.database.get_device_attribute_data(device, attribute, datetime_from, datetime_to,
+                                                                     smartround=smartround)
+
+                    for entry in result:
+                        entry_time = entry[0]
+                        chart_data[attribute]["timestamps"].append(int(entry_time.timestamp()))
+                        chart_data[attribute]["values"].append(entry[1])
+
+                    response[device] = chart_data
+
+            return response
 
         #########
         # FORMS #
