@@ -93,7 +93,7 @@ class Database:
                     rounded_result.append(_smartround_avg(*sublist))
                     index += ratio
                 print(rounded_result)
-                result = rounded_result
+                result = rounded_result[:smartround]
 
         return result
 
@@ -106,4 +106,4 @@ class Database:
 
 
 def _smartround_avg(*items):
-    return items[0][0], round(sum(map(lambda x: x[1], items)) / len(items), 1)
+    return items[-1][0], round(sum(map(lambda x: x[1], items)) / len(items), 1)

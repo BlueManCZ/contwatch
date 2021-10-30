@@ -1,0 +1,16 @@
+<div id="inspector" onload="displayCharts(100)">
+    <button onclick="showChartInspector()">Display chart inspector</button>
+    <h2>Saved views</h2>
+    <div class="tile chart-preview" onclick="clearChartInspector(); showChartInspector(); addChartToInspector(3); addChartToInspector(4, 'teplotaMenice')">
+        <h1>Teploty</h1>
+        <canvas class="chart" data-query="3,4-teplotaMenice"></canvas>
+    </div>
+    <div class="tile chart-preview" onclick="clearChartInspector(); showChartInspector(); addChartToInspector(4, 'prikonFaze1'); addChartToInspector(4, 'aktualniVykon')">
+        <h1>Výkon a příkon</h1>
+        <canvas class="chart" data-query="4-prikonFaze1,4-aktualniVykon"></canvas>
+    </div>
+</div>
+<div id="inspector-chart-view" class="inspector-chart-view-hidden">
+    <img src="{{ url_for('static', filename='images/icons/close.png') }}" class="close-button" onclick="hideChartInspector()"></img>
+    <canvas id="inspector-chart"></canvas>
+</div>
