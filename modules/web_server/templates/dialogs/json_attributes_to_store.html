@@ -1,5 +1,5 @@
 <h1>Select JSON attributes to store in database</h1>
-<form id="json_attributes_to_store" action="">
+<form id="json-attributes-to-store" action="">
     {% for attribute in json %}
         <div class="form-check">
             <input type="checkbox" class="form-check-input" name="{{ attribute }}" id="{{ attribute }}" {% if attribute in device.get_storage_attributes() %}checked{% endif %}>

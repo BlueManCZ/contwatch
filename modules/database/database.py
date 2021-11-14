@@ -25,6 +25,13 @@ class DataUnit(db.Entity):
     datetime = orm.Required(datetime)
 
 
+class ChartView(db.Entity):
+    """Database entity for saving user defined charts"""
+
+    label = orm.Required(str)
+    settings = orm.Required(orm.Json)
+
+
 class Database:
     """Class representing database instance"""
 
@@ -100,6 +107,33 @@ class Database:
     @orm.db_session
     def get_device_attribute_dates(self, device_id, attribute):
         return orm.select(d for d in DataUnit if d.device.id == device_id and d.label == attribute)
+
+    #####################
+    # CHARTVIEW queries #
+    #####################
+
+    @orm.db_session
+    def add_chart_view(self, label, settings):
+        return ChartView(label=label, settings=settings)
+
+    @orm.db_session
+    def get_chart_views(self):
+        return ChartView.select(lambda v: v)[:]
+
+    @orm.db_session
+    def get_chart_view_by_id(self, view_id):
+        return ChartView.select(lambda v: v.id == view_id)[:][0]
+
+    @orm.db_session
+    def update_chart_view(self, view_id, label, settings):
+        view = self.get_chart_view_by_id(view_id)
+        view.label = label
+        view.settings = settings
+
+    @orm.db_session
+    def delete_chart_view(self, view_id):
+        view = self.get_chart_view_by_id(view_id)
+        view.delete()
 
     def exit(self):
         pass

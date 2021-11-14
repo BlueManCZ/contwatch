@@ -1,16 +1,42 @@
 <div id="inspector" onload="displayCharts(100)">
-    <button onclick="showChartInspector()">Display chart inspector</button>
+    <button onclick="clearChartInspector(); showChartInspector()">Display empty chart inspector</button>
     <h2>Saved views</h2>
-    <div class="tile chart-preview" onclick="clearChartInspector(); showChartInspector(); addChartToInspector(3); addChartToInspector(4, 'teplotaMenice')">
-        <h1>Teploty</h1>
-        <canvas class="chart" data-query="3,4-teplotaMenice"></canvas>
-    </div>
-    <div class="tile chart-preview" onclick="clearChartInspector(); showChartInspector(); addChartToInspector(4, 'prikonFaze1'); addChartToInspector(4, 'aktualniVykon')">
-        <h1>Výkon a příkon</h1>
-        <canvas class="chart" data-query="4-prikonFaze1,4-aktualniVykon"></canvas>
-    </div>
+    {% for view in views %}
+        <div class="tile chart-preview" onclick="clearChartInspector(); showChartInspector({{ view.id }}, '{{ view.label }}'); {% for device in view.settings %}{% for attribute in view.settings[device] %}addChartToInspector('{{ device }}', '{{ attribute }}');{% endfor %}{% endfor %}">
+            <h1>{{ view.label }}</h1>
+            <canvas class="chart" data-query="{% for device in view.settings %}{% for attribute in view.settings[device] %}{{ device }}-{{ attribute }},{% endfor %}{% endfor %}"></canvas>
+        </div>
+    {% endfor %}
+{#    <div class="tile chart-preview" onclick="clearChartInspector(); showChartInspector(1); addChartToInspector(3); addChartToInspector(4, 'teplotaMenice')">#}
+{#        <h1>Teploty</h1>#}
+{#        <canvas class="chart" data-query="3,4-teplotaMenice"></canvas>#}
+{#    </div>#}
+{#    <div class="tile chart-preview" onclick="clearChartInspector(); showChartInspector(2); addChartToInspector(4, 'prikonFaze1'); addChartToInspector(4, 'aktualniVykon')">#}
+{#        <h1>Výkon a příkon</h1>#}
+{#        <canvas class="chart" data-query="4-prikonFaze1,4-aktualniVykon"></canvas>#}
+{#    </div>#}
 </div>
 <div id="inspector-chart-view" class="inspector-chart-view-hidden">
     <img src="{{ url_for('static', filename='images/icons/close.png') }}" class="close-button" onclick="hideChartInspector()"></img>
-    <canvas id="inspector-chart"></canvas>
+    <div class="inspector-config-panel">
+        <h1>Chart data</h1>
+        {% for device in manager.get_devices() %}
+            {% if manager.get_devices()[device].get_storage_attributes() %}
+                <h2>{{ manager.get_devices()[device] | generate_device_name }}</h2>
+                {% for attribute in manager.get_devices()[device].get_storage_attributes() %}
+                    <div>
+                        <input id="{{ device }}-{{ attribute }}" type="checkbox" class="inspector-data-checkbox" data-device="{{ device }}" data-attribute="{{ attribute }}" oninput="toggleChartInInspector('{{ device }}', '{{ attribute }}')">
+                        <label for="{{ device }}-{{ attribute }}">{{ attribute }}</label>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endfor %}
+        <hr>
+        <h2>Save view</h2>
+        <input type="text" class="view-label" id="view-label" placeholder="View label">
+        <button class="btn btn-sm btn-primary mt-3" onclick="saveOrEditChartView()">Save</button>
+        <button class="btn btn-sm btn-danger mt-3" onclick="deleteChartView()">Delete</button>
+    </div><div class="canvas-parent">
+        <canvas id="inspector-chart"></canvas>
+    </div>
 </div>

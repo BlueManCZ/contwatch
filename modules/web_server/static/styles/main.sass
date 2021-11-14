@@ -297,6 +297,35 @@ nav
   margin: 25px
   transition: 0.4s cubic-bezier(.5,-.7,.6,1)
 
+  .canvas-parent
+    height: 100%
+
+  .inspector-config-panel
+    width: 330px
+    padding: 15px 20px
+    position: absolute
+    background: white
+    box-shadow: 0 0 5px silver
+    border-radius: 20px
+    padding-left: 100px
+    top: 70px
+    left: -330px
+    transition: ease-in-out 100ms
+
+    &:hover
+      left: -100px
+
+    h1
+      font-size: 20px
+      font-weight: bold
+
+    h2
+      font-size: 17px
+      margin-top: 25px
+
+    .view-label
+      width: 100%
+
 .inspector-chart-view-hidden
   opacity: 0 !important
   margin-top: -1000%

@@ -87,7 +87,7 @@ class FlaskWebServer:
 
         @self.app.route("/inspector", methods=["POST"])
         def inspector():
-            return render_template("pages/inspector.html", manager=self.manager)
+            return render_template("pages/inspector.html", manager=self.manager, views=self.database.get_chart_views())
 
         @self.app.route("/devices", methods=["POST"])
         def devices():
@@ -313,6 +313,24 @@ class FlaskWebServer:
             self.database.update_device_settings(device_id, device.settings)
             self.manager.add_changed("data")
             return "ok"
+
+        @self.app.route("/save_or_edit_chart_view", methods=["POST"])
+        def save_or_edit_chart_view():
+            view_id = request.json["view_id"]
+            if not request.json["label"]:
+                return {"status": False, "error": "View label cannot be empty"}
+            if view_id >= 0:
+                self.database.update_chart_view(view_id, request.json["label"], request.json["settings"])
+            else:
+                view_id = self.database.add_chart_view(request.json["label"], request.json["settings"]).id
+            self.manager.add_changed("inspector")
+            return {"status": True, "view_id": view_id}
+
+        @self.app.route("/delete_chart_view/<int:view_id>", methods=["POST"])
+        def delete_chart_view(view_id):
+            self.database.delete_chart_view(view_id)
+            self.manager.add_changed("inspector")
+            return {"status": True, "view_id": view_id}
 
         #################
         # JINJA FILTERS #
