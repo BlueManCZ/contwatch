@@ -1,3 +1,4 @@
+from modules import settings
 from modules.devices.device_interface import DeviceInterface
 from modules.logging.logger import logger
 
@@ -38,7 +39,7 @@ class Database:
     def __init__(self):
         log = logger("Database")
 
-        db.bind(provider="sqlite", filename="database.sqlite", create_db=True)
+        db.bind(provider="sqlite", filename=settings.DATABASE_FILE, create_db=True)
         db.generate_mapping(create_tables=True)
 
         log.info("Database initialized")
@@ -60,9 +61,9 @@ class Database:
         return Device.select(lambda d: d.id == device_id)[:][0]
 
     @orm.db_session
-    def update_device_settings(self, device_id, settings):
+    def update_device_settings(self, device_id, device_settings):
         device = self.get_device_by_id(device_id)
-        device.settings = settings
+        device.settings = device_settings
 
     @orm.db_session
     def delete_device(self, device_id):
@@ -113,8 +114,8 @@ class Database:
     #####################
 
     @orm.db_session
-    def add_chart_view(self, label, settings):
-        return ChartView(label=label, settings=settings)
+    def add_chart_view(self, label, view_settings):
+        return ChartView(label=label, settings=view_settings)
 
     @orm.db_session
     def get_chart_views(self):
@@ -125,10 +126,10 @@ class Database:
         return ChartView.select(lambda v: v.id == view_id)[:][0]
 
     @orm.db_session
-    def update_chart_view(self, view_id, label, settings):
+    def update_chart_view(self, view_id, label, view_settings):
         view = self.get_chart_view_by_id(view_id)
         view.label = label
-        view.settings = settings
+        view.settings = view_settings
 
     @orm.db_session
     def delete_chart_view(self, view_id):

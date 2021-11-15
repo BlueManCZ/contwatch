@@ -1,4 +1,4 @@
-from modules.devices.device_interface import DeviceInterface
+from .device_interface import DeviceInterface
 from modules.logging.logger import logger
 
 from threading import Thread

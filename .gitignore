@@ -1,5 +1,8 @@
-# PyCharm
+# JetBrains
 .idea/
+
+# Python
+__pycache__/
 
 # Logs
 *.log*

@@ -1,13 +1,15 @@
-import platform
-import time
-
+from modules import settings
 from modules.devices import *
 
 from datetime import datetime, timedelta
 from flask import Flask, redirect, render_template, request
 from flask_socketio import SocketIO
+from os import path
 from threading import Thread
 # from waitress import serve
+
+import platform
+import time
 
 
 def parse_config(http_form, device_class):
@@ -39,10 +41,10 @@ def parse_config(http_form, device_class):
 
 class FlaskWebServer:
 
-    def __init__(self, _host, _port, _manager, _database):
+    def __init__(self, _manager, _database):
         self.app = Flask(__name__)
-        self.host = _host
-        self.port = _port
+        self.host = settings.WEB_SERVER_ADDRESS
+        self.port = settings.WEB_SERVER_PORT
         self.manager = _manager
         self.database = _database
         self.start_time = time.time()
@@ -130,7 +132,8 @@ class FlaskWebServer:
                 "processor": platform.processor(),
                 "uptime": time.strftime('%H:%M:%S', time.gmtime(time.time() - self.start_time)),
                 "devices": len(self.manager.get_devices()),
-                "connections": self.connections
+                "connections": self.connections,
+                "database_size": "{:.2f}".format(path.getsize(settings.DATABASE_FILE) / 1000000)
             }
             return render_template("pages/details.html", data=dictionary)
 

@@ -1,4 +1,4 @@
-import modules.logging.logger_settings as settings
+from modules import settings
 
 import logging
 import logging.handlers
@@ -12,14 +12,14 @@ def logger(name=None):
     handler = logging.handlers.RotatingFileHandler(
         filename=settings.LOG_FILE,
         mode="a",
-        maxBytes=settings.MAX_BYTES,
-        backupCount=settings.MAX_BACKUP_COUNT
+        maxBytes=settings.LOG_FILE_MAX_BYTES,
+        backupCount=settings.LOG_FILE_BACKUP_COUNT
     )
 
     handler.setFormatter(formatter)
 
     logger_object = logging.getLogger(name)
-    logger_object.setLevel(settings.LEVEL)
+    logger_object.setLevel(settings.LOG_LEVEL)
     logger_object.addHandler(handler)
 
     return logger_object
