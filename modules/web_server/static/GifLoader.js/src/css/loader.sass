@@ -1,0 +1,32 @@
+.preload, .preload *
+  overflow: hidden
+  transition: none !important
+  -webkit-transition: none !important
+  -moz-transition: none !important
+  -o-transition: none !important
+
+#loader
+  position: fixed
+  display: flex
+  width: 100vw
+  height: 100vh
+  top: 0
+  left: 0
+  background: white
+  z-index: 5000
+  overflow: hidden
+  transition: opacity 0.8s cubic-bezier(0.62, 1.71, 1, 1.64), margin-top 0.3s step-start
+  transition-timing-function: cubic-bezier(0.62, 1.71, 1, 1.64), steps(1, start)
+  opacity: 1
+
+  img
+    margin: auto
+    transition: transform 0.2s cubic-bezier(.5,-.7,.6,1)
+
+.loader_hidden
+  opacity: 0 !important
+  margin-top: -1000%
+  transition-timing-function: cubic-bezier(0.62, 1.71, 1, 1.64), step-end !important
+
+  img
+    transform: scale(0)
