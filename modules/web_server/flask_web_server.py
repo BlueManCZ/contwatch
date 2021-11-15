@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from flask import Flask, redirect, render_template, request
 from flask_socketio import SocketIO
 from os import path
+from sys import getsizeof
 from threading import Thread
 # from waitress import serve
 
@@ -52,6 +53,7 @@ class FlaskWebServer:
         self.connections = 0
         self.active = True
         self.site_config = {}  # TODO: Store JSON in file or database
+        self.cache = {}
 
         ###########
         # SOCKETS #
@@ -133,7 +135,8 @@ class FlaskWebServer:
                 "uptime": time.strftime('%H:%M:%S', time.gmtime(time.time() - self.start_time)),
                 "devices": len(self.manager.get_devices()),
                 "connections": self.connections,
-                "database_size": "{:.2f}".format(path.getsize(settings.DATABASE_FILE) / 1000000)
+                "database_size": path.getsize(settings.DATABASE_FILE),
+                "cache_size": get_size(self.cache)
             }
             return render_template("pages/details.html", data=dictionary)
 
@@ -152,13 +155,46 @@ class FlaskWebServer:
         def api():
             return "Specify your API request"
 
+        def parse_query(query):
+            query = query.split(",")
+            data_map = {}
+            for entry in query:
+                specifier = entry.split("-")
+                d_id = int(specifier[0])
+                if len(specifier) == 2:
+                    if d_id not in data_map:
+                        data_map[d_id] = []
+                    data_map[d_id].append(specifier[1])
+                else:
+                    data_map[d_id] = []
+            return data_map
+
+        def build_chart_data(data_map, datetime_from, datetime_to, smartround):
+            response = {}
+            for device in data_map:
+                attributes = data_map[device] if data_map[device] else self.database.get_all_stored_attributes(device)
+                chart_data = {}
+
+                for attribute in attributes:
+                    chart_data[attribute] = {"timestamps": [], "values": []}
+                    result = self.database.get_device_attribute_data(device, attribute, datetime_from, datetime_to,
+                                                                     smartround=smartround)
+                    for entry in result:
+                        entry_time = entry[0]
+                        chart_data[attribute]["timestamps"].append(int(entry_time.timestamp()))
+                        chart_data[attribute]["values"].append(entry[1])
+
+                    response[device] = chart_data
+            return response
+
         @self.app.route("/api/charts")
         def api_charts():
             device_id = request.args["device_id"] if "device_id" in request.args else ""
-            query = request.args["query"] if "query" in request.args else ""
+            raw_query = request.args["query"] if "query" in request.args else ""
             date_from = request.args["date_from"] if "date_from" in request.args else ""
             date_to = request.args["date_to"] if "date_to" in request.args else ""
             smartround = request.args["smartround"] if "smartround" in request.args else 0
+            cache = request.args["cache"] if "cache" in request.args else False
 
             datetime_from = datetime.min
             datetime_to = datetime.now()
@@ -172,25 +208,9 @@ class FlaskWebServer:
                 except Exception as e:
                     print(e)
                     return json_error(400, "Argument 'device_id' has to be an integer.")
-            elif query:
+            elif raw_query:
                 try:
-                    query = query.split(",")
-
-                    data_map = {}
-
-                    for entry in query:
-                        print(entry)
-                        specifier = entry.split("-")
-                        d_id = int(specifier[0])
-                        if len(specifier) == 2:
-                            if d_id not in data_map:
-                                data_map[d_id] = []
-                            data_map[d_id].append(specifier[1])
-                        else:
-                            data_map[d_id] = []
-
-                    print(data_map)
-
+                    data_map = parse_query(raw_query)
                 except Exception as e:
                     print(e)
                     return json_error(400, "Argument 'query' cannot be successfully parsed")
@@ -219,28 +239,30 @@ class FlaskWebServer:
                     print(e)
                     return json_error(400, "Argument 'smartround' has to be an integer.")
 
-            response = {}
+            if settings.CACHE_INTERVAL_MINUTES and cache:
+                if raw_query in self.cache:
+                    for entry in self.cache[raw_query]:
+                        if entry["s"] == smartround and entry["f"] == datetime_from:
+                            delta = datetime.now() - entry["c"]
+                            if settings.CACHE_ASYNC:
+                                return entry["r"]
+                            if delta.total_seconds() / 60 < settings.CACHE_INTERVAL_MINUTES:
+                                return entry["r"]
 
-            for device in data_map:
-                print(device)
-                attributes = data_map[device] if data_map[device] else self.database.get_all_stored_attributes(device)
+            response = build_chart_data(data_map, datetime_from, datetime_to, smartround)
 
-                print(attributes)
+            if settings.CACHE_INTERVAL_MINUTES and cache:
+                if raw_query not in self.cache:
+                    self.cache[raw_query] = []
+                self.cache[raw_query].append({
+                    "c": datetime.now(),
+                    "r": response,
+                    "f": datetime_from,
+                    "t": datetime_to,
+                    "s": smartround
+                })
 
-                chart_data = {}
-
-                for attribute in attributes:
-                    chart_data[attribute] = {"timestamps": [], "values": []}
-                    result = self.database.get_device_attribute_data(device, attribute, datetime_from, datetime_to,
-                                                                     smartround=smartround)
-
-                    for entry in result:
-                        entry_time = entry[0]
-                        chart_data[attribute]["timestamps"].append(int(entry_time.timestamp()))
-                        chart_data[attribute]["values"].append(entry[1])
-
-                    response[device] = chart_data
-
+            print("Saving to cache")
             return response
 
         #########
@@ -280,8 +302,8 @@ class FlaskWebServer:
             device_class = get_device_class(request.form["__device_type__"])
             device_label = request.form["__device_label__"]
             config = parse_config(request.form, device_class)
-            settings = {"configuration": config}
-            new_device = device_class(settings)
+            device_settings = {"configuration": config}
+            new_device = device_class(device_settings)
             new_device.set_label(device_label)
             database_device = self.database.add_device(new_device)
             self.manager.register_device(database_device.id, new_device)
@@ -344,6 +366,16 @@ class FlaskWebServer:
             label = device.get_label()
             return label if label else device.type + " device"
 
+        @self.app.template_filter("hr_filesize")
+        def hr_filesize(filesize):
+            units = ["B", "kB", "MB", "GB", "TB"]
+            i = 0
+            while filesize > 100:
+                filesize /= 1000
+                i += 1
+            value = f"{filesize:.2f}".rstrip("0").rstrip(".")
+            return f"{value} {units[i]}"
+
         #########
         # OTHER #
         #########
@@ -371,7 +403,42 @@ class FlaskWebServer:
 
                 time.sleep(1)
 
+        def cache_refresher():
+            while self.active:
+                now = datetime.now()
+                for query in self.cache:
+                    for entry in self.cache[query]:
+                        if entry["t"].day == now.day and entry["t"].month == now.month and entry["t"].year == now.year:
+                            entry["r"] = build_chart_data(parse_query(query), entry["f"], now, entry["s"])
+                        else:
+                            self.cache[query].remove(entry)
+                time.sleep(settings.CACHE_INTERVAL_MINUTES * 60)
+
+        def get_size(obj, seen=None):
+            """Recursively finds size of objects"""
+            size = getsizeof(obj)
+            if seen is None:
+                seen = set()
+            obj_id = id(obj)
+            if obj_id in seen:
+                return 0
+            # Important mark as seen *before* entering recursion to gracefully handle
+            # self-referential objects
+            seen.add(obj_id)
+            if isinstance(obj, dict):
+                size += sum([get_size(v, seen) for v in obj.values()])
+                size += sum([get_size(k, seen) for k in obj.keys()])
+            elif hasattr(obj, "__dict__"):
+                size += get_size(obj.__dict__, seen)
+            elif hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes, bytearray)):
+                size += sum([get_size(i, seen) for i in obj])
+            return size
+
         Thread(target=content_change_watcher).start()
+
+        refresher = Thread(target=cache_refresher)
+        refresher.daemon = True
+        refresher.start()
 
         self.serverThread = Thread(target=self._run)
         self.serverThread.daemon = True

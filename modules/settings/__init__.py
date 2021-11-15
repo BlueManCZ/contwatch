@@ -57,6 +57,10 @@ DATABASE_FILE = get_setting("DATABASE_FILE", "database.sqlite")
 WEB_SERVER_ADDRESS = get_setting("WEB_SERVER_ADDRESS", "0.0.0.0")
 WEB_SERVER_PORT = get_setting("WEB_SERVER_PORT", 80)
 
+# Cache
+CACHE_INTERVAL_MINUTES = get_setting("CACHE_INTERVAL_MINUTES", 10)
+CACHE_ASYNC = get_setting("CACHE_ASYNC", False)
+
 # Tweaks
 if not path.isabs(DATABASE_FILE):
     DATABASE_FILE = path.abspath(REAL_PATH + "/../../" + DATABASE_FILE)

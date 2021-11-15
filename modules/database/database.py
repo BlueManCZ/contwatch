@@ -100,18 +100,17 @@ class Database:
                     sublist = result[int(index):int(index+ratio)]
                     rounded_result.append(_smartround_avg(*sublist))
                     index += ratio
-                print(rounded_result)
                 result = rounded_result[:smartround]
 
         return result
 
     @orm.db_session
     def get_device_attribute_dates(self, device_id, attribute):
-        return orm.select(d for d in DataUnit if d.device.id == device_id and d.label == attribute)
+        return DataUnit.select(lambda d: d.device.id == device_id and d.label == attribute)
 
-    #####################
-    # CHARTVIEW queries #
-    #####################
+    ######################
+    # CHART VIEW queries #
+    ######################
 
     @orm.db_session
     def add_chart_view(self, label, view_settings):

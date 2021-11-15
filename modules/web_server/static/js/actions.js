@@ -2,7 +2,7 @@ let siteConfig = {};
 
 let socket = io();
 
-socket.on('content-change-notification', function(data) {
+socket.on("content-change-notification", function(data) {
     if (currentPage === data) {
         displayPage(data);
     }
@@ -15,18 +15,19 @@ function displayPage(pageName) {
 
     let buttons = document.getElementsByClassName("nav-item");
     for (let i = 0; i < buttons.length; i++) {
-        buttons[i].classList.remove('active');
+        buttons[i].classList.remove("active");
     }
-    document.getElementById('menu-item-' + pageName).classList.add('active');
+    document.getElementById("menu-item-" + pageName).classList.add("active");
 
     const request = new XMLHttpRequest();
-    request.open('POST', `/${pageName}`);
+    request.open("POST", `/${pageName}`);
     request.setRequestHeader("Content-Type", "application/json");
     request.onload = () => {
-        document.getElementById("content-container").innerHTML = request.responseText;
+        let contentContainer = document.getElementById("content-container");
+        contentContainer.innerHTML = request.responseText;
         window.history.replaceState(pageName, pageName, `/${pageName}`);
-        if (document.getElementById("content-container").firstChild.onload) {
-            document.getElementById("content-container").firstChild.onload();
+        if (contentContainer.firstChild.onload) {
+            contentContainer.firstChild.onload();
         }
     };
     request.send(JSON.stringify(siteConfig));
@@ -34,21 +35,21 @@ function displayPage(pageName) {
 
 function addDevice() {
     const request = new XMLHttpRequest();
-    const data = new FormData(document.getElementById('add_device_form'));
+    const data = new FormData(document.getElementById("add_device_form"));
     request.onload = () => {
         hideDialog();
     };
-    request.open('POST', '/add_new_device');
+    request.open("POST", "/add_new_device");
     request.send(data)
 }
 
 function editDevice(deviceId) {
     const request = new XMLHttpRequest();
-    const data = new FormData(document.getElementById('edit_device_form'));
+    const data = new FormData(document.getElementById("edit_device_form"));
     request.onload = () => {
         hideDialog();
     };
-    request.open('POST', `/edit_device/${deviceId}`);
+    request.open("POST", `/edit_device/${deviceId}`);
     request.send(data)
 }
 
@@ -57,7 +58,7 @@ function deleteDevice(deviceId) {
     request.onload = () => {
         hideDialog();
     };
-    request.open('POST', `/delete_device/${deviceId}`);
+    request.open("POST", `/delete_device/${deviceId}`);
     request.send();
 }
 
@@ -74,10 +75,12 @@ function saveOrEditChartView() {
 
     for (let i = 0; i < checkboxes.length; i++) {
         if (checkboxes[i].checked) {
-            if (settings[checkboxes[i].dataset.device] === undefined) {
-                settings[checkboxes[i].dataset.device] = [checkboxes[i].dataset.attribute];
+            let device = checkboxes[i].dataset.device;
+            let attribute = checkboxes[i].dataset.attribute;
+            if (settings[device] === undefined) {
+                settings[device] = [attribute];
             } else {
-                settings[checkboxes[i].dataset.device].push(checkboxes[i].dataset.attribute);
+                settings[device].push(attribute);
             }
         }
     }
@@ -85,7 +88,7 @@ function saveOrEditChartView() {
     data["settings"] = settings;
 
     const request = new XMLHttpRequest();
-    request.open("POST", `/save_or_edit_chart_view`);
+    request.open("POST", "/save_or_edit_chart_view");
     request.setRequestHeader("Content-Type", "application/json");
     request.onload = () => {
         console.log(request.responseText);
@@ -137,8 +140,9 @@ function showDialog(dialogName) {
     const request = new XMLHttpRequest();
     request.open("POST", `/dialog/${dialogName}`);
     request.onload = () => {
-        document.getElementById("dialog-container").firstChild.innerHTML = request.responseText;
-        document.getElementById("dialog-container").classList.remove("dialog-hidden");
+        let dialogContainer = document.getElementById("dialog-container");
+        dialogContainer.firstChild.innerHTML = request.responseText;
+        dialogContainer.classList.remove("dialog-hidden");
     };
     request.send();
 }
@@ -154,6 +158,9 @@ function initializeInspectorChart() {
 
     inspectorChart = new Chart(ctx, {
         type: "line",
+        data: {
+            datasets: []
+        },
         options: {
             animation: false,
             interaction: {
@@ -221,11 +228,11 @@ function showChartInspector(currentViewId=-1, label="") {
         initializeInspectorChart();
     }
     document.getElementById("view-label").value = label;
-    document.getElementById("inspector-chart-view").classList.remove('inspector-chart-view-hidden');
+    document.getElementById("inspector-chart-view").classList.remove("inspector-chart-view-hidden");
 }
 
 function hideChartInspector() {
-    document.getElementById("inspector-chart-view").classList.add('inspector-chart-view-hidden');
+    document.getElementById("inspector-chart-view").classList.add("inspector-chart-view-hidden");
 }
 
 function clearChartInspector() {
@@ -398,7 +405,7 @@ function displayCharts(smartround) {
             ctx.dataset.query = ctx.dataset.query.slice(0, -1);
         }
 
-        let url = `/api/charts?query=${ctx.dataset.query}&date_from=${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}&smartround=${smartround}`;
+        let url = `/api/charts?query=${ctx.dataset.query}&date_from=${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}&smartround=${smartround}&cache=yes`;
         let request = new XMLHttpRequest();
         request.open("GET", url);
         request.setRequestHeader("Accept", "application/json");

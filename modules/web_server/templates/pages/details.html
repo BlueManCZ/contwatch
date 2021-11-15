@@ -43,7 +43,15 @@
             </tr>
             <tr>
                 <td>{{ data.connections }}</td>
-                <td>{{ data.database_size }} MB</td>
+                <td>{{ data.database_size | hr_filesize }}</td>
+            </tr>
+            <tr>
+                <th>Cache size</th>
+                <th></th>
+            </tr>
+            <tr>
+                <td>{{ data.cache_size | hr_filesize }}</td>
+                <td></td>
             </tr>
         </table>
     </div>
