@@ -51,10 +51,10 @@ WEB_SERVER_PORT = 80
 # Cache is stored in RAM.
 # 0 means caching is disabled.
 # Default: 10
-CACHE_INTERVAL_MINUTES = 10
+CACHING_INTERVAL = 10
 
 # Asynchronous caching
-# Cache data will be refreshed asynchronously every CACHE_INTERVAL_MINUTES minutes.
+# Cache data will be refreshed asynchronously every CACHING_INTERVAL minutes.
 # With async caching enabled you can get better response time on slower hardware.
 # Default: False
-CACHE_ASYNC = False
+CACHING_ASYNC = False

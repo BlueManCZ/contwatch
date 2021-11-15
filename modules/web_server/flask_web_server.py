@@ -239,19 +239,19 @@ class FlaskWebServer:
                     print(e)
                     return json_error(400, "Argument 'smartround' has to be an integer.")
 
-            if settings.CACHE_INTERVAL_MINUTES and cache:
+            if settings.CACHING_INTERVAL and cache:
                 if raw_query in self.cache:
                     for entry in self.cache[raw_query]:
                         if entry["s"] == smartround and entry["f"] == datetime_from:
                             delta = datetime.now() - entry["c"]
-                            if settings.CACHE_ASYNC:
+                            if settings.CACHING_ASYNC:
                                 return entry["r"]
-                            if delta.total_seconds() / 60 < settings.CACHE_INTERVAL_MINUTES:
+                            if delta.total_seconds() / 60 < settings.CACHING_INTERVAL:
                                 return entry["r"]
 
             response = build_chart_data(data_map, datetime_from, datetime_to, smartround)
 
-            if settings.CACHE_INTERVAL_MINUTES and cache:
+            if settings.CACHING_INTERVAL and cache:
                 if raw_query not in self.cache:
                     self.cache[raw_query] = []
                 self.cache[raw_query].append({
@@ -412,7 +412,7 @@ class FlaskWebServer:
                             entry["r"] = build_chart_data(parse_query(query), entry["f"], now, entry["s"])
                         else:
                             self.cache[query].remove(entry)
-                time.sleep(settings.CACHE_INTERVAL_MINUTES * 60)
+                time.sleep(settings.CACHING_INTERVAL * 60)
 
         def get_size(obj, seen=None):
             """Recursively finds size of objects"""
