@@ -1,6 +1,7 @@
 from modules import settings
 from modules.devices import *
-from modules.tools import get_cpu_model
+
+import modules.tools as tools
 
 from datetime import datetime, timedelta
 from flask import Flask, redirect, render_template, request
@@ -132,12 +133,14 @@ class FlaskWebServer:
                 "release": platform.release(),
                 "machine": platform.machine(),
                 "architecture": platform.architecture(),
-                "processor": get_cpu_model(),
+                "processor": tools.cpu_model(),
                 "uptime": time.strftime('%H:%M:%S', time.gmtime(time.time() - self.start_time)),
                 "devices": len(self.manager.get_devices()),
                 "connections": self.connections,
                 "database_size": path.getsize(settings.DATABASE_FILE),
-                "cache_size": get_size(self.cache)
+                "cache_size": get_size(self.cache),
+                "python_version": platform.python_version(),
+                "distribution": tools.distribution()
             }
             return render_template("pages/details.html", data=dictionary)
 
