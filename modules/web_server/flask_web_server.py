@@ -7,12 +7,10 @@ from datetime import datetime, timedelta
 from flask import Flask, redirect, render_template, request
 from flask_socketio import SocketIO
 from os import path
-from sys import getsizeof
+from time import gmtime, sleep, strftime, time
 from threading import Thread
-# from waitress import serve
 
 import platform
-import time
 
 
 def parse_config(http_form, device_class):
@@ -50,8 +48,8 @@ class FlaskWebServer:
         self.port = settings.WEB_SERVER_PORT
         self.manager = _manager
         self.database = _database
-        self.start_time = time.time()
-        self.sio = SocketIO(self.app)
+        self.start_time = time()
+        self.sio = SocketIO(self.app, async_mode="eventlet")
         self.connections = 0
         self.active = True
         self.site_config = {}  # TODO: Store JSON in file or database
@@ -134,11 +132,11 @@ class FlaskWebServer:
                 "machine": platform.machine(),
                 "architecture": platform.architecture(),
                 "processor": tools.cpu_model(),
-                "uptime": time.strftime('%H:%M:%S', time.gmtime(time.time() - self.start_time)),
+                "uptime": strftime('%H:%M:%S', gmtime(time() - self.start_time)),
                 "devices": len(self.manager.get_devices()),
                 "connections": self.connections,
                 "database_size": path.getsize(settings.DATABASE_FILE),
-                "cache_size": get_size(self.cache),
+                "cache_size": tools.get_size(self.cache),
                 "python_version": platform.python_version(),
                 "distribution": tools.distribution()
             }
@@ -405,7 +403,7 @@ class FlaskWebServer:
                     for page_name in pages:
                         _emit_notification("content-change-notification", page_name)
 
-                time.sleep(1)
+                sleep(0.1)
 
         def cache_refresher():
             while self.active:
@@ -416,27 +414,7 @@ class FlaskWebServer:
                             entry["r"] = build_chart_data(parse_query(query), entry["f"], now, entry["s"])
                         else:
                             self.cache[query].remove(entry)
-                time.sleep(settings.CACHING_INTERVAL * 60)
-
-        def get_size(obj, seen=None):
-            """Recursively finds size of objects"""
-            size = getsizeof(obj)
-            if seen is None:
-                seen = set()
-            obj_id = id(obj)
-            if obj_id in seen:
-                return 0
-            # Important mark as seen *before* entering recursion to gracefully handle
-            # self-referential objects
-            seen.add(obj_id)
-            if isinstance(obj, dict):
-                size += sum([get_size(v, seen) for v in obj.values()])
-                size += sum([get_size(k, seen) for k in obj.keys()])
-            elif hasattr(obj, "__dict__"):
-                size += get_size(obj.__dict__, seen)
-            elif hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes, bytearray)):
-                size += sum([get_size(i, seen) for i in obj])
-            return size
+                sleep(settings.CACHING_INTERVAL * 60)
 
         Thread(target=content_change_watcher).start()
 
@@ -444,14 +422,11 @@ class FlaskWebServer:
         refresher.daemon = True
         refresher.start()
 
-        self.serverThread = Thread(target=self._run)
-        self.serverThread.daemon = True
+        self.serverThread = Thread(target=self.run)
         self.serverThread.start()
-        # self.app.run(self.host, self.port, use_reloader=True, debug=True)
 
-    def _run(self):
-        self.app.run(self.host, self.port)
-        # serve(self.app, host=self.host, port=self.port)
+    def run(self):
+        self.sio.run(self.app, self.host, self.port, debug=settings.WEB_SERVER_DEBUG, use_reloader=False)
 
     def exit(self):
         self.active = False

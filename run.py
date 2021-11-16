@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 
+from eventlet import monkey_patch
+monkey_patch()
+
 from modules import settings
 from modules.database import database
 from modules.logging.logger import logger
 from modules.managers.device_manager import DeviceManager
 from modules.web_server.flask_web_server import FlaskWebServer
 
-from signal import signal, SIGINT
 from os import path, remove
+from signal import signal, SIGINT
 
 registered_modules = []
 
@@ -19,9 +22,9 @@ def register_modules(*modules):
 
 def _quit_handler(_, __):
     """Handler for exit signal."""
+    print("\nSIGINT signal detected. Exiting")
     for module in registered_modules:
         module.exit()
-    log.info("Quiting application")
 
 
 if __name__ == "__main__":
@@ -40,4 +43,8 @@ if __name__ == "__main__":
     manager = DeviceManager(db)
     web = FlaskWebServer(manager, db)
 
+    # Register modules for SIGINT handler
     register_modules(db, manager, web)
+
+    # Wait for the manager thread to end
+    manager.thread.join()

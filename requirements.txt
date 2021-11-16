@@ -1,5 +1,6 @@
-Flask
-flask_socketio
+eventlet
+flask
+flask-socketio
 pony
 pyserial
 requests

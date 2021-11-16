@@ -48,7 +48,8 @@ class DeviceManager:
             device_instance = device_class(device.settings)
             self.register_device(device.id, device_instance)
 
-        Thread(target=self._device_watcher).start()
+        self.thread = Thread(target=self._device_watcher)
+        self.thread.start()
 
     def register_device(self, device_id, device):
         self.registered_devices[device_id] = device

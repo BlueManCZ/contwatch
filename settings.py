@@ -44,6 +44,10 @@ WEB_SERVER_ADDRESS = "0.0.0.0"
 # Default: 80
 WEB_SERVER_PORT = 80
 
+# Enable debug mode for web server. Do not use it in a production deployment.
+# Default: False
+WEB_SERVER_DEBUG = False
+
 
 # ----| CACHING | ----
 
