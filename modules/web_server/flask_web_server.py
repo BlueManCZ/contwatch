@@ -1,5 +1,6 @@
 from modules import settings
 from modules.devices import *
+from modules.tools import get_cpu_model
 
 from datetime import datetime, timedelta
 from flask import Flask, redirect, render_template, request
@@ -131,7 +132,7 @@ class FlaskWebServer:
                 "release": platform.release(),
                 "machine": platform.machine(),
                 "architecture": platform.architecture(),
-                "processor": platform.processor(),
+                "processor": get_cpu_model(),
                 "uptime": time.strftime('%H:%M:%S', time.gmtime(time.time() - self.start_time)),
                 "devices": len(self.manager.get_devices()),
                 "connections": self.connections,
