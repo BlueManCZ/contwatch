@@ -37,7 +37,7 @@ class HandlerInterface:
     def add_changed(self, value):
         """
         Add appropriate string if there is a need to refresh GUI.
-        ["overview", "inspector", "devices", "data", "details"]
+        ["overview", "inspector", "data", "handlers", "details"]
         """
         if value not in self.changed:
             self.changed.append(value)

@@ -1,15 +1,16 @@
+<h2>Inspector</h2>
 <div id="inspector" onload="displayCharts(100)">
-    <button onclick="clearChartInspector(); showChartInspector()">Display empty chart inspector</button>
+    <button onclick="clearChartInspector(); showChartInspector()">Empty chart</button>
     <h2>Saved views</h2>
-    {% for view in views %}
+    {% for view in views -%}
         <div class="tile chart-preview" onclick="clearChartInspector(); showChartInspector({{ view.id }}, '{{ view.label }}'); {% for handler in view.settings %}{% for attribute in view.settings[handler] %}addChartToInspector('{{ handler }}', '{{ attribute }}');{% endfor %}{% endfor %}">
             <h1>{{ view.label }}</h1>
             <canvas class="chart" data-query="{% for handler in view.settings %}{% for attribute in view.settings[handler] %}{{ handler }}-{{ attribute }},{% endfor %}{% endfor %}"></canvas>
         </div>
-    {% endfor %}
+    {%- endfor %}
 </div>
 <div id="inspector-chart-view" class="inspector-chart-view-hidden">
-    <img src="{{ url_for('static', filename='images/icons/close.png') }}" class="close-button" onclick="hideChartInspector()"></img>
+    <img src="{{ url_for('static', filename='images/icons/close.png') }}" class="close-button" onclick="hideChartInspector()" alt="Close icon">
     <div class="inspector-config-panel">
         <h1>Chart data</h1>
         {% for handler in manager.get_handlers() %}

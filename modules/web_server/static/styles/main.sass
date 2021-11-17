@@ -1,5 +1,8 @@
 @import "defaults"
 
+body
+  height: 100vh
+
 nav
   position: fixed
   width: 320px
@@ -9,6 +12,8 @@ nav
   padding: 20px
   background-color: #f9fafc
   font-family: $font1
+  overflow: auto
+  z-index: 100
 
   h1
     margin: 0
@@ -64,7 +69,9 @@ nav
       background-color: #f1f0f6
 
 #content-container
-  padding: 20px 0 20px 40px
+  padding: 20px 40px
+  height: 100%
+  overflow: auto
 
   h2
     font-size: 22px
@@ -165,7 +172,11 @@ nav
 
 #overview, #inspector, #details
   .tile
-    width: calc(50% - 42px)
+    width: calc(50% - 20px)
+    margin-right: 0
+
+    &:nth-child(2n)
+      margin-left: 40px
 
 #inspector
   .chart-preview
@@ -232,10 +243,36 @@ nav
     border: solid 1px #dbdbdb
     color: #9b9b9b
 
-#devices
+#handlers
   .tile
     h3
       margin-right: 50px
+
+#details
+  table
+    td, th
+      width: 50%
+
+  .cells
+    div
+      width: 50%
+      display: inline-block
+      vertical-align: top
+
+      h3
+        padding-top: 15px
+        font-weight: bold
+        margin-bottom: 3px
+
+      p
+        color: #777
+        margin: 0
+
+      &:nth-child(2n+1)
+        padding-right: 10px
+
+      &:nth-child(2n)
+        padding-left: 10px
 
 #dialog-container
   display: flex
@@ -296,6 +333,7 @@ nav
   height: calc(100% - 50px)
   margin: 25px
   transition: 0.4s cubic-bezier(.5,-.7,.6,1)
+  z-index: 50
 
   .canvas-parent
     height: 100%
@@ -342,3 +380,62 @@ nav
 
   &:hover
     opacity: 1
+
+#menu-button
+  position: fixed
+  top: 20px
+  right: 18px
+  width: 38px
+  opacity: 0.6
+  cursor: pointer
+
+@media (max-width: 1300px)
+  #overview, #inspector, #details
+    .tile
+      width: 100%
+
+      &:nth-child(2n)
+        margin-left: 0
+
+@media (max-width: 900px)
+  body
+    padding-left: 0
+  nav
+    display: none
+    width: 100%
+
+  .visible
+    display: block
+
+  #content-container
+    padding: 20px
+
+  #inspector-chart-view
+    border-radius: 0
+    box-shadow: none
+    margin: 0
+    width: 100%
+    height: 100%
+
+  .close-button
+    top: 15px
+
+  #handlers.tile-list
+    .tile
+      width: 100%
+      margin-right: 0
+
+    .add
+      display: block
+      margin: 30px auto
+
+  #details
+    .cells
+      div
+        width: 100%
+
+        &:nth-child(2n+1)
+          padding-right: 0
+
+        &:nth-child(2n)
+          padding-left: 0

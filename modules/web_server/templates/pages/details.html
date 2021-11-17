@@ -2,65 +2,49 @@
 <div id="details">
     <div class="tile">
         <h1>Host device</h1>
-        <table>
-            <tr>
-                <th>Name</th>
-                <th>Kernel</th>
-            </tr>
-            <tr>
-                <td>{{ data.node }}</td>
-                <td>{{ data.release }}</td>
-            </tr>
-            <tr>
-                <th>Architecture</th>
-                <th>Machine</th>
-            </tr>
-            <tr>
-                <td>{{ data.architecture.0 }}, {{ data.architecture.1 }}</td>
-                <td>{{ data.machine }}</td>
-            </tr>
-            <tr>
-                <th>Processor</th>
-                <th>Python version</th>
-            </tr>
-            <tr>
-                <td>{{ data.processor }}</td>
-                <td>{{ data.python_version }}</td>
-            </tr>
-            <tr>
-                <th>Distribution</th>
-            </tr>
-            <tr>
-                <td colspan="2">{{ data.distribution }}</td>
-            </tr>
-        </table>
+        <div class="cells">
+            <div>
+                <h3>Name</h3>
+                <p>{{ data.node }}</p>
+            </div><div>
+                <h3>Kernel</h3>
+                <p>{{ data.release }}</p>
+            </div><div>
+                <h3>Architecture</h3>
+                <p>{{ data.architecture.0 }}, {{ data.architecture.1 }}</p>
+            </div><div>
+                <h3>Machine</h3>
+                <p>{{ data.machine }}</p>
+            </div><div>
+                <h3>Processor</h3>
+                <p>{{ data.processor }}</p>
+            </div><div>
+                <h3>Python version</h3>
+                <p>{{ data.python_version }}</p>
+            </div><div>
+                <h3>Distribution</h3>
+                <p>{{ data.distribution }}</p>
+            </div>
+        </div>
     </div><div class="tile">
         <h1>ContWatch instance</h1>
-        <table>
-            <tr>
-                <th>Uptime</th>
-                <th>Handlers</th>
-            </tr>
-            <tr>
-                <td>{{ data.uptime }}</td>
-                <td>{{ data.handlers }}</td>
-            </tr>
-            <tr>
-                <th>Connections</th>
-                <th>Database size</th>
-            </tr>
-            <tr>
-                <td>{{ data.connections }}</td>
-                <td>{{ data.database_size | hr_filesize }}</td>
-            </tr>
-            <tr>
-                <th>Cache size</th>
-                <th></th>
-            </tr>
-            <tr>
-                <td>{{ data.cache_size | hr_filesize }}</td>
-                <td></td>
-            </tr>
-        </table>
+        <div class="cells">
+            <div>
+                <h3>Uptime</h3>
+                <p>{{ data.uptime }}</p>
+            </div><div>
+                <h3>Handlers</h3>
+                <p>{{ data.handlers }}</p>
+            </div><div>
+                <h3>Connections</h3>
+                <p>{{ data.connections }}</p>
+            </div><div>
+                <h3>Database size</h3>
+                <p>{{ data.database_size | hr_filesize }}</p>
+            </div><div>
+                <h3>Cache size</h3>
+                <p>{{ data.cache_size | hr_filesize }}</p>
+            </div>
+        </div>
     </div>
 </div>

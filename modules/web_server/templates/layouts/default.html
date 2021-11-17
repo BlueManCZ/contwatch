@@ -40,6 +40,7 @@
     {% include 'partials/navbar.html' %}
     <div id="content-container"></div>
     <div id="dialog-container" class="dialog-hidden" onclick="hideDialog()"><dialog open></dialog></div>
+    <img src="{{ url_for('static', filename='images/icons/menu.png') }}" id="menu-button" alt="Menu icon" onclick="showMenu()">
 
     {% block body %}{% endblock %}
 

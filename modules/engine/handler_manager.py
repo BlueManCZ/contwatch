@@ -74,14 +74,12 @@ class HandlerManager:
     def process_message(self, handler_id, message):
         if isinstance(message, dict):
             # JSON
-            print("JSON")
             print(message)
             for attribute in self.get_handler(handler_id).get_storage_attributes():
                 if attribute in message:
                     self.data_manager.add_data_unit(attribute, message[attribute], handler_id)
         else:
             # String
-            print("String")
             print(message)
 
     def exit(self):

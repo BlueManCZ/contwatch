@@ -174,7 +174,9 @@ class FlaskWebServer:
         def build_chart_data(data_map, datetime_from, datetime_to, smartround):
             response = {}
             for handler_id in data_map:
-                attributes = data_map[handler_id] if data_map[handler_id] else self.database.get_all_stored_attributes(handler_id)
+                attributes = data_map[handler_id] if data_map[handler_id] \
+                    else self.database.get_all_stored_attributes(handler_id)
+
                 chart_data = {}
 
                 for attribute in attributes:
@@ -247,8 +249,10 @@ class FlaskWebServer:
                         if entry["s"] == smartround and entry["f"] == datetime_from:
                             delta = datetime.now() - entry["c"]
                             if settings.CACHING_ASYNC:
+                                print("Returning from async cache")
                                 return entry["r"]
                             if delta.total_seconds() / 60 < settings.CACHING_INTERVAL:
+                                print("Returning from cache")
                                 return entry["r"]
 
             response = build_chart_data(data_map, datetime_from, datetime_to, smartround)
@@ -412,6 +416,7 @@ class FlaskWebServer:
                     for entry in self.cache[query]:
                         if entry["t"].day == now.day and entry["t"].month == now.month and entry["t"].year == now.year:
                             entry["r"] = build_chart_data(parse_query(query), entry["f"], now, entry["s"])
+                            print("Rebuilding cache")
                         else:
                             self.cache[query].remove(entry)
                 sleep(settings.CACHING_INTERVAL * 60)

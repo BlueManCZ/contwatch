@@ -53,6 +53,10 @@ label {
   color: #555555;
 }
 
+body {
+  height: 100vh;
+}
+
 nav {
   position: fixed;
   width: 320px;
@@ -62,6 +66,8 @@ nav {
   padding: 20px;
   background-color: #f9fafc;
   font-family: Cantarell, Verdana, sans-serif;
+  overflow: auto;
+  z-index: 100;
 }
 nav h1 {
   margin: 0;
@@ -117,7 +123,9 @@ nav ul .active {
 }
 
 #content-container {
-  padding: 20px 0 20px 40px;
+  padding: 20px 40px;
+  height: 100%;
+  overflow: auto;
 }
 #content-container h2 {
   font-size: 22px;
@@ -218,7 +226,11 @@ nav ul .active {
 }
 
 #overview .tile, #inspector .tile, #details .tile {
-  width: calc(50% - 42px);
+  width: calc(50% - 20px);
+  margin-right: 0;
+}
+#overview .tile:nth-child(2n), #inspector .tile:nth-child(2n), #details .tile:nth-child(2n) {
+  margin-left: 40px;
 }
 
 #inspector .chart-preview canvas {
@@ -284,8 +296,32 @@ nav ul .active {
   color: #9b9b9b;
 }
 
-#devices .tile h3 {
+#handlers .tile h3 {
   margin-right: 50px;
+}
+
+#details table td, #details table th {
+  width: 50%;
+}
+#details .cells div {
+  width: 50%;
+  display: inline-block;
+  vertical-align: top;
+}
+#details .cells div h3 {
+  padding-top: 15px;
+  font-weight: bold;
+  margin-bottom: 3px;
+}
+#details .cells div p {
+  color: #777;
+  margin: 0;
+}
+#details .cells div:nth-child(2n+1) {
+  padding-right: 10px;
+}
+#details .cells div:nth-child(2n) {
+  padding-left: 10px;
 }
 
 #dialog-container {
@@ -348,6 +384,7 @@ nav ul .active {
   height: calc(100% - 50px);
   margin: 25px;
   transition: 0.4s cubic-bezier(0.5, -0.7, 0.6, 1);
+  z-index: 50;
 }
 #inspector-chart-view .canvas-parent {
   height: 100%;
@@ -396,6 +433,73 @@ nav ul .active {
 }
 .close-button:hover {
   opacity: 1;
+}
+
+#menu-button {
+  position: fixed;
+  top: 20px;
+  right: 18px;
+  width: 38px;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+@media (max-width: 1300px) {
+  #overview .tile, #inspector .tile, #details .tile {
+    width: 100%;
+  }
+  #overview .tile:nth-child(2n), #inspector .tile:nth-child(2n), #details .tile:nth-child(2n) {
+    margin-left: 0;
+  }
+}
+@media (max-width: 900px) {
+  body {
+    padding-left: 0;
+  }
+
+  nav {
+    display: none;
+    width: 100%;
+  }
+
+  .visible {
+    display: block;
+  }
+
+  #content-container {
+    padding: 20px;
+  }
+
+  #inspector-chart-view {
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .close-button {
+    top: 15px;
+  }
+
+  #handlers.tile-list .tile {
+    width: 100%;
+    margin-right: 0;
+  }
+  #handlers.tile-list .add {
+    display: block;
+    margin: 30px auto;
+  }
+
+  #details .cells div {
+    width: 100%;
+  }
+  #details .cells div:nth-child(2n+1) {
+    padding-right: 0;
+  }
+  #details .cells div:nth-child(2n) {
+    padding-left: 0;
+  }
 }
 
 /*# sourceMappingURL=main.css.map */

@@ -10,6 +10,14 @@ socket.on("content-change-notification", function(data) {
 
 let currentPage = "";
 
+function menuClick(button) {
+    if (window.innerWidth < 900) loader.show();
+    displayPage(button.id.split("-")[2]);
+    document.getElementById("content-container").scrollTo(0, 0);
+    document.getElementById("menu").scrollTo(0, 0);
+    hideMenu();
+}
+
 function displayPage(pageName) {
     currentPage = pageName;
 
@@ -26,11 +34,22 @@ function displayPage(pageName) {
         let contentContainer = document.getElementById("content-container");
         contentContainer.innerHTML = request.responseText;
         window.history.replaceState(pageName, pageName, `/${pageName}`);
-        if (contentContainer.firstChild.onload) {
-            contentContainer.firstChild.onload();
+        if (document.getElementById(pageName).onload) {
+            document.getElementById(pageName).onload();
         }
+        loader.hide()
     };
     request.send(JSON.stringify(siteConfig));
+}
+
+function showMenu() {
+    let navigation = document.getElementById("menu");
+    navigation.classList.add("visible");
+}
+
+function hideMenu() {
+    let navigation = document.getElementById("menu");
+    navigation.classList.remove("visible");
 }
 
 function addHandler() {
@@ -364,10 +383,11 @@ function displayCharts(smartround) {
             },
             options: {
                 animation: false,
-                interaction: {
-                    mode: "index",
-                    intersect: false
-                },
+                // interaction: {
+                //     mode: "index",
+                //     intersect: false
+                // },
+                events: [],
                 scales: {
                     x: {
                         type: "time",
@@ -386,7 +406,7 @@ function displayCharts(smartround) {
                         display: false
                     },
                     tooltip: {
-                        // enabled: false
+                        enabled: false,
                         position: "nearest"
                     }
                 },
