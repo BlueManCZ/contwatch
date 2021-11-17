@@ -200,6 +200,9 @@ nav
     font-weight: bold
     margin-bottom: 17px
 
+  .tile
+    cursor: pointer
+
 #data
   h3
     font-weight: bold
@@ -333,7 +336,7 @@ nav
   height: calc(100% - 50px)
   margin: 25px
   transition: 0.4s cubic-bezier(.5,-.7,.6,1)
-  z-index: 50
+  z-index: 150
 
   .canvas-parent
     height: 100%
@@ -388,6 +391,7 @@ nav
   width: 38px
   opacity: 0.6
   cursor: pointer
+  display: none
 
 @media (max-width: 1300px)
   #overview, #inspector, #details
@@ -405,6 +409,9 @@ nav
     width: 100%
 
   .visible
+    display: block
+
+  #menu-button
     display: block
 
   #content-container
