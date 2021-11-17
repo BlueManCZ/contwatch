@@ -4,18 +4,18 @@
         <input type="checkbox" class="form-check-input" id="exampleCheck1" oninput="setSiteConfigArgument('ghost_data', {% if site_config['ghost_data'] %}false{% else %}true{% endif %}); displayPage('data')" {% if site_config['ghost_data'] %}checked{% endif %}>
         <label class="form-check-label text-muted" for="exampleCheck1" title="Data remaining in the database that are no longer tracked">Display ghost data (?)</label>
     </div>
-    {% for device in manager.registered_devices %}
-        <h3>{{ manager.registered_devices[device] | generate_device_name }} <button onclick="showDialog('json_attributes_to_store_{{ device }}')">Settings</button></h3>
+    {% for handler in manager.registered_handlers %}
+        <h3>{{ manager.registered_handlers[handler] | generate_handler_name }} <button onclick="showDialog('json_attributes_to_store_{{ handler }}')">Settings</button></h3>
 
-        {% if (site_config["ghost_data"] and not attributes[device] and not ghost_attributes[device]) or (not site_config["ghost_data"] and not attributes[device]) %}
+        {% if (site_config["ghost_data"] and not attributes[handler] and not ghost_attributes[handler]) or (not site_config["ghost_data"] and not attributes[handler]) %}
             <div class="text-muted mt-1 mb-4">There is nothing to display.</div>
         {% else %}
-            {% for attribute in attributes[device] %}
-                <a href="/graph/{{ device }}/{{ attribute }}"><button class="attribute">{{ attribute }}</button></a>
+            {% for attribute in attributes[handler] %}
+                <a href="/graph/{{ handler }}/{{ attribute }}"><button class="attribute">{{ attribute }}</button></a>
             {% endfor %}
             {% if site_config["ghost_data"] %}
-                {% for attribute in ghost_attributes[device] %}
-                    <a href="/graph/{{ device }}/{{ attribute }}"><button class="ghost">{{ attribute }}</button></a>
+                {% for attribute in ghost_attributes[handler] %}
+                    <a href="/graph/{{ handler }}/{{ attribute }}"><button class="ghost">{{ attribute }}</button></a>
                 {% endfor %}
             {% endif %}
         {% endif %}

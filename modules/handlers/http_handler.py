@@ -1,4 +1,4 @@
-from .device_interface import DeviceInterface
+from .handler_interface import HandlerInterface
 from modules.logging.logger import logger
 
 from threading import Thread
@@ -8,8 +8,8 @@ from requests import get
 from requests.exceptions import ConnectionError, ReadTimeout, MissingSchema
 
 
-class HttpDevice(DeviceInterface):
-    """Class representing HTTP device."""
+class HttpHandler(HandlerInterface):
+    """Class for handling HTTP targets."""
 
     def _fetcher(self):
         self.log.debug("Starting HTTP data fetcher")
@@ -109,7 +109,7 @@ class HttpDevice(DeviceInterface):
         Thread(target=self._fetcher).start()
 
     def update_config(self, new_config):
-        super(HttpDevice, self).update_config(new_config)
+        super(HttpHandler, self).update_config(new_config)
 
         self.url = new_config["url"]
         self.interval = new_config["interval"]

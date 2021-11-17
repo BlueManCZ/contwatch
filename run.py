@@ -6,7 +6,7 @@ monkey_patch()
 from modules import settings
 from modules.database import database
 from modules.logging.logger import logger
-from modules.managers.device_manager import DeviceManager
+from modules.engine.handler_manager import HandlerManager
 from modules.web_server.flask_web_server import FlaskWebServer
 
 from os import path, remove
@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     # Initialize main modules
     db = database.Database()
-    manager = DeviceManager(db)
+    manager = HandlerManager(db)
     web = FlaskWebServer(manager, db)
 
     # Register modules for SIGINT handler

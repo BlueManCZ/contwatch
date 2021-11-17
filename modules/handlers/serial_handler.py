@@ -1,4 +1,4 @@
-from .device_interface import DeviceInterface
+from .handler_interface import HandlerInterface
 from modules.logging.logger import logger
 
 from threading import Thread
@@ -8,8 +8,8 @@ from os import path
 import serial
 
 
-class SerialDevice(DeviceInterface):
-    """Class representing device connected by serial port."""
+class SerialHandler(HandlerInterface):
+    """Class for handling devices connected by serial port."""
 
     def _message_watcher(self):
         print(f"Creating {self.connection.port}")
@@ -74,7 +74,7 @@ class SerialDevice(DeviceInterface):
             Thread(target=self._message_watcher).start()
 
     def update_config(self, new_config):
-        super(SerialDevice, self).update_config(new_config)
+        super(SerialHandler, self).update_config(new_config)
 
         # TODO: Semaphore may be required
 

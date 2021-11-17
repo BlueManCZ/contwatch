@@ -1,10 +1,10 @@
-<h1>Add new {{ device_type }} device</h1>
-<form id="add_device_form">
-    <input type="hidden" name="__device_type__" value="{{ device_type }}">
+<h1>Add new {{ handler_type }} handler</h1>
+<form id="add_handler_form">
+    <input type="hidden" name="__handler_type__" value="{{ handler_type }}">
 
     <div class="form-group mt-3">
-        <label for="__device_label__">Device label</label>
-        <input id="__device_label__" name="__device_label__" class="form-control">
+        <label for="__handler_label__">Handler label</label>
+        <input id="__handler_label__" name="__handler_label__" class="form-control">
     </div>
 
     {% for field in fields %}
@@ -31,5 +31,5 @@
         {% endif %}
     {% endfor %}
 
-    <button type="button" class="mt-3 btn btn-primary btn-sm" onclick="addDevice()"><b>Save</b></button>
+    <button type="button" class="mt-3 btn btn-primary btn-sm" onclick="addHandler()"><b>Save</b></button>
 </form>

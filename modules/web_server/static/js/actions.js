@@ -33,32 +33,32 @@ function displayPage(pageName) {
     request.send(JSON.stringify(siteConfig));
 }
 
-function addDevice() {
+function addHandler() {
     const request = new XMLHttpRequest();
-    const data = new FormData(document.getElementById("add_device_form"));
+    const data = new FormData(document.getElementById("add_handler_form"));
     request.onload = () => {
         hideDialog();
     };
-    request.open("POST", "/add_new_device");
+    request.open("POST", "/add_new_handler");
     request.send(data)
 }
 
-function editDevice(deviceId) {
+function editHandler(handlerId) {
     const request = new XMLHttpRequest();
-    const data = new FormData(document.getElementById("edit_device_form"));
+    const data = new FormData(document.getElementById("edit_handler_form"));
     request.onload = () => {
         hideDialog();
     };
-    request.open("POST", `/edit_device/${deviceId}`);
+    request.open("POST", `/edit_handler/${handlerId}`);
     request.send(data)
 }
 
-function deleteDevice(deviceId) {
+function deleteHandler(handlerId) {
     const request = new XMLHttpRequest();
     request.onload = () => {
         hideDialog();
     };
-    request.open("POST", `/delete_device/${deviceId}`);
+    request.open("POST", `/delete_handler/${handlerId}`);
     request.send();
 }
 
@@ -75,12 +75,12 @@ function saveOrEditChartView() {
 
     for (let i = 0; i < checkboxes.length; i++) {
         if (checkboxes[i].checked) {
-            let device = checkboxes[i].dataset.device;
+            let handler = checkboxes[i].dataset.handler;
             let attribute = checkboxes[i].dataset.attribute;
-            if (settings[device] === undefined) {
-                settings[device] = [attribute];
+            if (settings[handler] === undefined) {
+                settings[handler] = [attribute];
             } else {
-                settings[device].push(attribute);
+                settings[handler].push(attribute);
             }
         }
     }
@@ -126,13 +126,13 @@ function deleteChartView() {
     }
 }
 
-function editJsonAttributesToStore(deviceId) {
+function editJsonAttributesToStore(handlerId) {
     const request = new XMLHttpRequest();
     const data = new FormData(document.getElementById("json-attributes-to-store"));
     request.onload = () => {
         hideDialog();
     };
-    request.open("POST", `/edit_json_attributes_to_store/${deviceId}`);
+    request.open("POST", `/edit_json_attributes_to_store/${handlerId}`);
     request.send(data);
 }
 
@@ -252,13 +252,13 @@ function clearChartInspector() {
 
 let colors = ["#7233ff", "#299bec", "#65c44c", "#fd8f64", "#ffcd41"];
 
-function addChartToInspector(device, attribute) {
+function addChartToInspector(handler, attribute) {
     const d = new Date();
     let query;
     if (attribute) {
-        query = `${device}-${attribute}`
+        query = `${handler}-${attribute}`
     } else {
-        query = device
+        query = handler
     }
 
     console.log(query);
@@ -271,18 +271,18 @@ function addChartToInspector(device, attribute) {
             if (request.readyState === 4) {
                 let data = JSON.parse(request.responseText);
 
-                for (let device in data) {
-                    for (let line in data[device]) {
+                for (let handler in data) {
+                    for (let line in data[handler]) {
                         let datasetData = [];
 
-                        for (let j = 0; j < data[device][line]["timestamps"].length; j++) {
+                        for (let j = 0; j < data[handler][line]["timestamps"].length; j++) {
                             datasetData.push({
-                                x: data[device][line]["timestamps"][j] * 1000,
-                                y: data[device][line]["values"][j]
+                                x: data[handler][line]["timestamps"][j] * 1000,
+                                y: data[handler][line]["values"][j]
                             })
                         }
                         let dataset = {
-                            device: device,
+                            handler: handler,
                             label: line,
                             borderColor: colors[(inspectorChart.data.datasets.length) % 5],
                             data: datasetData
@@ -290,7 +290,7 @@ function addChartToInspector(device, attribute) {
 
                         inspectorChart.data.datasets.push(dataset);
 
-                        document.getElementById(`${device}-${line}`).checked = true;
+                        document.getElementById(`${handler}-${line}`).checked = true;
 
                         recolorCharts();
                         inspectorChart.update();
@@ -301,12 +301,12 @@ function addChartToInspector(device, attribute) {
         request.send();
 }
 
-function removeChartFromInspector(device, attribute) {
+function removeChartFromInspector(handler, attribute) {
     for (let dataset in inspectorChart.data.datasets) {
         dataset = inspectorChart.data.datasets[dataset];
-        console.log(`${dataset.device} === ${device} && ${dataset.label} === ${attribute}`)
+        console.log(`${dataset.handler} === ${handler} && ${dataset.label} === ${attribute}`)
 
-        if (dataset.device === device && dataset.label === attribute) {
+        if (dataset.handler === handler && dataset.label === attribute) {
             console.log("True");
 
             let index = inspectorChart.data.datasets.indexOf(dataset);
@@ -322,13 +322,13 @@ function removeChartFromInspector(device, attribute) {
     }
 }
 
-function toggleChartInInspector(device, attribute) {
-    let status = document.getElementById(`${device}-${attribute}`).checked;
+function toggleChartInInspector(handler, attribute) {
+    let status = document.getElementById(`${handler}-${attribute}`).checked;
 
     if (status) {
-        addChartToInspector(device, attribute);
+        addChartToInspector(handler, attribute);
     } else {
-        removeChartFromInspector(device, attribute);
+        removeChartFromInspector(handler, attribute);
     }
 }
 
@@ -416,14 +416,14 @@ function displayCharts(smartround) {
                 let colors = ["#7233ff", "#299bec", "#65c44c", "#fd8f64", "#ffcd41"];
                 let colorIndex = 0
 
-                for (let device in data) {
-                    for (let line in data[device]) {
+                for (let handler in data) {
+                    for (let line in data[handler]) {
                         let datasetData = [];
 
-                        for (let j = 0; j < data[device][line]["timestamps"].length; j++) {
+                        for (let j = 0; j < data[handler][line]["timestamps"].length; j++) {
                             datasetData.push({
-                                x: data[device][line]["timestamps"][j] * 1000,
-                                y: data[device][line]["values"][j]
+                                x: data[handler][line]["timestamps"][j] * 1000,
+                                y: data[handler][line]["values"][j]
                             })
                         }
 

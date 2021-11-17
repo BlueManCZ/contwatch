@@ -1,5 +1,5 @@
 from modules import settings
-from modules.devices.device_interface import DeviceInterface
+from modules.handlers.handler_interface import HandlerInterface
 from modules.logging.logger import logger
 
 from datetime import datetime
@@ -9,8 +9,8 @@ from pony import orm
 db = orm.Database()
 
 
-class Device(db.Entity):
-    """Database entity for storing device configuration"""
+class Handler(db.Entity):
+    """Database entity for storing handler configuration"""
 
     type = orm.Required(str)
     settings = orm.Required(orm.Json)
@@ -20,7 +20,7 @@ class Device(db.Entity):
 class DataUnit(db.Entity):
     """Database entity for storing data"""
 
-    device = orm.Required(Device)
+    handler = orm.Required(Handler)
     label = orm.Required(str)
     value = orm.Required(float)
     datetime = orm.Required(datetime)
@@ -44,50 +44,50 @@ class Database:
 
         log.info("Database initialized")
 
-    ##################
-    # DEVICE queries #
-    ##################
+    ###################
+    # HANDLER queries #
+    ###################
 
     @orm.db_session
-    def add_device(self, device: DeviceInterface):
-        return Device(type=device.type, settings=device.settings)
+    def add_handler(self, handler: HandlerInterface):
+        return Handler(type=handler.type, settings=handler.settings)
 
     @orm.db_session
-    def get_devices(self):
-        return Device.select(lambda d: d)[:]
+    def get_handlers(self):
+        return Handler.select(lambda d: d)[:]
 
     @orm.db_session
-    def get_device_by_id(self, device_id):
-        return Device.select(lambda d: d.id == device_id)[:][0]
+    def get_handler_by_id(self, handler_id):
+        return Handler.select(lambda d: d.id == handler_id)[:][0]
 
     @orm.db_session
-    def update_device_settings(self, device_id, device_settings):
-        device = self.get_device_by_id(device_id)
-        device.settings = device_settings
+    def update_handler_settings(self, handler_id, handler_settings):
+        handler = self.get_handler_by_id(handler_id)
+        handler.settings = handler_settings
 
     @orm.db_session
-    def delete_device(self, device_id):
-        device = self.get_device_by_id(device_id)
-        device.delete()
+    def delete_handler(self, handler_id):
+        handler = self.get_handler_by_id(handler_id)
+        handler.delete()
 
     ################
     # DATA queries #
     ################
 
     @orm.db_session
-    def add_data_unit(self, label, value, device: Device):
-        return DataUnit(label=label, value=value, device=device, datetime=datetime.now())
+    def add_data_unit(self, label, value, handler: Handler):
+        return DataUnit(label=label, value=value, handler=handler, datetime=datetime.now())
 
     @orm.db_session
-    def get_all_stored_attributes(self, device_id):
-        return orm.select(d.label for d in DataUnit if d.device.id == device_id)[:]
+    def get_all_stored_attributes(self, handler_id):
+        return orm.select(d.label for d in DataUnit if d.handler.id == handler_id)[:]
 
     @orm.db_session
-    def get_device_attribute_data(self, device_id, attribute, datetime_from: datetime, datetime_to: datetime, *_,
-                                  smartround=0):
+    def get_handler_attribute_data(self, handler_id, attribute, datetime_from: datetime, datetime_to: datetime, *_,
+                                   smartround=0):
         result = orm.select(
             (d.datetime, d.value) for d in DataUnit
-            if d.device.id == device_id and d.label == attribute
+            if d.handler.id == handler_id and d.label == attribute
             and d.datetime >= datetime_from and d.datetime <= datetime_to
         )[:]
 
@@ -105,8 +105,8 @@ class Database:
         return result
 
     @orm.db_session
-    def get_device_attribute_dates(self, device_id, attribute):
-        return DataUnit.select(lambda d: d.device.id == device_id and d.label == attribute)
+    def get_handler_attribute_dates(self, handler_id, attribute):
+        return DataUnit.select(lambda d: d.handler.id == handler_id and d.label == attribute)
 
     ######################
     # CHART VIEW queries #

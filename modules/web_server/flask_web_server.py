@@ -1,5 +1,5 @@
 from modules import settings
-from modules.devices import *
+from modules.handlers import *
 
 import modules.tools as tools
 
@@ -13,12 +13,12 @@ from threading import Thread
 import platform
 
 
-def parse_config(http_form, device_class):
+def parse_config(http_form, handler_class):
     config = {}
 
     for field in http_form:
-        if field in device_class.config_fields:
-            field_type = device_class.config_fields[field][0]
+        if field in handler_class.config_fields:
+            field_type = handler_class.config_fields[field][0]
             field_data = request.form[field]
             value = field_data
             if field_type == "int":
@@ -29,11 +29,11 @@ def parse_config(http_form, device_class):
                 value = bool(field_data)
             config[field] = value
 
-    for field in device_class.config_fields:
-        if len(device_class.config_fields[field]) > 2 and field not in config:
-            config[field] = device_class.config_fields[field][2]
+    for field in handler_class.config_fields:
+        if len(handler_class.config_fields[field]) > 2 and field not in config:
+            config[field] = handler_class.config_fields[field][2]
 
-        if device_class.config_fields[field][0] == "bool":
+        if handler_class.config_fields[field][0] == "bool":
             if field not in http_form:
                 config[field] = False
 
@@ -93,9 +93,9 @@ class FlaskWebServer:
         def inspector():
             return render_template("pages/inspector.html", manager=self.manager, views=self.database.get_chart_views())
 
-        @self.app.route("/devices", methods=["POST"])
-        def devices():
-            return render_template("pages/devices.html", devices=self.manager.get_devices())
+        @self.app.route("/handlers", methods=["POST"])
+        def handlers():
+            return render_template("pages/handlers.html", handlers=self.manager.get_handlers())
 
         @self.app.route("/data", methods=["POST"])
         def data():
@@ -105,16 +105,16 @@ class FlaskWebServer:
             attributes = {}
             ghost_attributes = {}
 
-            for device_id in self.manager.registered_devices:
-                storage_attributes = self.manager.registered_devices[device_id].get_storage_attributes()
-                labels = self.database.get_all_stored_attributes(device_id)
-                attributes[device_id] = []
-                ghost_attributes[device_id] = []
+            for handler_id in self.manager.registered_handlers:
+                storage_attributes = self.manager.registered_handlers[handler_id].get_storage_attributes()
+                labels = self.database.get_all_stored_attributes(handler_id)
+                attributes[handler_id] = []
+                ghost_attributes[handler_id] = []
                 for attribute in labels:
                     if attribute in storage_attributes:
-                        attributes[device_id].append(attribute)
+                        attributes[handler_id].append(attribute)
                     else:
-                        ghost_attributes[device_id].append(attribute)
+                        ghost_attributes[handler_id].append(attribute)
 
             return render_template(
                 "pages/data.html",
@@ -133,7 +133,7 @@ class FlaskWebServer:
                 "architecture": platform.architecture(),
                 "processor": tools.cpu_model(),
                 "uptime": strftime('%H:%M:%S', gmtime(time() - self.start_time)),
-                "devices": len(self.manager.get_devices()),
+                "handlers": len(self.manager.get_handlers()),
                 "connections": self.connections,
                 "database_size": path.getsize(settings.DATABASE_FILE),
                 "cache_size": tools.get_size(self.cache),
@@ -173,25 +173,25 @@ class FlaskWebServer:
 
         def build_chart_data(data_map, datetime_from, datetime_to, smartround):
             response = {}
-            for device in data_map:
-                attributes = data_map[device] if data_map[device] else self.database.get_all_stored_attributes(device)
+            for handler_id in data_map:
+                attributes = data_map[handler_id] if data_map[handler_id] else self.database.get_all_stored_attributes(handler_id)
                 chart_data = {}
 
                 for attribute in attributes:
                     chart_data[attribute] = {"timestamps": [], "values": []}
-                    result = self.database.get_device_attribute_data(device, attribute, datetime_from, datetime_to,
-                                                                     smartround=smartround)
+                    result = self.database.get_handler_attribute_data(handler_id, attribute, datetime_from, datetime_to,
+                                                                      smartround=smartround)
                     for entry in result:
                         entry_time = entry[0]
                         chart_data[attribute]["timestamps"].append(int(entry_time.timestamp()))
                         chart_data[attribute]["values"].append(entry[1])
 
-                    response[device] = chart_data
+                    response[handler_id] = chart_data
             return response
 
         @self.app.route("/api/charts")
         def api_charts():
-            device_id = request.args["device_id"] if "device_id" in request.args else ""
+            handler_id = request.args["handler_id"] if "handler_id" in request.args else ""
             raw_query = request.args["query"] if "query" in request.args else ""
             date_from = request.args["date_from"] if "date_from" in request.args else ""
             date_to = request.args["date_to"] if "date_to" in request.args else ""
@@ -203,13 +203,13 @@ class FlaskWebServer:
 
             data_map = {}
 
-            if device_id:
+            if handler_id:
                 try:
-                    device_id = int(device_id)
-                    data_map[device_id] = []
+                    handler_id = int(handler_id)
+                    data_map[handler_id] = []
                 except Exception as e:
                     print(e)
-                    return json_error(400, "Argument 'device_id' has to be an integer.")
+                    return json_error(400, "Argument 'handler_id' has to be an integer.")
             elif raw_query:
                 try:
                     data_map = parse_query(raw_query)
@@ -217,7 +217,7 @@ class FlaskWebServer:
                     print(e)
                     return json_error(400, "Argument 'query' cannot be successfully parsed")
             else:
-                return json_error(400, "Either 'device_id' or 'query' has to be provided as an argument.")
+                return json_error(400, "Either 'handler_id' or 'query' has to be provided as an argument.")
 
             if date_from:
                 try:
@@ -263,8 +263,8 @@ class FlaskWebServer:
                     "t": datetime_to,
                     "s": smartround
                 })
+                print("Saving to cache")
 
-            print("Saving to cache")
             return response
 
         #########
@@ -273,71 +273,71 @@ class FlaskWebServer:
 
         @self.app.route("/dialog/<dialog_name>", methods=["POST"])
         def dialog(dialog_name):
-            if "add_new_device" in dialog_name:
-                device_type = dialog_name.split("_")[-1]
-                for device in loaded_devices:
-                    if device.type == device_type:
-                        fields = device.config_fields
-                        return render_template("dialogs/add_new_device.html", fields=fields, device_type=device_type)
+            if "add_new_handler" in dialog_name:
+                handler_type = dialog_name.split("_")[-1]
+                for handler in loaded_handlers:
+                    if handler.type == handler_type:
+                        fields = handler.config_fields
+                        return render_template("dialogs/add_new_handler.html", fields=fields, handler_type=handler_type)
 
-            if "edit_device" in dialog_name:
-                device_id = int(dialog_name.split("_")[-1])
-                device = self.manager.get_device(device_id)
-                return render_template("dialogs/edit_device.html", id=device_id, device=device)
+            if "edit_handler" in dialog_name:
+                handler_id = int(dialog_name.split("_")[-1])
+                handler = self.manager.get_handler(handler_id)
+                return render_template("dialogs/edit_handler.html", id=handler_id, handler=handler)
 
             if "json_attributes_to_store" in dialog_name:
-                device_id = int(dialog_name.split("_")[-1])
-                device = self.manager.get_device(device_id)
-                json = self.manager.last_messages[device_id]
+                handler_id = int(dialog_name.split("_")[-1])
+                handler = self.manager.get_handler(handler_id)
+                json = self.manager.last_messages[handler_id]
                 return render_template(
                     "dialogs/json_attributes_to_store.html",
-                    id=device_id,
-                    device=device,
+                    id=handler_id,
+                    handler=handler,
                     json=json[1]
                 )
 
             template_name = f"dialogs/{dialog_name}.html"
-            return render_template(template_name, loaded_devices=loaded_devices)
+            return render_template(template_name, loaded_handlers=loaded_handlers)
 
-        @self.app.route("/add_new_device", methods=["POST"])
-        def add_new_device():
-            device_class = get_device_class(request.form["__device_type__"])
-            device_label = request.form["__device_label__"]
-            config = parse_config(request.form, device_class)
-            device_settings = {"configuration": config}
-            new_device = device_class(device_settings)
-            new_device.set_label(device_label)
-            database_device = self.database.add_device(new_device)
-            self.manager.register_device(database_device.id, new_device)
+        @self.app.route("/add_new_handler", methods=["POST"])
+        def add_new_handler():
+            handler_class = get_handler_class(request.form["__handler_type__"])
+            handler_label = request.form["__handler_label__"]
+            config = parse_config(request.form, handler_class)
+            handler_settings = {"configuration": config}
+            new_handler = handler_class(handler_settings)
+            new_handler.set_label(handler_label)
+            database_handler = self.database.add_handler(new_handler)
+            self.manager.register_handler(database_handler.id, new_handler)
             return "ok"
 
-        @self.app.route("/edit_device/<int:device_id>", methods=["POST"])
-        def edit_device(device_id):
-            device_class = get_device_class(request.form["__device_type__"])
-            device_label = request.form["__device_label__"]
-            config = parse_config(request.form, device_class)
-            device = self.manager.get_device(device_id)
-            device.update_config(config)
-            device.set_label(device_label)
-            self.database.update_device_settings(device_id, device.settings)
-            self.manager.add_changed("devices")
+        @self.app.route("/edit_handler/<int:handler_id>", methods=["POST"])
+        def edit_handler(handler_id):
+            handler_class = get_handler_class(request.form["__handler_type__"])
+            handler_label = request.form["__handler_label__"]
+            config = parse_config(request.form, handler_class)
+            handler = self.manager.get_handler(handler_id)
+            handler.update_config(config)
+            handler.set_label(handler_label)
+            self.database.update_handler_settings(handler_id, handler.settings)
+            self.manager.add_changed("handlers")
             return "ok"
 
-        @self.app.route("/delete_device/<int:device_id>", methods=["POST"])
-        def delete_device(device_id):
-            self.database.delete_device(device_id)
-            device = self.manager.get_device(device_id)
-            device.exit()
-            self.manager.delete_device(device_id)
+        @self.app.route("/delete_handler/<int:handler_id>", methods=["POST"])
+        def delete_handler(handler_id):
+            self.database.delete_handler(handler_id)
+            handler = self.manager.get_handler(handler_id)
+            handler.exit()
+            self.manager.delete_handler(handler_id)
             return "ok"
 
-        @self.app.route("/edit_json_attributes_to_store/<int:device_id>", methods=["POST"])
-        def edit_json_attributes_to_store(device_id):
-            device = self.manager.get_device(device_id)
-            device.clear_storage_attributes()
+        @self.app.route("/edit_json_attributes_to_store/<int:handler_id>", methods=["POST"])
+        def edit_json_attributes_to_store(handler_id):
+            handler = self.manager.get_handler(handler_id)
+            handler.clear_storage_attributes()
             for attribute in request.form:
-                device.add_storage_attribute(attribute)
-            self.database.update_device_settings(device_id, device.settings)
+                handler.add_storage_attribute(attribute)
+            self.database.update_handler_settings(handler_id, handler.settings)
             self.manager.add_changed("data")
             return "ok"
 
@@ -363,10 +363,10 @@ class FlaskWebServer:
         # JINJA FILTERS #
         #################
 
-        @self.app.template_filter("generate_device_name")
-        def generate_device_name(device):
-            label = device.get_label()
-            return label if label else device.type + " device"
+        @self.app.template_filter("generate_handler_name")
+        def generate_handler_name(handler):
+            label = handler.get_label()
+            return label if label else handler.type + " handler_id"
 
         @self.app.template_filter("hr_filesize")
         def hr_filesize(filesize):
@@ -389,9 +389,9 @@ class FlaskWebServer:
             while self.active:
                 if self.connections > 0:
                     pages = []
-                    for device in self.manager.get_devices().values():
-                        while device.changed:
-                            page_name = device.changed.pop()
+                    for handler in self.manager.get_handlers().values():
+                        while handler.changed:
+                            page_name = handler.changed.pop()
                             if page_name not in pages:
                                 pages.append(page_name)
 

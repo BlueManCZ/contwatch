@@ -2,7 +2,7 @@
 <form id="json-attributes-to-store" action="">
     {% for attribute in json %}
         <div class="form-check">
-            <input type="checkbox" class="form-check-input" name="{{ attribute }}" id="{{ attribute }}" {% if attribute in device.get_storage_attributes() %}checked{% endif %}>
+            <input type="checkbox" class="form-check-input" name="{{ attribute }}" id="{{ attribute }}" {% if attribute in handler.get_storage_attributes() %}checked{% endif %}>
             <label class="form-check-label text-muted" for="{{ attribute }}">{{ attribute }}</label>
         </div>
     {% endfor %}

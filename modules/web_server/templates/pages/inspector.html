@@ -2,9 +2,9 @@
     <button onclick="clearChartInspector(); showChartInspector()">Display empty chart inspector</button>
     <h2>Saved views</h2>
     {% for view in views %}
-        <div class="tile chart-preview" onclick="clearChartInspector(); showChartInspector({{ view.id }}, '{{ view.label }}'); {% for device in view.settings %}{% for attribute in view.settings[device] %}addChartToInspector('{{ device }}', '{{ attribute }}');{% endfor %}{% endfor %}">
+        <div class="tile chart-preview" onclick="clearChartInspector(); showChartInspector({{ view.id }}, '{{ view.label }}'); {% for handler in view.settings %}{% for attribute in view.settings[handler] %}addChartToInspector('{{ handler }}', '{{ attribute }}');{% endfor %}{% endfor %}">
             <h1>{{ view.label }}</h1>
-            <canvas class="chart" data-query="{% for device in view.settings %}{% for attribute in view.settings[device] %}{{ device }}-{{ attribute }},{% endfor %}{% endfor %}"></canvas>
+            <canvas class="chart" data-query="{% for handler in view.settings %}{% for attribute in view.settings[handler] %}{{ handler }}-{{ attribute }},{% endfor %}{% endfor %}"></canvas>
         </div>
     {% endfor %}
 </div>
@@ -12,13 +12,13 @@
     <img src="{{ url_for('static', filename='images/icons/close.png') }}" class="close-button" onclick="hideChartInspector()"></img>
     <div class="inspector-config-panel">
         <h1>Chart data</h1>
-        {% for device in manager.get_devices() %}
-            {% if manager.get_devices()[device].get_storage_attributes() %}
-                <h2>{{ manager.get_devices()[device] | generate_device_name }}</h2>
-                {% for attribute in manager.get_devices()[device].get_storage_attributes() %}
+        {% for handler in manager.get_handlers() %}
+            {% if manager.get_handlers()[handler].get_storage_attributes() %}
+                <h2>{{ manager.get_handlers()[handler] | generate_handler_name }}</h2>
+                {% for attribute in manager.get_handlers()[handler].get_storage_attributes() %}
                     <div>
-                        <input id="{{ device }}-{{ attribute }}" type="checkbox" class="inspector-data-checkbox" data-device="{{ device }}" data-attribute="{{ attribute }}" oninput="toggleChartInInspector('{{ device }}', '{{ attribute }}')">
-                        <label for="{{ device }}-{{ attribute }}">{{ attribute }}</label>
+                        <input id="{{ handler }}-{{ attribute }}" type="checkbox" class="inspector-data-checkbox" data-handler="{{ handler }}" data-attribute="{{ attribute }}" oninput="toggleChartInInspector('{{ handler }}', '{{ attribute }}')">
+                        <label for="{{ handler }}-{{ attribute }}">{{ attribute }}</label>
                     </div>
                 {% endfor %}
             {% endif %}
