@@ -1,7 +1,5 @@
-from modules import settings
+from modules import settings, tools
 from modules.handlers import *
-
-import modules.tools as tools
 
 from datetime import datetime, timedelta
 from flask import Flask, redirect, render_template, request
@@ -132,13 +130,14 @@ class FlaskWebServer:
                 "machine": platform.machine(),
                 "architecture": platform.architecture(),
                 "processor": tools.cpu_model(),
+                "python_version": platform.python_version(),
+                "distribution": tools.distribution(),
                 "uptime": int((datetime.now() - self.start_datetime).total_seconds()),
                 "handlers": len(self.manager.get_handlers()),
                 "connections": self.connections,
+                "version": tools.get_update_datetime(),
                 "database_size": path.getsize(settings.DATABASE_FILE),
-                "cache_size": tools.get_size(self.cache),
-                "python_version": platform.python_version(),
-                "distribution": tools.distribution()
+                "cache_size": tools.get_size(self.cache)
             }
             return render_template("pages/details.html", data=dictionary)
 
