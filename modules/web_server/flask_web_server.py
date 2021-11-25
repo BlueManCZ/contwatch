@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from flask import Flask, redirect, render_template, request
 from flask_socketio import SocketIO
 from os import path
-from time import gmtime, sleep, strftime, time
+from time import sleep
 from threading import Thread
 
 import platform
@@ -48,7 +48,7 @@ class FlaskWebServer:
         self.port = settings.WEB_SERVER_PORT
         self.manager = _manager
         self.database = _database
-        self.start_time = time()
+        self.start_datetime = datetime.now()
         self.sio = SocketIO(self.app, async_mode="eventlet")
         self.connections = 0
         self.active = True
@@ -132,7 +132,7 @@ class FlaskWebServer:
                 "machine": platform.machine(),
                 "architecture": platform.architecture(),
                 "processor": tools.cpu_model(),
-                "uptime": strftime('%H:%M:%S', gmtime(time() - self.start_time)),
+                "uptime": int((datetime.now() - self.start_datetime).total_seconds()),
                 "handlers": len(self.manager.get_handlers()),
                 "connections": self.connections,
                 "database_size": path.getsize(settings.DATABASE_FILE),
@@ -381,6 +381,24 @@ class FlaskWebServer:
                 i += 1
             value = f"{filesize:.2f}".rstrip("0").rstrip(".")
             return f"{value} {units[i]}"
+
+        @self.app.template_filter("hr_datetime")
+        def hr_datetime(seconds):
+            time_data = {}
+            time_data["day"], remaining = divmod(seconds, 86_400)
+            time_data["hour"], remaining = divmod(remaining, 3_600)
+            time_data["minute"], time_data["second"] = divmod(remaining, 60)
+
+            time_parts = []
+
+            for name, value in time_data.items():
+                if value > 0:
+                    time_parts.append(f"{round(value)} {name}{'s' if value > 1 else ''}")
+
+            if time_parts:
+                return " ".join(time_parts[:2])
+            else:
+                return "below 1 second"
 
         #########
         # OTHER #

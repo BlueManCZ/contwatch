@@ -31,7 +31,7 @@
         <div class="cells">
             <div>
                 <h3>Uptime</h3>
-                <p>{{ data.uptime }}</p>
+                <p>{{ data.uptime | hr_datetime }}</p>
             </div><div>
                 <h3>Handlers</h3>
                 <p>{{ data.handlers }}</p>
