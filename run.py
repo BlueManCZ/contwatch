@@ -3,8 +3,7 @@
 from eventlet import monkey_patch
 monkey_patch()
 
-from modules import settings
-from modules.database import database
+from modules import database, settings
 from modules.logging.logger import logger
 from modules.engine.handler_manager import HandlerManager
 from modules.web_server.flask_web_server import FlaskWebServer

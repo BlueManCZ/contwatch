@@ -31,6 +31,16 @@ def distribution():
         return "Unknown"
 
 
+def get_update_datetime():
+    """Returns date of last update based currently on .git/FETCH_HEAD"""
+    file_path = settings.REAL_PATH + "/../../.git/FETCH_HEAD"
+    if path.isfile(file_path):
+        file_datetime = datetime.fromtimestamp(path.getctime(file_path))
+        return file_datetime.strftime("%Y-%m-%d")
+    else:
+        return "Unknown"
+
+
 def get_size(obj, seen=None):
     """Recursively finds size of objects"""
     size = getsizeof(obj)
@@ -51,11 +61,36 @@ def get_size(obj, seen=None):
     return size
 
 
-def get_update_datetime():
-    """Returns date of last update based currently on .git/FETCH_HEAD"""
-    file_path = settings.REAL_PATH + "/../../.git/FETCH_HEAD"
-    if path.isfile(file_path):
-        file_datetime = datetime.fromtimestamp(path.getctime(file_path))
-        return file_datetime.strftime("%Y-%m-%d")
-    else:
-        return "Unknown"
+def parse_config(http_form, handler_class):
+    config = {}
+
+    for field in http_form:
+        if field in handler_class.config_fields:
+            field_type = handler_class.config_fields[field][0]
+            field_data = http_form[field]
+            value = field_data
+            if field_type == "int":
+                value = int(field_data)
+            elif field_type == "float":
+                value = float(field_data)
+            elif field_type == "bool":
+                value = bool(field_data)
+            config[field] = value
+
+    for field in handler_class.config_fields:
+        if len(handler_class.config_fields[field]) > 2 and field not in config:
+            config[field] = handler_class.config_fields[field][2]
+
+        if handler_class.config_fields[field][0] == "bool":
+            if field not in http_form:
+                config[field] = False
+
+    return config
+
+
+def make_json_error(error, message):
+    response = {
+        "error": error,
+        "message": message
+    }
+    return response, error

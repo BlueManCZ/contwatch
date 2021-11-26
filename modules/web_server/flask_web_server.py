@@ -11,33 +11,6 @@ from threading import Thread
 import platform
 
 
-def parse_config(http_form, handler_class):
-    config = {}
-
-    for field in http_form:
-        if field in handler_class.config_fields:
-            field_type = handler_class.config_fields[field][0]
-            field_data = request.form[field]
-            value = field_data
-            if field_type == "int":
-                value = int(field_data)
-            elif field_type == "float":
-                value = float(field_data)
-            elif field_type == "bool":
-                value = bool(field_data)
-            config[field] = value
-
-    for field in handler_class.config_fields:
-        if len(handler_class.config_fields[field]) > 2 and field not in config:
-            config[field] = handler_class.config_fields[field][2]
-
-        if handler_class.config_fields[field][0] == "bool":
-            if field not in http_form:
-                config[field] = False
-
-    return config
-
-
 class FlaskWebServer:
 
     def __init__(self, _manager, _database):
@@ -57,15 +30,18 @@ class FlaskWebServer:
         # SOCKETS #
         ###########
 
+        def emit_notification(notification_type, value):
+            self.sio.emit(notification_type, value, namespace="/")
+
         @self.sio.on("connect")
         def connect():
             self.connections += 1
-            _emit_notification("content-change-notification", "details")
+            emit_notification("content-change-notification", "details")
 
         @self.sio.on("disconnect")
         def disconnect():
             self.connections -= 1
-            _emit_notification("content-change-notification", "details")
+            emit_notification("content-change-notification", "details")
 
         #########
         # VIEWS #
@@ -73,11 +49,11 @@ class FlaskWebServer:
 
         @self.app.route("/")
         def index():
-            return redirect('overview')
+            return redirect("overview")
 
         @self.app.route("/index")
         def index_redirect():
-            return redirect('/')
+            return redirect("overview")
 
         @self.app.route("/<page_name>")
         def page(page_name):
@@ -145,16 +121,9 @@ class FlaskWebServer:
         # API #
         #######
 
-        def json_error(error, message):
-            response = {
-                "error": error,
-                "message": message
-            }
-            return response, error
-
         @self.app.route("/api")
         def api():
-            return "Specify your API request"
+            return tools.make_json_error(400, "Specify your API request")
 
         def parse_query(query):
             query = query.split(",")
@@ -210,22 +179,22 @@ class FlaskWebServer:
                     data_map[handler_id] = []
                 except Exception as e:
                     print(e)
-                    return json_error(400, "Argument 'handler_id' has to be an integer.")
+                    return tools.make_json_error(400, "Argument 'handler_id' has to be an integer.")
             elif raw_query:
                 try:
                     data_map = parse_query(raw_query)
                 except Exception as e:
                     print(e)
-                    return json_error(400, "Argument 'query' cannot be successfully parsed")
+                    return tools.make_json_error(400, "Argument 'query' cannot be successfully parsed")
             else:
-                return json_error(400, "Either 'handler_id' or 'query' has to be provided as an argument.")
+                return tools.make_json_error(400, "Either 'handler_id' or 'query' has to be provided as an argument.")
 
             if date_from:
                 try:
                     datetime_from = datetime.strptime(date_from, "%d-%m-%Y")
                 except Exception as e:
                     print(e)
-                    return json_error(400, "Argument 'date_from' is not in '%d-%m-%Y' format.")
+                    return tools.make_json_error(400, "Argument 'date_from' is not in '%d-%m-%Y' format.")
 
             if date_to:
                 try:
@@ -233,14 +202,14 @@ class FlaskWebServer:
                     datetime_to += timedelta(days=1)
                 except Exception as e:
                     print(e)
-                    return json_error(400, "Argument 'date_to' is not in '%d-%m-%Y' format.")
+                    return tools.make_json_error(400, "Argument 'date_to' is not in '%d-%m-%Y' format.")
 
             if smartround:
                 try:
                     smartround = int(smartround)
                 except Exception as e:
                     print(e)
-                    return json_error(400, "Argument 'smartround' has to be an integer.")
+                    return tools.make_json_error(400, "Argument 'smartround' has to be an integer.")
 
             if settings.CACHING_INTERVAL and cache:
                 if raw_query in self.cache:
@@ -306,7 +275,7 @@ class FlaskWebServer:
         def add_new_handler():
             handler_class = get_handler_class(request.form["__handler_type__"])
             handler_label = request.form["__handler_label__"]
-            config = parse_config(request.form, handler_class)
+            config = tools.parse_config(request.form, handler_class)
             handler_settings = {"configuration": config}
             new_handler = handler_class(handler_settings)
             new_handler.set_label(handler_label)
@@ -318,7 +287,7 @@ class FlaskWebServer:
         def edit_handler(handler_id):
             handler_class = get_handler_class(request.form["__handler_type__"])
             handler_label = request.form["__handler_label__"]
-            config = parse_config(request.form, handler_class)
+            config = tools.parse_config(request.form, handler_class)
             handler = self.manager.get_handler(handler_id)
             handler.update_config(config)
             handler.set_label(handler_label)
@@ -403,9 +372,6 @@ class FlaskWebServer:
         # OTHER #
         #########
 
-        def _emit_notification(notification_type, value):
-            self.sio.emit(notification_type, value, namespace='/')
-
         def content_change_watcher():
             while self.active:
                 if self.connections > 0:
@@ -422,7 +388,7 @@ class FlaskWebServer:
                             pages.append(page_name)
 
                     for page_name in pages:
-                        _emit_notification("content-change-notification", page_name)
+                        emit_notification("content-change-notification", page_name)
 
                 sleep(0.1)
 

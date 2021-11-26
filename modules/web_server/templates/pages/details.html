@@ -33,14 +33,14 @@
                 <h3>Uptime</h3>
                 <p>{{ data.uptime | hr_datetime }}</p>
             </div><div>
+                <h3>Current version</h3>
+                <p>{{ data.version }}</p>
+            </div><div>
                 <h3>Handlers</h3>
                 <p>{{ data.handlers }}</p>
             </div><div>
                 <h3>Connections</h3>
                 <p>{{ data.connections }}</p>
-            </div><div>
-                <h3>Current version</h3>
-                <p>{{ data.version }}</p>
             </div><div>
                 <h3>Database size</h3>
                 <p>{{ data.database_size | hr_filesize }}</p>
