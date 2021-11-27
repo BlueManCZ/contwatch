@@ -1,6 +1,6 @@
 from modules.handlers import *
 from modules.logging.logger import logger
-from modules.engine.data_manager import DataManager
+from modules.engine import DataManager
 
 from threading import Thread
 
