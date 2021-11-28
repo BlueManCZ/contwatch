@@ -20,7 +20,11 @@ class FlaskWebServer:
         self.manager = _manager
         self.database = _database
         self.start_datetime = datetime.now()
-        self.sio = SocketIO(self.app, async_mode="eventlet")
+        self.sio = SocketIO(
+            self.app,
+            async_mode="eventlet",
+            cors_allowed_origins=f"{settings.WEB_SERVER_ORIGINS}"
+        )
         self.connections = 0
         self.active = True
         self.site_config = {}  # TODO: Store JSON in file or database

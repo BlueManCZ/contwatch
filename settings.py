@@ -48,6 +48,12 @@ WEB_SERVER_PORT = 80
 # Default: False
 WEB_SERVER_DEBUG = False
 
+# Specify which origins are allowed to connect to Flask-SocketIO server.
+# This value is passed as it is to the `cors_allowed_origins` parameter of flask_socketio.SocketIO server.
+# For more information search for `cors_allowed_origins` on https://flask-socketio.readthedocs.io/en/latest/api.html
+# Default: "*"
+WEB_SERVER_ORIGINS = "*"
+
 
 # ----| CACHING | ----
 
