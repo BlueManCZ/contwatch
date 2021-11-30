@@ -311,6 +311,7 @@ function addChartToInspector(handler, attribute) {
 
                         document.getElementById(`${handler}-${line}`).checked = true;
 
+                        sortCharts();
                         recolorCharts();
                         inspectorChart.update();
                     }
@@ -349,6 +350,10 @@ function toggleChartInInspector(handler, attribute) {
     } else {
         removeChartFromInspector(handler, attribute);
     }
+}
+
+function sortCharts() {
+    inspectorChart.data.datasets.sort((a, b) => a.label.localeCompare(b.label));
 }
 
 function recolorCharts() {
