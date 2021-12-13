@@ -1,11 +1,11 @@
 from .handler_interface import HandlerInterface
 from modules.logging.logger import logger
 
-from threading import Thread
-from time import sleep, time
-
+from json.decoder import JSONDecodeError
 from requests import get
 from requests.exceptions import ConnectionError, ReadTimeout, MissingSchema
+from threading import Thread
+from time import sleep, time
 
 
 class HttpHandler(HandlerInterface):
@@ -15,6 +15,7 @@ class HttpHandler(HandlerInterface):
         self.log.debug("Starting HTTP data fetcher")
         self.success = True
         last_secs = int(time())
+        self.add_changed("handlers")
         while self.active:
             # TODO: Timing needs improvement
             secs = int(time())
@@ -37,13 +38,13 @@ class HttpHandler(HandlerInterface):
                         self.success = True
                     else:
                         self.success = False
-                        self.add_changed("devices")
+                        self.add_changed("handlers")
                 except ConnectionError as error:
                     print(error)
                     self.log.warning("Failed to establish a connection")
                     self.log.error(error)
                     self.success = False
-                    self.add_changed("devices")
+                    self.add_changed("handlers")
                     Thread(target=self._reconnect_watcher).start()
                     break
                 except ReadTimeout as error:
@@ -51,7 +52,7 @@ class HttpHandler(HandlerInterface):
                     self.log.warning("Connection timeout")
                     self.log.error(error)
                     self.success = False
-                    self.add_changed("devices")
+                    self.add_changed("handlers")
                     Thread(target=self._reconnect_watcher).start()
                     break
                 except MissingSchema as error:
@@ -59,8 +60,15 @@ class HttpHandler(HandlerInterface):
                     self.log.warning("Invalid URL address")
                     self.log.error(error)
                     self.success = False
-                    self.add_changed("devices")
                     self.active = False
+                    self.add_changed("handlers")
+                except JSONDecodeError as error:
+                    print(error)
+                    self.log.warning("Json decode error")
+                    self.log.error(error)
+                    self.success = False
+                    self.active = False
+                    self.add_changed("handlers")
             sleep(0.1)
         self.log.debug("Stopping fetcher")
 
@@ -71,7 +79,7 @@ class HttpHandler(HandlerInterface):
                 response = get(self.url, params=self.params, timeout=self.timeout)
                 if response.status_code == 200:
                     Thread(target=self._fetcher).start()
-                    self.add_changed("devices")
+                    self.add_changed("handlers")
                     break
             except ConnectionError:
                 pass
@@ -104,7 +112,7 @@ class HttpHandler(HandlerInterface):
         self.message_queue = []
         self.success = False
         self.active = True
-        self.add_changed("devices")
+        self.add_changed("handlers")
 
         Thread(target=self._fetcher).start()
 
@@ -115,7 +123,7 @@ class HttpHandler(HandlerInterface):
         self.interval = new_config["interval"]
         self.timeout = new_config["timeout"]
         self.json = new_config["json"]
-        self.add_changed("devices")
+        self.add_changed("handlers")
 
         self.active = False
         sleep(2)

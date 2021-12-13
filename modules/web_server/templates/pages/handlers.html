@@ -1,6 +1,6 @@
 <h2>List of configured handlers</h2>
 <div id="handlers" class="tile-list">
-    {% for handler in handlers %}<div class="tile" style="border-left: solid 5px {{'#0b0' if handlers[handler].is_connected() else '#ff6f6f'}}" onclick="showDialog('edit_handler_{{handler}}')">
+    {% for handler in handlers %}<div class="tile" style="border-left: solid 5px {{'#0b0' if handlers[handler].is_connected() else '#ff6f6f'}}" onclick="window.app.dialog.load('edit_handler_{{handler}}')">
         <img src="{{ url_for('static', filename='images/icons/types/'+handlers[handler].type+'.png') }}" alt="handler icon">
         <h3>{{ handlers[handler] | generate_handler_name }} <span class="id">(id:{{ handler }})</span></h3>
         <p class="description small">
@@ -11,5 +11,5 @@
                 {{ handlers[handler].url }}
             {% endif %}
         </p>
-    </div>{% endfor %}<div class="tile add" title="Add new handler" onclick="showDialog('choose_handler_type')"></div>
+    </div>{% endfor %}<div class="tile add" title="Add new handler" onclick="window.app.dialog.load('choose_handler_type')"></div>
 </div>

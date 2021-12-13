@@ -1,0 +1,28 @@
+{
+  "name": "contwatch",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BlueManCZ/contwatch.git"
+  },
+  "author": "Ivo Šmerek",
+  "bugs": {
+    "url": "https://github.com/BlueManCZ/contwatch/issues"
+  },
+  "homepage": "https://github.com/BlueManCZ/contwatch#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.6.0",
+    "@typescript-eslint/parser": "^5.6.0",
+    "eslint": "^7.32.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.25.3",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.2.0",
+    "ts-loader": "^9.2.6",
+    "typescript": "^4.5.3",
+    "webpack-cli": "^4.9.1"
+  },
+  "dependencies": {
+    "webpack": "^5.65.0"
+  }
+}

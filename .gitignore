@@ -4,6 +4,13 @@
 # Python
 __pycache__/
 
+# Node.js
+node_modules
+package-lock.json
+
+# Build
+modules/web_server/static/js
+
 # Logs
 *.log*
 

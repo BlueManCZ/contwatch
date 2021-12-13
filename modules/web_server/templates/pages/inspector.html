@@ -1,16 +1,16 @@
 <h2>Inspector</h2>
-<div id="inspector" onload="displayCharts(100)">
-    <button onclick="clearChartInspector(); showChartInspector()">Empty chart</button>
+<div id="inspector" onload="window.app.menu.page.displayCharts(100)">
+    <button onclick="window.app.inspector.openEmpty()">Empty chart</button>
     <h2>Saved views</h2>
     {% for view in views -%}
-        <div class="tile chart-preview" onclick="clearChartInspector(); showChartInspector({{ view.id }}, '{{ view.label }}'); {% for handler in view.settings %}{% for attribute in view.settings[handler] %}addChartToInspector('{{ handler }}', '{{ attribute }}');{% endfor %}{% endfor %}">
+        <div class="tile chart-preview" onclick="window.app.inspector.open({{ view.id }}, '{{ view.label }}'); {% for handler in view.settings %}{% for attribute in view.settings[handler] %}window.app.inspector.addChart('{{ handler }}', '{{ attribute }}');{% endfor %}{% endfor %}">
             <h1>{{ view.label }}</h1>
             <canvas class="chart" data-query="{% for handler in view.settings %}{% for attribute in view.settings[handler] %}{{ handler }}-{{ attribute }},{% endfor %}{% endfor %}"></canvas>
         </div>
     {%- endfor %}
 </div>
 <div id="inspector-chart-view" class="inspector-chart-view-hidden">
-    <img src="{{ url_for('static', filename='images/icons/close.png') }}" class="close-button" onclick="hideChartInspector()" alt="Close icon">
+    <img src="{{ url_for('static', filename='images/icons/close.png') }}" class="close-button" onclick="window.app.inspector.hide()" alt="Close icon">
     <div class="inspector-config-panel">
         <h1>Chart data</h1>
         {% for handler in manager.get_handlers() %}
@@ -18,7 +18,7 @@
                 <h2>{{ manager.get_handlers()[handler] | generate_handler_name }}</h2>
                 {% for attribute in manager.get_handlers()[handler].get_storage_attributes() %}
                     <div>
-                        <input id="{{ handler }}-{{ attribute }}" type="checkbox" class="inspector-data-checkbox" data-handler="{{ handler }}" data-attribute="{{ attribute }}" oninput="toggleChartInInspector('{{ handler }}', '{{ attribute }}')">
+                        <input id="{{ handler }}-{{ attribute }}" type="checkbox" class="inspector-data-checkbox" data-handler="{{ handler }}" data-attribute="{{ attribute }}" oninput="window.app.inspector.toggleChart('{{ handler }}', '{{ attribute }}')">
                         <label for="{{ handler }}-{{ attribute }}">{{ attribute }}</label>
                     </div>
                 {% endfor %}
@@ -27,8 +27,8 @@
         <hr>
         <h2>Save view</h2>
         <input type="text" class="view-label" id="view-label" placeholder="View label">
-        <button class="btn btn-sm btn-primary mt-3" onclick="saveOrEditChartView()">Save</button>
-        <button class="btn btn-sm btn-danger mt-3" onclick="deleteChartView()">Delete</button>
+        <button class="btn btn-sm btn-primary mt-3" onclick="window.app.inspector.saveView()">Save</button>
+        <button class="btn btn-sm btn-danger mt-3" onclick="window.app.inspector.deleteView()">Delete</button>
     </div><div class="canvas-parent">
         <canvas id="inspector-chart"></canvas>
     </div>

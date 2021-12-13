@@ -293,7 +293,7 @@ class FlaskWebServer:
             handler_label = request.form["__handler_label__"]
             config = tools.parse_config(request.form, handler_class)
             handler = self.manager.get_handler(handler_id)
-            handler.update_config(config)
+            Thread(target=lambda: handler.update_config(config)).start()
             handler.set_label(handler_label)
             self.database.update_handler_settings(handler_id, handler.settings)
             self.manager.add_changed("handlers")
@@ -317,8 +317,8 @@ class FlaskWebServer:
             self.manager.add_changed("data")
             return "ok"
 
-        @self.app.route("/save_or_edit_chart_view", methods=["POST"])
-        def save_or_edit_chart_view():
+        @self.app.route("/save_chart_view", methods=["POST"])
+        def save_chart_view():
             view_id = request.json["view_id"]
             if not request.json["label"]:
                 return {"status": False, "error": "View label cannot be empty"}

@@ -26,7 +26,7 @@ class SerialHandler(HandlerInterface):
             else:
                 self.log.warning("Lost connection with device")
                 self.connection.close()
-                self.add_changed("devices")
+                self.add_changed("handlers")
                 if self.auto_reconnect:
                     Thread(target=self._reconnect_watcher).start()
                 break
@@ -67,7 +67,7 @@ class SerialHandler(HandlerInterface):
         self.message_queue = []  # TODO: The list will be used in multiple threads
 
         self.active = False
-        self.add_changed("devices")
+        self.add_changed("handlers")
 
         if self.reconnect():
             self.active = True
@@ -85,7 +85,7 @@ class SerialHandler(HandlerInterface):
 
         self.connection.close()
 
-        self.add_changed("devices")
+        self.add_changed("handlers")
 
     def send_message(self, message):
         if self.connection.is_open:
@@ -106,7 +106,7 @@ class SerialHandler(HandlerInterface):
         try:
             self.connection.open()
             self.log.info("Established connection")
-            self.add_changed("devices")
+            self.add_changed("handlers")
             return True
         except serial.SerialException:
             if path.exists(self.connection.port):

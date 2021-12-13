@@ -1,6 +1,6 @@
 <h1>Choose handler type</h1>
 <div class="tile-list">
-    {% for handler in loaded_handlers %}<div class="tile" onclick="showDialog('add_new_handler_{{ handler.type }}')">
+    {% for handler in loaded_handlers %}<div class="tile" onclick="window.app.dialog.load('add_new_handler_{{ handler.type }}')">
         <img src="{{ url_for('static', filename='images/icons/types/' + handler.type + '.png') }}" alt="Handler icon">
         <h3>{{ handler.type }} handler</h3>
     </div>{% endfor %}
