@@ -2,7 +2,7 @@
 
 System for controlling single-board microcontrollers powered by Python.
 
-## Dependencies
+## Python dependencies
 
 If you use [`apt`](https://en.wikipedia.org/wiki/APT_(software)) as your package manager, you can run:
 
@@ -15,6 +15,16 @@ As an alternative you can use [`pip`](https://en.wikipedia.org/wiki/Pip_(package
 ```shell
 pip3 install -r requirements.txt --user
 ```
+
+## Build
+
+TypeScript needs to be compiled and bundled into JavaScript.
+
+```shell
+npm install
+./node_modules/webpack/bin/webpack.js
+```
+
 ## Usage
 
 ```shell
