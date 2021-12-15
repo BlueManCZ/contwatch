@@ -18,12 +18,12 @@ void loop() {
   }
 }
 
-int getSerialData(char* dataArray[], Stream &serial, char divider, int maxWordLenght) {
+int getSerialData(char* dataArray[], Stream &serial, char divider, int maxWordLength) {
   int arrayIndex = 0;
 
   if (serial.available()) {
     char ch;
-    char* part = new char[maxWordLenght];
+    char* part = new char[maxWordLength];
     int index = 0;
     bool receiving = true;
     while (receiving) {
@@ -32,7 +32,7 @@ int getSerialData(char* dataArray[], Stream &serial, char divider, int maxWordLe
         if (ch == divider || ch == '\n' || ch == '\0') {
           part[index] = '\0';
           dataArray[arrayIndex++] = part;
-          part = new char[maxWordLenght];
+          part = new char[maxWordLength];
           index = 0;
           if (ch == '\n' || ch == '\0') {
             receiving = false;

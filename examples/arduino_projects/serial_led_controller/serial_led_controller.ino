@@ -2,7 +2,7 @@ void setup() {
   for (int i = 2; i < 7; i++) {
     pinMode(i, OUTPUT);
   }
-  
+
   Serial.begin(9600);
 //  Serial.println("Ready to read");
 //  Serial.println("Send \"LED,[ON/OFF],[([1-6],)*/ALL]\"\n");
@@ -27,7 +27,7 @@ void loop() {
           digitalWrite(atoi(data[index++]) + 1, (strcmp(data[1], "OFF")) ? HIGH : LOW);
         }
       }
-    }  
+    }
   }
 
   index = 0;
@@ -36,12 +36,12 @@ void loop() {
   }
 }
 
-int getSerialData(char* dataArray[], Stream &serial, char divider, int maxWordLenght) {
+int getSerialData(char* dataArray[], Stream &serial, char divider, int maxWordLength) {
   int arrayIndex = 0;
 
   if (serial.available()) {
     char ch;
-    char* part = new char[maxWordLenght];
+    char* part = new char[maxWordLength];
     int index = 0;
     bool receiving = true;
     while (receiving) {
@@ -50,7 +50,7 @@ int getSerialData(char* dataArray[], Stream &serial, char divider, int maxWordLe
         if (ch == divider || ch == '\n' || ch == '\0') {
           part[index] = '\0';
           dataArray[arrayIndex++] = part;
-          part = new char[maxWordLenght];
+          part = new char[maxWordLength];
           index = 0;
           if (ch == '\n' || ch == '\0') {
             receiving = false;
