@@ -36,6 +36,10 @@ DATABASE_FILE = "database.sqlite"
 
 # ----| WEB SERVER |----
 
+# Enable or disable web server module.
+# Default: True
+WEB_SERVER = True
+
 # Web server address
 # Default: "0.0.0.0"
 WEB_SERVER_ADDRESS = "0.0.0.0"

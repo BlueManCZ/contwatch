@@ -40,10 +40,13 @@ if __name__ == "__main__":
     # Initialize main modules
     db = database.Database()
     manager = HandlerManager(db)
-    web = FlaskWebServer(manager, db)
 
     # Register modules for SIGINT handler
-    register_modules(db, manager, web)
+    register_modules(db, manager)
+
+    if settings.WEB_SERVER:
+        web = FlaskWebServer(manager, db)
+        register_modules(web)
 
     # Wait for the manager thread to end
     manager.thread.join()
