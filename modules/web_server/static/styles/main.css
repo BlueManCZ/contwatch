@@ -70,12 +70,11 @@ nav {
   z-index: 100;
 }
 nav h1 {
-  margin: 0;
   font-weight: bold;
   color: #555555;
   font-size: 30px;
   padding-left: 10px;
-  margin-bottom: 50px;
+  margin: 0 0 50px;
 }
 nav h5 {
   font-size: 14px;
@@ -107,8 +106,7 @@ nav ul li img {
   margin-right: 10px;
 }
 nav ul li .title {
-  margin: 0;
-  margin-top: 2px;
+  margin: 2px 0 0;
   color: #555;
   font-weight: 600;
 }
@@ -218,7 +216,7 @@ nav ul .active {
   min-width: auto;
   border-radius: 100% !important;
   cursor: pointer;
-  background-image: url("/static/images/icons/plus.png");
+  background-image: url("../images/icons/plus.png");
   background-size: 60%;
   background-repeat: no-repeat;
   background-position: center;
@@ -395,12 +393,11 @@ nav ul .active {
 }
 #inspector-chart-view .inspector-config-panel {
   width: 330px;
-  padding: 15px 20px;
   position: absolute;
   background: white;
   box-shadow: 0 0 5px silver;
   border-radius: 20px;
-  padding-left: 100px;
+  padding: 15px 20px 15px 100px;
   top: 70px;
   left: -330px;
   transition: ease-in-out 100ms;
