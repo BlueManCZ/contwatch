@@ -85,14 +85,8 @@ class FlaskWebServer:
 
             for handler_id in self.manager.registered_handlers:
                 storage_attributes = self.manager.registered_handlers[handler_id].get_storage_attributes()
-                labels = self.database.get_all_stored_attributes(handler_id)
-                attributes[handler_id] = []
+                attributes[handler_id] = storage_attributes
                 ghost_attributes[handler_id] = []
-                for attribute in labels:
-                    if attribute in storage_attributes:
-                        attributes[handler_id].append(attribute)
-                    else:
-                        ghost_attributes[handler_id].append(attribute)
 
             return render_template(
                 "pages/data.html",

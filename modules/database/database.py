@@ -2,7 +2,7 @@ from modules import settings
 from modules.handlers.handler_interface import HandlerInterface
 from modules.logging.logger import logger
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from pony import orm
 
 
@@ -77,10 +77,6 @@ class Database:
     @orm.db_session
     def add_data_unit(self, label, value, handler: Handler):
         return DataUnit(label=label, value=value, handler=handler, datetime=datetime.now())
-
-    @orm.db_session
-    def get_all_stored_attributes(self, handler_id):
-        return orm.select(d.label for d in DataUnit if d.handler.id == handler_id)[:]
 
     @orm.db_session
     def get_handler_attribute_data(self, handler_id, attribute, datetime_from: datetime, datetime_to: datetime, *_,
