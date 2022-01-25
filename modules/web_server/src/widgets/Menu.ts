@@ -1,5 +1,4 @@
 import { Page } from "./Page";
-import { showLoader } from "../tools/gifLoaderBindings";
 
 export class Menu {
     private element: HTMLElement;
@@ -32,7 +31,9 @@ export class Menu {
     }
 
     click(button: HTMLElement): void {
-        if (window.innerWidth < 900) showLoader();
+        if (window.innerWidth < 900) {
+            (window as any).app.loader.show();
+        }
         const pageName = button.id.split("-")[2];
         this.page.load(pageName);
         this.scrollUp();

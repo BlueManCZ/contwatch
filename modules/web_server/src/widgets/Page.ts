@@ -1,4 +1,3 @@
-import { hideLoader } from "../tools/gifLoaderBindings";
 import { ChartPreview } from "./ChartPreview";
 
 export class Page {
@@ -46,7 +45,7 @@ export class Page {
             if (document.getElementById(pageName).onload) {
                 document.getElementById(pageName).onload(undefined);
             }
-            hideLoader();
+            (window as any).app.loader.hide();
         };
         request.send(JSON.stringify(this.config));
     }
