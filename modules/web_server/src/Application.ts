@@ -4,12 +4,12 @@ import { Inspector } from "./Inspector";
 import { GifLoader } from "./widgets/GifLoader";
 
 export class Application {
-    private readonly colors: string[]
-    private sockets: any // Js class
+    private readonly colors: string[];
+    private sockets: any; // Js class
     private loader: GifLoader;
-    private menu: Menu
-    private dialog: Dialog
-    private inspector: Inspector
+    private menu: Menu;
+    private dialog: Dialog;
+    private inspector: Inspector;
 
     constructor() {
         // @ts-ignore

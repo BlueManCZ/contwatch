@@ -1,8 +1,8 @@
 export class ChartPreview {
-    private readonly colors: string[]
-    private element: HTMLElement
-    private readonly smartround: number
-    private readonly _chart: any
+    private readonly colors: string[];
+    private element: HTMLElement;
+    private readonly smartround: number;
+    private readonly _chart: any;
 
     constructor(element: HTMLElement, smartround: number, colors: string[]) {
         this.colors = colors;

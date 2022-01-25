@@ -1,13 +1,13 @@
 import { ChartPreview } from "./ChartPreview";
 
 export class Page {
-    private readonly colors: string[]
-    private element: HTMLElement
+    private readonly colors: string[];
+    private element: HTMLElement;
     // eslint-disable-next-line no-undef
-    private readonly chartElements: HTMLCollectionOf<Element>
-    private _currentPage: string
-    private readonly config: { [name: string]: string | number | boolean }
-    private savedCharts: any
+    private readonly chartElements: HTMLCollectionOf<Element>;
+    private _currentPage: string;
+    private readonly config: { [name: string]: string | number | boolean };
+    private savedCharts: any;
 
     constructor(id: string, colors: string[]) {
         this.element = document.getElementById(id);

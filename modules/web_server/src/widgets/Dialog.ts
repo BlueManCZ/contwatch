@@ -1,5 +1,5 @@
 export class Dialog {
-    private element: HTMLElement
+    private element: HTMLElement;
 
     constructor(id: string) {
         this.element = document.getElementById(id);

@@ -5,7 +5,9 @@
         "es2021": true
     },
     "extends": [
-        "standard"
+        "standard",
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
@@ -15,14 +17,15 @@
         "@typescript-eslint"
     ],
     "rules": {
-        "brace-style": ["error", "1tbs"],
         "indent": ["error", 4],
         "no-use-before-define": ["error"],
-        "no-undef": ["error"],
         "object-curly-spacing": ["error", "always"],
-        "semi": ["error", "always"],
+        "semi": ["off"],
+        "@typescript-eslint/semi": ["error"],
         "space-before-function-paren": ["error", "never"],
         "quotes": ["error", "double"],
-        "@typescript-eslint/explicit-function-return-type": ["error"]
+
+        "@typescript-eslint/no-explicit-any": ["off"],
+        "@typescript-eslint/ban-ts-comment": ["off"]
     }
 }

@@ -1,11 +1,11 @@
 import { BigChart } from "./widgets/BigChart";
 
 export class Inspector {
-    private readonly colors: string[]
-    private readonly inspectorElementId: string
-    private currentViewId: number
-    private bigChart: BigChart
-    private displayedCharts: string[]
+    private readonly colors: string[];
+    private readonly inspectorElementId: string;
+    private currentViewId: number;
+    private bigChart: BigChart;
+    private displayedCharts: string[];
 
     constructor(id: string, colors: string[]) {
         this.colors = colors;

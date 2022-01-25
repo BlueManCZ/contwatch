@@ -1,7 +1,7 @@
 export class BigChart {
-    private readonly colors: string[]
-    private readonly element: HTMLElement
-    private _chart: any
+    private readonly colors: string[];
+    private readonly element: HTMLElement;
+    private _chart: any;
 
     constructor(element: HTMLElement, colors: string[]) {
         this.colors = colors;
