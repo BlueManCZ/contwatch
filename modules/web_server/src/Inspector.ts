@@ -8,6 +8,7 @@ export class Inspector {
     private bigChart: BigChart;
     private displayedCharts: { [name: string]: string[] };
     private dateSelector: HTMLInputElement;
+    private configPanel: HTMLElement;
 
     constructor(id: string, colors: string[]) {
         this.colors = colors;
@@ -28,6 +29,7 @@ export class Inspector {
         this.clearChart();
         this.dateSelector = (document.getElementById("date-select") as HTMLInputElement);
         this.dateSelector.value = dateISOString();
+        this.configPanel = document.getElementById("inspector-config-panel")
     }
 
     clearChart(): void {
@@ -198,12 +200,18 @@ export class Inspector {
             } else {
                 alert(data.error);
             }
+
+            this.displayedCharts = {};
         };
 
         request.send(JSON.stringify(data));
     }
 
     deleteView(): void {
+        if (!confirm("Are you sure you want to delete this view?")) {
+            return;
+        }
+
         if (this.currentViewId > -1) {
             const request = new XMLHttpRequest();
             request.onload = (): void => {
@@ -211,6 +219,7 @@ export class Inspector {
                 if (!data.status) {
                     alert(data.error);
                 }
+                this.displayedCharts = {};
             };
             request.open("POST", `/delete_chart_view/${this.currentViewId}`);
             request.send();
@@ -230,5 +239,13 @@ export class Inspector {
     hide(): void {
         this.element.classList.add("inspector-chart-view-hidden");
         this.displayedCharts = {};
+    }
+
+    showConfigPanel(): void {
+        this.configPanel.style.display = "unset";
+    }
+
+    hideConfigPanel(): void {
+        this.configPanel.style.display = "none";
     }
 }

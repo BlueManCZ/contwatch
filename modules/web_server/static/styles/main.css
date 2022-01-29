@@ -394,32 +394,48 @@ nav ul .active {
 #inspector-chart-view .canvas-parent {
   height: 100%;
 }
-#inspector-chart-view .inspector-config-panel {
+#inspector-chart-view .close-button, #inspector-chart-view .settings-button {
+  position: absolute;
+  top: 15px;
+  right: 25px;
+  width: 25px;
+  cursor: pointer;
+  opacity: 0.6;
+}
+#inspector-chart-view .close-button:hover, #inspector-chart-view .settings-button:hover {
+  opacity: 1;
+}
+#inspector-chart-view .settings-button {
+  right: unset;
+  left: 25px;
+}
+#inspector-chart-view #inspector-config-panel {
   width: 330px;
   position: absolute;
   background: white;
   box-shadow: 0 0 5px silver;
   border-radius: 20px;
-  padding: 15px 20px 15px 100px;
+  padding: 15px 20px 15px 20px;
   top: 70px;
-  left: -330px;
   transition: ease-in-out 100ms;
+  display: none;
+  overflow: auto;
 }
-#inspector-chart-view .inspector-config-panel:hover {
-  left: -100px;
+#inspector-chart-view #inspector-config-panel .close-button, #inspector-chart-view #inspector-config-panel .settings-button {
+  width: 20px;
 }
-#inspector-chart-view .inspector-config-panel h1 {
+#inspector-chart-view #inspector-config-panel h1 {
   font-size: 20px;
   font-weight: bold;
 }
-#inspector-chart-view .inspector-config-panel h2 {
+#inspector-chart-view #inspector-config-panel h2 {
   font-size: 17px;
   margin-top: 15px;
 }
-#inspector-chart-view .inspector-config-panel .view-label {
+#inspector-chart-view #inspector-config-panel .view-label {
   width: 100%;
 }
-#inspector-chart-view .inspector-config-panel #date-select {
+#inspector-chart-view #inspector-config-panel #date-select {
   width: 100%;
   margin-bottom: 20px;
 }
@@ -429,18 +445,6 @@ nav ul .active {
   margin-top: -1000%;
   transform: scale(0);
   transition-timing-function: cubic-bezier(0.62, 1.71, 1, 1.64), step-end !important;
-}
-
-.close-button {
-  position: absolute;
-  top: 25px;
-  right: 25px;
-  width: 25px;
-  cursor: pointer;
-  opacity: 0.6;
-}
-.close-button:hover {
-  opacity: 1;
 }
 
 #menu-button {
@@ -490,9 +494,31 @@ nav ul .active {
     width: 100%;
     height: 100%;
   }
-
-  .close-button {
+  #inspector-chart-view .close-button, #inspector-chart-view .settings-button {
     top: 15px;
+  }
+  #inspector-chart-view .settings-button {
+    display: unset;
+    top: 15px;
+  }
+  #inspector-chart-view #inspector-config-panel {
+    padding: 20px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+  #inspector-chart-view .mobile-top-panel {
+    text-align: right;
+  }
+  #inspector-chart-view .mobile-top-panel .close-button, #inspector-chart-view .mobile-top-panel .settings-button {
+    position: relative;
+    left: 0;
+    top: 0;
+    width: 25px !important;
+    cursor: pointer;
+    opacity: 0.6;
   }
 
   #handlers.tile-list .tile {

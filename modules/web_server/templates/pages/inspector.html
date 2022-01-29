@@ -10,8 +10,12 @@
     {%- endfor %}
 </div>
 <div id="inspector-chart-view" class="inspector-chart-view-hidden">
+    <img src="{{ url_for('static', filename='images/icons/settings.png') }}" class="settings-button" alt="Settings icon" onclick="window.app.inspector.showConfigPanel()">
     <img src="{{ url_for('static', filename='images/icons/close.png') }}" class="close-button" onclick="window.app.inspector.hide()" alt="Close icon">
-    <div class="inspector-config-panel">
+    <div id="inspector-config-panel">
+        <div class="mobile-top-panel">
+            <img class="close-button" src="{{ url_for('static', filename='images/icons/close.png') }}" alt="Close icon" onclick="window.app.inspector.hideConfigPanel()">
+        </div>
         <h1><label for="date-select">Select date</label></h1>
         <input id="date-select" type="date" oninput="window.app.inspector.changDate();">
         <h1>Chart data</h1>
