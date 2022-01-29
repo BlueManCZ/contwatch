@@ -1,17 +1,19 @@
 import { BigChart } from "./widgets/BigChart";
+import { dateDaysOffset, dateISO, dateISOString } from "./utils/DateTime";
 
 export class Inspector {
     private readonly colors: string[];
     private readonly inspectorElementId: string;
     private currentViewId: number;
     private bigChart: BigChart;
-    private displayedCharts: string[];
+    private displayedCharts: { [name: string]: string[] };
+    private dateSelector: HTMLInputElement;
 
     constructor(id: string, colors: string[]) {
         this.colors = colors;
         this.inspectorElementId = id;
         this.currentViewId = -1;
-        this.displayedCharts = [];
+        this.displayedCharts = {};
     }
 
     get element(): HTMLElement {
@@ -23,6 +25,12 @@ export class Inspector {
     }
 
     initialize(): void {
+        this.clearChart();
+        this.dateSelector = (document.getElementById("date-select") as HTMLInputElement);
+        this.dateSelector.value = dateISOString();
+    }
+
+    clearChart(): void {
         if (this.bigChart) {
             this.bigChart.destroy();
             this.clearCheckboxes();
@@ -53,15 +61,17 @@ export class Inspector {
         }
     }
 
-    addChart(handler: string, attribute: string): void {
-        const str = `${handler}-${attribute}`;
-        if (this.displayedCharts.indexOf(str) === -1) {
-            this.displayedCharts.push(str);
+    addChart(handler: string, attribute: string, date?: string): void {
+        if (!this.displayedCharts[handler]) {
+            this.displayedCharts[handler] = [];
+        }
+
+        if (this.displayedCharts[handler].indexOf(attribute) === -1) {
+            this.displayedCharts[handler].push(attribute);
         } else {
             return;
         }
 
-        const d = new Date();
         let query;
         if (attribute) {
             query = `${handler}-${attribute}`;
@@ -69,7 +79,13 @@ export class Inspector {
             query = handler;
         }
 
-        const url = `/api/charts?query=${query}&date_from=${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`;
+        let dateFrom = dateISOString();
+
+        if (typeof date !== "undefined") {
+            dateFrom = date;
+        }
+
+        const url = `/api/charts?query=${query}&date_from=${dateFrom}&date_to=${dateFrom}`;
 
         const request = new XMLHttpRequest();
         request.open("GET", url);
@@ -110,8 +126,8 @@ export class Inspector {
     }
 
     removeChart(handler: string, attribute: string): void {
-        let index = this.displayedCharts.indexOf(`${handler}-${attribute}`);
-        this.displayedCharts.splice(index, 1);
+        let index = this.displayedCharts[handler].indexOf(attribute);
+        this.displayedCharts[handler].splice(index, 1);
 
         for (const id in this.bigChart.chart.data.datasets) {
             const dataset = this.bigChart.chart.data.datasets[id];
@@ -131,6 +147,19 @@ export class Inspector {
             this.addChart(handler, attribute);
         } else {
             this.removeChart(handler, attribute);
+        }
+    }
+
+    refreshChart() {
+        this.clearChart();
+
+        const charts = this.displayedCharts;
+        this.displayedCharts = {};
+
+        for (const handler in charts) {
+            for (const attribute in charts[handler]) {
+                this.addChart(handler, charts[handler][attribute], this.dateSelector.value);
+            }
         }
     }
 
@@ -190,12 +219,16 @@ export class Inspector {
         }
     }
 
+    changDate(): void {
+        this.refreshChart();
+    }
+
     show(): void {
         this.element.classList.remove("inspector-chart-view-hidden");
     }
 
     hide(): void {
         this.element.classList.add("inspector-chart-view-hidden");
-        this.displayedCharts = [];
+        this.displayedCharts = {};
     }
 }

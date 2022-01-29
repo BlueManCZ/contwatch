@@ -411,10 +411,14 @@ nav ul .active {
 }
 #inspector-chart-view .inspector-config-panel h2 {
   font-size: 17px;
-  margin-top: 25px;
+  margin-top: 15px;
 }
 #inspector-chart-view .inspector-config-panel .view-label {
   width: 100%;
+}
+#inspector-chart-view .inspector-config-panel #date-select {
+  width: 100%;
+  margin-bottom: 20px;
 }
 
 .inspector-chart-view-hidden {

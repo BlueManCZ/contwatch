@@ -14,7 +14,6 @@ export class BigChart {
     }
 
     create(): void {
-        console.log(this.element);
         // @ts-ignore
         // eslint-disable-next-line no-undef
         this._chart = new Chart(this.element, { // Chart.js library

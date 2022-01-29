@@ -1,3 +1,5 @@
+import { dateISOString } from "../utils/DateTime";
+
 export class ChartPreview {
     private readonly colors: string[];
     private element: HTMLElement;
@@ -59,9 +61,7 @@ export class ChartPreview {
             query = query.slice(0, -1);
         }
 
-        const d = new Date();
-
-        const url = `/api/charts?query=${query}&date_from=${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}&smartround=${this.smartround}&cache=yes`;
+        const url = `/api/charts?query=${query}&date_from=${dateISOString()}&smartround=${this.smartround}&cache=yes`;
         const request = new XMLHttpRequest();
         request.open("GET", url);
         request.setRequestHeader("Accept", "application/json");

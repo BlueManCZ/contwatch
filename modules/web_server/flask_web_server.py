@@ -189,18 +189,18 @@ class FlaskWebServer:
 
             if date_from:
                 try:
-                    datetime_from = datetime.strptime(date_from, "%d-%m-%Y")
+                    datetime_from = datetime.strptime(date_from, "%Y-%m-%d")
                 except Exception as e:
                     print(e)
-                    return tools.make_json_error(400, "Argument 'date_from' is not in '%d-%m-%Y' format.")
+                    return tools.make_json_error(400, "Argument 'date_from' is not in '%Y-%m-%d' format.")
 
             if date_to:
                 try:
-                    datetime_to = datetime.strptime(date_to, "%d-%m-%Y")
+                    datetime_to = datetime.strptime(date_to, "%Y-%m-%d")
                     datetime_to += timedelta(days=1)
                 except Exception as e:
                     print(e)
-                    return tools.make_json_error(400, "Argument 'date_to' is not in '%d-%m-%Y' format.")
+                    return tools.make_json_error(400, "Argument 'date_to' is not in '%Y-%m-%d' format.")
 
             if smartround:
                 try:
