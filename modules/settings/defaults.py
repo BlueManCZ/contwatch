@@ -6,7 +6,12 @@ LOG_FILE_MAX_BYTES = 51200
 LOG_FILE_BACKUP_COUNT = 5
 LOG_LEVEL = "DEBUG"
 
-DATABASE_FILE = "database.sqlite"
+DB_TYPE = "sqlite"
+DB_SQLITE_FILE = "database.sqlite"
+DB_HOST = ""
+DB_USER = ""
+DB_PASSWORD = ""
+DB_DATABASE = "contwatch"
 
 WEB_SERVER = True
 WEB_SERVER_ADDRESS = "0.0.0.0"

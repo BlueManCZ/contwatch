@@ -93,6 +93,9 @@ export class ChartPreview {
                         colorIndex = (colorIndex + 1) % 5;
                     }
                 }
+
+                this.chart.resize(1, 1);
+                this.chart.resize();
             }
         };
         request.send();

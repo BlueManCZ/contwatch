@@ -200,6 +200,7 @@ nav
 
   .tile
     cursor: pointer
+    min-height: 210px
 
 #data
   h3
@@ -311,9 +312,11 @@ nav
         font-size: 20px
 
     .tile
-      margin-left: 0
-      margin-right: 30px
-      width: 240px
+      margin-right: 0
+      width: 260px
+
+      &:nth-child(2n)
+        margin-left: 20px
 
 .dialog-hidden
   opacity: 0 !important

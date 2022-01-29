@@ -253,6 +253,7 @@ nav ul .active {
 }
 #inspector .tile {
   cursor: pointer;
+  min-height: 210px;
 }
 
 #data h3 {
@@ -360,9 +361,11 @@ nav ul .active {
   font-size: 20px;
 }
 #dialog-container dialog .tile {
-  margin-left: 0;
-  margin-right: 30px;
-  width: 240px;
+  margin-right: 0;
+  width: 260px;
+}
+#dialog-container dialog .tile:nth-child(2n) {
+  margin-left: 20px;
 }
 
 .dialog-hidden {

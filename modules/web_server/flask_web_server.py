@@ -110,7 +110,7 @@ class FlaskWebServer:
                 "handlers": len(self.manager.get_handlers()),
                 "connections": self.connections,
                 "version": tools.get_update_datetime(),
-                "database_size": path.getsize(settings.DATABASE_FILE),
+                "database_size": path.getsize(settings.DB_SQLITE_FILE),
                 "cache_size": tools.get_size(self.cache)
             }
             return render_template("pages/details.html", data=dictionary)

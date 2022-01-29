@@ -188,7 +188,7 @@ export class Inspector {
         data.settings = settings;
 
         const request = new XMLHttpRequest();
-        request.open("POST", "/save_or_edit_chart_view");
+        request.open("POST", "/save_chart_view");
         request.setRequestHeader("Content-Type", "application/json");
         request.onload = (): void => {
             const data = JSON.parse(request.responseText);

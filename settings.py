@@ -28,10 +28,33 @@ LOG_LEVEL = "DEBUG"
 
 # ----| DATABASE |----
 
+# Database type
+# Currently available types: sqlite, mysql
+# Default: "sqlite"
+DB_TYPE = "sqlite"
+
 # Absolute or relative path to database file
 # Relative path is relative to the project root.
 # Default: "database.sqlite"
-DATABASE_FILE = "database.sqlite"
+DB_SQLITE_FILE = "database.sqlite"
+
+# Database host address
+# An empty string means localhost address.
+# Default: ""
+DB_HOST = ""
+
+# Database user
+# An empty string means the current user will be used.
+# Default: ""
+DB_USER = ""
+
+# Database password
+# Default: ""
+DB_PASSWORD = ""
+
+# Database name
+# Default: "contwatch"
+DB_DATABASE = "contwatch"
 
 
 # ----| WEB SERVER |----

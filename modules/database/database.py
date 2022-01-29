@@ -1,3 +1,4 @@
+import settings
 from modules import settings
 from modules.handlers.handler_interface import HandlerInterface
 from modules.logging.logger import logger
@@ -39,7 +40,17 @@ class Database:
     def __init__(self):
         log = logger("Database")
 
-        db.bind(provider="sqlite", filename=settings.DATABASE_FILE, create_db=True)
+        if settings.DB_TYPE == "sqlite":
+            db.bind("sqlite", filename=settings.DB_SQLITE_FILE, create_db=True)
+        elif settings.DB_TYPE == "mysql":
+            db.bind("mysql",
+                    host=settings.DB_HOST, db=settings.DB_DATABASE,
+                    user=settings.DB_USER, passwd=settings.DB_PASSWORD)
+        else:
+            error_text = f"Unsupported database type '{settings.DB_TYPE}' in settings."
+            log.error(error_text)
+            print(error_text)
+            quit()
         db.generate_mapping(create_tables=True)
 
         log.info("Database initialized")
