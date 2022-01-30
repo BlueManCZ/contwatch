@@ -29,7 +29,7 @@ export class Inspector {
         this.clearChart();
         this.dateSelector = (document.getElementById("date-select") as HTMLInputElement);
         this.dateSelector.value = dateISOString();
-        this.configPanel = document.getElementById("inspector-config-panel")
+        this.configPanel = document.getElementById("inspector-config-panel");
     }
 
     clearChart(): void {
@@ -87,6 +87,8 @@ export class Inspector {
             dateFrom = date;
         }
 
+        const currentView = this.currentViewId;
+
         const url = `/api/charts?query=${query}&date_from=${dateFrom}&date_to=${dateFrom}`;
 
         const request = new XMLHttpRequest();
@@ -94,10 +96,22 @@ export class Inspector {
         request.setRequestHeader("Accept", "application/json");
         request.onreadystatechange = (): void => {
             if (request.readyState === 4) {
+                if (currentView !== this.currentViewId) {
+                    return;
+                }
+
                 const data = JSON.parse(request.responseText);
 
                 for (const handler in data) {
                     for (const line in data[handler]) {
+                        if (!data[handler][line].timestamps.length) {
+                            break;
+                        } else {
+                            console.log(`${dateISO(new Date(data[handler][line].timestamps.slice(-1) * 1000))} == ${this.dateSelector.value}`);
+                            if (dateISO(new Date(data[handler][line].timestamps.slice(-1) * 1000)) !== this.dateSelector.value) {
+                                break;
+                            }
+                        }
                         const datasetData = [];
 
                         for (let j = 0; j < data[handler][line].timestamps.length; j++) {
@@ -146,7 +160,7 @@ export class Inspector {
         const status = (<HTMLInputElement> document.getElementById(`${handler}-${attribute}`)).checked;
 
         if (status) {
-            this.addChart(handler, attribute);
+            this.addChart(handler, attribute, this.dateSelector.value);
         } else {
             this.removeChart(handler, attribute);
         }
