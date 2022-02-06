@@ -23,12 +23,15 @@ def distribution():
     try:
         command = "cat /etc/os-release | grep PRETTY_NAME"
         if path.isfile("/etc/redhat-release"):
-            command = "cat /etc/redhat-release"
-        output = run(command, shell=True, capture_output=True)
-        if output.stderr:
-            return "Unknown"
+            file = open("/etc/redhat-release")
+            output = file.readline()
+            return output.replace("\n", "")
         else:
-            return output.stdout.decode().split("\"")[1]
+            output = run(command, shell=True, capture_output=True)
+            if output.stderr:
+                return "Unknown"
+            else:
+                return output.stdout.decode().split("\"")[1]
     except Exception:
         return "Unknown"
 
