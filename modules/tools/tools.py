@@ -22,6 +22,8 @@ def cpu_model():
 def distribution():
     try:
         command = "cat /etc/os-release | grep PRETTY_NAME"
+        if path.isfile("/etc/redhat-release"):
+            command = "cat /etc/redhat-release"
         output = run(command, shell=True, capture_output=True)
         if output.stderr:
             return "Unknown"
