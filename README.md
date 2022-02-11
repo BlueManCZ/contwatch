@@ -16,17 +16,9 @@ As an alternative you can use [`pip`](https://en.wikipedia.org/wiki/Pip_(package
 pip3 install -r requirements.txt --user
 ```
 
-## Build
-
-TypeScript needs to be compiled and bundled into JavaScript.
-
-```shell
-npm install
-./node_modules/webpack/bin/webpack.js
-```
-
 ## Usage
 
 ```shell
-./run.py
+npm install
+npm start
 ```
