@@ -1,6 +1,6 @@
 {
   "name": "contwatch",
-  "description": "",
+  "description": "System for controlling single-board microcontrollers",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/BlueManCZ/contwatch.git"
@@ -8,6 +8,10 @@
   "author": "Ivo Šmerek",
   "bugs": {
     "url": "https://github.com/BlueManCZ/contwatch/issues"
+  },
+  "scripts": {
+    "start": "npm run build; ./run.py",
+    "build": "$(npm bin)/webpack"
   },
   "homepage": "https://github.com/BlueManCZ/contwatch#readme",
   "devDependencies": {
