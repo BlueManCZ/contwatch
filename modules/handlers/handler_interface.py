@@ -9,7 +9,7 @@ class HandlerInterface:
 
     # Each handler module should have these variables configured.
 
-    type = ""  # Represents type of the handler. For example for determining correct icon in GUI.
+    type = ""  # Represents type of the handler.
     config_fields = {}  # Dictionary of arguments required for initialization from GUI.
 
     def update_config(self, new_config):
@@ -63,6 +63,10 @@ class HandlerInterface:
         if "label" in self.settings:
             return self.settings["label"]
         return ""
+
+    def get_name(self):
+        label = self.get_label()
+        return label if label else f"{self.type} handler"
 
     def send_message(self, message):
         """Send a message to the target."""

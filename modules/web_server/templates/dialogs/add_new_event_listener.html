@@ -1,0 +1,9 @@
+<h1>Add new event listener</h1>
+<form id="add_event_listener" onsubmit="return false">
+    <div class="form-group mt-3">
+        <label for="label">Listen for event label</label>
+        <input id="label" name="label" class="form-control">
+    </div>
+
+    <button type="button" class="mt-3 btn btn-primary btn-sm" onclick="window.app.dialog.send('/add_new_event_listener')"><b>Add</b></button>
+</form>

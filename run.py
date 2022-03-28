@@ -8,6 +8,8 @@ from modules.logging.logger import logger
 from modules.engine import HandlerManager
 from modules.web_server.flask_web_server import FlaskWebServer
 
+from json import dumps, load
+from optparse import OptionParser
 from os import path, remove
 from signal import signal, SIGINT
 
@@ -22,13 +24,29 @@ def register_modules(*modules):
 def _quit_handler(_, __):
     """Handler for exit signal."""
     print("\nSIGINT signal detected. Exiting")
+    _quit()
+
+
+def _quit():
     for module in registered_modules:
         module.exit()
+    quit()
 
 
 if __name__ == "__main__":
-
     signal(SIGINT, _quit_handler)
+
+    parser = OptionParser()
+
+    parser.add_option("-e", "--export-config",
+                      action="store_true", dest="export", default=False,
+                      help="export configuration in JSON format")
+
+    parser.add_option("-i", "--import-config", dest="import_file",
+                      help="import configuration saved in JSON_FILE",
+                      metavar="JSON_FILE")
+
+    (options, args) = parser.parse_args()
 
     # TODO: For temporary debug clarity only
     if path.isfile(settings.LOG_FILE):
@@ -43,6 +61,19 @@ if __name__ == "__main__":
 
     # Register modules for SIGINT handler
     register_modules(db, manager)
+
+    if options.export:
+        data = {
+            "handlers": manager.export()
+        }
+        print(dumps(data, indent=4, ensure_ascii=False))
+        _quit()
+
+    if options.import_file:
+        file = open(options.import_file, "r")
+        manager.import_handlers(load(file)["handlers"])
+
+    settings.print_info()
 
     if settings.WEB_SERVER:
         web = FlaskWebServer(manager, db)

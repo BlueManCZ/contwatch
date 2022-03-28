@@ -23,13 +23,22 @@
   src: url("../fonts/Cantarell-ExtraBold.otf") format("opentype");
 }
 @font-face {
-  font-family: Cantarell;
-  font-weight: 200;
-  src: url("../fonts/Cantarell-Thin.otf") format("opentype");
-}
-@font-face {
   font-family: IndieFlower;
   src: url("../fonts/IndieFlower-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Roboto Mono";
+  src: url("../fonts/RobotoMono-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Roboto Mono";
+  font-weight: 700;
+  src: url("../fonts/RobotoMono-Medium.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Roboto Mono";
+  font-weight: 900;
+  src: url("../fonts/RobotoMono-Bold.ttf") format("truetype");
 }
 body {
   position: relative;
@@ -57,9 +66,9 @@ body {
   height: 100vh;
 }
 
-nav {
+#menu {
   position: fixed;
-  width: 320px;
+  width: 325px;
   height: 100%;
   left: 0;
   top: 0;
@@ -69,14 +78,20 @@ nav {
   overflow: auto;
   z-index: 100;
 }
-nav h1 {
+#menu h1 {
   font-weight: bold;
   color: #555555;
   font-size: 30px;
   padding-left: 10px;
-  margin: 0 0 50px;
+  margin: 0 0 40px;
 }
-nav h5 {
+#menu h1 .logo {
+  width: 27px;
+  margin-bottom: 6px;
+  margin-left: 9px;
+  opacity: 0.7;
+}
+#menu h5 {
   font-size: 14px;
   color: #9d9d9d;
   padding-left: 10px;
@@ -84,10 +99,10 @@ nav h5 {
   text-transform: uppercase;
   letter-spacing: 1px;
 }
-nav ul {
+#menu ul {
   padding-left: 0;
 }
-nav ul li {
+#menu ul li {
   display: block;
   height: 70px;
   padding: 10px;
@@ -95,29 +110,154 @@ nav ul li {
   border-radius: 10px;
   transition: background-color ease-in-out 200ms;
 }
-nav ul li:hover {
+#menu ul li:hover {
   box-shadow: 0 0 0 2px inset #f1f0f6;
 }
-nav ul li img {
+#menu ul li img {
   width: 50px;
   padding: 8px;
   border-radius: 25%;
   float: left;
   margin-right: 10px;
 }
-nav ul li .title {
+#menu ul li .title {
   margin: 2px 0 0;
   color: #555;
   font-weight: 600;
 }
-nav ul li .description {
+#menu ul li .description {
   font-size: 13px;
   margin: 0;
   color: #555;
   font-weight: 500;
 }
-nav ul .active {
+#menu ul .active {
   background-color: #f1f0f6;
+}
+
+#notifications-button {
+  position: fixed;
+  width: 34px;
+  height: 34px;
+  right: 26px;
+  top: 26px;
+  border-radius: 20px;
+  border: solid 3px #555;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 27px;
+  cursor: pointer;
+  display: none;
+}
+#notifications-button.active {
+  display: unset;
+  background: #555;
+  color: #f1f0f6;
+}
+
+#notifications-wrapper {
+  position: fixed;
+  right: -325px;
+  top: 0;
+  height: 100%;
+  width: 325px;
+  background: #f9fafc;
+  transition: right ease-in-out 200ms;
+}
+#notifications-wrapper.visible {
+  right: 0;
+}
+#notifications-wrapper.visible .notification.active {
+  left: 0;
+}
+#notifications-wrapper .notification {
+  background: #cde8f5;
+  margin: 15px;
+  border-radius: 7px;
+  padding: 0 10px;
+  position: relative;
+  transition: all ease-in-out 200ms;
+  left: 0;
+  color: #35657b;
+}
+#notifications-wrapper .notification:hover span {
+  opacity: 0.6;
+}
+#notifications-wrapper .notification div {
+  display: block;
+  width: 35px;
+  height: 35px;
+  float: left;
+  margin-top: 15px;
+  background-size: cover;
+  background-position: center;
+  background-image: url("/static/images/icons/info_blue.png");
+  opacity: 0.5;
+  margin-left: 5px;
+  margin-right: 10px;
+}
+#notifications-wrapper .notification.error {
+  background: #ecc8c5;
+  color: #ab1b19;
+}
+#notifications-wrapper .notification.error div {
+  background-image: url("/static/images/icons/ban.png");
+}
+#notifications-wrapper .notification.warning {
+  background: #fbeebd;
+  color: #b57c1c;
+}
+#notifications-wrapper .notification.warning div {
+  background-image: url("/static/images/icons/warning.png");
+}
+#notifications-wrapper .notification.success {
+  background: #d6f0cb;
+  color: #407729;
+}
+#notifications-wrapper .notification.success div {
+  background-image: url("/static/images/icons/success.png");
+}
+#notifications-wrapper .notification h3 {
+  font-size: 16px;
+  font-weight: bold;
+  padding-top: 10px;
+  display: block;
+  margin-bottom: 4px;
+}
+#notifications-wrapper .notification p {
+  padding-left: 50px;
+  padding-bottom: 11px;
+  line-height: 20px;
+  margin-top: 0;
+  font-size: 14px;
+}
+#notifications-wrapper .notification span {
+  position: absolute;
+  display: block;
+  width: 11px;
+  height: 11px;
+  right: 15px;
+  top: 15px;
+  background-size: cover;
+  background-position: center;
+  background-image: url("/static/images/icons/close.png");
+  cursor: pointer;
+  opacity: 0.1;
+  transition: opacity 200ms ease-in-out;
+}
+#notifications-wrapper .notification span:hover {
+  transform: scale(1.1);
+}
+#notifications-wrapper .notification.active {
+  left: -325px;
+}
+#notifications-wrapper .notification.removed {
+  opacity: 0;
+}
+
+#resources {
+  display: none;
 }
 
 #content-container {
@@ -130,8 +270,39 @@ nav ul .active {
   font-weight: bold;
   margin-top: 7px;
 }
+#content-container h3 {
+  font-weight: bold;
+  font-size: 17px;
+  margin-top: 14px;
+  margin-bottom: 2px;
+}
 #content-container title {
   display: block;
+}
+#content-container button {
+  color: #5e5e5e;
+  display: inline-block;
+  background: white;
+  border: none;
+  padding: 8px 15px;
+  margin-top: 10px;
+  margin-right: 10px;
+  border-radius: 20px;
+  box-shadow: 1px 1px 3px #dfdfdf;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 17px;
+}
+#content-container button img {
+  width: 17px;
+  vertical-align: top;
+  margin-right: 8px;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+#content-container button:hover {
+  background: #fafafa;
+  box-shadow: 1px 1px 3px #bdbdbd;
 }
 
 .tile {
@@ -186,14 +357,16 @@ nav ul .active {
   float: left;
   margin-right: 5px;
 }
-.tile-list .tile h3 {
+.tile-list .tile .title {
   white-space: nowrap;
   font-size: 15px;
   font-weight: bolder;
   margin-bottom: 0;
   color: #555555;
+  margin-right: 50px;
+  line-height: 1.2;
 }
-.tile-list .tile h3 .id {
+.tile-list .tile .title .id {
   text-transform: none;
   color: #b3b1b1;
   font-size: 14px;
@@ -231,38 +404,226 @@ nav ul .active {
   margin-left: 40px;
 }
 
+#overview table {
+  display: inline-table;
+  width: 100%;
+  margin-top: 20px;
+  background: white;
+  border-collapse: collapse;
+  border-radius: 15px;
+  overflow: hidden;
+  font-size: 15px;
+  box-shadow: 2px 2px 3px #dfdfdf;
+}
+#overview table tr:first-child {
+  box-shadow: 0 0 8px #e8e8e8;
+}
+#overview table tr:first-child th {
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+#overview table tr:nth-child(2n+3) {
+  background: #f8f9ff;
+}
+#overview table tr:hover td:last-child span {
+  white-space: normal;
+}
+#overview table tr td, #overview table tr th {
+  padding: 10px 0;
+}
+#overview table tr td:first-child, #overview table tr th:first-child {
+  padding-left: 22px;
+  width: 110px;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+#overview table tr td:nth-child(2) span, #overview table tr th:nth-child(2) span {
+  color: white;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 12px;
+  width: 60px;
+  display: inline-block;
+  text-align: center;
+  border-radius: 3px;
+  line-height: 23px;
+}
+#overview table tr td:nth-child(3), #overview table tr th:nth-child(3) {
+  font-weight: bold;
+}
+#overview table tr td .json, #overview table tr th .json {
+  background: #f5a65b;
+}
+#overview table tr td .event, #overview table tr th .event {
+  background: #7233ff;
+}
+#overview table tr td:last-child, #overview table tr th:last-child {
+  max-width: 750px;
+}
+#overview table tr td:last-child span, #overview table tr th:last-child span {
+  font-size: 12px;
+  white-space: nowrap;
+  font-family: "Roboto Mono", monospace;
+  position: relative;
+  top: -2px;
+}
+#overview table tr .in, #overview table tr .out {
+  font-weight: bold;
+  color: #65c44c;
+}
+#overview table tr .out {
+  color: #299bec;
+}
+#overview table tr .id {
+  font-family: "Roboto Mono", monospace;
+  color: grey;
+  font-size: 12px;
+  font-weight: 900;
+  position: relative;
+  top: -1px;
+  display: inline-block;
+}
+#overview table tr .event-label {
+  color: #7233ff;
+  font-weight: 900 !important;
+  top: unset !important;
+}
+
 #inspector .chart-preview canvas {
   width: 100%;
   max-height: 100px;
   margin-top: 30px;
   margin-bottom: 10px;
 }
-#inspector button {
-  color: #5e5e5e;
-  display: inline-block;
-  background: white;
-  border: solid 1px white;
-  padding: 8px 15px;
-  margin-top: 10px;
-  margin-right: 5px;
-  border-radius: 20px;
-  box-shadow: 1px 1px 3px #dfdfdf;
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 17px;
-}
 #inspector .tile {
   cursor: pointer;
   min-height: 210px;
 }
-
-#data h3 {
-  font-weight: bold;
-  font-size: 17px;
-  margin-top: 14px;
-  margin-bottom: 2px;
+#inspector .tile:hover {
+  background: #fafafa;
+  box-shadow: 1px 1px 3px #bdbdbd;
 }
-#data h3 button {
+
+#actions #event-listeners .tile .workflow-icon, #actions #event-listeners .tile .workflow-id {
+  float: right;
+  background: #f1f0f6;
+  width: 28px;
+  padding: 4px;
+  border: solid 1px silver;
+  border-radius: 5px;
+  margin-left: 10px;
+  margin-right: 0;
+}
+#actions #event-listeners .tile .workflow-id {
+  background: #cfffc3;
+  width: unset;
+  min-width: 28px;
+  line-height: 17px;
+  text-align: center;
+  font-weight: bold;
+}
+#actions #workflows {
+  margin-top: 30px;
+}
+#actions #workflows .workflow {
+  position: relative;
+  border-bottom: solid 1px #dbdbdb;
+}
+#actions #workflows .workflow:last-child {
+  border-bottom: unset;
+}
+#actions #workflows .workflow .workflow-id {
+  min-width: 28px;
+  text-align: center;
+  font-weight: bold;
+  display: inline-block;
+  border: solid 1px silver;
+  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  line-height: 36px;
+  font-size: 18px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  vertical-align: middle;
+}
+#actions #workflows .workflow .workflow-id-connected {
+  background: #cfffc3;
+}
+#actions #workflows .workflow .workflow-routine {
+  position: relative;
+  display: inline-block;
+  box-shadow: 2px 2px 3px #dfdfdf;
+  height: 51px;
+  vertical-align: middle;
+  border-radius: 10px;
+  background: white;
+  margin-left: 10px;
+  padding: 2px 20px 0;
+  text-align: center;
+  cursor: pointer;
+}
+#actions #workflows .workflow .workflow-routine:hover .arrow-left, #actions #workflows .workflow .workflow-routine:hover .arrow-right {
+  display: flex;
+}
+#actions #workflows .workflow .workflow-routine .name {
+  font-weight: bold;
+  margin: 0 7px;
+}
+#actions #workflows .workflow .workflow-routine .description {
+  font-size: 13px;
+  margin: 1px 7px 0;
+}
+#actions #workflows .workflow .workflow-routine .arrow-left, #actions #workflows .workflow .workflow-routine .arrow-right {
+  display: none;
+  height: 100%;
+  width: 28px;
+  overflow: hidden;
+  position: absolute;
+  left: 0;
+  top: 0;
+  cursor: pointer;
+}
+#actions #workflows .workflow .workflow-routine .arrow-left img, #actions #workflows .workflow .workflow-routine .arrow-right img {
+  height: 15px;
+  margin: auto;
+}
+#actions #workflows .workflow .workflow-routine .arrow-left:hover img, #actions #workflows .workflow .workflow-routine .arrow-right:hover img {
+  filter: brightness(0.8);
+}
+#actions #workflows .workflow .workflow-routine .arrow-right {
+  right: 0;
+  left: unset;
+}
+#actions #workflows .workflow .workflow-routine .arrow-right img {
+  transform: scaleX(-1);
+}
+#actions #workflows .workflow .add-routine, #actions #workflows .workflow .delete-routine {
+  width: 40px;
+  height: 40px;
+  background: #fff;
+  vertical-align: middle;
+  border: solid 1px #c4c4c4;
+  border-radius: 10px;
+  opacity: 0.5;
+  cursor: pointer;
+  margin-left: 10px;
+  padding: 5px;
+}
+#actions #workflows .workflow .add-routine:hover, #actions #workflows .workflow .delete-routine:hover {
+  opacity: 0.9;
+}
+#actions #workflows .workflow .delete-routine {
+  position: absolute;
+  right: 0;
+  top: 20px;
+  border: solid 1px transparent;
+  background: none;
+}
+
+#data .settings {
   border-radius: 3px;
   color: #5e5e5e;
   font-size: 12px;
@@ -274,32 +635,22 @@ nav ul .active {
   margin-top: 1px;
   border: none;
   box-shadow: 0 0 2px #cacaca;
+  font-weight: normal;
+  margin-bottom: 0;
 }
-#data h3 button:hover {
+#data .settings:hover {
   color: #2a2a2a;
   box-shadow: 0 0 2px #6c6c6c;
 }
 #data .attribute, #data .ghost {
-  color: #5e5e5e;
-  display: inline-block;
-  background: white;
-  border: solid 1px white;
   padding: 4px 11px;
-  margin-top: 10px;
   margin-right: 5px;
-  border-radius: 20px;
-  box-shadow: 1px 1px 3px #dfdfdf;
   font-size: 12px;
-  font-weight: bold;
 }
 #data .ghost {
   background: transparent;
   border: solid 1px #dbdbdb;
   color: #9b9b9b;
-}
-
-#handlers .tile h3 {
-  margin-right: 50px;
 }
 
 #details table td, #details table th {
@@ -310,14 +661,17 @@ nav ul .active {
   display: inline-block;
   vertical-align: top;
 }
-#details .cells div h3 {
-  padding-top: 15px;
-  font-weight: bold;
-  margin-bottom: 3px;
-}
 #details .cells div p {
   color: #777;
   margin: 0;
+}
+#details .cells div p:nth-child(2n+1) {
+  padding-top: 15px;
+  font-weight: bold;
+  margin-bottom: 3px;
+  color: unset;
+  line-height: 1.2;
+  font-size: 17px;
 }
 #details .cells div:nth-child(2n+1) {
   padding-right: 10px;
@@ -349,6 +703,7 @@ nav ul .active {
   padding: 25px 30px;
   background-color: #f1f0f6;
   overflow: auto;
+  color: #555555;
 }
 #dialog-container dialog h1 {
   font-size: 22px;
@@ -366,6 +721,9 @@ nav ul .active {
 }
 #dialog-container dialog .tile:nth-child(2n) {
   margin-left: 20px;
+}
+#dialog-container dialog .tile h3 {
+  font-weight: bold;
 }
 
 .dialog-hidden {

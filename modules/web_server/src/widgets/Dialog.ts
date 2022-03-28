@@ -1,3 +1,5 @@
+import { post } from "../utils/URLTools";
+
 export class Dialog {
     private element: HTMLElement;
 
@@ -9,14 +11,11 @@ export class Dialog {
         });
     }
 
-    load(dialogName: string): void {
-        const request = new XMLHttpRequest();
-        request.open("POST", `/dialog/${dialogName}`);
-        request.onload = (): void => {
+    load(dialogName: string, data: Record<string, string> = {}): void {
+        post(`/dialog/${dialogName}`, (request) => {
             (<HTMLElement> this.element.firstChild).innerHTML = request.responseText;
             this.show();
-        };
-        request.send();
+        }, data, "JSON");
     }
 
     show(): void {
@@ -24,13 +23,13 @@ export class Dialog {
     }
 
     send(url:string): void {
-        const request = new XMLHttpRequest();
-        const data = new FormData(this.form());
-        request.onload = (): void => {
+        post(url, (request) => {
             this.hide();
-        };
-        request.open("POST", url);
-        request.send(data);
+            const json = JSON.parse(request.response);
+            if (json.status === "error") {
+                (window as any).app.notifications.addNotification(json.title ? json.title : "Error", json.message, "error");
+            }
+        }, new FormData(this.form()));
     }
 
     hide(): void {

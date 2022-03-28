@@ -1,32 +1,32 @@
-<h1>{{ handler.get_label() }} <span class="id">(id:{{ id }})</span></h1>
+<h1>{{ handler.get_name() }} <span class="id">(id:{{ id }})</span></h1>
 <form id="edit_handler_form">
-    <input type="hidden" name="__handler_type__" value="{{ handler.type }}">
+    <input type="hidden" name="handler_type" value="{{ handler.type }}">
 
     <div class="form-group mt-3">
-        <label for="__handler_label__">Handler label</label>
-        <input id="__handler_label__" name="__handler_label__" class="form-control" value="{{ handler.get_label() }}">
+        <label for="handler_label">Handler label</label>
+        <input id="handler_label" name="handler_label" class="form-control" value="{{ handler.get_label() }}">
     </div>
 
     {% for field in handler.config_fields %}
         {% if handler.config_fields[field].0 == "string" %}
             <div class="form-group mt-3">
                 <label for="{{ field }}">{{ handler.config_fields[field].1 }}</label>
-                <input id="{{ field }}" name="{{ field }}" class="form-control" value="{{ handler.get_config()[field] }}">
+                <input id="{{ field }}" name="_{{ field }}_" class="form-control" value="{{ handler.get_config()[field] }}">
             </div>
         {% elif handler.config_fields[field].0 == "int" %}
             <div class="form-group mt-3">
                 <label for="{{ field }}">{{ handler.config_fields[field].1 }}</label>
-                <input id="{{ field }}" name="{{ field }}" class="form-control" type="number" step="1" value="{{ handler.get_config()[field] }}">
+                <input id="{{ field }}" name="_{{ field }}_" class="form-control" type="number" step="1" value="{{ handler.get_config()[field] }}">
             </div>
         {% elif handler.config_fields[field].0 == "float" %}
             <div class="form-group mt-3">
                 <label for="{{ field }}">{{ handler.config_fields[field].1 }}</label>
-                <input id="{{ field }}" name="{{ field }}" class="form-control" type="number" step="0.01" value="{{ handler.get_config()[field] }}">
+                <input id="{{ field }}" name="_{{ field }}_" class="form-control" type="number" step="0.01" value="{{ handler.get_config()[field] }}">
             </div>
         {% elif handler.config_fields[field].0 == "bool" %}
             <div class="form-group mt-3">
                 <label for="{{ field }}" class="me-1">{{ handler.config_fields[field].1 }}</label>
-                <input id="{{ field }}" name="{{ field }}" class="form-check-input" type="checkbox" {% if handler.get_config()[field] %}checked{% endif %} value="{{ handler.get_config()[field] }}">
+                <input id="{{ field }}" name="_{{ field }}_" class="form-check-input" type="checkbox" {% if handler.get_config()[field] %}checked{% endif %} value="{{ handler.get_config()[field] }}">
             </div>
         {% endif %}
     {% endfor %}

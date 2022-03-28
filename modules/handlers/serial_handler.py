@@ -1,6 +1,8 @@
 from .handler_interface import HandlerInterface
 from modules.logging.logger import logger
 
+from json import loads
+from json.decoder import JSONDecodeError
 from threading import Thread
 from time import sleep
 from os import path
@@ -12,19 +14,24 @@ class SerialHandler(HandlerInterface):
     """Class for handling devices connected by serial port."""
 
     def _message_watcher(self):
-        print(f"Creating {self.connection.port}")
         self.log.debug("Starting message watcher")
         while self.active:
             if path.exists(self.connection.port):
                 try:
                     data = self.connection.readline()
                     if data:
-                        self.message_queue.append(data)
+                        try:
+                            data_json = loads(data)
+                            self.message_queue.append(data_json)
+                        except JSONDecodeError:
+                            data = bytes.decode(data)
+                            data = data.replace("\n", "")
+                            self.message_queue.append(data)
                 except serial.SerialException:
                     self.log.warning("Failed to read from device")
                     sleep(0.1)
             else:
-                self.log.warning("Lost connection with device")
+                self.log.info("Lost connection with device")
                 self.connection.close()
                 self.add_changed("handlers")
                 if self.auto_reconnect:
@@ -72,6 +79,10 @@ class SerialHandler(HandlerInterface):
         if self.reconnect():
             self.active = True
             Thread(target=self._message_watcher).start()
+        else:
+            if self.auto_reconnect:
+                self.active = True
+                Thread(target=self._reconnect_watcher).start()
 
     def update_config(self, new_config):
         super(SerialHandler, self).update_config(new_config)
@@ -88,7 +99,7 @@ class SerialHandler(HandlerInterface):
         self.add_changed("handlers")
 
     def send_message(self, message):
-        if self.connection.is_open:
+        if self.is_connected():
             self.connection.write(bytes(message, "utf-8"))
 
     def ready_to_read(self):
@@ -96,7 +107,7 @@ class SerialHandler(HandlerInterface):
 
     def read_message(self):
         if len(self.message_queue) > 0:
-            return bytes.decode(self.message_queue.pop(0))
+            return self.message_queue.pop(0)
         return None
 
     def is_connected(self):
@@ -105,17 +116,17 @@ class SerialHandler(HandlerInterface):
     def reconnect(self):
         try:
             self.connection.open()
-            self.log.info("Established connection")
+            self.log.info("Established connection with device")
             self.add_changed("handlers")
             return True
         except serial.SerialException:
             if path.exists(self.connection.port):
-                self.log.error("Failed to establish connection - Permission denied")
+                self.log.warning("Failed to establish connection - Permission denied")
                 self.log.info("Repeating action in 1 sec")
                 sleep(1)
                 return self.reconnect()
             else:
-                self.log.error("Failed to establish connection - Device does not exist")
+                self.log.warning("Failed to establish connection - Device does not exist")
             self.connection.close()
             return False
 

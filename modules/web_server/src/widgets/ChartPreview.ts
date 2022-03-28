@@ -1,4 +1,5 @@
 import { dateISOString } from "../utils/DateTime";
+import { get } from "../utils/URLTools";
 
 export class ChartPreview {
     private readonly colors: string[];
@@ -62,10 +63,7 @@ export class ChartPreview {
         }
 
         const url = `/api/charts?query=${query}&date_from=${dateISOString()}&smartround=${this.smartround}&cache=yes`;
-        const request = new XMLHttpRequest();
-        request.open("GET", url);
-        request.setRequestHeader("Accept", "application/json");
-        request.onreadystatechange = (): void => {
+        get(url, (request) => {
             if (request.readyState === 4) {
                 const data = JSON.parse(request.responseText);
 
@@ -97,7 +95,6 @@ export class ChartPreview {
                 this.chart.resize(1, 1);
                 this.chart.resize();
             }
-        };
-        request.send();
+        });
     }
 }

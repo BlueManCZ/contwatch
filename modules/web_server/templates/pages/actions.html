@@ -1,0 +1,63 @@
+<h2>Create custom workflows</h2>
+<div id="actions" class="tile-list" onload="window.app.actions.stopPropagation('arrow-left'); window.app.actions.stopPropagation('arrow-right'); window.app.actions.stopPropagation('workflow-icon')">
+    <button onclick="window.app.dialog.load('add_new_event_listener')"><img src="{{ url_for('static', filename='images/icons/plus_bold.png') }}" alt="Plus icon">New event listener</button>
+    <button onclick="window.app.actions.createNewWorkflow(0)"><img src="{{ url_for('static', filename='images/icons/plus_bold.png') }}" alt="Plus icon">New workflow</button>
+
+    {% if manager.event_manager.event_listeners %}
+    <div id="event-listeners">
+        <h3>Event listeners</h3>
+        {% for listener in manager.event_manager.event_listeners %}
+            <div class="tile" onclick="window.app.dialog.load('edit_event_listener', {'listener_id': '{{ listener.id }}'})">
+                {{ listener.label }}
+                {% if listener.workflow %}
+                <span class="workflow-id">{{ listener.workflow.id }}</span>
+                {% else %}
+                <img class="workflow-icon"
+                     src="{{ url_for('static', filename='images/icons/workflow.png') }}"
+                     onclick="window.app.actions.createNewWorkflow({{ listener.id }})"
+                     title="Add workflow"
+                     alt="Workflow icon">
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% if manager.event_manager.workflows %}
+    <div id="workflows">
+        <h3>Workflows</h3>
+        {% for workflow in manager.event_manager.workflows %}
+            <div class="workflow">
+                <div class="workflow-id">{{ workflow }}</div>
+                {% for routine in manager.event_manager.workflows[workflow].routines %}
+                    <div class="workflow-routine" onclick="window.app.dialog.load('edit_routine', {'workflow_id': '{{ workflow }}', 'routine_id': '{{ routine.id }}'})">
+                        {% if loop.index != 1 %}
+                        <div class="arrow-left" onclick="window.app.actions.moveRoutine({{ workflow }}, {{ routine.id }}, -1)">
+                            <img src="{{ url_for('static', filename='images/icons/arrow.png') }}" alt="Left arrow">
+                        </div>
+                        {% endif %}
+                        <div class="name">{{ routine.get_name() }}</div>
+                        <div class="description">{{ routine.get_description() }}</div>
+                        {% if loop.index != manager.event_manager.workflows[workflow].routines | length %}
+                        <div class="arrow-right" onclick="window.app.actions.moveRoutine({{ workflow }}, {{ routine.id }}, 1)">
+                            <img src="{{ url_for('static', filename='images/icons/arrow.png') }}" alt="Left arrow">
+                        </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                <img class="add-routine"
+                     src="{{ url_for('static', filename='images/icons/plus.png') }}"
+                     title="Add routine"
+                     onclick="window.app.dialog.load('choose_routine_type', {
+                         'target_workflow': '{{ manager.event_manager.workflows[workflow].id }}'
+                     })"
+                     alt="Plus icon">
+                <img class="delete-routine"
+                     src="{{ url_for('static', filename='images/icons/close_thin.png') }}"
+                     title="Delete routine"
+                     onclick="window.app.actions.deleteWorkflow({{ workflow }})"
+                     alt="Plus icon">
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>

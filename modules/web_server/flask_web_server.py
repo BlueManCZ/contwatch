@@ -1,4 +1,6 @@
 from modules import settings, tools
+from modules.engine import HandlerManager
+from modules.engine.actions import *
 from modules.handlers import *
 
 from datetime import datetime, timedelta
@@ -13,7 +15,7 @@ import platform
 
 class FlaskWebServer:
 
-    def __init__(self, _manager, _database):
+    def __init__(self, _manager: HandlerManager, _database):
         self.app = Flask(__name__)
         self.host = settings.WEB_SERVER_ADDRESS
         self.port = settings.WEB_SERVER_PORT
@@ -63,13 +65,23 @@ class FlaskWebServer:
         def page(page_name):
             return render_template("layouts/default.html", manager=self.manager, page=page_name)
 
+        @self.app.route("/<_>", methods=["POST"])
+        def not_found(_):
+            return "Not found"
+
         @self.app.route("/overview", methods=["POST"])
         def overview():
-            return render_template("pages/overview.html", manager=self.manager)
+            messages = self.manager.message_queue.copy()
+            messages.reverse()
+            return render_template("pages/overview.html", manager=self.manager, messages=messages)
 
         @self.app.route("/inspector", methods=["POST"])
         def inspector():
             return render_template("pages/inspector.html", manager=self.manager, views=self.database.get_chart_views())
+
+        @self.app.route("/actions", methods=["POST"])
+        def actions():
+            return render_template("pages/actions.html", manager=self.manager)
 
         @self.app.route("/handlers", methods=["POST"])
         def handlers():
@@ -110,6 +122,7 @@ class FlaskWebServer:
                 "handlers": len(self.manager.get_handlers()),
                 "connections": self.connections,
                 "version": tools.get_update_datetime(),
+                "database_type": settings.DB_TYPE,
                 "database_size": path.getsize(settings.DB_SQLITE_FILE),
                 "cache_size": tools.get_size(self.cache)
             }
@@ -121,7 +134,7 @@ class FlaskWebServer:
 
         @self.app.route("/api")
         def api():
-            return tools.make_json_error(400, "Specify your API request")
+            return tools.json_error(400, "Specify your API request")
 
         def parse_query(query):
             query = query.split(",")
@@ -177,22 +190,22 @@ class FlaskWebServer:
                     data_map[handler_id] = []
                 except Exception as e:
                     print(e)
-                    return tools.make_json_error(400, "Argument 'handler_id' has to be an integer.")
+                    return tools.json_error(400, "Argument 'handler_id' has to be an integer.")
             elif raw_query:
                 try:
                     data_map = parse_query(raw_query)
                 except Exception as e:
                     print(e)
-                    return tools.make_json_error(400, "Argument 'query' cannot be successfully parsed")
+                    return tools.json_error(400, "Argument 'query' cannot be successfully parsed")
             else:
-                return tools.make_json_error(400, "Either 'handler_id' or 'query' has to be provided as an argument.")
+                return tools.json_error(400, "Either 'handler_id' or 'query' has to be provided as an argument.")
 
             if date_from:
                 try:
                     datetime_from = datetime.strptime(date_from, "%Y-%m-%d")
                 except Exception as e:
                     print(e)
-                    return tools.make_json_error(400, "Argument 'date_from' is not in '%Y-%m-%d' format.")
+                    return tools.json_error(400, "Argument 'date_from' is not in '%Y-%m-%d' format.")
 
             if date_to:
                 try:
@@ -200,14 +213,14 @@ class FlaskWebServer:
                     datetime_to += timedelta(days=1)
                 except Exception as e:
                     print(e)
-                    return tools.make_json_error(400, "Argument 'date_to' is not in '%Y-%m-%d' format.")
+                    return tools.json_error(400, "Argument 'date_to' is not in '%Y-%m-%d' format.")
 
             if smartround:
                 try:
                     smartround = int(smartround)
                 except Exception as e:
                     print(e)
-                    return tools.make_json_error(400, "Argument 'smartround' has to be an integer.")
+                    return tools.json_error(400, "Argument 'smartround' has to be an integer.")
 
             if settings.CACHING_INTERVAL and cache:
                 if raw_query in self.cache:
@@ -243,36 +256,79 @@ class FlaskWebServer:
 
         @self.app.route("/dialog/<dialog_name>", methods=["POST"])
         def dialog(dialog_name):
-            if "add_new_handler" in dialog_name:
-                handler_type = dialog_name.split("_")[-1]
+            template_name = f"dialogs/{dialog_name}.html"
+
+            if "add_new_handler" == dialog_name:
+                handler_type = request.json["handler_type"]
                 for handler in loaded_handlers:
                     if handler.type == handler_type:
                         fields = handler.config_fields
-                        return render_template("dialogs/add_new_handler.html", fields=fields, handler_type=handler_type)
+                        return render_template(template_name, fields=fields, handler_type=handler_type)
 
-            if "edit_handler" in dialog_name:
-                handler_id = int(dialog_name.split("_")[-1])
+            if "edit_handler" == dialog_name:
+                handler_id = int(request.json["handler_id"])
                 handler = self.manager.get_handler(handler_id)
-                return render_template("dialogs/edit_handler.html", id=handler_id, handler=handler)
+                return render_template(template_name, id=handler_id, handler=handler)
 
-            if "json_attributes_to_store" in dialog_name:
-                handler_id = int(dialog_name.split("_")[-1])
+            if "edit_event_listener" == dialog_name:
+                listener_id = int(request.json["listener_id"])
+                listener = self.manager.event_manager.get_event_listener(listener_id)
+                workflows = self.manager.event_manager.get_workflows()
+                return render_template(template_name, listener=listener, workflows=workflows)
+
+            if "json_attributes_to_store" == dialog_name:
+                handler_id = int(request.json["handler_id"])
                 handler = self.manager.get_handler(handler_id)
                 json = self.manager.last_messages[handler_id]
                 return render_template(
-                    "dialogs/json_attributes_to_store.html",
+                    template_name,
                     id=handler_id,
                     handler=handler,
                     json=json[1]
                 )
 
-            template_name = f"dialogs/{dialog_name}.html"
-            return render_template(template_name, loaded_handlers=loaded_handlers)
+            if "add_new_routine" == dialog_name:
+                routine_type = request.json["routine_type"]
+                target_workflow = self.manager.event_manager.get_workflow(int(request.json["target_workflow"]))
+                for routine in available_routines:
+                    if routine.type == routine_type:
+                        fields = routine.config_fields
+                        return render_template(
+                            template_name,
+                            fields=fields,
+                            routine=routine,
+                            workflow=target_workflow,
+                            handlers=self.manager.get_handlers(),
+                            workflows=self.manager.event_manager.get_workflows(),
+                        )
+
+            if "edit_routine" == dialog_name:
+                routine_id = request.json["routine_id"]
+                routine = self.manager.event_manager.get_routine(int(routine_id))
+                return render_template(
+                    template_name,
+                    routine=routine,
+                    handlers=self.manager.get_handlers(),
+                    workflows=self.manager.event_manager.get_workflows(),
+                )
+
+            if "choose_routine_type" in dialog_name:
+                target_workflow = request.json["target_workflow"]
+                return render_template(
+                    template_name,
+                    available_routines=available_routines,
+                    target_workflow=target_workflow
+                )
+
+            return render_template(
+                template_name,
+                loaded_handlers=loaded_handlers
+            )
 
         @self.app.route("/add_new_handler", methods=["POST"])
         def add_new_handler():
-            handler_class = get_handler_class(request.form["__handler_type__"])
-            handler_label = request.form["__handler_label__"]
+            handler_class = get_handler_class(request.form["handler_type"])
+            handler_label = request.form["handler_label"]
             config = tools.parse_config(request.form, handler_class)
             handler_settings = {"configuration": config}
             new_handler = handler_class(handler_settings)
@@ -283,8 +339,8 @@ class FlaskWebServer:
 
         @self.app.route("/edit_handler/<int:handler_id>", methods=["POST"])
         def edit_handler(handler_id):
-            handler_class = get_handler_class(request.form["__handler_type__"])
-            handler_label = request.form["__handler_label__"]
+            handler_class = get_handler_class(request.form["handler_type"])
+            handler_label = request.form["handler_label"]
             config = tools.parse_config(request.form, handler_class)
             handler = self.manager.get_handler(handler_id)
             Thread(target=lambda: handler.update_config(config)).start()
@@ -315,7 +371,7 @@ class FlaskWebServer:
         def save_chart_view():
             view_id = request.json["view_id"]
             if not request.json["label"]:
-                return {"status": False, "error": "View label cannot be empty"}
+                return {"status": False, "error": "View label cannot be empty"}, 400
             if view_id >= 0:
                 self.database.update_chart_view(view_id, request.json["label"], request.json["settings"])
             else:
@@ -329,14 +385,139 @@ class FlaskWebServer:
             self.manager.add_changed("inspector")
             return {"status": True, "view_id": view_id}
 
+        @self.app.route("/add_new_event_listener", methods=["POST"])
+        def add_new_event_listener():
+            label = request.form["label"]
+            if not label:
+                return tools.json_notif(
+                    400, "error", "Empty name",
+                    f"Event name cannot be empty."
+                )
+            listener = EventListener(label)
+            if self.manager.event_manager.add_event_listener(listener):
+                db_listener = self.database.add_event_listener(label)
+                listener.set_id(db_listener.id)
+                self.manager.add_changed("actions")
+                return {"status": "ok"}
+            return tools.json_notif(
+                400, "error", "Listener exists",
+                f"Event listener for event \"{label}\" already exists."
+            )
+
+        @self.app.route("/edit_event_listener/<int:listener_id>", methods=["POST"])
+        def edit_event_listener(listener_id):
+            listener = self.manager.event_manager.get_event_listener(listener_id)
+            listener_label = request.form["listener_label"]
+            listener.set_label(listener_label)
+            workflow_id = request.form["listener_workflow"]
+            if workflow_id:
+                workflow_id = int(workflow_id)
+                listener.set_workflow(self.manager.event_manager.get_workflow(workflow_id))
+            else:
+                listener.delete_workflow()
+            self.database.update_event_listener(listener_id, listener_label, int(workflow_id) if workflow_id else None)
+            self.manager.add_changed("actions")
+            return {"status": "ok"}
+
+        @self.app.route("/delete_event_listener/<int:listener_id>", methods=["POST"])
+        def delete_event_listener(listener_id):
+            self.database.delete_event_listener(listener_id)
+            listener = self.manager.event_manager.get_event_listener(listener_id)
+            self.manager.event_manager.delete_event_listener(listener)
+            self.manager.add_changed("actions")
+            return {"status": "ok"}
+
+        @self.app.route("/add_new_workflow/<int:listener_id>", methods=["POST"])
+        def add_new_workflow(listener_id):
+            listener = self.manager.event_manager.get_event_listener(listener_id)
+
+            if listener and listener.workflow:
+                return tools.json_notif(
+                    400, "error", "Workflow error",
+                    f"Event listener already has associated workflow."
+                )
+
+            db_workflow = self.database.add_workflow()
+            new_workflow = Workflow()
+            new_workflow.set_id(db_workflow.id)
+
+            self.manager.event_manager.add_workflow(new_workflow)
+
+            if listener:
+                db_listener = self.database.get_event_listener_by_id(listener_id)
+                self.database.update_event_listener(listener_id, db_listener.label, new_workflow.id)
+                listener.set_workflow(new_workflow)
+
+            self.manager.add_changed("actions")
+            return {"status": "ok"}
+
+        @self.app.route("/delete_workflow/<int:workflow_id>", methods=["DELETE"])
+        def delete_workflow(workflow_id):
+            workflow_instance = self.manager.event_manager.get_workflow(workflow_id)
+            for routine in workflow_instance.routines.copy():
+                self.manager.event_manager.delete_routine(routine.id)
+
+            listeners = self.manager.event_manager.get_event_listeners()
+
+            for listener in listeners:
+                if listener.workflow and listener.workflow.id == workflow_id:
+                    listener.delete_workflow()
+
+            for workflow_instance in self.manager.event_manager.get_workflows():
+                for routine in workflow_instance.routines.copy():
+                    if routine.type == "perform_workflow" and routine.get_config()["workflow"] == workflow_id:
+                        self.manager.event_manager.delete_routine(routine.id)
+
+            self.manager.event_manager.delete_workflow(workflow_id)
+            self.database.delete_workflow(workflow_id)
+            self.manager.add_changed("actions")
+            return {"status": "ok"}
+
+        @self.app.route("/add_new_routine", methods=["POST"])
+        def add_new_routine():
+            routine_class = get_routine_class(request.form["routine_type"])
+            config = tools.parse_config(request.form, routine_class)
+            workflow_id = int(request.form["workflow_id"])
+            target_workflow = self.manager.event_manager.get_workflow(workflow_id)
+            routine_settings = {"configuration": config}
+            new_routine = routine_class(routine_settings, self.manager)
+            new_routine.workflow = target_workflow
+            new_routine.position = len(target_workflow.routines)
+            target_workflow.add_routine(new_routine)
+            database_routine = self.database.add_routine(new_routine)
+            new_routine.set_id(database_routine.id)
+
+            self.manager.add_changed("actions")
+            # self.manager.register_handler(database_handler.id, new_handler)
+            return {"status": "ok"}
+
+        @self.app.route("/edit_routine/<int:routine_id>", methods=["POST"])
+        def edit_routine(routine_id):
+            routine = self.manager.event_manager.get_routine(routine_id)
+            routine_class = get_routine_class(routine.type)
+            config = tools.parse_config(request.form, routine_class)
+            routine.update_config(config)
+            self.database.update_routine(routine)
+            self.manager.add_changed("actions")
+            return {"status": "ok"}
+
+        @self.app.route("/move_routine", methods=["POST"])
+        def move_routine():
+            self.manager.event_manager.move_routine(
+                request.json["workflow_id"],
+                request.json["routine_id"],
+                request.json["index"]
+            )
+            return {"status": "ok"}
+
+        @self.app.route("/delete_routine/<int:routine_id>", methods=["POST"])
+        def delete_routine(routine_id):
+            self.manager.event_manager.delete_routine(routine_id)
+            return {"status": "ok"}
+
         #################
         # JINJA FILTERS #
         #################
-
-        @self.app.template_filter("generate_handler_name")
-        def generate_handler_name(handler):
-            label = handler.get_label()
-            return label if label else handler.type + " handler_id"
 
         @self.app.template_filter("hr_filesize")
         def hr_filesize(filesize):
@@ -396,10 +577,11 @@ class FlaskWebServer:
                 for query in self.cache:
                     for entry in self.cache[query]:
                         if entry["t"].day == now.day and entry["t"].month == now.month and entry["t"].year == now.year:
-                            entry["r"] = build_chart_data(parse_query(query), entry["f"], now, entry["s"])
                             print("Rebuilding cache")
+                            entry["r"] = build_chart_data(parse_query(query), entry["f"], now, entry["s"])
+                            print("Rebuilding cache [done]")
                         else:
-                            self.cache[query].remove(entry)
+                            self.cache[query].delete_event_listener(entry)
                 sleep(settings.CACHING_INTERVAL * 60)
 
         Thread(target=content_change_watcher).start()
@@ -410,6 +592,7 @@ class FlaskWebServer:
 
         self.serverThread = Thread(target=self.run)
         self.serverThread.start()
+        self.serverThread.join()
 
     def run(self):
         self.sio.run(self.app, self.host, self.port, debug=settings.WEB_SERVER_DEBUG, use_reloader=False)

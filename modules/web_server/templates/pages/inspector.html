@@ -1,7 +1,7 @@
 <h2>Inspector</h2>
 <div id="inspector" onload="window.app.menu.page.displayCharts(100)">
-    <button onclick="window.app.inspector.openEmpty()">Empty chart</button>
-    <h2>Saved views</h2>
+    <button onclick="window.app.inspector.openEmpty()"><img src="{{ url_for('static', filename='images/icons/plus_bold.png') }}" alt="Plus icon">New chart</button>
+    <h3>Saved views</h3>
     {% for view in views -%}
         <div class="tile chart-preview" onclick="window.app.inspector.open({{ view.id }}, '{{ view.label }}'); {% for handler in view.settings %}{% for attribute in view.settings[handler] %}window.app.inspector.addChart('{{ handler }}', '{{ attribute }}');{% endfor %}{% endfor %}">
             <h1>{{ view.label }}</h1>
@@ -21,7 +21,7 @@
         <h1>Chart data</h1>
         {% for handler in manager.get_handlers() %}
             {% if manager.get_handlers()[handler].get_storage_attributes() %}
-                <h2>{{ manager.get_handlers()[handler] | generate_handler_name }}</h2>
+                <h2>{{ manager.get_handlers()[handler].get_name() }}</h2>
                 {% for attribute in manager.get_handlers()[handler].get_storage_attributes() %}
                     <div>
                         <input id="{{ handler }}-{{ attribute }}" type="checkbox" class="inspector-data-checkbox" data-handler="{{ handler }}" data-attribute="{{ attribute }}" oninput="window.app.inspector.toggleChart('{{ handler }}', '{{ attribute }}')">
@@ -33,8 +33,8 @@
         <hr>
         <h2>Save view</h2>
         <input type="text" class="view-label" id="view-label" placeholder="View label">
-        <button class="btn btn-sm btn-primary mt-3" onclick="window.app.inspector.saveView()">Save</button>
-        <button class="btn btn-sm btn-danger mt-3" onclick="window.app.inspector.deleteView()">Delete</button>
+        <div class="btn btn-sm btn-primary mt-3" onclick="window.app.inspector.saveView()">Save</div>
+        <div class="btn btn-sm btn-danger mt-3" onclick="window.app.inspector.deleteView()">Delete</div>
     </div><div class="canvas-parent">
         <canvas id="inspector-chart"></canvas>
     </div>

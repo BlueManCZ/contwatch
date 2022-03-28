@@ -70,32 +70,42 @@ def parse_config(http_form, handler_class):
     config = {}
 
     for field in http_form:
-        if field in handler_class.config_fields:
-            field_type = handler_class.config_fields[field][0]
+        field_new = field[1:-1]
+        if field_new in handler_class.config_fields:
+            field_type = handler_class.config_fields[field_new][0]
             field_data = http_form[field]
             value = field_data
-            if field_type == "int":
+            if field_type in ["int", "handlerInstance", "workflowInstance"]:
                 value = int(field_data)
             elif field_type == "float":
                 value = float(field_data)
             elif field_type == "bool":
                 value = bool(field_data)
-            config[field] = value
+            config[field_new] = value
 
     for field in handler_class.config_fields:
         if len(handler_class.config_fields[field]) > 2 and field not in config:
             config[field] = handler_class.config_fields[field][2]
 
         if handler_class.config_fields[field][0] == "bool":
-            if field not in http_form:
+            if f"_{field}_" not in http_form:
                 config[field] = False
 
     return config
 
 
-def make_json_error(error, message):
+def json_error(error, message):
     response = {
         "error": error,
         "message": message
     }
     return response, error
+
+
+def json_notif(code, status, title, message):
+    response = {
+        "status": status,
+        "title": title,
+        "message": message
+    }
+    return response, code

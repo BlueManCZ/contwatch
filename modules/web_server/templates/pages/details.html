@@ -4,25 +4,25 @@
         <h1>Host device</h1>
         <div class="cells">
             <div>
-                <h3>Name</h3>
+                <p>Name</p>
                 <p>{{ data.node }}</p>
             </div><div>
-                <h3>Kernel</h3>
+                <p>Kernel</p>
                 <p>{{ data.release }}</p>
             </div><div>
-                <h3>Architecture</h3>
+                <p>Architecture</p>
                 <p>{{ data.architecture.0 }}, {{ data.architecture.1 }}</p>
             </div><div>
-                <h3>Machine</h3>
+                <p>Machine</p>
                 <p>{{ data.machine }}</p>
             </div><div>
-                <h3>Processor</h3>
+                <p>Processor</p>
                 <p>{{ data.processor }}</p>
             </div><div>
-                <h3>Python version</h3>
+                <p>Python version</p>
                 <p>{{ data.python_version }}</p>
             </div><div>
-                <h3>Distribution</h3>
+                <p>Distribution</p>
                 <p>{{ data.distribution }}</p>
             </div>
         </div>
@@ -30,22 +30,29 @@
         <h1>ContWatch instance</h1>
         <div class="cells">
             <div>
-                <h3>Uptime</h3>
+                <p>Uptime</p>
                 <p>{{ data.uptime | hr_datetime }}</p>
             </div><div>
-                <h3>Current version</h3>
+                <p>Current version</p>
                 <p>{{ data.version }}</p>
             </div><div>
-                <h3>Handlers</h3>
+                <p>Handlers</p>
                 <p>{{ data.handlers }}</p>
             </div><div>
-                <h3>Connections</h3>
+                <p>Connections</p>
                 <p>{{ data.connections }}</p>
             </div><div>
-                <h3>Database size</h3>
+                <p>Database</p>
+                <p>{{ data.database_type }}</p>
+            </div>
+            {%- if data.database_type == "sqlite" -%}
+            <div>
+                <p>Database size</p>
                 <p>{{ data.database_size | hr_filesize }}</p>
-            </div><div>
-                <h3>Cache size</h3>
+            </div>
+            {%- endif -%}
+            <div>
+                <p>Cache size</p>
                 <p>{{ data.cache_size | hr_filesize }}</p>
             </div>
         </div>

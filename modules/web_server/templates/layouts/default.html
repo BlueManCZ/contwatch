@@ -11,11 +11,11 @@
     <meta property="og:title" content="{% block og_title %}ContWatch{% endblock %}">
     <meta property="og:description" content="{% block og_description %}System for controlling single-board microcontrollers powered by Python.{% endblock %}">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="{% block og_image %}{{url}}{{ url_for('static', filename='touch-icon.png') }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{url}}{{ url_for('static', filename='images/touch-icon.png') }}{% endblock %}">
     <meta property="og:url" content="{% block og_url %}{{url}}{% endblock %}">
 
-    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.png') }}">
-    <link rel="apple-touch-icon" sizes="152x152" href="{{ url_for('static', filename='touch-icon.png') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="apple-touch-icon" sizes="152x152" href="{{ url_for('static', filename='images/touch-icon.png') }}">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='GifLoader.js/src/css/GifLoader.css') }}">
 
@@ -24,14 +24,15 @@
     {% block styles %}{% endblock %}
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.1.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.0/dist/chartjs-plugin-zoom.min.js"></script>
 </head>
 
 <body>
     {% include "partials/navbar.html" %}
+    {% include "partials/notifications.html" %}
     <div id="content-container"></div>
     <div id="dialog-container" class="dialog-hidden" onclick="window.app.dialog.hide()"><dialog open></dialog></div>
     <img src="{{ url_for('static', filename='images/icons/menu.png') }}" id="menu-button" alt="Menu icon" onclick="window.app.menu.show()">

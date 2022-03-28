@@ -5,7 +5,7 @@
         <label class="form-check-label text-muted" for="exampleCheck1" title="Data remaining in the database that are no longer tracked">Display ghost data (?)</label>
     </div>
     {% for handler in manager.registered_handlers %}
-        <h3>{{ manager.registered_handlers[handler] | generate_handler_name }} <button onclick="window.app.dialog.load('json_attributes_to_store_{{ handler }}')">Settings</button></h3>
+        <h3>{{ manager.registered_handlers[handler].get_name() }} <button class="settings" onclick="window.app.dialog.load('json_attributes_to_store', {'handler_id': '{{ handler }}'})">Settings</button></h3>
 
         {% if (site_config["ghost_data"] and not attributes[handler] and not ghost_attributes[handler]) or (not site_config["ghost_data"] and not attributes[handler]) %}
             <div class="text-muted mt-1 mb-4">There is nothing to display.</div>

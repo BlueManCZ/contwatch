@@ -1,3 +1,4 @@
+#include <ArduinoJson.h>
 #include <Keypad.h>
 
 const int ROW_NUM = 4;
@@ -27,10 +28,15 @@ void loop(){
 void keypadEvent(KeypadEvent key){
   switch (keypad.getState()){
     case PRESSED:
-      Serial.println("LED,ON," + String(key));
-    break;
     case RELEASED:
-      Serial.println("LED,OFF," + String(key));
-    break;
+      DynamicJsonDocument event(512);
+      event["type"] = "event";
+      event["label"] = keypad.getState() == PRESSED ? "key_press" : "key_release";
+      event["payload"][0] = String(key);
+      event["payload"][1] = String(keypad.getState() == PRESSED);
+      char buffer[512];
+      serializeJson(event, buffer);
+      Serial.println(buffer);
+      break;
   }
 }

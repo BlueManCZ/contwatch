@@ -3,7 +3,6 @@ import { Page } from "./Page";
 export class Menu {
     private element: HTMLElement;
     private readonly _page: Page;
-    // eslint-disable-next-line no-undef
     private buttons: HTMLCollectionOf<Element>;
 
     constructor(id: string, colors: string[]) {

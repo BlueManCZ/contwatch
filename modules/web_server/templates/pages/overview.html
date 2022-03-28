@@ -1,12 +1,29 @@
 <h2>Overview</h2>
 <div id="overview">
-    {% for message in manager.last_messages -%}
-        {%- if message in manager.registered_handlers -%}
-        <div class="tile">
-            <h1>{{ manager.registered_handlers[message] | generate_handler_name }}</h1>
-            <h3>Message from {{ manager.last_messages[message][0] }}</h3>
-            <pre>{{ manager.last_messages[message][1] }}</pre>
-        </div>
-        {%- endif -%}
-    {%- endfor %}
+    <table>
+    <tr>
+        <th>Status</th>
+        <th>Type</th>
+        <th>Handler</th>
+        <th>Time</th>
+        <th>Data</th>
+    </tr>
+    {% for message in messages -%}
+        <tr>
+            <td class="{% if message.5 %}out{% else %}in{% endif %}">{% if message.5 %}Outgoing{% else %}Incoming{% endif %}</td>
+            <td><span class="{{ message.0 }}">{{ message.0 }}</span></td>
+            <td>{{ message.2.get_name() }} <span class="id">(id:{{ message.1 }})</span></td>
+            <td>{{ message.3 }}</td>
+            <td>
+                <span>
+                {%- if message.0 == "event" -%}
+                    <span class="event-label">{{ message.4.label }}:</span> {{ message.4.payload }}
+                {%- else -%}
+                    {{ message.4 }}
+                {%- endif -%}
+                </span>
+            </td>
+        </tr>
+    {% endfor %}
+    </table>
 </div>

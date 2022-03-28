@@ -1,68 +1,32 @@
+/*
+  Serial LED controller
+
+  Listens for messages on Serial port and controls LED array.
+
+  Examples of serial messages:
+
+  1. Turn on LED number 4: {"type": "event", "label": "led_on", "payload": [4]}
+  2. Turn off LED number 4: {"type": "event", "label": "led_off", "payload": [4]}
+*/
+
+#include <ArduinoJson.h>
+
 void setup() {
   for (int i = 2; i < 7; i++) {
     pinMode(i, OUTPUT);
   }
 
   Serial.begin(9600);
-//  Serial.println("Ready to read");
-//  Serial.println("Send \"LED,[ON/OFF],[([1-6],)*/ALL]\"\n");
 }
 
 void loop() {
-  char* data[10];
-  int count = getSerialData(data, Serial, ',', 20);
-
-  int index = 0;
-  if (count) {
-    if (!strcmp(data[0], "LED")) {
-      index = 2;
-      if (!strcmp(data[1], "ON") || !strcmp(data[1], "OFF")) {
-        while (index < count) {
-          if (!strcmp(data[index], "ALL")) {
-            for (int i = 2; i < 7; i++) {
-              digitalWrite(i, (strcmp(data[1], "OFF")) ? HIGH : LOW);
-            }
-            break;
-          }
-          digitalWrite(atoi(data[index++]) + 1, (strcmp(data[1], "OFF")) ? HIGH : LOW);
-        }
+  if (Serial.available()) {
+    DynamicJsonDocument doc(1024);
+    deserializeJson(doc, Serial);
+    if (!strcmp(doc["type"], "event")) {
+      if (!strcmp(doc["label"], "led_on") || !strcmp(doc["label"], "led_off")) {
+        digitalWrite(doc["payload"][0].as<int>() + 1, (strcmp(doc["label"], "led_off")) ? HIGH : LOW);
       }
     }
   }
-
-  index = 0;
-  while (index < count) {
-    delete data[index++];
-  }
-}
-
-int getSerialData(char* dataArray[], Stream &serial, char divider, int maxWordLength) {
-  int arrayIndex = 0;
-
-  if (serial.available()) {
-    char ch;
-    char* part = new char[maxWordLength];
-    int index = 0;
-    bool receiving = true;
-    while (receiving) {
-      if (serial.available()) {
-        ch = toupper(serial.read());
-        if (ch == divider || ch == '\n' || ch == '\0') {
-          part[index] = '\0';
-          dataArray[arrayIndex++] = part;
-          part = new char[maxWordLength];
-          index = 0;
-          if (ch == '\n' || ch == '\0') {
-            receiving = false;
-          }
-        } else {
-          part[index++] = ch;
-        }
-      }
-    }
-
-    delete part; // This is important to do. Arduino doesn't have garbage collector.
-  }
-
-  return arrayIndex;
 }

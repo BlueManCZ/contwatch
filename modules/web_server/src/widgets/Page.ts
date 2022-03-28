@@ -1,12 +1,12 @@
 import { ChartPreview } from "./ChartPreview";
+import { post } from "../utils/URLTools";
 
 export class Page {
     private readonly colors: string[];
     private element: HTMLElement;
-    // eslint-disable-next-line no-undef
     private readonly chartElements: HTMLCollectionOf<Element>;
     private _currentPage: string;
-    private readonly config: { [name: string]: string | number | boolean };
+    private readonly config: Record<string, string | number | boolean>;
     private savedCharts: any;
 
     constructor(id: string, colors: string[]) {
@@ -36,18 +36,14 @@ export class Page {
     load(pageName: string): void {
         this.currentPage = pageName;
 
-        const request = new XMLHttpRequest();
-        request.open("POST", `/${pageName}`);
-        request.setRequestHeader("Content-Type", "application/json");
-        request.onload = (): void => {
+        post(`/${pageName}`, (request) => {
             this.setContent(request.responseText);
             window.history.replaceState(pageName, pageName, `/${pageName}`);
             if (document.getElementById(pageName).onload) {
                 document.getElementById(pageName).onload(undefined);
             }
             (window as any).app.loader.hide();
-        };
-        request.send(JSON.stringify(this.config));
+        }, this.config, "JSON");
     }
 
     refresh(): void {
