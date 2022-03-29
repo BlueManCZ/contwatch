@@ -38,7 +38,7 @@
                 <label for="{{ field }}" class="me-1">{{ routine.config_fields[field].1 }}</label>
                 <select id="{{ field }}" name="_{{ field }}_" class="form-select">
                     {% for workflow in workflows %}
-                        <option value="{{ workflow.id }}">{{ workflow.id }}</option>
+                        <option value="{{ workflow.id }}">Workflow {{ workflow.id }}</option>
                     {% endfor %}
                 </select>
             </div>

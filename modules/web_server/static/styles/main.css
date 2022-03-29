@@ -164,6 +164,7 @@ body {
   width: 325px;
   background: #f9fafc;
   transition: right ease-in-out 200ms;
+  z-index: 2;
 }
 #notifications-wrapper.visible {
   right: 0;
@@ -427,9 +428,6 @@ body {
 #overview table tr:nth-child(2n+3) {
   background: #f8f9ff;
 }
-#overview table tr:hover td:last-child span {
-  white-space: normal;
-}
 #overview table tr td, #overview table tr th {
   padding: 10px 0;
 }
@@ -459,6 +457,9 @@ body {
 #overview table tr td .event, #overview table tr th .event {
   background: #7233ff;
 }
+#overview table tr td .text, #overview table tr th .text {
+  background: gray;
+}
 #overview table tr td:last-child, #overview table tr th:last-child {
   max-width: 750px;
 }
@@ -468,6 +469,9 @@ body {
   font-family: "Roboto Mono", monospace;
   position: relative;
   top: -2px;
+}
+#overview table tr td:last-child:hover span, #overview table tr th:last-child:hover span {
+  white-space: normal;
 }
 #overview table tr .in, #overview table tr .out {
   font-weight: bold;

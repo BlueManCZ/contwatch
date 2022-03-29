@@ -100,6 +100,7 @@ body
   width: 325px
   background: #f9fafc
   transition: right ease-in-out 200ms
+  z-index: 2
 
   &.visible
     right: 0
@@ -363,12 +364,6 @@ body
       &:nth-child(2n+3)
         background: #f8f9ff
 
-      &:hover
-        td
-          &:last-child
-            span
-              white-space: normal
-
       td, th
         padding: 10px 0
 
@@ -399,6 +394,9 @@ body
         .event
           background: #7233ff
 
+        .text
+          background: gray
+
         &:last-child
           max-width: 750px
 
@@ -408,6 +406,10 @@ body
             font-family: $font2
             position: relative
             top: -2px
+
+          &:hover
+            span
+              white-space: normal
 
       .in
         font-weight: bold

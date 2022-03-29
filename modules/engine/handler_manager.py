@@ -98,22 +98,22 @@ class HandlerManager:
         message_type = "text"
 
         if isinstance(message, dict):
-            # JSON
             if "type" in message and message["type"] == "event":
-                print("EVENT:", message)
                 message_type = "event"
-                self.event_manager.trigger_event(message["label"], message["payload"] if "payload" in message else [])
             else:
-                print("JSON:", message)
                 message_type = "json"
-                for attribute in self.get_handler(handler_id).get_storage_attributes():
-                    if attribute in message:
-                        self.data_manager.add_data_unit(attribute, message[attribute], handler_id)
-        else:
-            # String
-            print("TEXT:", message)
 
-        self.message_queue.append([message_type, handler_id, self.get_handler(handler_id), strftime("%H:%M:%S", localtime()), message, 0])
+        self.message_queue.append(
+            [message_type, handler_id, self.get_handler(handler_id), strftime("%H:%M:%S", localtime()), message, 0])
+
+        if message_type == "event":
+            self.event_manager.trigger_event(message["label"], message["payload"] if "payload" in message else [])
+        elif message_type == "json":
+            for attribute in self.get_handler(handler_id).get_storage_attributes():
+                if attribute in message:
+                    self.data_manager.add_data_unit(attribute, message[attribute], handler_id)
+        else:
+            print("TEXT:", message)
 
         while len(self.message_queue) > 50:
             self.message_queue.pop(0)
