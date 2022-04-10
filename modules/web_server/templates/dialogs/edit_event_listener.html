@@ -1,7 +1,16 @@
 <h1>Edit event listener</h1>
 <form id="edit_event_listener_form">
     <div class="form-group mt-3">
-        <label for="listener_label">Listener label</label>
+        <label for="listener_handler" class="me-1">Target handler</label>
+        <select id="listener_handler" name="listener_handler" class="form-select">
+            {% for handler in handlers %}
+                <option value="{{ handler }}" {% if listener.get_handler_id() == handler %}selected{% endif %}>{{ handlers[handler].get_name() }} (id:{{ handler }})</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group mt-3">
+        <label for="listener_label">Listen for event label</label>
         <input id="listener_label" name="listener_label" class="form-control" value="{{ listener.label }}">
     </div>
 
@@ -13,6 +22,11 @@
                 <option value="{{ workflow.id }}" {% if listener.workflow.id == workflow.id %}selected{% endif %}>{{ workflow.id }}</option>
             {% endfor %}
         </select>
+    </div>
+
+    <div class="form-group mt-3">
+        <label for="data_listener" class="me-1">Listen for data changes instead of events</label>
+        <input id="data_listener" name="data_listener" class="form-check-input" type="checkbox" {% if listener.get_data_listener_status() %}checked{% endif %} value="true">
     </div>
 
     <button type="button" class="mt-3 btn btn-primary btn-sm" onclick="window.app.dialog.send('/edit_event_listener/{{ listener.id }}')"><b>Save changes</b></button>

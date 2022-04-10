@@ -5,6 +5,9 @@ class Workflow:
         self.id = 0
         self.routines = []
 
+    def get_id(self):
+        return self.id
+
     def set_id(self, workflow_id):
         self.id = workflow_id
 
@@ -16,4 +19,6 @@ class Workflow:
             payload = []
 
         for routine in self.routines:
-            routine.perform(payload)
+            if not routine.perform(payload):
+                return False
+        return True

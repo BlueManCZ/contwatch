@@ -100,7 +100,7 @@ class SerialHandler(HandlerInterface):
 
     def send_message(self, message):
         if self.is_connected():
-            self.connection.write(bytes(message, "utf-8"))
+            self.connection.write(bytes(message.text(), "utf-8"))
 
     def ready_to_read(self):
         return len(self.message_queue) > 0

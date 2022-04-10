@@ -30,14 +30,14 @@ class EventManager:
                 self.workflows[workflow_id].add_routine(routine_instance)
 
         for listener in db_listeners:
-            new_listener = EventListener(listener.label)
+            new_listener = EventListener(listener.handler_id, listener.label)
             new_listener.set_id(listener.id)
             if listener.workflow_id in self.workflows:
                 new_listener.set_workflow(self.workflows[listener.workflow_id])
+            new_listener.set_data_listener_status(listener.data_listener_status)
             self.add_event_listener(new_listener)
 
     def add_event_listener(self, event_listener: EventListener):
-        # TODO: Target listeners on specific devices
         if not self.contains_event_listener(event_listener):
             self.event_listeners.append(event_listener)
             return event_listener
@@ -53,15 +53,19 @@ class EventManager:
         return self.event_listeners
 
     def contains_event_listener(self, event_listener: EventListener):
-        return list(filter(lambda e: e.label == event_listener.label, self.event_listeners))
+        return list(filter(lambda e: e.get_label() == event_listener.get_label(), self.event_listeners))
 
     def delete_event_listener(self, event_listener: EventListener):
-        self.event_listeners = list(filter(lambda e: e.label != event_listener.label, self.event_listeners))
+        self.event_listeners = list(filter(lambda e: e.get_label() != event_listener.get_label(), self.event_listeners))
 
-    def trigger_event(self, label, payload):
+    def trigger_event(self, handler_id, event, data_listener=False):
+        payload = event.get_payload().copy()
         for listener in self.event_listeners:
-            if listener.label == label:
+            if listener.get_label() == event.get_label() \
+                    and listener.get_handler_id() == handler_id \
+                    and data_listener == listener.get_data_listener_status():
                 listener.trigger(payload)
+                self.manager.data_manager.add_event_unit(event, handler_id)
 
     def add_workflow(self, workflow: Workflow):
         self.workflows[workflow.id] = workflow
@@ -110,3 +114,9 @@ class EventManager:
                     for i in range(len(workflow.routines)):
                         workflow.routines[i].position = i
                         self.database.update_routine(workflow.routines[i])
+
+    def get_storage_events_names(self, handler_id):
+        return {
+            "in": self.database.get_handler_stored_events_in_names(handler_id),
+            "out": self.database.get_handler_stored_events_out_names(handler_id),
+        }

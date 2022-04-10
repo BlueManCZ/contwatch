@@ -170,6 +170,20 @@ class FlaskWebServer:
                     response[handler_id] = chart_data
             return response
 
+        def build_chart_event_data(handler_id, event, event_type, datetime_from, datetime_to):
+            response = {}
+            chart_data = {event: {"timestamps": [], "payload": []}}
+            result = self.database.get_handler_stored_event_data(handler_id, event, True if event_type == "in" else False,
+                                                                 datetime_from, datetime_to)
+            for entry in result:
+                entry_time = entry[0]
+                chart_data[event]["timestamps"].append(int(entry_time.timestamp()))
+                chart_data[event]["payload"].append(entry[1])
+
+            response[handler_id] = chart_data
+
+            return response
+
         @self.app.route("/api/charts")
         def api_charts():
             handler_id = request.args["handler_id"] if "handler_id" in request.args else ""
@@ -250,6 +264,43 @@ class FlaskWebServer:
 
             return response
 
+        @self.app.route("/api/events")
+        def api_events():
+            handler_id = request.args["handler_id"] if "handler_id" in request.args else ""
+            event_name = request.args["name"] if "name" in request.args else ""
+            event_type = request.args["type"] if "type" in request.args else ""
+            date_from = request.args["date_from"] if "date_from" in request.args else ""
+            date_to = request.args["date_to"] if "date_to" in request.args else ""
+
+            datetime_from = datetime.min
+            datetime_to = datetime.now()
+
+            if handler_id:
+                try:
+                    handler_id = int(handler_id)
+                except Exception as e:
+                    print(e)
+                    return tools.json_error(400, "Argument 'handler_id' has to be an integer.")
+            else:
+                return tools.json_error(400, "Argument 'handler_id' has to be provided as an argument.")
+
+            if date_from:
+                try:
+                    datetime_from = datetime.strptime(date_from, "%Y-%m-%d")
+                except Exception as e:
+                    print(e)
+                    return tools.json_error(400, "Argument 'date_from' is not in '%Y-%m-%d' format.")
+
+            if date_to:
+                try:
+                    datetime_to = datetime.strptime(date_to, "%Y-%m-%d")
+                    datetime_to += timedelta(days=1)
+                except Exception as e:
+                    print(e)
+                    return tools.json_error(400, "Argument 'date_to' is not in '%Y-%m-%d' format.")
+
+            return build_chart_event_data(handler_id, event_name, event_type, datetime_from, datetime_to)
+
         #########
         # FORMS #
         #########
@@ -272,19 +323,38 @@ class FlaskWebServer:
 
             if "edit_event_listener" == dialog_name:
                 listener_id = int(request.json["listener_id"])
-                listener = self.manager.event_manager.get_event_listener(listener_id)
-                workflows = self.manager.event_manager.get_workflows()
-                return render_template(template_name, listener=listener, workflows=workflows)
+                return render_template(
+                    template_name,
+                    handlers=self.manager.get_handlers(),
+                    listener=self.manager.event_manager.get_event_listener(listener_id),
+                    workflows=self.manager.event_manager.get_workflows())
 
             if "json_attributes_to_store" == dialog_name:
                 handler_id = int(request.json["handler_id"])
                 handler = self.manager.get_handler(handler_id)
-                json = self.manager.last_messages[handler_id]
+                json = self.manager.last_messages[handler_id][1]
+
+                def linearize_json(input_json, result, current_branch=()):
+                    for attribute in input_json:
+                        if isinstance(input_json[attribute], dict):
+                            new_branch = list(current_branch)
+                            new_branch.append(attribute)
+                            linearize_json(input_json[attribute], result, new_branch)
+                        else:
+                            branch = list(current_branch)
+                            branch.append(attribute)
+                            result.append("/".join(branch))
+
+                attributes = []
+                linearize_json(json, attributes)
+
+                print(attributes)
+
                 return render_template(
                     template_name,
                     id=handler_id,
                     handler=handler,
-                    json=json[1]
+                    attributes=attributes
                 )
 
             if "add_new_routine" == dialog_name:
@@ -322,7 +392,9 @@ class FlaskWebServer:
 
             return render_template(
                 template_name,
-                loaded_handlers=loaded_handlers
+                loaded_handlers=loaded_handlers,
+                handlers=self.manager.get_handlers(),
+                workflows=self.manager.event_manager.get_workflows()
             )
 
         @self.app.route("/add_new_handler", methods=["POST"])
@@ -387,15 +459,22 @@ class FlaskWebServer:
 
         @self.app.route("/add_new_event_listener", methods=["POST"])
         def add_new_event_listener():
-            label = request.form["label"]
+            label = request.form["listener_label"]
             if not label:
                 return tools.json_notif(
                     400, "error", "Empty name",
                     f"Event name cannot be empty."
                 )
-            listener = EventListener(label)
+            handler_id = int(request.form["listener_handler"])
+            listener = EventListener(handler_id, label)
             if self.manager.event_manager.add_event_listener(listener):
-                db_listener = self.database.add_event_listener(label)
+                workflow_id = request.form["listener_workflow"]
+                if workflow_id:
+                    workflow_id = int(workflow_id)
+                    listener.set_workflow(self.manager.event_manager.get_workflow(workflow_id))
+                data_listener_status = bool(request.form["data_listener"]) if "data_listener" in request.form else False
+                listener.set_data_listener_status(data_listener_status)
+                db_listener = self.database.add_event_listener(listener)
                 listener.set_id(db_listener.id)
                 self.manager.add_changed("actions")
                 return {"status": "ok"}
@@ -409,13 +488,17 @@ class FlaskWebServer:
             listener = self.manager.event_manager.get_event_listener(listener_id)
             listener_label = request.form["listener_label"]
             listener.set_label(listener_label)
+            handler_id = int(request.form["listener_handler"])
+            listener.set_handler_id(handler_id)
             workflow_id = request.form["listener_workflow"]
             if workflow_id:
                 workflow_id = int(workflow_id)
                 listener.set_workflow(self.manager.event_manager.get_workflow(workflow_id))
             else:
                 listener.delete_workflow()
-            self.database.update_event_listener(listener_id, listener_label, int(workflow_id) if workflow_id else None)
+            data_listener_status = bool(request.form["data_listener"]) if "data_listener" in request.form else False
+            listener.set_data_listener_status(data_listener_status)
+            self.database.update_event_listener(listener)
             self.manager.add_changed("actions")
             return {"status": "ok"}
 
@@ -488,7 +571,6 @@ class FlaskWebServer:
             new_routine.set_id(database_routine.id)
 
             self.manager.add_changed("actions")
-            # self.manager.register_handler(database_handler.id, new_handler)
             return {"status": "ok"}
 
         @self.app.route("/edit_routine/<int:routine_id>", methods=["POST"])
@@ -581,7 +663,7 @@ class FlaskWebServer:
                             entry["r"] = build_chart_data(parse_query(query), entry["f"], now, entry["s"])
                             print("Rebuilding cache [done]")
                         else:
-                            self.cache[query].delete_event_listener(entry)
+                            self.cache[query].remove(entry)
                 sleep(settings.CACHING_INTERVAL * 60)
 
         Thread(target=content_change_watcher).start()

@@ -30,6 +30,26 @@
                 {% endfor %}
             {% endif %}
         {% endfor %}
+        <br>
+        <h1>Events</h1>
+        {% for handler in manager.get_handlers() %}
+            {% set event_names = manager.event_manager.get_storage_events_names(handler) %}
+            {% if event_names["in"] or event_names["out"] %}
+                <h2>{{ manager.get_handlers()[handler].get_name() }}</h2>
+                {% for event in event_names["in"] %}
+                    <div>
+                        <input id="{{ handler }}-{{ event }}-in" type="checkbox" class="inspector-data-checkbox" data-handler="{{ handler }}" data-event="{{ event }}" oninput="window.app.inspector.toggleEvent('{{ handler }}', '{{ event }}', 'in')">
+                        <label for="{{ handler }}-{{ event }}-in">← {{ event }}</label>
+                    </div>
+                {% endfor %}
+                {% for event in event_names["out"] %}
+                    <div>
+                        <input id="{{ handler }}-{{ event }}-out" type="checkbox" class="inspector-data-checkbox" data-handler="{{ handler }}" data-event="{{ event }}" oninput="window.app.inspector.toggleEvent('{{ handler }}', '{{ event }}', 'out')">
+                        <label for="{{ handler }}-{{ event }}-out">→ {{ event }}</label>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endfor %}
         <hr>
         <h2>Save view</h2>
         <input type="text" class="view-label" id="view-label" placeholder="View label">

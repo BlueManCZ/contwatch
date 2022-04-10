@@ -26,7 +26,7 @@ class RoutineInterface:
             self.settings["configuration"][attribute] = new_config[attribute]
 
     def perform(self, payload):
-        """Perform the routine on payload and return True if successful"""
+        """Perform the routine on payload and return True if workflow should continue."""
         pass
 
     def get_name(self):

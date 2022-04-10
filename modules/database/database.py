@@ -17,6 +17,7 @@ class Handler(db.Entity):
     type = orm.Required(str)
     settings = orm.Required(orm.Json)
     data = orm.Set("DataUnit")
+    events = orm.Set("EventUnit")
 
 
 class DataUnit(db.Entity):
@@ -28,11 +29,23 @@ class DataUnit(db.Entity):
     datetime = orm.Required(datetime)
 
 
+class EventUnit(db.Entity):
+    """Database entity for storing events"""
+
+    handler = orm.Required(Handler)
+    label = orm.Required(str)
+    payload = orm.Optional(orm.Json)
+    incoming = orm.Required(bool)
+    datetime = orm.Required(datetime)
+
+
 class EventListener(db.Entity):
     """Database entity representing event listener"""
 
+    handler_id = orm.Required(int)
     label = orm.Required(str)
     workflow_id = orm.Optional(int)
+    data_listener_status = orm.Optional(bool)
 
 
 class Workflow(db.Entity):
@@ -46,15 +59,6 @@ class Routine(db.Entity):
     workflow = orm.Required(int)
     position = orm.Required(int)
     settings = orm.Required(orm.Json)
-
-
-# class EventUnit(db.Entity):
-#     """Database entity for storing events"""
-#
-#     handler = orm.Required(Handler)
-#     label = orm.Required(str)
-#     identifier = orm.Required(str)
-#     value = orm.Required(float)
 
 
 class ChartView(db.Entity):
@@ -122,6 +126,10 @@ class Database:
         return DataUnit(label=label, value=value, handler=handler, datetime=datetime.now())
 
     @orm.db_session
+    def add_event_unit(self, event, handler, incoming=True):
+        return EventUnit(label=event.get_label(), payload=event.get_payload(), handler=handler, incoming=incoming, datetime=datetime.now())
+
+    @orm.db_session
     def get_handler_attribute_data(self, handler_id, attribute, datetime_from: datetime, datetime_to: datetime, *_,
                                    smartround=0):
         result = orm.select(
@@ -146,6 +154,26 @@ class Database:
     @orm.db_session
     def get_handler_attribute_dates(self, handler_id, attribute):
         return DataUnit.select(lambda d: d.handler.id == handler_id and d.label == attribute)
+
+    @orm.db_session
+    def get_handler_stored_events(self, handler_id):
+        return EventUnit.select(lambda e: e.handler.id == handler_id)[:]
+
+    @orm.db_session
+    def get_handler_stored_events_in_names(self, handler_id):
+        return orm.select(e.label for e in EventUnit if e.handler.id == handler_id and e.incoming)[:]
+
+    @orm.db_session
+    def get_handler_stored_events_out_names(self, handler_id):
+        return orm.select(e.label for e in EventUnit if e.handler.id == handler_id and not e.incoming)[:]
+
+    @orm.db_session
+    def get_handler_stored_event_data(self, handler_id, event, incoming, datetime_from: datetime, datetime_to: datetime):
+        return orm.select(
+            (e.datetime, e.payload) for e in EventUnit
+            if e.handler.id == handler_id and e.label == event and e.incoming == incoming
+            and e.datetime >= datetime_from and e.datetime <= datetime_to
+        )[:]
 
     ######################
     # CHART VIEW queries #
@@ -179,8 +207,21 @@ class Database:
     ###################
 
     @orm.db_session
-    def add_event_listener(self, label):
-        return EventListener(label=label)
+    def add_event_listener(self, event_listener):
+        return EventListener(
+            handler_id=event_listener.get_handler_id(),
+            label=event_listener.get_label(),
+            workflow_id=event_listener.workflow.get_id() if event_listener.workflow else None,
+            data_listener_status=event_listener.get_data_listener_status(),
+        )
+
+    @orm.db_session
+    def update_event_listener(self, event_listener):
+        listener = self.get_event_listener_by_id(event_listener.get_id())
+        listener.handler_id = event_listener.get_handler_id()
+        listener.label = event_listener.get_label()
+        listener.workflow_id = event_listener.workflow.get_id() if event_listener.workflow else None
+        listener.data_listener_status = event_listener.get_data_listener_status()
 
     @orm.db_session
     def get_event_listeners(self):
@@ -189,12 +230,6 @@ class Database:
     @orm.db_session
     def get_event_listener_by_id(self, listener_id):
         return EventListener.select(lambda l: l.id == listener_id)[:][0]
-
-    @orm.db_session
-    def update_event_listener(self, listener_id, label, workflow_id):
-        listener = self.get_event_listener_by_id(listener_id)
-        listener.label = label
-        listener.workflow_id = workflow_id
 
     @orm.db_session
     def delete_event_listener(self, listener_id):
@@ -220,9 +255,13 @@ class Database:
 
     @orm.db_session
     def add_routine(self, routine: RoutineInterface, routine_id=0):
-        if routine_id:
-            return Routine(id=routine_id, type=routine.type, settings=routine.settings, workflow=routine.workflow.id, position=routine.position)
-        return Routine(type=routine.type, settings=routine.settings, workflow=routine.workflow.id, position=routine.position)
+        return Routine(
+            id=routine_id if routine_id else None,
+            type=routine.type,
+            settings=routine.settings,
+            workflow=routine.workflow.get_id(),
+            position=routine.position
+        )
 
     @orm.db_session
     def update_routine(self, routine: RoutineInterface):

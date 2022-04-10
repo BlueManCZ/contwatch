@@ -21,8 +21,8 @@ class EventMessage(Message):
         return "type" in json and json["type"] == "event" and \
                "label" in json and "payload" in json
 
-    def label(self):
+    def get_label(self):
         return self.json()["label"]
 
-    def payload(self):
+    def get_payload(self):
         return self.json()["payload"]

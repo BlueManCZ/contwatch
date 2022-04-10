@@ -9,8 +9,10 @@ class SendEvent(RoutineInterface):
     name = "Send event"
     config_fields = {
         "handler": ["handlerInstance", "Target handler"],
-        "event_label": ["string", "Event label"],
+        "event-label": ["string", "Event label"],
+        "unique-payload": ["bool", "Send only if payload changes", True]
     }
+    last_payload = None
 
     def __init__(self, settings, manager):
         self.settings = settings
@@ -18,13 +20,19 @@ class SendEvent(RoutineInterface):
 
     def perform(self, payload):
         event = create_event(self.get_event_name(), payload)
-        self.manager.send_message(self.get_config()["handler"], event)
+        if not self.get_unique_payload() or self.last_payload != payload:
+            self.last_payload = payload
+            self.manager.send_message(self.get_config()["handler"], event)
+        return True
 
     def get_handler(self):
         return self.manager.get_handler(self.get_config()["handler"])
 
     def get_event_name(self):
-        return self.get_config()["event_label"]
+        return self.get_config()["event-label"]
+
+    def get_unique_payload(self):
+        return self.get_config()["unique-payload"]
 
     def get_description(self):
         return f"{self.get_handler().get_name()} - \"{self.get_event_name()}\""

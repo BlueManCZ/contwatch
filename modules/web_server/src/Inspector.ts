@@ -1,20 +1,20 @@
 import { BigChart } from "./widgets/BigChart";
 import { dateISO, dateISOString } from "./utils/DateTime";
+import { get } from "./utils/URLTools";
 
 export class Inspector {
     private readonly colors: string[];
     private readonly inspectorElementId: string;
-    private currentViewId: number;
+    private currentViewId = -1;
     private bigChart: BigChart;
-    private displayedCharts: { [name: string]: string[] };
+    private displayedCharts: { [name: string]: string[] } = {};
+    private displayedEvents = 0;
     private dateSelector: HTMLInputElement;
     private configPanel: HTMLElement;
 
     constructor(id: string, colors: string[]) {
         this.colors = colors;
         this.inspectorElementId = id;
-        this.currentViewId = -1;
-        this.displayedCharts = {};
     }
 
     get element(): HTMLElement {
@@ -90,11 +90,7 @@ export class Inspector {
         const currentView = this.currentViewId;
 
         const url = `/api/charts?query=${query}&date_from=${dateFrom}&date_to=${dateFrom}`;
-
-        const request = new XMLHttpRequest();
-        request.open("GET", url);
-        request.setRequestHeader("Accept", "application/json");
-        request.onreadystatechange = (): void => {
+        get(url, (request) => {
             if (request.readyState === 4) {
                 if (currentView !== this.currentViewId) {
                     return;
@@ -107,7 +103,6 @@ export class Inspector {
                         if (!data[handler][line].timestamps.length) {
                             break;
                         } else {
-                            console.log(`${dateISO(new Date(data[handler][line].timestamps.slice(-1) * 1000))} == ${this.dateSelector.value}`);
                             if (dateISO(new Date(data[handler][line].timestamps.slice(-1) * 1000)) !== this.dateSelector.value) {
                                 break;
                             }
@@ -137,8 +132,7 @@ export class Inspector {
                     }
                 }
             }
-        };
-        request.send();
+        });
     }
 
     removeChart(handler: string, attribute: string): void {
@@ -176,6 +170,130 @@ export class Inspector {
             for (const attribute in charts[handler]) {
                 this.addChart(handler, charts[handler][attribute], this.dateSelector.value);
             }
+        }
+    }
+
+    addEvent(handler: string, event: string, type: "in" | "out", date?: string): void {
+        if (!this.displayedCharts[`${handler}-event-${type}`]) {
+            this.displayedCharts[`${handler}-event-${type}`] = [];
+        }
+
+        if (this.displayedCharts[`${handler}-event-${type}`].indexOf(event) === -1) {
+            this.displayedCharts[`${handler}-event-${type}`].push(event);
+        } else {
+            return;
+        }
+
+        let dateFrom = dateISOString();
+
+        if (typeof date !== "undefined") {
+            dateFrom = date;
+        }
+
+        const currentView = this.currentViewId;
+
+        const url = `/api/events?handler_id=${handler}&name=${event}&type=${type}&date_from=${dateFrom}&date_to=${dateFrom}`;
+        get(url, (request) => {
+            if (request.readyState === 4) {
+                if (currentView !== this.currentViewId) {
+                    return;
+                }
+
+                const data = JSON.parse(request.responseText);
+                console.log(request.responseText);
+
+                for (const handler in data) {
+                    for (const line in data[handler]) {
+                        if (!data[handler][line].timestamps.length) {
+                            break;
+                        } else {
+                            if (dateISO(new Date(data[handler][line].timestamps.slice(-1) * 1000)) !== this.dateSelector.value) {
+                                break;
+                            }
+                        }
+                        const datasetData = [];
+
+                        for (let j = 0; j < data[handler][line].timestamps.length; j++) {
+                            datasetData.push({
+                                x: data[handler][line].timestamps[j] * 1000,
+                                y: event
+                            });
+                        }
+                        const dataset = {
+                            handler: handler,
+                            label: line,
+                            borderColor: "gold",
+                            data: datasetData,
+                            yAxisID: "y2",
+                            pointStyle: "circle",
+                            showLine: false,
+                            pointRadius: 3,
+                            pointHoverRadius: 6
+                        };
+
+                        this.displayedEvents++;
+
+                        if (!this.bigChart.chart.options.scales.y2) {
+                            this.bigChart.chart.options.scales.y2 = {
+                                type: "category",
+                                labels: [],
+                                offset: true,
+                                position: "left",
+                                stack: "main",
+                                stackWeight: 0.3,
+                                stepped: true,
+                                grid: {
+                                    borderColor: "red"
+                                }
+                            };
+                        }
+
+                        this.bigChart.chart.options.scales.y2.labels.push(event);
+
+                        this.bigChart.chart.data.datasets.push(dataset);
+
+                        (<HTMLInputElement> document.getElementById(`${handler}-${line}-${type}`)).checked = true;
+
+                        this.bigChart.sort();
+                        this.bigChart.recolor();
+                        this.bigChart.chart.update();
+                    }
+                }
+            }
+        });
+    }
+
+    removeEvent(handler: string, event: string, type: string): void {
+        let index = this.displayedCharts[`${handler}-event-${type}`].indexOf(event);
+        this.displayedCharts[`${handler}-event-${type}`].splice(index, 1);
+
+        for (const id in this.bigChart.chart.data.datasets) {
+            const dataset = this.bigChart.chart.data.datasets[id];
+            if (dataset.handler === handler && dataset.label === event) {
+                this.displayedEvents--;
+                if (!this.displayedEvents) {
+                    delete this.bigChart.chart.options.scales.y2;
+                } else {
+                    index = this.bigChart.chart.options.scales.y2.labels.indexOf(event);
+                    this.bigChart.chart.options.scales.y2.labels.splice(index, 1);
+                }
+                index = this.bigChart.chart.data.datasets.indexOf(dataset);
+                this.bigChart.chart.data.datasets.splice(index, 1);
+                this.bigChart.recolor();
+                this.bigChart.chart.update();
+            }
+        }
+    }
+
+    toggleEvent(handler: string, event: string, type: "in" | "out"): void {
+        console.log(this.displayedEvents);
+
+        const status = (<HTMLInputElement> document.getElementById(`${handler}-${event}-${type}`)).checked;
+
+        if (status) {
+            this.addEvent(handler, event, type, this.dateSelector.value);
+        } else {
+            this.removeEvent(handler, event, type);
         }
     }
 

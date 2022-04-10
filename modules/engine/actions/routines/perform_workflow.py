@@ -16,6 +16,7 @@ class PerformWorkflow(RoutineInterface):
 
     def perform(self, payload):
         self.get_workflow().perform(payload)
+        return True
 
     def get_workflow(self):
         return self.manager.event_manager.get_workflow(self.get_config()["workflow"])

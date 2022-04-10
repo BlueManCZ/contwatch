@@ -4,16 +4,16 @@
     <tr>
         <th>Status</th>
         <th>Type</th>
-        <th>Handler</th>
         <th>Time</th>
+        <th>Handler</th>
         <th>Data</th>
     </tr>
     {% for message in messages -%}
         <tr>
             <td class="{% if message.5 %}out{% else %}in{% endif %}">{% if message.5 %}Outgoing{% else %}Incoming{% endif %}</td>
             <td><span class="{{ message.0 }}">{{ message.0 }}</span></td>
-            <td>{{ message.2.get_name() }} <span class="id">(id:{{ message.1 }})</span></td>
             <td>{{ message.3 }}</td>
+            <td>{{ message.2.get_name() }} <span class="id">(id:{{ message.1 }})</span></td>
             <td>
                 <span>
                 {%- if message.0 == "event" -%}

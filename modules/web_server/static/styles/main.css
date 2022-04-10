@@ -140,7 +140,7 @@ body {
   width: 34px;
   height: 34px;
   right: 26px;
-  top: 26px;
+  top: 24px;
   border-radius: 20px;
   border: solid 3px #555;
   font-size: 20px;
@@ -149,6 +149,7 @@ body {
   line-height: 27px;
   cursor: pointer;
   display: none;
+  z-index: 1;
 }
 #notifications-button.active {
   display: unset;
@@ -311,7 +312,7 @@ body {
   background-color: white;
   padding: 20px 25px;
   border-radius: 15px;
-  margin-right: 40px;
+  margin-right: 20px;
   margin-top: 20px;
   vertical-align: top;
   box-shadow: 2px 2px 3px #dfdfdf;
@@ -344,10 +345,11 @@ body {
 }
 
 .tile-list .tile {
+  position: relative;
   padding: 15px 15px !important;
   overflow: hidden;
   cursor: pointer;
-  min-width: 250px;
+  max-width: 280px;
 }
 .tile-list .tile:hover {
   transform: scale(1.03);
@@ -375,6 +377,7 @@ body {
 .tile-list .tile .description {
   margin-bottom: 0;
   white-space: nowrap;
+  padding-right: 50px;
 }
 .tile-list .tile .notif {
   display: inline list-item;
@@ -433,9 +436,12 @@ body {
 }
 #overview table tr td:first-child, #overview table tr th:first-child {
   padding-left: 22px;
-  width: 110px;
+  min-width: 110px;
   text-transform: uppercase;
   font-size: 12px;
+}
+#overview table tr td:nth-child(2), #overview table tr th:nth-child(2) {
+  min-width: 80px;
 }
 #overview table tr td:nth-child(2) span, #overview table tr th:nth-child(2) span {
   color: white;
@@ -449,7 +455,11 @@ body {
   line-height: 23px;
 }
 #overview table tr td:nth-child(3), #overview table tr th:nth-child(3) {
+  min-width: 100px;
+}
+#overview table tr td:nth-child(4), #overview table tr th:nth-child(4) {
   font-weight: bold;
+  min-width: 250px;
 }
 #overview table tr td .json, #overview table tr th .json {
   background: #f5a65b;
@@ -461,7 +471,7 @@ body {
   background: gray;
 }
 #overview table tr td:last-child, #overview table tr th:last-child {
-  max-width: 750px;
+  max-width: calc(100vw - 950px);
 }
 #overview table tr td:last-child span, #overview table tr th:last-child span {
   font-size: 12px;
@@ -534,6 +544,7 @@ body {
 #actions #workflows .workflow {
   position: relative;
   border-bottom: solid 1px #dbdbdb;
+  padding-bottom: 15px;
 }
 #actions #workflows .workflow:last-child {
   border-bottom: unset;
@@ -549,8 +560,8 @@ body {
   height: 40px;
   line-height: 36px;
   font-size: 18px;
-  margin-top: 20px;
-  margin-bottom: 20px;
+  margin-right: 5px;
+  margin-top: 15px;
   vertical-align: middle;
 }
 #actions #workflows .workflow .workflow-id-connected {
@@ -564,10 +575,10 @@ body {
   vertical-align: middle;
   border-radius: 10px;
   background: white;
-  margin-left: 10px;
   padding: 2px 20px 0;
   text-align: center;
   cursor: pointer;
+  margin: 15px 5px 0;
 }
 #actions #workflows .workflow .workflow-routine:hover .arrow-left, #actions #workflows .workflow .workflow-routine:hover .arrow-right {
   display: flex;
@@ -613,7 +624,8 @@ body {
   border-radius: 10px;
   opacity: 0.5;
   cursor: pointer;
-  margin-left: 10px;
+  margin-left: 5px;
+  margin-top: 15px;
   padding: 5px;
 }
 #actions #workflows .workflow .add-routine:hover, #actions #workflows .workflow .delete-routine:hover {
@@ -655,6 +667,17 @@ body {
   background: transparent;
   border: solid 1px #dbdbdb;
   color: #9b9b9b;
+}
+
+#handlers.tile-list .tile::before {
+  content: "";
+  width: 0;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: white;
+  box-shadow: 0 0 15px 20px white;
 }
 
 #details table td, #details table th {
@@ -729,6 +752,10 @@ body {
 #dialog-container dialog .tile h3 {
   font-weight: bold;
 }
+#dialog-container dialog textarea.configuration {
+  min-height: 235px;
+  font-family: "Roboto Mono", monospace;
+}
 
 .dialog-hidden {
   opacity: 0 !important;
@@ -778,7 +805,7 @@ body {
   box-shadow: 0 0 5px silver;
   border-radius: 20px;
   padding: 15px 20px 15px 20px;
-  top: 70px;
+  max-height: 100%;
   transition: ease-in-out 100ms;
   display: none;
   overflow: auto;
@@ -811,7 +838,7 @@ body {
 
 #menu-button {
   position: fixed;
-  top: 20px;
+  top: 22px;
   right: 18px;
   width: 38px;
   opacity: 0.6;
@@ -832,13 +859,17 @@ body {
     padding-left: 0;
   }
 
-  nav {
+  #menu {
     display: none;
     width: 100%;
   }
 
-  .visible {
+  #menu.visible {
     display: block;
+  }
+
+  #notifications-button {
+    right: 70px;
   }
 
   #menu-button {
@@ -847,6 +878,55 @@ body {
 
   #content-container {
     padding: 20px;
+  }
+
+  #overview {
+    position: relative;
+    overflow: unset;
+  }
+  #overview table {
+    border-radius: 0;
+    background: none;
+    position: relative;
+    display: block;
+    box-shadow: none;
+    overflow: unset;
+    margin-top: 30px;
+  }
+  #overview table tbody {
+    display: block;
+  }
+  #overview table tr {
+    max-width: 100%;
+    background: white !important;
+    margin-bottom: 10px;
+    display: block;
+    border-radius: 15px;
+    box-shadow: 2px 2px 3px #dfdfdf;
+    overflow: auto;
+  }
+  #overview table tr:first-child {
+    display: none;
+  }
+  #overview table td {
+    display: inline-block;
+    max-width: unset !important;
+    min-width: unset !important;
+  }
+  #overview table td:nth-child(1) {
+    margin-right: 10px;
+  }
+  #overview table td:nth-child(2) {
+    margin-right: 10px;
+  }
+  #overview table td:nth-child(4) {
+    display: block;
+    margin-left: 20px;
+    padding: 0;
+  }
+  #overview table td:last-child {
+    display: block;
+    margin-left: 20px;
   }
 
   #inspector-chart-view {
@@ -883,13 +963,8 @@ body {
     opacity: 0.6;
   }
 
-  #handlers.tile-list .tile {
-    width: 100%;
-    margin-right: 0;
-  }
   #handlers.tile-list .add {
     display: block;
-    margin: 30px auto;
   }
 
   #details .cells div {
@@ -900,6 +975,15 @@ body {
   }
   #details .cells div:nth-child(2n) {
     padding-left: 0;
+  }
+}
+@media (max-width: 550px) {
+  #handlers.tile-list .tile {
+    max-width: unset;
+    width: 100%;
+  }
+  #handlers.tile-list .add {
+    margin: 20px auto;
   }
 }
 

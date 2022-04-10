@@ -13,7 +13,7 @@ class HttpHandler(HandlerInterface):
 
     def _fetcher(self):
         self.log.debug("Starting HTTP data fetcher")
-        self.success = True
+        self.success = False
         last_secs = int(time())
         self.add_changed("handlers")
         while self.active:
@@ -28,6 +28,8 @@ class HttpHandler(HandlerInterface):
                             message = response.json()
                         self.message_queue.append(message)
                         last_secs = secs
+                        if not self.success:
+                            self.add_changed("handlers")
                         self.success = True
                     elif response.status_code == 404:
                         message = response.text
@@ -129,6 +131,17 @@ class HttpHandler(HandlerInterface):
         sleep(2)
         self.active = True
         Thread(target=self._fetcher).start()
+
+    def send_message(self, message):
+        try:
+            args = {}
+            index = 0
+            for arg in message.json()["payload"]:
+                args[f"arg{index}"] = arg
+                index += 1
+            get(f"{self.url}/{message.get_label()}", params=args, timeout=self.timeout)
+        except ConnectionError as error:
+            print(error)
 
     def ready_to_read(self):
         return len(self.message_queue) > 0

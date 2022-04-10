@@ -1,6 +1,6 @@
 <h1>Select JSON attributes to store in database</h1>
 <form id="json-attributes-to-store" action="">
-    {% for attribute in json %}
+    {% for attribute in attributes %}
         <div class="form-check">
             <input type="checkbox" class="form-check-input" name="{{ attribute }}" id="{{ attribute }}" {% if attribute in handler.get_storage_attributes() %}checked{% endif %}>
             <label class="form-check-label text-muted" for="{{ attribute }}">{{ attribute }}</label>

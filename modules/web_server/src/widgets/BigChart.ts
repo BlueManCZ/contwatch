@@ -40,7 +40,8 @@ export class BigChart {
                         beginAtZero: true
                     },
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        stack: "main"
                     }
                 },
                 plugins: {

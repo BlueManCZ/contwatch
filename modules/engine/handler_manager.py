@@ -1,4 +1,4 @@
-from modules.engine.helpers import EventMessage
+from modules.engine.helpers import EventMessage, create_event
 from modules.handlers import *
 from modules.logging.logger import logger
 from modules.engine import DataManager, EventManager
@@ -11,6 +11,7 @@ class HandlerManager:
     """Handles registration and communication of handlers"""
 
     def _handler_watcher(self):
+        sleep(2)
         while self.active:
             for handler_id in self.registered_handlers:
                 handler = self.registered_handlers[handler_id]
@@ -90,10 +91,7 @@ class HandlerManager:
             self.changed.append(value)
 
     def process_message(self, handler_id, message):
-        # TODO: Message handling here
-
         self.last_messages[handler_id] = strftime("%H:%M:%S", localtime()), message
-        self.add_changed("overview")
 
         message_type = "text"
 
@@ -106,30 +104,64 @@ class HandlerManager:
         self.message_queue.append(
             [message_type, handler_id, self.get_handler(handler_id), strftime("%H:%M:%S", localtime()), message, 0])
 
+        self.add_changed("overview")
+
         if message_type == "event":
-            self.event_manager.trigger_event(message["label"], message["payload"] if "payload" in message else [])
+            # Save event to database
+            event = EventMessage(message)
+            self.event_manager.trigger_event(
+                handler_id,
+                event
+            )
         elif message_type == "json":
-            for attribute in self.get_handler(handler_id).get_storage_attributes():
-                if attribute in message:
-                    self.data_manager.add_data_unit(attribute, message[attribute], handler_id)
+            for attribute_row in self.get_handler(handler_id).get_storage_attributes():
+                self.event_manager.trigger_event(
+                    handler_id,
+                    create_event(attribute_row, []),
+                    True
+                )
+
+                attributes = attribute_row.split("/")
+                attributes.reverse()
+
+                result = message
+
+                while attributes:
+                    attribute = attributes.pop()
+                    if attribute in result:
+                        result = result[attribute]
+                    else:
+                        return
+
+                self.data_manager.add_data_unit(attribute_row, result, handler_id)
+
         else:
-            print("TEXT:", message)
+            # print("TEXT:", message)
+            pass
 
         while len(self.message_queue) > 50:
             self.message_queue.pop(0)
 
     def send_message(self, handler_id, message):
-        message_type = "text"
-        message_to_send = message
+        message_type = "json"
 
         if isinstance(message, EventMessage):
             message_type = "event"
-            message_to_send = message.text()
-            message = message.json()
 
         handler = self.get_handler(handler_id)
-        self.message_queue.append([message_type, handler_id, handler, strftime("%H:%M:%S", localtime()), message, 1])
-        handler.send_message(message_to_send)
+        self.message_queue.append([
+            message_type,
+            handler_id,
+            handler,
+            strftime("%H:%M:%S", localtime()),
+            message.json(),
+            1
+        ])
+
+        if message_type == "event":
+            self.data_manager.add_event_unit(message, handler_id, False)
+
+        handler.send_message(message)
 
     def exit(self):
         for handler in self.registered_handlers:

@@ -34,10 +34,21 @@
             <div class="form-group mt-3">
                 <label for="{{ field }}" class="me-1">{{ routine.config_fields[field].1 }}</label>
                 <select id="{{ field }}" name="_{{ field }}_" class="form-select">
+                    <option value="0">None</option>
                     {% for workflow in workflows %}
                         <option value="{{ workflow.id }}" {% if workflow.id == routine.get_config()[field] | int %}selected{% endif %}>Workflow {{ workflow.id }}</option>
                     {% endfor %}
                 </select>
+            </div>
+        {% elif routine.config_fields[field].0 == "condition" %}
+            <div class="form-group mt-3">
+                <label for="{{ field }}">{{ routine.config_fields[field].1 }}</label>
+                <input id="{{ field }}" name="_{{ field }}_" class="form-control" value="{{ routine.get_config()[field] }}">
+            </div>
+        {% elif routine.config_fields[field].0 == "configuration" %}
+            <div class="form-group mt-3">
+                <label for="{{ field }}">{{ routine.config_fields[field].1 }}</label>
+                <textarea id="{{ field }}" name="_{{ field }}_" class="form-control configuration">{{ routine.get_config()[field] }}</textarea>
             </div>
         {% endif %}
     {% endfor %}
