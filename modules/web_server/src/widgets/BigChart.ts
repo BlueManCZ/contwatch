@@ -67,7 +67,22 @@ export class BigChart {
                         }
                     },
                     tooltip: {
-                        position: "nearest"
+                        position: "nearest",
+                        callbacks: {
+                            label: function(context: any) {
+                                let label = context.dataset.label || "";
+
+                                if (label) {
+                                    label += ": ";
+                                }
+                                if (context.raw.payload) {
+                                    label += JSON.stringify(context.raw.payload);
+                                } else {
+                                    label += context.parsed.y;
+                                }
+                                return label;
+                            }
+                        }
                     }
                 },
                 pointRadius: 0,

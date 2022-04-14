@@ -43,18 +43,18 @@ class HandlerInterface:
             self.changed.append(value)
 
     def add_storage_attribute(self, attribute):
-        if "storage_attributes" not in self.settings:
-            self.settings["storage_attributes"] = []
-        if attribute not in self.settings["storage_attributes"]:
-            self.settings["storage_attributes"].append(attribute)
+        if "storage-attributes" not in self.settings:
+            self.settings["storage-attributes"] = []
+        if attribute not in self.settings["storage-attributes"]:
+            self.settings["storage-attributes"].append(attribute)
 
     def get_storage_attributes(self):
-        if "storage_attributes" in self.settings:
-            return self.settings["storage_attributes"]
+        if "storage-attributes" in self.settings:
+            return self.settings["storage-attributes"]
         return []
 
     def clear_storage_attributes(self):
-        self.settings["storage_attributes"] = []
+        self.settings["storage-attributes"] = []
 
     def set_label(self, label):
         self.settings["label"] = label

@@ -63,15 +63,17 @@ if __name__ == "__main__":
     register_modules(db, manager)
 
     if options.export:
-        data = {
-            "handlers": manager.export()
-        }
+        data = manager.export_config()
         print(dumps(data, indent=4, ensure_ascii=False))
         _quit()
 
     if options.import_file:
+        manager.delete_all()
+        database.delete_tables()
+        database.create_tables()
         file = open(options.import_file, "r")
-        manager.import_handlers(load(file)["handlers"])
+        manager.import_config(load(file))
+        _quit()
 
     settings.print_info()
 

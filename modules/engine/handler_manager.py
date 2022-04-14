@@ -1,7 +1,7 @@
 from modules.engine.helpers import EventMessage, create_event
 from modules.handlers import *
 from modules.logging.logger import logger
-from modules.engine import DataManager, EventManager
+from modules.engine import DataManager, EventManager, Workflow, get_routine_class, EventListener
 
 from threading import Thread
 from time import localtime, sleep, strftime
@@ -46,6 +46,11 @@ class HandlerManager:
         self.thread = Thread(target=self._handler_watcher)
         self.thread.start()
 
+    def delete_all(self):
+        self.registered_handlers = {}
+        self.event_manager.event_listeners = []
+        self.event_manager.workflows = {}
+
     def register_handler(self, handler_id, handler):
         self.registered_handlers[handler_id] = handler
         for p in ["overview", "handlers"]:
@@ -62,29 +67,100 @@ class HandlerManager:
         for p in ["overview", "handlers"]:
             self.add_changed(p)
 
-    def export(self):
-        result = {}
-        handlers = self.database.get_handlers()
-        for handler in handlers:
+    def export_config(self):
+        result = {
+            "handlers": {},
+            "chart-views": [],
+            "event-listeners": [],
+            "workflows": {},
+        }
+
+        db_handlers = self.database.get_handlers()
+        for db_handler in db_handlers:
             handler_dict = {
-                "type": handler.type,
-                "settings": handler.settings,
+                "type": db_handler.type,
+                "settings": db_handler.settings,
             }
-            result[handler.id] = handler_dict
+            result["handlers"][db_handler.id] = handler_dict
+
+        db_views = self.database.get_chart_views()
+        for db_view in db_views:
+            chart_view = {
+                "label": db_view.label,
+                "settings": db_view.settings,
+            }
+            result["chart-views"].append(chart_view)
+
+        db_event_listeners = self.database.get_event_listeners()
+        for db_listener in db_event_listeners:
+            event_listener = {
+                "handler-id": db_listener.handler_id,
+                "event-name": db_listener.label,
+                "workflow-id": db_listener.workflow_id,
+                "data-listener": db_listener.data_listener_status,
+            }
+            result["event-listeners"].append(event_listener)
+
+        db_workflows = self.database.get_workflows()
+        for db_workflow in db_workflows:
+            db_routines = self.database.get_routines_for_workflow(db_workflow.id)
+            routines = []
+            for db_routine in db_routines:
+                routine = {
+                    "type": db_routine.type,
+                    "settings": db_routine.settings,
+                }
+                routines.append(routine)
+            result["workflows"][db_workflow.id] = {"routines": routines}
+
         return result
 
-    def import_handlers(self, handlers):
+    def import_config(self, json):
+        handlers = json["handlers"]
         for handler_id in handlers:
             handler = handlers[handler_id]
             handler_id = int(handler_id)
             handler_class = get_handler_class(handler["type"])
             handler_instance = handler_class(handler["settings"])
-            if int(handler_id) in self.registered_handlers:
-                print(f"Handler with ID: {handler_id} already exists")
-                continue
             self.database.add_handler(handler_instance, handler_id)
             self.register_handler(handler_id, handler_instance)
-            print(f"Successfully imported handler with ID: {handler_id} - \"{handler['settings']['label']}\"")
+
+        for chart_view in json["chart-views"]:
+            self.database.add_chart_view(chart_view["label"], chart_view["settings"])
+
+        workflows = json["workflows"]
+        for workflow_id in workflows:
+            workflow = workflows[workflow_id]
+            workflow_id = int(workflow_id)
+            db_workflow = self.database.add_workflow(workflow_id)
+            new_workflow = Workflow()
+            new_workflow.set_id(db_workflow.id)
+            self.event_manager.add_workflow(new_workflow)
+
+            for routine in workflow["routines"]:
+                routine_class = get_routine_class(routine["type"])
+                target_workflow = self.event_manager.get_workflow(workflow_id)
+                routine_settings = routine["settings"]
+                new_routine = routine_class(routine_settings, self)
+                new_routine.workflow = target_workflow
+                new_routine.position = len(target_workflow.routines)
+                target_workflow.add_routine(new_routine)
+                database_routine = self.database.add_routine(new_routine)
+                new_routine.set_id(database_routine.id)
+
+        for event_listener in json["event-listeners"]:
+            handler_id = event_listener["handler-id"]
+            listener = EventListener(handler_id, event_listener["event-name"])
+            workflow_id = event_listener["workflow-id"]
+            if workflow_id:
+                workflow_id = int(workflow_id)
+                listener.set_workflow(self.event_manager.get_workflow(workflow_id))
+            data_listener_status = event_listener["data-listener"] if "data-listener" in event_listener else False
+            listener.set_data_listener_status(data_listener_status)
+            db_listener = self.database.add_event_listener(listener)
+            listener.set_id(db_listener.id)
+
+        print("Configuration successfully imported.")
 
     def add_changed(self, value):
         if value not in self.changed:

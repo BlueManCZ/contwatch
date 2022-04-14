@@ -8,7 +8,8 @@ export class Inspector {
     private currentViewId = -1;
     private bigChart: BigChart;
     private displayedCharts: { [name: string]: string[] } = {};
-    private displayedEvents = 0;
+    private displayedEvents: { [name: string]: string[] } = {};
+    private displayedEventsCount = 0;
     private dateSelector: HTMLInputElement;
     private configPanel: HTMLElement;
 
@@ -117,6 +118,7 @@ export class Inspector {
                         }
                         const dataset = {
                             handler: handler,
+                            event: true,
                             label: line,
                             borderColor: this.colors[(this.bigChart.chart.data.datasets.length) % 5],
                             data: datasetData
@@ -141,7 +143,7 @@ export class Inspector {
 
         for (const id in this.bigChart.chart.data.datasets) {
             const dataset = this.bigChart.chart.data.datasets[id];
-            if (dataset.handler === handler && dataset.label === attribute) {
+            if (dataset.handler === handler && dataset.label === attribute && !dataset.event) {
                 index = this.bigChart.chart.data.datasets.indexOf(dataset);
                 this.bigChart.chart.data.datasets.splice(index, 1);
                 this.bigChart.recolor();
@@ -171,15 +173,27 @@ export class Inspector {
                 this.addChart(handler, charts[handler][attribute], this.dateSelector.value);
             }
         }
+
+        const events = this.displayedEvents;
+        this.displayedEvents = {};
+        this.displayedEventsCount = 0;
+
+        for (const record in events) {
+            const handler = record.split("::")[0];
+            const eventType = record.split("::")[1];
+            for (const event in events[record]) {
+                this.addEvent(handler, events[record][event], (eventType === "in") ? "in" : "out", this.dateSelector.value);
+            }
+        }
     }
 
     addEvent(handler: string, event: string, type: "in" | "out", date?: string): void {
-        if (!this.displayedCharts[`${handler}-event-${type}`]) {
-            this.displayedCharts[`${handler}-event-${type}`] = [];
+        if (!this.displayedEvents[`${handler}::${type}`]) {
+            this.displayedEvents[`${handler}::${type}`] = [];
         }
 
-        if (this.displayedCharts[`${handler}-event-${type}`].indexOf(event) === -1) {
-            this.displayedCharts[`${handler}-event-${type}`].push(event);
+        if (this.displayedEvents[`${handler}::${type}`].indexOf(event) === -1) {
+            this.displayedEvents[`${handler}::${type}`].push(event);
         } else {
             return;
         }
@@ -200,7 +214,6 @@ export class Inspector {
                 }
 
                 const data = JSON.parse(request.responseText);
-                console.log(request.responseText);
 
                 for (const handler in data) {
                     for (const line in data[handler]) {
@@ -216,7 +229,8 @@ export class Inspector {
                         for (let j = 0; j < data[handler][line].timestamps.length; j++) {
                             datasetData.push({
                                 x: data[handler][line].timestamps[j] * 1000,
-                                y: event
+                                y: event,
+                                payload: data[handler][line].payload[j]
                             });
                         }
                         const dataset = {
@@ -231,7 +245,7 @@ export class Inspector {
                             pointHoverRadius: 6
                         };
 
-                        this.displayedEvents++;
+                        this.displayedEventsCount++;
 
                         if (!this.bigChart.chart.options.scales.y2) {
                             this.bigChart.chart.options.scales.y2 = {
@@ -264,14 +278,14 @@ export class Inspector {
     }
 
     removeEvent(handler: string, event: string, type: string): void {
-        let index = this.displayedCharts[`${handler}-event-${type}`].indexOf(event);
-        this.displayedCharts[`${handler}-event-${type}`].splice(index, 1);
+        let index = this.displayedEvents[`${handler}::${type}`].indexOf(event);
+        this.displayedEvents[`${handler}::${type}`].splice(index, 1);
 
         for (const id in this.bigChart.chart.data.datasets) {
             const dataset = this.bigChart.chart.data.datasets[id];
-            if (dataset.handler === handler && dataset.label === event) {
-                this.displayedEvents--;
-                if (!this.displayedEvents) {
+            if (dataset.handler === handler && dataset.label === event && !dataset.event) {
+                this.displayedEventsCount--;
+                if (!this.displayedEventsCount) {
                     delete this.bigChart.chart.options.scales.y2;
                 } else {
                     index = this.bigChart.chart.options.scales.y2.labels.indexOf(event);
@@ -286,8 +300,6 @@ export class Inspector {
     }
 
     toggleEvent(handler: string, event: string, type: "in" | "out"): void {
-        console.log(this.displayedEvents);
-
         const status = (<HTMLInputElement> document.getElementById(`${handler}-${event}-${type}`)).checked;
 
         if (status) {
@@ -334,6 +346,8 @@ export class Inspector {
             }
 
             this.displayedCharts = {};
+            this.displayedEvents = {};
+            this.displayedEventsCount = 0;
         };
 
         request.send(JSON.stringify(data));
@@ -371,6 +385,8 @@ export class Inspector {
     hide(): void {
         this.element.classList.add("inspector-chart-view-hidden");
         this.displayedCharts = {};
+        this.displayedEvents = {};
+        this.displayedEventsCount = 0;
     }
 
     showConfigPanel(): void {

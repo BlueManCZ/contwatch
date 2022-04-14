@@ -55,10 +55,9 @@ class SerialHandler(HandlerInterface):
         "port": ["string", "Device port (e.g., /dev/ttyUSB0)"],
         "baudrate": ["int", "Baudrate", 9600],
         "timeout": ["float", "Timeout in seconds", .1],
-        "auto_reconnect": ["bool", "Auto reconnect", True]
+        "auto-reconnect": ["bool", "Auto reconnect", True]
     }
 
-    # def __init__(self, *_, port, baudrate=9600, timeout=.1, auto_reconnect=False):
     def __init__(self, settings):
         self.settings = settings
         device_config = self.get_config()
@@ -69,7 +68,7 @@ class SerialHandler(HandlerInterface):
         self.connection.port = device_config["port"]
         self.connection.baudrate = device_config["baudrate"]
         self.connection.timeout = device_config["timeout"]
-        self.auto_reconnect = device_config["auto_reconnect"]
+        self.auto_reconnect = device_config["auto-reconnect"]
 
         self.message_queue = []  # TODO: The list will be used in multiple threads
 
@@ -92,7 +91,7 @@ class SerialHandler(HandlerInterface):
         self.connection.port = new_config["port"]
         self.connection.baudrate = new_config["baudrate"]
         self.connection.timeout = new_config["timeout"]
-        self.auto_reconnect = new_config["auto_reconnect"]
+        self.auto_reconnect = new_config["auto-reconnect"]
 
         self.connection.close()
 

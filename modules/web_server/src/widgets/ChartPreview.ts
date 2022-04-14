@@ -71,6 +71,10 @@ export class ChartPreview {
 
                 for (const handler in data) {
                     for (const line in data[handler]) {
+                        if (line.substring(0, 3) === "in:" || line.substring(0, 4) === "out:") {
+                            continue;
+                        }
+
                         const datasetData = [];
 
                         for (let j = 0; j < data[handler][line].timestamps.length; j++) {

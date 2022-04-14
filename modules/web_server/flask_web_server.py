@@ -173,8 +173,9 @@ class FlaskWebServer:
         def build_chart_event_data(handler_id, event, event_type, datetime_from, datetime_to):
             response = {}
             chart_data = {event: {"timestamps": [], "payload": []}}
-            result = self.database.get_handler_stored_event_data(handler_id, event, True if event_type == "in" else False,
-                                                                 datetime_from, datetime_to)
+            result = self.database.get_handler_stored_event_data(
+                handler_id, event, True if event_type == "in" else False,
+                datetime_from, datetime_to)
             for entry in result:
                 entry_time = entry[0]
                 chart_data[event]["timestamps"].append(int(entry_time.timestamp()))

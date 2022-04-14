@@ -68,6 +68,14 @@ class ChartView(db.Entity):
     settings = orm.Required(orm.Json)
 
 
+def delete_tables():
+    db.drop_all_tables(with_all_data=True)
+
+
+def create_tables():
+    db.create_tables()
+
+
 class Database:
     """Class representing database instance"""
 
@@ -95,9 +103,11 @@ class Database:
 
     @orm.db_session
     def add_handler(self, handler: HandlerInterface, handler_id=0):
-        if handler_id:
-            return Handler(id=handler_id, type=handler.type, settings=handler.settings)
-        return Handler(type=handler.type, settings=handler.settings)
+        return Handler(
+            id=handler_id if handler_id else None,
+            type=handler.type,
+            settings=handler.settings,
+        )
 
     @orm.db_session
     def get_handlers(self):
@@ -181,7 +191,10 @@ class Database:
 
     @orm.db_session
     def add_chart_view(self, label, view_settings):
-        return ChartView(label=label, settings=view_settings)
+        return ChartView(
+            label=label,
+            settings=view_settings,
+        )
 
     @orm.db_session
     def get_chart_views(self):
@@ -237,8 +250,10 @@ class Database:
         listener.delete()
 
     @orm.db_session
-    def add_workflow(self):
-        return Workflow()
+    def add_workflow(self, workflow_id=0):
+        return Workflow(
+            id=workflow_id if workflow_id else None,
+        )
 
     @orm.db_session
     def get_workflows(self):
@@ -260,7 +275,7 @@ class Database:
             type=routine.type,
             settings=routine.settings,
             workflow=routine.workflow.get_id(),
-            position=routine.position
+            position=routine.position,
         )
 
     @orm.db_session
