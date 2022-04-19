@@ -532,8 +532,7 @@ class FlaskWebServer:
             self.manager.event_manager.add_workflow(new_workflow)
 
             if listener:
-                db_listener = self.database.get_event_listener_by_id(listener_id)
-                self.database.update_event_listener(listener_id, db_listener.label, new_workflow.id)
+                self.database.update_event_listener(listener)
                 listener.set_workflow(new_workflow)
 
             self.manager.add_changed("actions")
