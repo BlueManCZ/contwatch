@@ -1,23 +1,5 @@
-import re
-
+from modules.engine.actions.routines.helpers.conversions import replace_variables
 from modules.engine.actions.routines.helpers.evaluation import eval_expr
-
-
-def replace_variables(string, payload, manager):
-    result = string
-    search = re.search(r"(\bpayload\.[0-9]*\b)", string)
-    if search:
-        for group in search.groups():
-            _, payload_index = group.split(".")
-            result = result.replace(group, int(payload[payload_index]))
-
-    search = re.search(r"(\bhandler\..*\.[A-Z,a-z]*\b)", string)
-    if search:
-        for group in search.groups():
-            _, handler_id, attribute = group.split(".")
-            last_message = manager.last_messages[int(handler_id)]
-            result = result.replace(group, str(last_message[1][attribute]))
-    return result
 
 
 def parse_condition(condition, payload, manager):

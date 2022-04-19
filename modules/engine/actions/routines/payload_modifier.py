@@ -1,7 +1,6 @@
+from modules.engine.actions.routines.helpers.conversions import replace_variables
 from modules.engine.actions.routines.helpers.evaluation import eval_expr
 from modules.engine.actions.routines.routine_interface import RoutineInterface
-
-import re
 
 
 class PayloadModifier(RoutineInterface):
@@ -17,16 +16,6 @@ class PayloadModifier(RoutineInterface):
         self.settings = settings
         self.manager = manager
 
-    def replace_variables(self, string):
-        result = string
-        search = re.search(r"(\bhandler\..*\.[A-Z,a-z]*\b)", string)
-        if search:
-            for group in search.groups():
-                _, handler_id, attribute = group.split(".")
-                last_message = self.manager.last_messages[int(handler_id)]
-                result = result.replace(group, str(last_message[1][attribute]))
-        return result
-
     def parse_configuration(self, payload):
         rows = self.get_config()["configuration"].splitlines()
 
@@ -34,7 +23,7 @@ class PayloadModifier(RoutineInterface):
             left, right = row.split(" = ")
             index = int(left)
 
-            right = self.replace_variables(right)
+            right = replace_variables(right, payload, self.manager)
 
             if right[0] == "\"" and right[-1] == "\"":
                 value = right[1:-1]
