@@ -193,12 +193,6 @@ class HandlerManager:
             )
         elif message_type == "json":
             for attribute_row in self.get_handler(handler_id).get_storage_attributes():
-                self.event_manager.trigger_event(
-                    handler_id,
-                    create_event(attribute_row, []),
-                    True
-                )
-
                 attributes = attribute_row.split("/")
                 attributes.reverse()
 
@@ -212,6 +206,12 @@ class HandlerManager:
                         return
 
                 self.data_manager.add_data_unit(attribute_row, result, handler_id)
+
+                self.event_manager.trigger_event(
+                    handler_id,
+                    create_event(attribute_row, [result]),
+                    True
+                )
 
         else:
             # print("TEXT:", message)
