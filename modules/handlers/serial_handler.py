@@ -21,9 +21,11 @@ class SerialHandler(HandlerInterface):
                     data = self.connection.readline()
                     if data:
                         try:
+                            # Try load as a JSON
                             data_json = loads(data)
                             self.message_queue.append(data_json)
                         except JSONDecodeError:
+                            # If this fails, decode as a plain text
                             data = bytes.decode(data)
                             data = data.replace("\n", "")
                             self.message_queue.append(data)

@@ -1,7 +1,9 @@
 <h2>Inspector</h2>
 <div id="inspector" onload="window.app.menu.page.displayCharts(100)">
     <button onclick="window.app.inspector.openEmpty()"><img src="{{ url_for('static', filename='images/icons/plus_bold.png') }}" alt="Plus icon">New chart</button>
+    {% if views %}
     <h3>Saved views</h3>
+    {% endif %}
     {% for view in views -%}
         <div class="tile chart-preview" onclick="window.app.inspector.open({{ view.id }}, '{{ view.label }}'); {% for handler in view.settings %}
             {%- for attribute in view.settings[handler] -%}

@@ -50,6 +50,8 @@ class HandlerManager:
         self.registered_handlers = {}
         self.event_manager.event_listeners = []
         self.event_manager.workflows = {}
+        self.last_messages = {}
+        self.message_queue = []
 
     def register_handler(self, handler_id, handler):
         self.registered_handlers[handler_id] = handler

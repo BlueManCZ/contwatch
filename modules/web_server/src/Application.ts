@@ -4,6 +4,7 @@ import { Dialog } from "./widgets/Dialog";
 import { Inspector } from "./Inspector";
 import { GifLoader } from "./widgets/GifLoader";
 import { Actions } from "./Actions";
+import { del } from "./utils/URLTools";
 
 export class Application {
     private readonly colors: string[];
@@ -64,5 +65,13 @@ export class Application {
                 "warning");
             this.connection = false;
         });
+    }
+
+    deleteAllTables(): void {
+        if (!confirm("All settings and data will be permanently deleted. Continue?")) {
+            return;
+        }
+
+        del("/delete_all_tables", () => { /* */ });
     }
 }

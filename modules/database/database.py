@@ -68,6 +68,11 @@ class ChartView(db.Entity):
     settings = orm.Required(orm.Json)
 
 
+def reset():
+    delete_tables()
+    create_tables()
+
+
 def delete_tables():
     db.drop_all_tables(with_all_data=True)
 

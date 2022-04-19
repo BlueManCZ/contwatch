@@ -10,6 +10,7 @@ from os import path
 from time import sleep
 from threading import Thread
 
+import modules.database as database
 import platform
 
 
@@ -333,7 +334,10 @@ class FlaskWebServer:
             if "json_attributes_to_store" == dialog_name:
                 handler_id = int(request.json["handler_id"])
                 handler = self.manager.get_handler(handler_id)
-                json = self.manager.last_messages[handler_id][1]
+                if handler_id in self.manager.last_messages:
+                    json = self.manager.last_messages[handler_id][1]
+                else:
+                    json = {}
 
                 def linearize_json(input_json, result, current_branch=()):
                     for attribute in input_json:
@@ -597,6 +601,12 @@ class FlaskWebServer:
         def delete_routine(routine_id):
             self.manager.event_manager.delete_routine(routine_id)
             return {"status": "ok"}
+
+        @self.app.route("/delete_all_tables", methods=["DELETE"])
+        def delete_all_tables():
+            database.reset()
+            self.manager.delete_all()
+            self.cache = {}
 
         #################
         # JINJA FILTERS #
