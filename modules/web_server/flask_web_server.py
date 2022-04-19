@@ -663,6 +663,8 @@ class FlaskWebServer:
 
                 sleep(0.1)
 
+        Thread(target=content_change_watcher).start()
+
         def cache_refresher():
             while self.active:
                 now = datetime.now()
@@ -676,11 +678,10 @@ class FlaskWebServer:
                             self.cache[query].remove(entry)
                 sleep(settings.CACHING_INTERVAL * 60)
 
-        Thread(target=content_change_watcher).start()
-
-        refresher = Thread(target=cache_refresher)
-        refresher.daemon = True
-        refresher.start()
+        if settings.CACHING_INTERVAL and settings.CACHING_ASYNC:
+            refresher = Thread(target=cache_refresher)
+            refresher.daemon = True
+            refresher.start()
 
         self.serverThread = Thread(target=self.run)
         self.serverThread.start()
