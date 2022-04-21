@@ -24,19 +24,19 @@ class DataUnit(db.Entity):
     """Database entity representing data"""
 
     handler = orm.Required(Handler)
-    label = orm.Required(str)
+    label = orm.Required(str, index=True)
     value = orm.Required(float)
-    datetime = orm.Required(datetime)
+    datetime = orm.Required(datetime, index=True)
 
 
 class EventUnit(db.Entity):
     """Database entity for storing events"""
 
     handler = orm.Required(Handler)
-    label = orm.Required(str)
+    label = orm.Required(str, index=True)
     payload = orm.Optional(orm.Json)
-    incoming = orm.Required(bool)
-    datetime = orm.Required(datetime)
+    incoming = orm.Required(bool, index=True)
+    datetime = orm.Required(datetime, index=True)
 
 
 class EventListener(db.Entity):
