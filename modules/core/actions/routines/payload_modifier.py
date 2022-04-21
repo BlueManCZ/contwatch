@@ -1,6 +1,6 @@
-from modules.engine.actions.routines.helpers.conversions import replace_variables
-from modules.engine.actions.routines.helpers.evaluation import eval_expr
-from modules.engine.actions.routines.routine_interface import RoutineInterface
+from modules.core.actions.routines.helpers.conversions import replace_variables
+from modules.core.actions.routines.helpers.evaluation import eval_expr
+from modules.core.actions.routines.routine_interface import RoutineInterface
 
 
 class PayloadModifier(RoutineInterface):

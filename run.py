@@ -3,9 +3,9 @@
 from eventlet import monkey_patch
 monkey_patch()
 
-from modules import database, settings
+from modules import settings
 from modules.logging.logger import logger
-from modules.engine import HandlerManager
+from modules.core import HandlerManager, database
 from modules.web_server.flask_web_server import FlaskWebServer
 
 from json import dumps, load

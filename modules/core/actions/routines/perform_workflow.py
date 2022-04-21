@@ -1,4 +1,4 @@
-from modules.engine.actions.routines.routine_interface import RoutineInterface
+from modules.core.actions.routines.routine_interface import RoutineInterface
 
 
 class PerformWorkflow(RoutineInterface):

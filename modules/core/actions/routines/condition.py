@@ -1,5 +1,5 @@
-from modules.engine.actions.routines.helpers.conditions import check_condition
-from modules.engine.actions.routines.routine_interface import RoutineInterface
+from modules.core.actions.routines.helpers.conditions import check_condition
+from modules.core.actions.routines.routine_interface import RoutineInterface
 
 
 class Condition(RoutineInterface):

@@ -1,6 +1,6 @@
 import settings
 from modules import settings
-from modules.engine.actions.routines.routine_interface import RoutineInterface
+from modules.core.actions.routines.routine_interface import RoutineInterface
 from modules.handlers.handler_interface import HandlerInterface
 from modules.logging.logger import logger
 

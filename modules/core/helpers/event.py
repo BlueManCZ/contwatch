@@ -1,4 +1,4 @@
-from modules.engine.helpers.message import Message
+from modules.core.helpers.message import Message
 
 
 def create_event(label, payload):

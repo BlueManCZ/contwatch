@@ -1,6 +1,6 @@
 from modules import settings, tools
-from modules.engine import HandlerManager
-from modules.engine.actions import *
+from modules.core import HandlerManager, database
+from modules.core.actions import *
 from modules.handlers import *
 
 from datetime import datetime, timedelta
@@ -10,7 +10,6 @@ from os import path
 from time import sleep
 from threading import Thread
 
-import modules.database as database
 import platform
 
 
@@ -606,6 +605,7 @@ class FlaskWebServer:
             database.reset()
             self.manager.delete_all()
             self.cache = {}
+            return {"status": "ok"}
 
         #################
         # JINJA FILTERS #

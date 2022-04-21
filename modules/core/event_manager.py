@@ -1,5 +1,5 @@
-from modules.engine.actions import EventListener, get_routine_class
-from modules.engine.actions.workflow import Workflow
+from modules.core.actions import EventListener, get_routine_class
+from modules.core.actions.workflow import Workflow
 
 
 class EventManager:

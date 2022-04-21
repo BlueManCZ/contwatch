@@ -1,5 +1,5 @@
-from modules.engine.actions.routines.helpers.conversions import replace_variables
-from modules.engine.actions.routines.helpers.evaluation import eval_expr
+from modules.core.actions.routines.helpers.conversions import replace_variables
+from modules.core.actions.routines.helpers.evaluation import eval_expr
 
 
 def parse_condition(condition, payload, manager):

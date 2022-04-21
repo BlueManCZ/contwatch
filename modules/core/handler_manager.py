@@ -1,7 +1,7 @@
-from modules.engine.helpers import EventMessage, create_event
+from modules.core.helpers import EventMessage, create_event
 from modules.handlers import *
 from modules.logging.logger import logger
-from modules.engine import DataManager, EventManager, Workflow, get_routine_class, EventListener
+from modules.core import DataManager, EventManager, Workflow, get_routine_class, EventListener
 
 from threading import Thread
 from time import localtime, sleep, strftime
