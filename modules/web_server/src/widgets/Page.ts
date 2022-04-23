@@ -38,6 +38,7 @@ export class Page {
 
         post(`/${pageName}`, (request) => {
             this.setContent(request.responseText);
+            this.setConfigArgument("action-routine-log", undefined);
             window.history.replaceState(pageName, pageName, `/${pageName}`);
             if (document.getElementById(pageName).onload) {
                 document.getElementById(pageName).onload(undefined);

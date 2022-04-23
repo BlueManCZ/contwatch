@@ -1,4 +1,4 @@
-from .handler_interface import HandlerInterface
+from .abstract_handler import AbstractHandler
 from modules.logging.logger import logger
 
 from json import loads
@@ -10,7 +10,7 @@ from os import path
 import serial
 
 
-class SerialHandler(HandlerInterface):
+class SerialHandler(AbstractHandler):
     """Class for handling devices connected by serial port."""
 
     def _message_watcher(self):

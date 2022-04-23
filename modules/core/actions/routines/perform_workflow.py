@@ -1,7 +1,7 @@
-from modules.core.actions.routines.routine_interface import RoutineInterface
+from modules.core.actions.routines.abstract_routine import AbstractRoutine
 
 
-class PerformWorkflow(RoutineInterface):
+class PerformWorkflow(AbstractRoutine):
     """Routine for performing workflow"""
 
     type = "perform_workflow"

@@ -1,5 +1,5 @@
-class HandlerInterface:
-    """Interface which specifies methods each handler module should implement."""
+class AbstractHandler:
+    """Class which specifies methods each handler module should implement."""
 
     settings = {}  # Dictionary containing handler configuration. It is serialized as a JSON to the database.
 

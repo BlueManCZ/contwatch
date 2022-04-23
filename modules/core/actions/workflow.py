@@ -1,9 +1,10 @@
 class Workflow:
     """Class representing workflow object"""
 
-    def __init__(self):
+    def __init__(self, event_manager):
         self.id = 0
         self.routines = []
+        self.event_manager = event_manager
 
     def get_id(self):
         return self.id
@@ -19,6 +20,8 @@ class Workflow:
             payload = []
 
         for routine in self.routines:
-            if not routine.perform(payload):
+            self.event_manager.routine_log.append([routine.id, payload.copy()])
+            result = routine.perform(payload)
+            if not result:
                 return False
         return True

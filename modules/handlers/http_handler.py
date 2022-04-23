@@ -1,4 +1,4 @@
-from .handler_interface import HandlerInterface
+from .abstract_handler import AbstractHandler
 from modules.logging.logger import logger
 
 from json.decoder import JSONDecodeError
@@ -8,7 +8,7 @@ from threading import Thread
 from time import sleep, time
 
 
-class HttpHandler(HandlerInterface):
+class HttpHandler(AbstractHandler):
     """Class for handling HTTP targets."""
 
     def _fetcher(self):

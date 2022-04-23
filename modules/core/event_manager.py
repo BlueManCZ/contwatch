@@ -10,12 +10,13 @@ class EventManager:
         self.manager = manager
         self.event_listeners = []
         self.workflows = {}
+        self.routine_log = []
 
         db_workflows = database.get_workflows()
         db_listeners = database.get_event_listeners()
 
         for workflow in db_workflows:
-            new_workflow = Workflow()
+            new_workflow = Workflow(self)
             new_workflow.set_id(workflow.id)
             self.workflows[workflow.id] = new_workflow
 
@@ -64,6 +65,7 @@ class EventManager:
             if listener.get_label() == event.get_label() \
                     and listener.get_handler_id() == handler_id \
                     and data_listener == listener.get_data_listener_status():
+                self.routine_log = []
                 listener.trigger(payload)
                 self.manager.data_manager.add_event_unit(event, handler_id)
 

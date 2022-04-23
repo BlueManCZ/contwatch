@@ -1,8 +1,8 @@
 from modules.core.actions.routines.helpers.conditions import check_condition
-from modules.core.actions.routines.routine_interface import RoutineInterface
+from modules.core.actions.routines.abstract_routine import AbstractRoutine
 
 
-class Condition(RoutineInterface):
+class Condition(AbstractRoutine):
     """Routine for testing condition and performing one of two branches"""
 
     type = "condition"

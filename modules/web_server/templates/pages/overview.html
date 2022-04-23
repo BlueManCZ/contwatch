@@ -15,7 +15,7 @@
         {% for message in messages -%}
         <tr>
             <td class="{% if message.5 %}out{% else %}in{% endif %}">{% if message.5 %}Outgoing{% else %}Incoming{% endif %}</td>
-            <td><span class="{{ message.0 }}">{{ message.0 }}</span></td>
+            <td><span class="{{ message.0 }} {% if message.0 == "event" %}clickable{% endif %}" {% if message.0 == "event" %}onclick="window.app.menu.page.setConfigArgument('action-routine-log', {{ message.7 }});window.app.menu.selectPage('actions')"{% endif %}>{{ message.0 }}</span></td>
             <td>{{ message.3 }}</td>
             <td>{{ message.2.get_name() }} <span class="id">(id:{{ message.1 }})</span></td>
             <td>

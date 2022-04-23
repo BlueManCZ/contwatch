@@ -1,8 +1,8 @@
 from modules.core.actions.routines.helpers.conditions import check_condition
-from modules.core.actions.routines.routine_interface import RoutineInterface
+from modules.core.actions.routines.abstract_routine import AbstractRoutine
 
 
-class Barrier(RoutineInterface):
+class Barrier(AbstractRoutine):
     """Routine for stopping workflow on condition"""
 
     type = "barrier"

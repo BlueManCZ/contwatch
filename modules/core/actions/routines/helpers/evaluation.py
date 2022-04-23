@@ -22,4 +22,4 @@ def __eval(node):
 
 
 def eval_expr(expr):
-    return __eval(ast.parse(expr, mode='eval').__getattribute__("body"))
+    return __eval(ast.parse(expr, mode="eval").__getattribute__("body"))

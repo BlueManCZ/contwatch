@@ -39,8 +39,6 @@ class EventListener:
         self.data_listener_status = status
 
     def trigger(self, payload=None):
-        print(f"{self.label} triggered")
-
         if payload is None:
             payload = []
 

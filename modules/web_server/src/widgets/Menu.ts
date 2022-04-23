@@ -29,6 +29,11 @@ export class Menu {
         button.classList.add("active");
     }
 
+    selectPage(name: string): void {
+        const button = document.getElementById(`menu-item-${name}`);
+        this.click(button);
+    }
+
     click(button: HTMLElement): void {
         if (window.innerWidth < 900) {
             (window as any).app.loader.show();

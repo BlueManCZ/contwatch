@@ -1,8 +1,8 @@
-from modules.core.actions.routines.routine_interface import RoutineInterface
+from modules.core.actions.routines.abstract_routine import AbstractRoutine
 from modules.core.helpers import create_event
 
 
-class SendEvent(RoutineInterface):
+class SendEvent(AbstractRoutine):
     """Routine for sending events to handlers"""
 
     type = "send_event"

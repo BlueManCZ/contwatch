@@ -81,7 +81,17 @@ class FlaskWebServer:
 
         @self.app.route("/actions", methods=["POST"])
         def actions():
-            return render_template("pages/actions.html", manager=self.manager)
+            routine_log = []
+            for attribute in request.json:
+                if attribute == "action-routine-log":
+                    for message in self.manager.message_queue:
+                        if message[0] == "event":
+                            log = message[6]
+                            print(log)
+                            if message[7] == int(request.json[attribute]):
+                                routine_log = log
+                                break
+            return render_template("pages/actions.html", manager=self.manager, routine_log=routine_log)
 
         @self.app.route("/handlers", methods=["POST"])
         def handlers():
@@ -525,7 +535,7 @@ class FlaskWebServer:
                 )
 
             db_workflow = self.database.add_workflow()
-            new_workflow = Workflow()
+            new_workflow = Workflow(self.manager.event_manager)
             new_workflow.set_id(db_workflow.id)
 
             self.manager.event_manager.add_workflow(new_workflow)

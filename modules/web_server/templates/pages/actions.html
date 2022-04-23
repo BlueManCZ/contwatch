@@ -29,13 +29,13 @@
             <div class="workflow">
                 <div class="workflow-id">{{ workflow }}</div>
                 {% for routine in manager.event_manager.workflows[workflow].routines %}
-                    <div class="workflow-routine" onclick="window.app.dialog.load('edit_routine', {'workflow_id': '{{ workflow }}', 'routine_id': '{{ routine.id }}'})">
+                    <div class="workflow-routine {% for log in routine_log %}{% if log[0] == routine.id %}active{% endif %}{% endfor %}" {% for log in routine_log %}{% if log[0] == routine.id %}title="{{ log[1] }}" {% endif %}{% endfor %} onclick="window.app.dialog.load('edit_routine', {'workflow_id': '{{ workflow }}', 'routine_id': '{{ routine.id }}'})">
                         {% if loop.index != 1 %}
                         <div class="arrow-left" onclick="window.app.actions.moveRoutine({{ workflow }}, {{ routine.id }}, -1)">
                             <img src="{{ url_for('static', filename='images/icons/arrow.png') }}" alt="Left arrow">
                         </div>
                         {% endif %}
-                        <div class="name">{{ routine.get_name() }}</div>
+                        <div class="name">{% for log in routine_log %}{% if log[0] == routine.id %}<span class="log-index">{{ loop.index }}</span> {% endif %}{% endfor %}{{ routine.get_name() }}</div>
                         <div class="description">{{ routine.get_description() }}</div>
                         {% if loop.index != manager.event_manager.workflows[workflow].routines | length %}
                         <div class="arrow-right" onclick="window.app.actions.moveRoutine({{ workflow }}, {{ routine.id }}, 1)">

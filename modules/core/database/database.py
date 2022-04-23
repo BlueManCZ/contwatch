@@ -1,7 +1,7 @@
 import settings
 from modules import settings
-from modules.core.actions.routines.routine_interface import RoutineInterface
-from modules.handlers.handler_interface import HandlerInterface
+from modules.core.actions.routines.abstract_routine import AbstractRoutine
+from modules.handlers.abstract_handler import AbstractHandler
 from modules.logging.logger import logger
 
 from datetime import datetime
@@ -107,7 +107,7 @@ class Database:
     ###################
 
     @orm.db_session
-    def add_handler(self, handler: HandlerInterface, handler_id=0):
+    def add_handler(self, handler: AbstractHandler, handler_id=0):
         return Handler(
             id=handler_id if handler_id else None,
             type=handler.type,
@@ -274,7 +274,7 @@ class Database:
         workflow.delete()
 
     @orm.db_session
-    def add_routine(self, routine: RoutineInterface, routine_id=0):
+    def add_routine(self, routine: AbstractRoutine, routine_id=0):
         return Routine(
             id=routine_id if routine_id else None,
             type=routine.type,
@@ -284,7 +284,7 @@ class Database:
         )
 
     @orm.db_session
-    def update_routine(self, routine: RoutineInterface):
+    def update_routine(self, routine: AbstractRoutine):
         db_routine = self.get_routine_by_id(routine.id)
         db_routine.type = routine.type
         db_routine.settings = routine.settings

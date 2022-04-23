@@ -27,6 +27,7 @@ class HandlerManager:
         self.registered_handlers = {}
         self.last_messages = {}
         self.message_queue = []
+        self.message_queue_index = 0
         self.active = True
         self.changed = []
 
@@ -135,7 +136,7 @@ class HandlerManager:
             workflow = workflows[workflow_id]
             workflow_id = int(workflow_id)
             db_workflow = self.database.add_workflow(workflow_id)
-            new_workflow = Workflow()
+            new_workflow = Workflow(self.event_manager)
             new_workflow.set_id(db_workflow.id)
             self.event_manager.add_workflow(new_workflow)
 
@@ -233,8 +234,12 @@ class HandlerManager:
             handler,
             strftime("%H:%M:%S", localtime()),
             message.json(),
-            1
+            1,
+            self.event_manager.routine_log.copy(),
+            self.message_queue_index,
         ])
+
+        self.message_queue_index += 1
 
         if message_type == "event":
             self.data_manager.add_event_unit(message, handler_id, False)

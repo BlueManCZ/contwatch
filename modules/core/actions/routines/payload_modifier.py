@@ -1,9 +1,9 @@
 from modules.core.actions.routines.helpers.conversions import replace_variables
 from modules.core.actions.routines.helpers.evaluation import eval_expr
-from modules.core.actions.routines.routine_interface import RoutineInterface
+from modules.core.actions.routines.abstract_routine import AbstractRoutine
 
 
-class PayloadModifier(RoutineInterface):
+class PayloadModifier(AbstractRoutine):
     """Routine for modifying workflow payload"""
 
     type = "payload_modifier"

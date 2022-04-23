@@ -1,5 +1,5 @@
-class RoutineInterface:
-    """Interface which specifies methods each routine module should implement."""
+class AbstractRoutine:
+    """Class which specifies methods each routine module should implement."""
 
     settings = {}  # Dictionary containing handler configuration. It is serialized as a JSON to the database.
     workflow = None  # Workflow parent
