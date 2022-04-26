@@ -118,7 +118,7 @@ export class Inspector {
                         }
                         const dataset = {
                             handler: handler,
-                            event: true,
+                            event: false,
                             label: line,
                             borderColor: this.colors[(this.bigChart.chart.data.datasets.length) % 5],
                             data: datasetData
@@ -236,6 +236,8 @@ export class Inspector {
                         const dataset = {
                             handler: handler,
                             label: line,
+                            event: true,
+                            eventType: type,
                             borderColor: "gold",
                             data: datasetData,
                             yAxisID: "y2",
@@ -283,7 +285,7 @@ export class Inspector {
 
         for (const id in this.bigChart.chart.data.datasets) {
             const dataset = this.bigChart.chart.data.datasets[id];
-            if (dataset.handler === handler && dataset.label === event && !dataset.event) {
+            if (dataset.handler === handler && dataset.label === event && dataset.event && dataset.eventType === type) {
                 this.displayedEventsCount--;
                 if (!this.displayedEventsCount) {
                     delete this.bigChart.chart.options.scales.y2;

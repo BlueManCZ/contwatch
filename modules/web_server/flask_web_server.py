@@ -253,10 +253,8 @@ class FlaskWebServer:
                         if entry["s"] == smartround and entry["f"] == datetime_from:
                             delta = datetime.now() - entry["c"]
                             if settings.CACHING_ASYNC:
-                                print("Returning from async cache")
                                 return entry["r"]
                             if delta.total_seconds() / 60 < settings.CACHING_INTERVAL:
-                                print("Returning from cache")
                                 return entry["r"]
 
             response = build_chart_data(data_map, datetime_from, datetime_to, smartround)
@@ -271,7 +269,6 @@ class FlaskWebServer:
                     "t": datetime_to,
                     "s": smartround
                 })
-                print("Saving to cache")
 
             return response
 
@@ -421,7 +418,7 @@ class FlaskWebServer:
             new_handler.set_label(handler_label)
             database_handler = self.database.add_handler(new_handler)
             self.manager.register_handler(database_handler.id, new_handler)
-            return "ok"
+            return {"status": "ok"}
 
         @self.app.route("/edit_handler/<int:handler_id>", methods=["POST"])
         def edit_handler(handler_id):
@@ -433,7 +430,7 @@ class FlaskWebServer:
             handler.set_label(handler_label)
             self.database.update_handler_settings(handler_id, handler.settings)
             self.manager.add_changed("handlers")
-            return "ok"
+            return {"status": "ok"}
 
         @self.app.route("/delete_handler/<int:handler_id>", methods=["POST"])
         def delete_handler(handler_id):
@@ -441,7 +438,7 @@ class FlaskWebServer:
             handler = self.manager.get_handler(handler_id)
             handler.exit()
             self.manager.delete_handler(handler_id)
-            return "ok"
+            return {"status": "ok"}
 
         @self.app.route("/edit_json_attributes_to_store/<int:handler_id>", methods=["POST"])
         def edit_json_attributes_to_store(handler_id):
@@ -451,7 +448,7 @@ class FlaskWebServer:
                 handler.add_storage_attribute(attribute)
             self.database.update_handler_settings(handler_id, handler.settings)
             self.manager.add_changed("data")
-            return "ok"
+            return {"status": "ok"}
 
         @self.app.route("/save_chart_view", methods=["POST"])
         def save_chart_view():
@@ -681,9 +678,11 @@ class FlaskWebServer:
                 for query in self.cache:
                     for entry in self.cache[query]:
                         if entry["t"].day == now.day and entry["t"].month == now.month and entry["t"].year == now.year:
-                            print("Rebuilding cache")
+                            if settings.WEB_SERVER_DEBUG:
+                                print("Rebuilding cache")
                             entry["r"] = build_chart_data(parse_query(query), entry["f"], now, entry["s"])
-                            print("Rebuilding cache [done]")
+                            if settings.WEB_SERVER_DEBUG:
+                                print("Rebuilding cache [done]")
                         else:
                             self.cache[query].remove(entry)
                 sleep(settings.CACHING_INTERVAL * 60)

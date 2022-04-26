@@ -42,7 +42,6 @@ class PayloadModifier(AbstractRoutine):
                     payload.append(None)
                 payload[index] = value
 
-        print(payload)
         return True
 
     def perform(self, payload):
