@@ -539,8 +539,9 @@ body {
   padding: 4px;
   border: solid 1px silver;
   border-radius: 5px;
-  margin-left: 10px;
-  margin-right: 0;
+  position: absolute;
+  right: 17px;
+  top: 21px;
 }
 #actions #event-listeners .tile .workflow-id {
   background: #cfffc3;
@@ -1006,12 +1007,14 @@ body {
   }
 }
 @media (max-width: 550px) {
-  #handlers.tile-list .tile {
+  .tile-list .tile {
     max-width: unset;
-    width: 100%;
+    width: 100% !important;
+    margin-left: 0 !important;
   }
-  #handlers.tile-list .add {
-    margin: 20px auto;
+  .tile-list .add {
+    margin: 20px auto !important;
+    width: 69px !important;
   }
 }
 

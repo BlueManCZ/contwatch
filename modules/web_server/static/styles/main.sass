@@ -479,8 +479,9 @@ body
         padding: 4px
         border: solid 1px silver
         border-radius: 5px
-        margin-left: 10px
-        margin-right: 0
+        position: absolute
+        right: 17px
+        top: 21px
 
       .workflow-id
         @extend .workflow-icon
@@ -942,9 +943,11 @@ body
           padding-left: 0
 
 @media (max-width: 550px)
-  #handlers.tile-list
+  .tile-list
     .tile
       max-width: unset
-      width: 100%
+      width: 100% !important
+      margin-left: 0 !important
     .add
-      margin: 20px auto
+      margin: 20px auto !important
+      width: 69px !important

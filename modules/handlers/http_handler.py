@@ -141,9 +141,7 @@ class HttpHandler(AbstractHandler):
                 args[f"arg{index}"] = arg
                 index += 1
             target = f"{self.base_url}{'/' if self.base_url[-1] != '/' else ''}{message.get_label()}"
-
             get(target, params=args, timeout=self.timeout)
-            print(target, "SENT")
         except ConnectionError as error:
             print(error)
 
