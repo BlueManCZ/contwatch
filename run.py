@@ -10,7 +10,6 @@ from modules.web_server.flask_web_server import FlaskWebServer
 
 from json import dumps, load
 from optparse import OptionParser
-from os import path, remove
 from signal import signal, SIGINT
 
 registered_modules = []
@@ -39,18 +38,14 @@ if __name__ == "__main__":
     parser = OptionParser()
 
     parser.add_option("-e", "--export-config",
-                      action="store_true", dest="export", default=False,
+                      action="store_true", dest="export_config", default=False,
                       help="export configuration in JSON format")
 
-    parser.add_option("-i", "--import-config", dest="import_file",
-                      help="import configuration saved in JSON_FILE",
+    parser.add_option("-i", "--import-config", dest="import_config",
+                      help="import configuration from JSON_FILE",
                       metavar="JSON_FILE")
 
     (options, args) = parser.parse_args()
-
-    # TODO: For temporary debug clarity only
-    if path.isfile(settings.LOG_FILE):
-        remove(settings.LOG_FILE)
 
     log = logger("Main")
     log.info("Starting application")
@@ -62,12 +57,12 @@ if __name__ == "__main__":
     # Register modules for SIGINT handler
     register_modules(db, manager)
 
-    if options.export:
+    if options.export_config:
         data = manager.export_config()
         print(dumps(data, indent=4, ensure_ascii=False))
         _quit()
 
-    if options.import_file:
+    if options.import_config:
         manager.delete_all()
         database.delete_tables()
         database.create_tables()

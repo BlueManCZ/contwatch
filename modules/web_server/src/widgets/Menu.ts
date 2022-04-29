@@ -29,17 +29,17 @@ export class Menu {
         button.classList.add("active");
     }
 
-    selectPage(name: string): void {
+    selectPage(name: string, callback: () => void = () => { /* */ }): void {
         const button = document.getElementById(`menu-item-${name}`);
-        this.click(button);
+        this.click(button, callback);
     }
 
-    click(button: HTMLElement): void {
+    click(button: HTMLElement, callback: () => void = () => { /* */ }): void {
         if (window.innerWidth < 900) {
             (window as any).app.loader.show();
         }
         const pageName = button.id.split("-")[2];
-        this.page.load(pageName);
+        this.page.load(pageName, callback);
         this.scrollUp();
         this.page.scrollUp();
         this.hide();

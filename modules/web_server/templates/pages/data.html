@@ -14,7 +14,7 @@
             <div class="text-muted mt-1 mb-4">There is nothing to display.</div>
         {% else %}
             {% for attribute in attributes[handler] %}
-                <a href="/graph/{{ handler }}/{{ attribute }}"><button class="attribute">{{ attribute }}</button></a>
+                <button class="attribute" onclick="window.app.menu.selectPage('inspector', () => { window.app.inspector.openEmpty(); window.app.inspector.addChart({{ handler }}, '{{ attribute }}') })">{{ attribute }}</button>
             {% endfor %}
             {% if site_config["ghost_data"] %}
                 {% for attribute in ghost_attributes[handler] %}

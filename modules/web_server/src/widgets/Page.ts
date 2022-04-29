@@ -33,7 +33,7 @@ export class Page {
         this.config[name] = value;
     }
 
-    load(pageName: string): void {
+    load(pageName: string, callback: () => void = () => { /* */ }): void {
         this.currentPage = pageName;
 
         post(`/${pageName}`, (request) => {
@@ -43,6 +43,7 @@ export class Page {
             if (document.getElementById(pageName).onload) {
                 document.getElementById(pageName).onload(undefined);
             }
+            callback();
             (window as any).app.loader.hide();
         }, this.config, "JSON");
     }

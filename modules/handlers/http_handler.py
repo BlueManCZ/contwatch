@@ -106,6 +106,7 @@ class HttpHandler(AbstractHandler):
         self.log = logger(f"Plaintext fetcher {device_config['url']}")
 
         self.url = device_config["url"]
+        self.base_url = self.url.split("?")[0]
         self.interval = device_config["interval"]
         self.timeout = device_config["timeout"]
         self.json = device_config["json"]
@@ -139,7 +140,10 @@ class HttpHandler(AbstractHandler):
             for arg in message.json()["payload"]:
                 args[f"arg{index}"] = arg
                 index += 1
-            get(f"{self.url}/{message.get_label()}", params=args, timeout=self.timeout)
+            target = f"{self.base_url}{'/' if self.base_url[-1] != '/' else ''}{message.get_label()}"
+
+            get(target, params=args, timeout=self.timeout)
+            print(target, "SENT")
         except ConnectionError as error:
             print(error)
 

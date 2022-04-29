@@ -175,7 +175,7 @@ class HandlerManager:
         message_type = "text"
 
         if isinstance(message, dict):
-            if "type" in message and message["type"] == "event":
+            if EventMessage(message).is_valid():
                 message_type = "event"
             else:
                 message_type = "json"
