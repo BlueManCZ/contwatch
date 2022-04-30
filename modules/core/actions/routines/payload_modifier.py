@@ -20,8 +20,9 @@ class PayloadModifier(AbstractRoutine):
         rows = self.get_config()["configuration"].splitlines()
 
         for row in rows:
-            left, right = row.split(" = ")
-            index = int(left)
+            parts = row.split(" = ")
+            right = " = ".join(parts[1:])
+            index = int(parts[0])
 
             right = replace_variables(right, payload, self.manager)
 

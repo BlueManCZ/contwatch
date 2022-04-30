@@ -12,8 +12,8 @@ class Workflow:
     def set_id(self, workflow_id):
         self.id = workflow_id
 
-    def add_routine(self, action):
-        self.routines.append(action)
+    def add_routine(self, routine):
+        self.routines.append(routine)
 
     def perform(self, payload=None):
         if payload is None:

@@ -19,15 +19,15 @@ def is_float(element):
 
 def replace_variables(string, payload, manager):
     result = string
-    search = re.search(r"(\bpayload\.[0-9]*\b)", string)
+    search = re.findall(r"(\bpayload\.[0-9]*\b)", string)
     if search:
-        for group in search.groups():
+        for group in search:
             _, payload_index = group.split(".")
             result = result.replace(group, str(payload[int(payload_index)]))
 
-    search = re.search(r"(\bhandler\..*\.[A-Z,a-z]*\b)", string)
+    search = re.findall(r"(\bhandler\..*\.[A-Z,a-z]*\b)", string)
     if search:
-        for group in search.groups():
+        for group in search:
             _, handler_id, attribute = group.split(".")
             last_message = manager.last_messages[int(handler_id)]
             result = result.replace(group, str(last_message[1][attribute]))
