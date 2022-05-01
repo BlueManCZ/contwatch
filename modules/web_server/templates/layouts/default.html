@@ -21,7 +21,6 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/main.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet">
-    {% block styles %}{% endblock %}
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
@@ -31,22 +30,18 @@
 </head>
 
 <body>
-    {% include "partials/navbar.html" %}
-    {% include "partials/notifications.html" %}
+{% include "partials/navbar.html" %}
+{% include "partials/notifications.html" %}
     <div id="content-container"></div>
     <div id="dialog-container" class="dialog-hidden" onclick="window.app.dialog.hide()"><dialog open></dialog></div>
     <img src="{{ url_for('static', filename='images/icons/menu.png') }}" id="menu-button" alt="Menu icon" onclick="window.app.menu.show()">
 
-    {% block body %}{% endblock %}
-
     <script src="{{ url_for('static', filename='js/bundle.js') }}"></script>
     <script>
-        {% if page %}
-            window.app.menu.page.load("{{ page }}");
-            window.app.menu.buttonFocus(document.getElementById(`menu-item-{{ page }}`));
-        {% endif %}
+        {%- if page -%}
+            window.app.menu.selectPage("{{ page }}");
+        {%- endif -%}
     </script>
 </body>
-
 {% endwith %}
 </html>

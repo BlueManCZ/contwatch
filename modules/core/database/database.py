@@ -145,6 +145,10 @@ class Database:
         return EventUnit(label=event.get_label(), payload=event.get_payload(), handler=handler, incoming=incoming, datetime=datetime.now())
 
     @orm.db_session
+    def get_all_stored_attributes(self, handler_id):
+        return orm.select(d.label for d in DataUnit if d.handler.id == handler_id)[:]
+
+    @orm.db_session
     def get_handler_attribute_data(self, handler_id, attribute, datetime_from: datetime, datetime_to: datetime, *_,
                                    smartround=0):
         result = orm.select(
