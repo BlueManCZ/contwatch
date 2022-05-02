@@ -106,6 +106,8 @@ class HttpHandler(AbstractHandler):
         self.log = logger(f"Plaintext fetcher {device_config['url']}")
 
         self.url = device_config["url"]
+        if "http://" not in self.url and "https://" not in self.url:
+            self.url = "http://" + self.url
         self.base_url = self.url.split("?")[0]
         self.interval = device_config["interval"]
         self.timeout = device_config["timeout"]
@@ -123,6 +125,9 @@ class HttpHandler(AbstractHandler):
         super(HttpHandler, self).update_config(new_config)
 
         self.url = new_config["url"]
+        if "http://" not in self.url and "https://" not in self.url:
+            self.url = "http://" + self.url
+        self.base_url = self.url.split("?")[0]
         self.interval = new_config["interval"]
         self.timeout = new_config["timeout"]
         self.json = new_config["json"]

@@ -90,12 +90,24 @@ export class BigChart {
                 spanGaps: 30000000,
                 responsive: true,
                 maintainAspectRatio: false
-            }
+            },
+            plugins: [{
+                id: "customEventListner",
+                afterEvent: (chart: any, evt: any, opts: any) => {
+                    const { left, right, bottom, top } = chart.chartArea;
+                    const e = evt.event;
+                    const status = e.x >= left && e.x <= right && e.y <= bottom && e.y >= top;
+                    if (status !== chart.options.plugins.tooltip.enabled) {
+                        chart.options.plugins.tooltip.enabled = status;
+                        chart.update();
+                    }
+                }
+            }]
         });
 
         this.element.addEventListener("mouseup", (event) => {
             if (event.button === 1 || event.button === 2) {
-                this.chart.inspectorChart.resetZoom();
+                this.chart.resetZoom();
             }
         });
     }
