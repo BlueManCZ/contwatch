@@ -378,35 +378,66 @@ body
       &:nth-child(2n+3)
         background: #f8f9ff
 
-      td, th
-        padding: 10px 0
+      .status
+        padding-left: 22px
+        width: 140px
+        text-transform: uppercase
+        font-size: 12px
 
-        &:first-child
-          padding-left: 22px
-          min-width: 110px
+        .inspect
+          width: 20px
+          opacity: 0.6
+          margin-bottom: -5px
+          margin-top: -7px
+          margin-left: 6px
+          filter: sepia(100%) saturate(100) hue-rotate(-150deg) brightness(1)
+
+          &:hover
+            opacity: 0.8
+
+      .type
+        width: 80px
+
+        span
+          color: white
+          font-weight: bold
           text-transform: uppercase
           font-size: 12px
+          width: 60px
+          display: inline-block
+          text-align: center
+          border-radius: 3px
+          line-height: 23px
 
-        &:nth-child(2)
-          min-width: 80px
+      .handler
+        font-weight: bold
+        min-width: 250px
 
+        .icon
+          width: 30px
+          margin-bottom: -10px
+          margin-top: -14px
+          opacity: 0.6
+
+      .data
+        max-width: calc(100vw - 950px)
+
+        span
+          font-size: 12px
+          white-space: nowrap
+          font-family: $font2
+          position: relative
+          top: -2px
+
+        &:hover
           span
-            color: white
-            font-weight: bold
-            text-transform: uppercase
-            font-size: 12px
-            width: 60px
-            display: inline-block
-            text-align: center
-            border-radius: 3px
-            line-height: 23px
+            white-space: normal
 
-        &:nth-child(3)
-          min-width: 100px
+      .time
+        width: 90px
 
-        &:nth-child(4)
-          font-weight: bold
-          min-width: 250px
+      td, th
+        padding: 10px 0
 
         .json
           background: #f5a65b
@@ -416,20 +447,6 @@ body
 
         .text
           background: gray
-
-        &:last-child
-          max-width: calc(100vw - 950px)
-
-          span
-            font-size: 12px
-            white-space: nowrap
-            font-family: $font2
-            position: relative
-            top: -2px
-
-          &:hover
-            span
-              white-space: normal
 
       .in
         font-weight: bold
@@ -472,6 +489,12 @@ body
 #actions
   #event-listeners
     .tile
+      padding-right: 55px !important
+
+      &::before
+        @extend .white-edge
+        width: 40px
+
       .workflow-icon
         float: right
         background: #f1f0f6
@@ -533,13 +556,20 @@ body
         text-align: center
         cursor: pointer
         margin: 15px 5px 0
+        max-width: 250px
+        overflow: hidden
+
+        &::before
+          @extend .white-edge
 
         &:hover
           .arrow-left
             display: flex
 
         &.active
-          box-shadow: inset 0 0 0 2px #65c44c
+          border: solid 2px #65c44c
+          padding-bottom: 50px
+
 
         .log-index
           background: #65c44c
@@ -561,6 +591,7 @@ body
         .description
           font-size: 13px
           margin: 1px 7px 0
+          white-space: nowrap
 
         .arrow-left
           display: none
@@ -645,14 +676,7 @@ body
 
 #handlers.tile-list
   .tile::before
-    content: ""
-    width: 0
-    height: 100%
-    position: absolute
-    top: 0
-    right: 0
-    background: white
-    box-shadow: 0 0 15px 20px white
+    @extend .white-edge
 
 #details
   table

@@ -19,21 +19,21 @@ class HttpHandler(AbstractHandler):
         while self.active:
             # TODO: Timing needs improvement
             secs = int(time())
-            if ((secs % self.interval == 0) or not self.success) and secs != last_secs:
+            if ((secs % self.config("interval") == 0) or not self.success) and secs != last_secs:
                 try:
-                    response = get(self.url, params=self.params, timeout=self.timeout)
+                    response = get(self.get_url(), timeout=self.config("timeout"))
                     if response.status_code == 200:
                         message = response.text
-                        if self.json:
+                        if self.config("json"):
                             message = response.json()
-                        self.message_queue.append(message)
+                        self.add_message(message)
                         last_secs = secs
                         if not self.success:
                             self.add_changed("handlers")
                         self.success = True
                     elif response.status_code == 404:
                         message = response.text
-                        if self.json:
+                        if self.config("json"):
                             message = response.json()
                         print(response.url, message)
                         last_secs = secs
@@ -42,35 +42,17 @@ class HttpHandler(AbstractHandler):
                         self.success = False
                         self.add_changed("handlers")
                 except ConnectionError as error:
-                    print(error)
-                    self.log.warning("Failed to establish a connection")
-                    self.log.error(error)
-                    self.success = False
-                    self.add_changed("handlers")
-                    Thread(target=self._reconnect_watcher).start()
+                    self._handle_error(error, "Failed to establish a connection")
                     break
                 except ReadTimeout as error:
-                    print(error)
-                    self.log.warning("Connection timeout")
-                    self.log.error(error)
-                    self.success = False
-                    self.add_changed("handlers")
-                    Thread(target=self._reconnect_watcher).start()
+                    self._handle_error(error, "Connection timeout")
                     break
                 except MissingSchema as error:
-                    print(error)
-                    self.log.warning("Invalid URL address")
-                    self.log.error(error)
-                    self.success = False
-                    self.active = False
-                    self.add_changed("handlers")
+                    self._handle_error(error, "Invalid URL address")
+                    break
                 except JSONDecodeError as error:
-                    print(error)
-                    self.log.warning("Json decode error")
-                    self.log.error(error)
-                    self.success = False
-                    self.active = False
-                    self.add_changed("handlers")
+                    self._handle_error(error, "Json decode error")
+                    break
             sleep(0.1)
         self.log.debug("Stopping fetcher")
 
@@ -78,8 +60,10 @@ class HttpHandler(AbstractHandler):
         self.log.debug("Starting reconnect watcher")
         while self.active:
             try:
-                response = get(self.url, params=self.params, timeout=self.timeout)
+                response = get(self.get_url(), timeout=self.config("timeout"))
                 if response.status_code == 200:
+                    if self.config("json"):
+                        response.json()
                     Thread(target=self._fetcher).start()
                     self.add_changed("handlers")
                     break
@@ -87,10 +71,23 @@ class HttpHandler(AbstractHandler):
                 pass
             except ReadTimeout:
                 pass
+            except MissingSchema:
+                pass
+            except JSONDecodeError:
+                pass
             sleep(1)
         self.log.debug("Stopping reconnect watcher")
 
+    def _handle_error(self, error, message):
+        print(error)
+        self.log.warning(message)
+        self.log.error(error)
+        self.success = False
+        self.add_changed("handlers")
+        Thread(target=self._reconnect_watcher).start()
+
     type = "http"
+    icon = type
     config_fields = {
         "url": ["string", "URL address"],
         "interval": ["int", "Fetching interval in seconds", 10],
@@ -98,45 +95,26 @@ class HttpHandler(AbstractHandler):
         "json": ["bool", "Parse as a JSON", False]
     }
 
-    # def __init__(self, *_, url, params=None, interval=10, timeout=3, json=False):
     def __init__(self, settings):
-        self.settings = settings
-        device_config = self.get_config()
-
-        self.log = logger(f"Plaintext fetcher {device_config['url']}")
-
-        self.url = device_config["url"]
-        if "http://" not in self.url and "https://" not in self.url:
-            self.url = "http://" + self.url
-        self.base_url = self.url.split("?")[0]
-        self.interval = device_config["interval"]
-        self.timeout = device_config["timeout"]
-        self.json = device_config["json"]
-
-        self.params = None
-        self.message_queue = []
+        super().__init__(settings)
+        self.log = logger(f"Plaintext fetcher {self.get_url()}")
         self.success = False
         self.active = True
         self.add_changed("handlers")
-
         Thread(target=self._fetcher).start()
 
-    def update_config(self, new_config):
-        super(HttpHandler, self).update_config(new_config)
+    def get_url(self):
+        url = self.config("url")
+        if "http://" not in url and "https://" not in url:
+            return "http://" + url
+        return url
 
-        self.url = new_config["url"]
-        if "http://" not in self.url and "https://" not in self.url:
-            self.url = "http://" + self.url
-        self.base_url = self.url.split("?")[0]
-        self.interval = new_config["interval"]
-        self.timeout = new_config["timeout"]
-        self.json = new_config["json"]
-        self.add_changed("handlers")
+    def get_base_url(self):
+        url = self.get_url()
+        return url.split("?")[0]
 
-        self.active = False
-        sleep(2)
-        self.active = True
-        Thread(target=self._fetcher).start()
+    def get_description(self):
+        return self.get_base_url()
 
     def send_message(self, message):
         try:
@@ -145,18 +123,18 @@ class HttpHandler(AbstractHandler):
             for arg in message.json()["payload"]:
                 args[f"arg{index}"] = arg
                 index += 1
-            target = f"{self.base_url}{'/' if self.base_url[-1] != '/' else ''}{message.get_label()}"
-            get(target, params=args, timeout=self.timeout)
+            base_url = self.get_base_url()
+            target = f"{base_url}{'/' if base_url[-1] != '/' else ''}{message.get_label()}"
+            response = get(target, params=args, timeout=self.config("timeout"))
+            # TODO: Maybe use response.ok instead?
+            if response.status_code:
+                return True
         except ConnectionError as error:
             print(error)
-
-    def ready_to_read(self):
-        return len(self.message_queue) > 0
-
-    def read_message(self):
-        if len(self.message_queue) > 0:
-            return self.message_queue.pop(0)
-        return None
+        except ReadTimeout as error:
+            print(error)
+        except MissingSchema as error:
+            print(error)
 
     def is_connected(self):
         return self.success

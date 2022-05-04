@@ -92,7 +92,7 @@ export class BigChart {
                 maintainAspectRatio: false
             },
             plugins: [{
-                id: "customEventListner",
+                id: "toolbarHider",
                 afterEvent: (chart: any, evt: any, opts: any) => {
                     const { left, right, bottom, top } = chart.chartArea;
                     const e = evt.event;

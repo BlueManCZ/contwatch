@@ -3,27 +3,58 @@
     <table>
         {% if messages %}
         <tr>
-            <th>Status</th>
-            <th>Type</th>
-            <th>Time</th>
-            <th>Handler</th>
-            <th>Data</th>
+            <th class="status">Status</th>
+            <th class="type">Type</th>
+            <th class="time">Time</th>
+            <th class="handler">Handler</th>
+            <th class="data">Data</th>
         </tr>
         {% else %}
         <p><br>Nothing to display</p>
         {% endif %}
         {% for message in messages -%}
         <tr>
-            <td class="{% if message.5 %}out{% else %}in{% endif %}">{% if message.5 %}Outgoing{% else %}Incoming{% endif %}</td>
-            <td><span class="{{ message.0 }} {% if message.0 == "event" %}clickable{% endif %}" {% if message.0 == "event" %}onclick="window.app.menu.page.setConfigArgument('action-routine-log', {{ message.7 }});window.app.menu.selectPage('actions')"{% endif %}>{{ message.0 }}</span></td>
-            <td>{{ message.3 }}</td>
-            <td>{{ message.2.get_name() }} <span class="id">(id:{{ message.1 }})</span></td>
-            <td>
+            <td class="status {% if message.incoming %}in{% else %}out{% endif %}">
+                {% if message.incoming %}
+                    Incoming
+                {% else %}
+                    Outgoing
+                    {% if message.type == "event" %}
+                        <img class="inspect clickable"
+                             src="{{ url_for('static', filename='images/icons/inspect.png') }}"
+                             alt="Eye icon"
+                             onclick="window.app.menu.page.setConfigArgument('action-routine-log', {{ message.queue_index }});
+                                      window.app.menu.selectPage('actions')"
+                             title="Inspect event in actions">
+                    {% endif %}
+                {% endif %}
+            </td>
+            <td class="type">
+                <span class="{{ message.type }}">{{ message.type }}</span>
+            </td>
+            <td class="time">
+                {{ message.time }}
+            </td>
+            <td class="handler">
+                {% if message.handler %}
+                    <img class="icon" src="{{ url_for('static', filename='images/icons/types/'+message.handler.icon+'.png') }}" alt="handler icon">
+                    {{ message.handler.get_name() }}
+                {% else %}
+                    Deleted handler
+                {% endif %}
+                <span class="id">(id:{{ message.handler_id }})</span>
+            </td>
+            <td class="data">
                 <span>
-                {%- if message.0 == "event" -%}
-                    <span class="event-label">{{ message.4.label }}:</span> {{ message.4.payload }}
+                {%- if message.type == "event" -%}
+                    <span class="event-label">{{ message.data.label }}:</span>
+                    {% if "routine_log" in message %}
+                        {{ message.routine_log[-1][1] }}
+                    {% else %}
+                        {{ message.data.payload }}
+                    {% endif %}
                 {%- else -%}
-                    {{ message.4 }}
+                    {{ message.data }}
                 {%- endif -%}
                 </span>
             </td>

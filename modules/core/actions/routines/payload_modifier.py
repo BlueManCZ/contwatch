@@ -1,6 +1,6 @@
-from modules.core.actions.routines.helpers.conversions import replace_variables
-from modules.core.actions.routines.helpers.evaluation import eval_expr
-from modules.core.actions.routines.abstract_routine import AbstractRoutine
+from .helpers.conversions import replace_variables
+from .helpers.evaluation import eval_expr
+from .abstract_routine import AbstractRoutine
 
 
 class PayloadModifier(AbstractRoutine):
@@ -12,12 +12,8 @@ class PayloadModifier(AbstractRoutine):
         "configuration": ["configuration", "Payload configuration"],
     }
 
-    def __init__(self, settings, manager):
-        self.settings = settings
-        self.manager = manager
-
     def parse_configuration(self, payload):
-        rows = self.get_config()["configuration"].splitlines()
+        rows = self.config("configuration").splitlines()
 
         for row in rows:
             parts = row.split(" = ")
@@ -38,7 +34,7 @@ class PayloadModifier(AbstractRoutine):
                     print(error)
                     return False
 
-            if value:
+            if value is not None:
                 while len(payload) <= index:
                     payload.append(None)
                 payload[index] = value
@@ -49,4 +45,5 @@ class PayloadModifier(AbstractRoutine):
         return self.parse_configuration(payload)
 
     def get_description(self):
-        return "Payload modifier"
+        config = self.config("configuration")
+        return config.splitlines()[0] if config else "Empty"

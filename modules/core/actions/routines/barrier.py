@@ -1,5 +1,5 @@
-from modules.core.actions.routines.helpers.conditions import check_condition
-from modules.core.actions.routines.abstract_routine import AbstractRoutine
+from .helpers.conditions import check_condition
+from .abstract_routine import AbstractRoutine
 
 
 class Barrier(AbstractRoutine):
@@ -11,13 +11,9 @@ class Barrier(AbstractRoutine):
         "condition": ["condition", "Stop workflow if"],
     }
 
-    def __init__(self, settings, manager):
-        self.settings = settings
-        self.manager = manager
-
     def perform(self, payload):
-        condition = self.get_config()["condition"]
+        condition = self.config("condition")
         return not check_condition(condition, payload, self.manager)
 
     def get_description(self):
-        return self.get_config()["condition"]
+        return self.config("condition")

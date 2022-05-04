@@ -6,7 +6,6 @@ from modules.handlers import *
 from datetime import datetime, timedelta
 from flask import Flask, redirect, render_template, request
 from flask_socketio import SocketIO
-from os import path
 from time import sleep
 from threading import Thread
 
@@ -85,10 +84,9 @@ class FlaskWebServer:
             for attribute in request.json:
                 if attribute == "action-routine-log":
                     for message in self.manager.message_queue:
-                        if message[0] == "event":
-                            log = message[6]
-                            print(log)
-                            if message[7] == int(request.json[attribute]):
+                        if message["type"] == "event" and not message["incoming"]:
+                            if message["queue_index"] == int(request.json[attribute]):
+                                log = message["routine_log"]
                                 routine_log = log
                                 break
             return render_template("pages/actions.html", manager=self.manager, routine_log=routine_log)
@@ -121,20 +119,23 @@ class FlaskWebServer:
         @self.app.route("/details", methods=["POST"])
         def details():
             dictionary = {
-                "node": platform.node(),
-                "release": platform.release(),
-                "machine": platform.machine(),
-                "architecture": platform.architecture(),
-                "processor": tools.cpu_model(),
-                "python_version": platform.python_version(),
-                "distribution": tools.distribution(),
-                "uptime": int((datetime.now() - self.start_datetime).total_seconds()),
-                "handlers": len(self.manager.get_handlers()),
-                "connections": self.connections,
-                "version": tools.get_update_datetime(),
-                "database_type": settings.DB_TYPE,
-                "database_size": path.getsize(settings.DB_SQLITE_FILE),
-                "cache_size": tools.get_size(self.cache)
+                "Host device": {
+                    "Name": platform.node(),
+                    "Kernel": platform.release(),
+                    "Architecture": f"{platform.architecture()[0]}{', ' if platform.architecture()[1] else ''}{platform.architecture()[1]}",
+                    "Machine": platform.machine(),
+                    "Processor": tools.cpu_model(),
+                    "Python version": platform.python_version(),
+                    "Distribution": tools.distribution()
+                },
+                "ContWatch instance": {
+                    "Uptime": hr_datetime((datetime.now() - self.start_datetime).total_seconds()),
+                    "Last update": tools.get_update_datetime(),
+                    "Handlers": len(self.manager.get_handlers()),
+                    "Connections": self.connections,
+                    "Database": settings.DB_TYPE,
+                    "Cache size": hr_filesize(tools.get_size(self.cache))
+                }
             }
             return render_template("pages/details.html", data=dictionary)
 
@@ -345,21 +346,8 @@ class FlaskWebServer:
                 else:
                     json = {}
 
-                def linearize_json(input_json, result, current_branch=()):
-                    for attribute in input_json:
-                        if isinstance(input_json[attribute], dict):
-                            new_branch = list(current_branch)
-                            new_branch.append(attribute)
-                            linearize_json(input_json[attribute], result, new_branch)
-                        else:
-                            branch = list(current_branch)
-                            branch.append(attribute)
-                            result.append("/".join(branch))
-
                 attributes = []
-                linearize_json(json, attributes)
-
-                print(attributes)
+                tools.linearize_json(json, attributes)
 
                 return render_template(
                     template_name,
@@ -538,8 +526,8 @@ class FlaskWebServer:
             self.manager.event_manager.add_workflow(new_workflow)
 
             if listener:
-                self.database.update_event_listener(listener)
                 listener.set_workflow(new_workflow)
+                self.database.update_event_listener(listener)
 
             self.manager.add_changed("actions")
             return {"status": "ok"}

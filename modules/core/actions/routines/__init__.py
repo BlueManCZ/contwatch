@@ -1,10 +1,11 @@
-from modules.core.actions.routines.send_event import SendEvent
-from modules.core.actions.routines.perform_workflow import PerformWorkflow
-from modules.core.actions.routines.condition import Condition
-from modules.core.actions.routines.barrier import Barrier
-from modules.core.actions.routines.payload_modifier import PayloadModifier
+from .send_event import SendEvent
+from .perform_workflow import PerformWorkflow
+from .condition import Condition
+from .barrier import Barrier
+from .payload_modifier import PayloadModifier
+from .debug_message import DebugMessage
 
-available_routines = [SendEvent, PerformWorkflow, Condition, Barrier, PayloadModifier]
+available_routines = [SendEvent, PerformWorkflow, Condition, Barrier, PayloadModifier, DebugMessage]
 
 
 def get_routine_class(routine_type):

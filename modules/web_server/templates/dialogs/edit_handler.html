@@ -4,7 +4,7 @@
 
     <div class="form-group mt-3">
         <label for="handler_label">Handler label</label>
-        <input id="handler_label" name="handler_label" class="form-control" value="{{ handler.get_label() }}">
+        <input id="handler_label" name="handler_label" class="form-control" value="{{ handler.settings['label'] }}">
     </div>
 
     {% for field in handler.config_fields %}

@@ -109,3 +109,15 @@ def json_notif(code, status, title, message):
         "message": message
     }
     return response, code
+
+
+def linearize_json(input_json, result, current_branch=()):
+    for attribute in input_json:
+        if isinstance(input_json[attribute], dict):
+            new_branch = list(current_branch)
+            new_branch.append(attribute)
+            linearize_json(input_json[attribute], result, new_branch)
+        else:
+            branch = list(current_branch)
+            branch.append(attribute)
+            result.append("/".join(branch))

@@ -1,4 +1,4 @@
-from modules.core.actions.routines.abstract_routine import AbstractRoutine
+from .abstract_routine import AbstractRoutine
 from modules.core.helpers import create_event
 
 
@@ -10,29 +10,25 @@ class SendEvent(AbstractRoutine):
     config_fields = {
         "handler": ["handlerInstance", "Target handler"],
         "event-label": ["string", "Event label"],
-        "unique-payload": ["bool", "Send only if payload changes", True]
+        "unique-payload": ["bool", "Send only if payload changes", False]
     }
     last_payload = None
 
-    def __init__(self, settings, manager):
-        self.settings = settings
-        self.manager = manager
-
     def perform(self, payload):
-        event = create_event(self.get_event_name(), payload)
-        if not self.get_unique_payload() or self.last_payload != payload:
-            self.last_payload = payload
-            self.manager.send_message(self.get_config()["handler"], event)
+        event = create_event(self.config("event-label"), payload)
+        if not self.config("unique-payload") or self.last_payload != payload:
+            if self.get_handler():
+                self.last_payload = payload
+                self.manager.send_message(self.config("handler"), event)
+            else:
+                return False
         return True
 
     def get_handler(self):
-        return self.manager.get_handler(self.get_config()["handler"])
-
-    def get_event_name(self):
-        return self.get_config()["event-label"]
-
-    def get_unique_payload(self):
-        return self.get_config()["unique-payload"]
+        return self.manager.get_handler(self.config("handler"))
 
     def get_description(self):
-        return f"{self.get_handler().get_name()} - \"{self.get_event_name()}\""
+        if self.get_handler():
+            return f"{self.get_handler().get_name()} - \"{self.config('event-label')}\""
+        else:
+            return "Please update routine configuration"

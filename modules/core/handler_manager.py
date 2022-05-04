@@ -1,3 +1,4 @@
+from modules import tools
 from modules.core.helpers import EventMessage, create_event
 from modules.handlers import *
 from modules.logging.logger import logger
@@ -48,6 +49,8 @@ class HandlerManager:
         self.thread.start()
 
     def delete_all(self):
+        for handler in self.registered_handlers:
+            handler.exit()
         self.registered_handlers = {}
         self.event_manager.event_listeners = []
         self.event_manager.workflows = {}
@@ -60,7 +63,9 @@ class HandlerManager:
             self.add_changed(p)
 
     def get_handler(self, handler_id):
-        return self.registered_handlers[handler_id]
+        if handler_id in self.registered_handlers:
+            return self.registered_handlers[handler_id]
+        return None
 
     def get_handlers(self):
         return self.registered_handlers
@@ -180,8 +185,14 @@ class HandlerManager:
             else:
                 message_type = "json"
 
-        self.message_queue.append(
-            [message_type, handler_id, self.get_handler(handler_id), strftime("%H:%M:%S", localtime()), message, 0])
+        self.message_queue.append({
+            "type": message_type,
+            "handler_id": handler_id,
+            "handler": self.get_handler(handler_id),
+            "time": strftime("%H:%M:%S", localtime()),
+            "data": message,
+            "incoming": True
+        })
 
         self.add_changed("overview")
 
@@ -193,7 +204,9 @@ class HandlerManager:
                 event
             )
         elif message_type == "json":
-            for attribute_row in self.get_handler(handler_id).get_storage_attributes():
+            linearized_attributes = []
+            tools.linearize_json(self.last_messages[handler_id][1], linearized_attributes)
+            for attribute_row in linearized_attributes:
                 attributes = attribute_row.split("/")
                 attributes.reverse()
 
@@ -221,30 +234,33 @@ class HandlerManager:
         while len(self.message_queue) > 50:
             self.message_queue.pop(0)
 
-    def send_message(self, handler_id, message):
-        message_type = "json"
-
-        if isinstance(message, EventMessage):
-            message_type = "event"
-
+    def _send_message_agent(self, handler_id, message):
         handler = self.get_handler(handler_id)
-        self.message_queue.append([
-            message_type,
-            handler_id,
-            handler,
-            strftime("%H:%M:%S", localtime()),
-            message.json(),
-            1,
-            self.event_manager.routine_log.copy(),
-            self.message_queue_index,
-        ])
+        status = handler.send_message(message)
 
-        self.message_queue_index += 1
+        if status:
+            message_type = "event" if isinstance(message, EventMessage) else "json"
 
-        if message_type == "event":
-            self.data_manager.add_event_unit(message, handler_id, False)
+            self.message_queue.append({
+                "type": message_type,
+                "handler_id": handler_id,
+                "handler": handler,
+                "time": strftime("%H:%M:%S", localtime()),
+                "data": message.json(),
+                "incoming": False,
+                "routine_log": self.event_manager.routine_log.copy(),
+                "queue_index": self.message_queue_index,
+            })
+            self.add_changed("overview")
 
-        handler.send_message(message)
+            self.message_queue_index += 1
+
+            if message_type == "event":
+                self.data_manager.add_event_unit(message, handler_id, False)
+
+    def send_message(self, handler_id, message):
+        thread = Thread(target=self._send_message_agent, args=(handler_id, message))
+        thread.start()
 
     def exit(self):
         for handler in self.registered_handlers:

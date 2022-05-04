@@ -1,16 +1,48 @@
 class AbstractHandler:
-    """Class which specifies methods each handler module should implement."""
+    """Abstract class which specifies methods each handler class should implement."""
 
-    settings = {}  # Dictionary containing handler configuration. It is serialized as a JSON to the database.
+    # Each handler class should have the following variables configured:
 
-    # Contains appropriate string if there is a need to refresh GUI.
-    # Use add_changed() to append here.
+    type = ""
+    """Type of the handler"""
+
+    icon = "default"
+    """Iconname of handler displayed in GUI"""
+
+    config_fields = {}
+    """Configuration form definition for initialization from GUI"""
+
+    # Each handler class should implement the following methods:
+
+    def get_description(self):
+        """Returns description of the handler displayed in GUI."""
+        return f"{self.type} handler"
+
+    def send_message(self, message):
+        """Send a message to the target."""
+        pass
+
+    def is_connected(self):
+        """Returns True if the target is connected and can communicate."""
+        return False
+
+    def exit(self):
+        """Signal to disconnect from target and exit all threads."""
+        pass
+
+    # Default attributes and methods of each handler instance:
+
+    settings = {}
+    """Dictionary containing handler configuration.
+    It is serialized as a JSON to the database."""
+
     changed = []
+    """Contains appropriate string if there is a need to refresh GUI.
+    Use add_changed() to append here."""
 
-    # Each handler module should have these variables configured.
-
-    type = ""  # Represents type of the handler.
-    config_fields = {}  # Dictionary of arguments required for initialization from GUI.
+    def __init__(self, settings):
+        self.settings = settings
+        self.message_queue = []
 
     def update_config(self, new_config):
         """Update handler configuration accordingly."""
@@ -18,21 +50,19 @@ class AbstractHandler:
             self.settings["configuration"] = {}
         for attribute in new_config:
             self.settings["configuration"][attribute] = new_config[attribute]
+        self.add_changed("handlers")
 
     def get_config(self):
+        """Returns configuration form values"""
         if "configuration" in self.settings:
             return self.settings["configuration"]
         return {}
 
-    def set_config_attribute(self, attribute, value):
-        if "configuration" not in self.settings:
-            self.settings["configuration"] = {}
-        self.settings["configuration"][attribute] = value
-
-    def get_config_attribute(self, attribute):
-        if "configuration" in self.settings and attribute in self.settings["configuration"]:
-            return self.settings["configuration"][attribute]
-        return ""
+    def config(self, attribute):
+        """Returns single configuration form value"""
+        if "configuration" in self.settings and attribute in self.get_config():
+            return self.get_config()[attribute]
+        return None
 
     def add_changed(self, value):
         """
@@ -59,35 +89,22 @@ class AbstractHandler:
     def set_label(self, label):
         self.settings["label"] = label
 
-    def get_label(self):
-        if "label" in self.settings:
-            return self.settings["label"]
-        return ""
-
     def get_name(self):
-        label = self.get_label()
-        return label if label else f"{self.type} handler"
+        """Returns the standardized name of the handler for GUI."""
+        if "label" in self.settings and self.settings["label"]:
+            return self.settings["label"]
+        return f"{self.type} handler"
 
-    def send_message(self, message):
-        """Send a message to the target."""
-        pass
+    def add_message(self, message):
+        """Appends message to the message queue."""
+        self.message_queue.append(message)
 
     def ready_to_read(self):
         """Returns True if there is a message ready to read."""
-        pass
+        return len(self.message_queue) > 0
 
     def read_message(self):
-        """Read the oldest message from the message queue."""
-        pass
-
-    def is_connected(self):
-        """Returns True if the target is connected and can communicate."""
-        pass
-
-    def reconnect(self):
-        """Try to reconnect to the target."""
-        pass
-
-    def exit(self):
-        """Signal to disconnect from target and exit all threads."""
-        pass
+        """Returns the oldest message from the message queue."""
+        if self.ready_to_read():
+            return self.message_queue.pop(0)
+        return None

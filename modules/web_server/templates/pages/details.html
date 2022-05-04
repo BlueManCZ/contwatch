@@ -1,62 +1,18 @@
 <h2>Advanced information</h2>
 <div id="details">
+    {%- for category in data -%}
     <div class="tile">
-        <h1>Host device</h1>
+        <h1>{{ category }}</h1>
         <div class="cells">
+            {%- for item in data[category] -%}
             <div>
-                <p>Name</p>
-                <p>{{ data.node }}</p>
-            </div><div>
-                <p>Kernel</p>
-                <p>{{ data.release }}</p>
-            </div><div>
-                <p>Architecture</p>
-                <p>{{ data.architecture.0 }}, {{ data.architecture.1 }}</p>
-            </div><div>
-                <p>Machine</p>
-                <p>{{ data.machine }}</p>
-            </div><div>
-                <p>Processor</p>
-                <p>{{ data.processor }}</p>
-            </div><div>
-                <p>Python version</p>
-                <p>{{ data.python_version }}</p>
-            </div><div>
-                <p>Distribution</p>
-                <p>{{ data.distribution }}</p>
+                <p>{{ item }}</p>
+                <p>{{ data[category][item] }}</p>
             </div>
-        </div>
-    </div><div class="tile">
-        <h1>ContWatch instance</h1>
-        <div class="cells">
-            <div>
-                <p>Uptime</p>
-                <p>{{ data.uptime | hr_datetime }}</p>
-            </div><div>
-                <p>Current version</p>
-                <p>{{ data.version }}</p>
-            </div><div>
-                <p>Handlers</p>
-                <p>{{ data.handlers }}</p>
-            </div><div>
-                <p>Connections</p>
-                <p>{{ data.connections }}</p>
-            </div><div>
-                <p>Database</p>
-                <p>{{ data.database_type }}</p>
-            </div>
-            {%- if data.database_type == "sqlite" -%}
-            <div>
-                <p>Database size</p>
-                <p>{{ data.database_size | hr_filesize }}</p>
-            </div>
-            {%- endif -%}
-            <div>
-                <p>Cache size</p>
-                <p>{{ data.cache_size | hr_filesize }}</p>
-            </div>
+            {%- endfor -%}
         </div>
     </div>
+    {%- endfor -%}
 </div>
 <p><br></p>
 <h2>Options</h2>
