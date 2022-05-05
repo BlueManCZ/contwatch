@@ -219,7 +219,8 @@ class HandlerManager:
                     else:
                         return
 
-                self.data_manager.add_data_unit(attribute_row, result, handler_id)
+                if attribute_row in self.get_handler(handler_id).get_storage_attributes():
+                    self.data_manager.add_data_unit(attribute_row, result, handler_id)
 
                 self.event_manager.trigger_event(
                     handler_id,
