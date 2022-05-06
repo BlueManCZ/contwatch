@@ -131,6 +131,7 @@ export class Inspector {
                         this.bigChart.sort();
                         this.bigChart.recolor();
                         this.bigChart.chart.update();
+                        this.bigChart.chart.resetZoom();
                     }
                 }
             }
