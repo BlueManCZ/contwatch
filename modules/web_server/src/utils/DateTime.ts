@@ -1,5 +1,5 @@
 export function dateISO(date: Date): string {
-    return date.toISOString().slice(0, 10);
+    return date.toLocaleString("sv").slice(0, 10);
 }
 
 export function dateISOString(dateString?: string): string {

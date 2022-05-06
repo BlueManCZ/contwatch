@@ -33,6 +33,9 @@ class SerialHandler(AbstractHandler):
                     self.log.warning("Failed to read from device")
                     self._reconnect()
                     sleep(0.1)
+                except UnicodeDecodeError as error:
+                    self.log.warning(error)
+                    sleep(0.1)
             else:
                 self.log.info("Lost connection with device")
                 self.connection.close()

@@ -1,3 +1,14 @@
+/*
+  Serial display
+
+  Uses 1602 LCD Keypad Shield and displays
+  two rows of text received on Serial port.
+
+  Example of serial message:
+
+  {"type": "event", "label": "display", "payload": ["Hello", "world!"]}
+*/
+
 #include <ArduinoJson.h>
 #include <LiquidCrystal.h>
 

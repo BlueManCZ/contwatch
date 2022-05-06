@@ -2,6 +2,7 @@ from modules import settings, tools
 from modules.core import HandlerManager, database
 from modules.core.actions import *
 from modules.handlers import *
+from modules.tools import get_nested_attribute
 
 from datetime import datetime, timedelta
 from flask import Flask, redirect, render_template, request
@@ -348,6 +349,16 @@ class FlaskWebServer:
 
                 attributes = []
                 tools.linearize_json(json, attributes)
+
+                for attributes_row in attributes:
+                    result = get_nested_attribute(json, attributes_row)
+
+                    try:
+                        float(result)
+                    except TypeError:
+                        attributes.remove(attributes_row)
+                    except ValueError:
+                        attributes.remove(attributes_row)
 
                 return render_template(
                     template_name,

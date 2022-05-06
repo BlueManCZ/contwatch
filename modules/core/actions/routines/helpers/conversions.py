@@ -1,3 +1,5 @@
+from modules.tools import get_nested_attribute
+
 import re
 
 
@@ -23,17 +25,21 @@ def replace_variables(string, payload, manager):
     if search:
         for group in search:
             _, payload_index = group.split(".")
-            result = result.replace(group, str(payload[int(payload_index)]))
+            payload_index = int(payload_index)
+            if payload_index < len(payload):
+                result = result.replace(group, str(payload[payload_index]))
+            else:
+                result = result.replace(group, "None")
 
-    search = re.findall(r"(\bhandler\.[0-9]*\.[A-Z,a-z]*\b)", string)
+    search = re.findall(r"(\bhandler\.[0-9]*\.[A-Z,a-z/]*\b)", string)
     if search:
         for group in search:
             try:
                 _, handler_id, attribute = group.split(".")
                 handler_id = int(handler_id)
                 if handler_id in manager.last_messages:
-                    last_message = manager.last_messages[handler_id]
-                    result = result.replace(group, str(last_message[1][attribute]))
+                    json = manager.last_messages[handler_id][1]
+                    result = result.replace(group, str(get_nested_attribute(json, attribute)))
             except Exception as error:
                 print(error)
     return result

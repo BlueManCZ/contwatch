@@ -1,8 +1,9 @@
 from modules import tools
+from modules.core import DataManager, EventManager, Workflow, get_routine_class, EventListener
 from modules.core.helpers import EventMessage, create_event
 from modules.handlers import *
 from modules.logging.logger import logger
-from modules.core import DataManager, EventManager, Workflow, get_routine_class, EventListener
+from modules.tools import get_nested_attribute
 
 from threading import Thread
 from time import localtime, sleep, strftime
@@ -49,7 +50,7 @@ class HandlerManager:
         self.thread.start()
 
     def delete_all(self):
-        for handler in self.registered_handlers:
+        for handler in self.registered_handlers.values():
             handler.exit()
         self.registered_handlers = {}
         self.event_manager.event_listeners = []
@@ -203,28 +204,20 @@ class HandlerManager:
                 handler_id,
                 event
             )
+
         elif message_type == "json":
             linearized_attributes = []
-            tools.linearize_json(self.last_messages[handler_id][1], linearized_attributes)
-            for attribute_row in linearized_attributes:
-                attributes = attribute_row.split("/")
-                attributes.reverse()
+            tools.linearize_json(message, linearized_attributes)
 
-                result = message
+            for attributes_row in linearized_attributes:
+                result = get_nested_attribute(message, attributes_row)
 
-                while attributes:
-                    attribute = attributes.pop()
-                    if attribute in result:
-                        result = result[attribute]
-                    else:
-                        return
-
-                if attribute_row in self.get_handler(handler_id).get_storage_attributes():
-                    self.data_manager.add_data_unit(attribute_row, result, handler_id)
+                if attributes_row in self.get_handler(handler_id).get_storage_attributes():
+                    self.data_manager.add_data_unit(attributes_row, result, handler_id)
 
                 self.event_manager.trigger_event(
                     handler_id,
-                    create_event(attribute_row, [result]),
+                    create_event(attributes_row, []),
                     True
                 )
 

@@ -121,3 +121,16 @@ def linearize_json(input_json, result, current_branch=()):
             branch = list(current_branch)
             branch.append(attribute)
             result.append("/".join(branch))
+
+
+def get_nested_attribute(json, attributes_row):
+    attributes = attributes_row.split("/")
+    attributes.reverse()
+    result = json
+    while attributes:
+        attribute = attributes.pop()
+        if attribute in result:
+            result = result[attribute]
+        else:
+            return
+    return result

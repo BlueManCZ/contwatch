@@ -66,7 +66,7 @@ if __name__ == "__main__":
         manager.delete_all()
         database.delete_tables()
         database.create_tables()
-        file = open(options.import_file, "r")
+        file = open(options.import_config, "r")
         manager.import_config(load(file))
         _quit()
 

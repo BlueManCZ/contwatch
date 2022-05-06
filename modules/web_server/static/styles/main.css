@@ -592,6 +592,7 @@ body {
   position: relative;
   border-bottom: solid 1px #dbdbdb;
   padding-bottom: 15px;
+  padding-right: 40px;
 }
 #actions #workflows .workflow:last-child {
   border-bottom: unset;

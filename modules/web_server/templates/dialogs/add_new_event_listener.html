@@ -10,12 +10,12 @@
     </div>
 
     <div class="form-group mt-3">
-        <label for="listener_label">Listen for event label</label>
+        <label for="listener_label">Listen for event label or attribute name</label>
         <input id="listener_label" name="listener_label" class="form-control">
     </div>
 
     <div class="form-group mt-3">
-        <label for="listener_workflow">Trigger workflow</label>
+        <label for="listener_workflow">Execute workflow</label>
         <select id="listener_workflow" name="listener_workflow" class="form-select">
             <option value="">None</option>
             {% for workflow in workflows %}
@@ -25,7 +25,7 @@
     </div>
 
     <div class="form-group mt-3">
-        <label for="data_listener" class="me-1">Listen for data changes instead of events</label>
+        <label for="data_listener" class="me-1">Listen for JSON attributes instead of events</label>
         <input id="data_listener" name="data_listener" class="form-check-input" type="checkbox">
     </div>
 
