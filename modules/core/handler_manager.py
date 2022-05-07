@@ -176,8 +176,6 @@ class HandlerManager:
             self.changed.append(value)
 
     def process_message(self, handler_id, message):
-        self.last_messages[handler_id] = strftime("%H:%M:%S", localtime()), message
-
         message_type = "text"
 
         if isinstance(message, dict):
@@ -185,6 +183,13 @@ class HandlerManager:
                 message_type = "event"
             else:
                 message_type = "json"
+
+        if isinstance(message, list):
+            if len(message) > 0 and isinstance(message[0], dict):
+                message = message[0]
+                message_type = "json"
+
+        self.last_messages[handler_id] = strftime("%H:%M:%S", localtime()), message
 
         self.message_queue.append({
             "type": message_type,
