@@ -41,6 +41,8 @@ class HttpHandler(AbstractHandler):
                     else:
                         self.success = False
                         self.add_changed("handlers")
+                        Thread(target=self._reconnect_watcher).start()
+                        break
                 except ConnectionError as error:
                     self._handle_error(error, "Failed to establish a connection")
                     break
