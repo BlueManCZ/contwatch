@@ -67,7 +67,7 @@ class AbstractHandler:
     def add_changed(self, value):
         """
         Add appropriate string if there is a need to refresh GUI.
-        ["overview", "inspector", "data", "handlers", "details"]
+        ["overview", "inspector", "actions", "data", "handlers", "details"]
         """
         if value not in self.changed:
             self.changed.append(value)

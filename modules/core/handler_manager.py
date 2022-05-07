@@ -31,7 +31,7 @@ class HandlerManager:
         self.message_queue = []
         self.message_queue_index = 0
         self.active = True
-        self.changed = []
+        self.changed = ["overview", "inspector", "actions", "data", "handlers", "details"]
 
         self.log = logger(f"Handler manager")
 
