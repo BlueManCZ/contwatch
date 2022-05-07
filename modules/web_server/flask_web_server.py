@@ -348,7 +348,8 @@ class FlaskWebServer:
                     json = {}
 
                 attributes = []
-                tools.linearize_json(json, attributes)
+                if isinstance(json, dict):
+                    tools.linearize_json(json, attributes)
 
                 for attributes_row in attributes:
                     result = get_nested_attribute(json, attributes_row)
