@@ -9,7 +9,7 @@ Katedra informatiky <br>
 <sub>květen 2022<sub>
 
 <sub>
-Doporučuji prohlížet tento dokument na webové adrese:<br>
+Teto dokument lze zobrazit na webové adrese:<br>
 https://github.com/BlueManCZ/contwatch/blob/master/docs/README_CZ.md
 </sub>
 
@@ -24,12 +24,13 @@ https://github.com/BlueManCZ/contwatch/blob/master/docs/README_CZ.md
 
 ### Instalace na operačním systému Raspbian
 
-   (viz 6. kapitola diplomové práce)
+<sub>(viz 6. kapitola diplomové práce)</sub>
 
-Berte prosím na vědomí, že postup se může
-na jiných linuxových distribucích lišit.
+Postup se může na ostatních linuxových distribucích lišit.
 
-**Sestavení ze zdrojového kódu:**
+**1. Sestavení projektu:**
+
+(Projekt přiložený k práci na CD a ve vydaných verzích systému je již sestaven, lze přeskočit na další krok)
 
 ```shell
 apt-get update
@@ -39,7 +40,7 @@ npm install
 npm run build
 ```
 
-**Spuštění systému:**
+**2. Spuštění systému:**
 
 Je vyžadován interpret jazyka Python verze minimálně 3.6.
 
@@ -49,7 +50,7 @@ Instalace runtime závislostí pomocí apt:
 xargs -a dependencies.txt apt-get install
 ```
 
-Alternativně lze využít pip3:
+Alternativně lze použít pip3:
 
 ```shell
 pip3 install -r requirements.txt --user
@@ -60,3 +61,5 @@ Spuštění systému:
 ```shell
 python3 run.py
 ```
+
+Ve výchozím nastavení spouští systém webový server na portu 80. K tomu je vyžadováno oprávnění správce. Port lze změnit v konfiguračním souboru [settings.py](https://github.com/BlueManCZ/contwatch/blob/master/settings.py).
