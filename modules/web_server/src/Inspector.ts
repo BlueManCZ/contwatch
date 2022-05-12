@@ -104,7 +104,7 @@ export class Inspector {
                         if (!data[handler][line].timestamps.length) {
                             break;
                         } else {
-                            if (dateISO(new Date(data[handler][line].timestamps.slice(-1) * 1000)) !== this.dateSelector.value) {
+                            if (dateISO(new Date(data[handler][line].timestamps.slice(0, 1) * 1000)) !== this.dateSelector.value) {
                                 break;
                             }
                         }
