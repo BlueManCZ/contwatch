@@ -4,6 +4,7 @@ from modules.logging.logger import logger
 from json.decoder import JSONDecodeError
 from requests import get
 from requests.exceptions import ConnectionError, ReadTimeout, MissingSchema
+from ssl import SSLError
 from threading import Thread
 from time import sleep, time
 
@@ -55,6 +56,9 @@ class HttpHandler(AbstractHandler):
                 except JSONDecodeError as error:
                     self._handle_error(error, "Json decode error")
                     break
+                except SSLError as error:
+                    self._handle_error(error, "SSL error")
+                    break
             sleep(0.1)
         self.log.debug("Stopping fetcher")
 
@@ -77,11 +81,13 @@ class HttpHandler(AbstractHandler):
                 pass
             except JSONDecodeError:
                 pass
+            except SSLError:
+                pass
             sleep(1)
         self.log.debug("Stopping reconnect watcher")
 
     def _handle_error(self, error, message):
-        print(error)
+        # print(error)
         self.log.warning(message)
         self.log.error(error)
         self.success = False
