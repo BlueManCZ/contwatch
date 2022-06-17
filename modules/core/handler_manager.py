@@ -1,12 +1,18 @@
+from threading import Thread
+from time import localtime, sleep, strftime
+
 from modules import tools
-from modules.core import DataManager, EventManager, Workflow, get_routine_class, EventListener
+from modules.core import (
+    DataManager,
+    EventManager,
+    Workflow,
+    get_routine_class,
+    EventListener,
+)
 from modules.core.helpers import EventMessage, create_event
 from modules.handlers import *
 from modules.logging.logger import logger
 from modules.tools import get_nested_attribute
-
-from threading import Thread
-from time import localtime, sleep, strftime
 
 
 class HandlerManager:
@@ -31,7 +37,14 @@ class HandlerManager:
         self.message_queue = []
         self.message_queue_index = 0
         self.active = True
-        self.changed = ["overview", "inspector", "actions", "data", "handlers", "details"]
+        self.changed = [
+            "overview",
+            "inspector",
+            "actions",
+            "data",
+            "handlers",
+            "details",
+        ]
 
         self.log = logger(f"Handler manager")
 
@@ -164,7 +177,11 @@ class HandlerManager:
             if workflow_id:
                 workflow_id = int(workflow_id)
                 listener.set_workflow(self.event_manager.get_workflow(workflow_id))
-            data_listener_status = event_listener["data-listener"] if "data-listener" in event_listener else False
+            data_listener_status = (
+                event_listener["data-listener"]
+                if "data-listener" in event_listener
+                else False
+            )
             listener.set_data_listener_status(data_listener_status)
             db_listener = self.database.add_event_listener(listener)
             listener.set_id(db_listener.id)
@@ -191,24 +208,23 @@ class HandlerManager:
 
         self.last_messages[handler_id] = strftime("%H:%M:%S", localtime()), message
 
-        self.message_queue.append({
-            "type": message_type,
-            "handler_id": handler_id,
-            "handler": self.get_handler(handler_id),
-            "time": strftime("%H:%M:%S", localtime()),
-            "data": message,
-            "incoming": True
-        })
+        self.message_queue.append(
+            {
+                "type": message_type,
+                "handler_id": handler_id,
+                "handler": self.get_handler(handler_id),
+                "time": strftime("%H:%M:%S", localtime()),
+                "data": message,
+                "incoming": True,
+            }
+        )
 
         self.add_changed("overview")
 
         if message_type == "event":
             # Save event to database
             event = EventMessage(message)
-            self.event_manager.trigger_event(
-                handler_id,
-                event
-            )
+            self.event_manager.trigger_event(handler_id, event)
 
         elif message_type == "json":
             linearized_attributes = []
@@ -217,13 +233,14 @@ class HandlerManager:
             for attributes_row in linearized_attributes:
                 result = get_nested_attribute(message, attributes_row)
 
-                if attributes_row in self.get_handler(handler_id).get_storage_attributes():
+                if (
+                    attributes_row
+                    in self.get_handler(handler_id).get_storage_attributes()
+                ):
                     self.data_manager.add_data_unit(attributes_row, result, handler_id)
 
                 self.event_manager.trigger_event(
-                    handler_id,
-                    create_event(attributes_row, []),
-                    True
+                    handler_id, create_event(attributes_row, []), True
                 )
 
         else:
@@ -240,16 +257,18 @@ class HandlerManager:
         if status:
             message_type = "event" if isinstance(message, EventMessage) else "json"
 
-            self.message_queue.append({
-                "type": message_type,
-                "handler_id": handler_id,
-                "handler": handler,
-                "time": strftime("%H:%M:%S", localtime()),
-                "data": message.json(),
-                "incoming": False,
-                "routine_log": self.event_manager.routine_log.copy(),
-                "queue_index": self.message_queue_index,
-            })
+            self.message_queue.append(
+                {
+                    "type": message_type,
+                    "handler_id": handler_id,
+                    "handler": handler,
+                    "time": strftime("%H:%M:%S", localtime()),
+                    "data": message.json(),
+                    "incoming": False,
+                    "routine_log": self.event_manager.routine_log.copy(),
+                    "queue_index": self.message_queue_index,
+                }
+            )
             self.add_changed("overview")
 
             self.message_queue_index += 1

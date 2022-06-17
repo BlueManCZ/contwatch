@@ -20,7 +20,9 @@ class HttpHandler(AbstractHandler):
         while self.active:
             # TODO: Timing needs improvement
             secs = int(time())
-            if ((secs % self.config("interval") == 0) or not self.success) and secs != last_secs:
+            if (
+                (secs % self.config("interval") == 0) or not self.success
+            ) and secs != last_secs:
                 try:
                     response = get(self.get_url(), timeout=self.config("timeout"))
                     if response.status_code == 200:
@@ -100,7 +102,7 @@ class HttpHandler(AbstractHandler):
         "url": ["string", "URL address"],
         "interval": ["int", "Fetching interval in seconds", 10],
         "timeout": ["float", "Timeout in seconds", 3],
-        "json": ["bool", "Parse as a JSON", False]
+        "json": ["bool", "Parse as a JSON", False],
     }
 
     def __init__(self, settings):
@@ -132,7 +134,9 @@ class HttpHandler(AbstractHandler):
                 args[f"arg{index}"] = arg
                 index += 1
             base_url = self.get_base_url()
-            target = f"{base_url}{'/' if base_url[-1] != '/' else ''}{message.get_label()}"
+            target = (
+                f"{base_url}{'/' if base_url[-1] != '/' else ''}{message.get_label()}"
+            )
             response = get(target, params=args, timeout=self.config("timeout"))
             # TODO: Maybe use response.ok instead?
             if response.status_code:

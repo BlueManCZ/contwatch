@@ -5,7 +5,7 @@ def create_event(label, payload):
     message = {
         "type": "event",
         "label": label,
-        "payload": payload
+        "payload": payload,
     }
     return EventMessage(message)
 
@@ -18,8 +18,12 @@ class EventMessage(Message):
 
     def is_valid(self):
         json = self.json()
-        return "type" in json and json["type"] == "event" and \
-               "label" in json and "payload" in json
+        return (
+            "type" in json
+            and json["type"] == "event"
+            and "label" in json
+            and "payload" in json
+        )
 
     def get_label(self):
         return self.json()["label"]

@@ -1,6 +1,6 @@
+from .abstract_routine import AbstractRoutine
 from .helpers.conversions import replace_variables
 from .helpers.evaluation import eval_expr
-from .abstract_routine import AbstractRoutine
 
 
 class PayloadModifier(AbstractRoutine):
@@ -22,7 +22,7 @@ class PayloadModifier(AbstractRoutine):
 
             right = replace_variables(right, payload, self.manager)
 
-            if right[0] == "\"" and right[-1] == "\"":
+            if right[0] == '"' and right[-1] == '"':
                 value = right[1:-1]
             else:
                 try:

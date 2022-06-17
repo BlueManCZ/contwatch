@@ -1,6 +1,6 @@
-from modules.tools import get_nested_attribute
-
 import re
+
+from modules.tools import get_nested_attribute
 
 
 def is_int(element):
@@ -39,7 +39,9 @@ def replace_variables(string, payload, manager):
                 handler_id = int(handler_id)
                 if handler_id in manager.last_messages:
                     json = manager.last_messages[handler_id][1]
-                    result = result.replace(group, str(get_nested_attribute(json, attribute)))
+                    result = result.replace(
+                        group, str(get_nested_attribute(json, attribute))
+                    )
             except Exception as error:
                 print(error)
     return result

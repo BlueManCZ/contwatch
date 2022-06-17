@@ -1,5 +1,5 @@
-from .helpers.conditions import check_condition
 from .abstract_routine import AbstractRoutine
+from .helpers.conditions import check_condition
 
 
 class Barrier(AbstractRoutine):

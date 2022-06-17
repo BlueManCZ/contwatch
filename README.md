@@ -22,3 +22,5 @@ pip3 install -r requirements.txt --user
 npm install
 npm start
 ```
+
+Python codebase is formatted with [black](https://github.com/psf/black#readme) and TypeScript codebase with [typescript-eslint](https://github.com/typescript-eslint/typescript-eslint#readme).

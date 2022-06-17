@@ -1,12 +1,12 @@
 import settings
-from modules import settings
-from modules.core.actions.routines.abstract_routine import AbstractRoutine
-from modules.handlers.abstract_handler import AbstractHandler
-from modules.logging.logger import logger
 
 from datetime import datetime
 from pony import orm
 
+from modules import settings
+from modules.core.actions.routines.abstract_routine import AbstractRoutine
+from modules.handlers.abstract_handler import AbstractHandler
+from modules.logging.logger import logger
 
 db = orm.Database()
 
@@ -90,9 +90,13 @@ class Database:
         if settings.DB_TYPE == "sqlite":
             db.bind("sqlite", filename=settings.DB_SQLITE_FILE, create_db=True)
         elif settings.DB_TYPE == "mysql":
-            db.bind("mysql",
-                    host=settings.DB_HOST, db=settings.DB_DATABASE,
-                    user=settings.DB_USER, passwd=settings.DB_PASSWORD)
+            db.bind(
+                "mysql",
+                host=settings.DB_HOST,
+                db=settings.DB_DATABASE,
+                user=settings.DB_USER,
+                passwd=settings.DB_PASSWORD,
+            )
         else:
             error_text = f"Unsupported database type '{settings.DB_TYPE}' in settings."
             log.error(error_text)
@@ -138,23 +142,41 @@ class Database:
 
     @orm.db_session
     def add_data_unit(self, label, value, handler: Handler):
-        return DataUnit(label=label, value=value, handler=handler, datetime=datetime.now())
+        return DataUnit(
+            label=label, value=value, handler=handler, datetime=datetime.now()
+        )
 
     @orm.db_session
     def add_event_unit(self, event, handler, incoming=True):
-        return EventUnit(label=event.get_label(), payload=event.get_payload(), handler=handler, incoming=incoming, datetime=datetime.now())
+        return EventUnit(
+            label=event.get_label(),
+            payload=event.get_payload(),
+            handler=handler,
+            incoming=incoming,
+            datetime=datetime.now(),
+        )
 
     @orm.db_session
     def get_all_stored_attributes(self, handler_id):
         return orm.select(d.label for d in DataUnit if d.handler.id == handler_id)[:]
 
     @orm.db_session
-    def get_handler_attribute_data(self, handler_id, attribute, datetime_from: datetime, datetime_to: datetime, *_,
-                                   smartround=0):
+    def get_handler_attribute_data(
+        self,
+        handler_id,
+        attribute,
+        datetime_from: datetime,
+        datetime_to: datetime,
+        *_,
+        smartround=0,
+    ):
         result = orm.select(
-            (d.datetime, d.value) for d in DataUnit
-            if d.handler.id == handler_id and d.label == attribute
-            and d.datetime >= datetime_from and d.datetime <= datetime_to
+            (d.datetime, d.value)
+            for d in DataUnit
+            if d.handler.id == handler_id
+            and d.label == attribute
+            and d.datetime >= datetime_from
+            and d.datetime <= datetime_to
         )[:]
 
         if smartround:
@@ -163,7 +185,7 @@ class Database:
             if ratio > 1:
                 rounded_result = []
                 while int(index) < len(result):
-                    sublist = result[int(index):int(index+ratio)]
+                    sublist = result[int(index) : int(index + ratio)]
                     rounded_result.append(_smartround_avg(*sublist))
                     index += ratio
                 result = rounded_result[:smartround]
@@ -172,7 +194,9 @@ class Database:
 
     @orm.db_session
     def get_handler_attribute_dates(self, handler_id, attribute):
-        return DataUnit.select(lambda d: d.handler.id == handler_id and d.label == attribute)
+        return DataUnit.select(
+            lambda d: d.handler.id == handler_id and d.label == attribute
+        )
 
     @orm.db_session
     def get_handler_stored_events(self, handler_id):
@@ -180,18 +204,33 @@ class Database:
 
     @orm.db_session
     def get_handler_stored_events_in_names(self, handler_id):
-        return orm.select(e.label for e in EventUnit if e.handler.id == handler_id and e.incoming)[:]
+        return orm.select(
+            e.label for e in EventUnit if e.handler.id == handler_id and e.incoming
+        )[:]
 
     @orm.db_session
     def get_handler_stored_events_out_names(self, handler_id):
-        return orm.select(e.label for e in EventUnit if e.handler.id == handler_id and not e.incoming)[:]
+        return orm.select(
+            e.label for e in EventUnit if e.handler.id == handler_id and not e.incoming
+        )[:]
 
     @orm.db_session
-    def get_handler_stored_event_data(self, handler_id, event, incoming, datetime_from: datetime, datetime_to: datetime):
+    def get_handler_stored_event_data(
+        self,
+        handler_id,
+        event,
+        incoming,
+        datetime_from: datetime,
+        datetime_to: datetime,
+    ):
         return orm.select(
-            (e.datetime, e.payload) for e in EventUnit
-            if e.handler.id == handler_id and e.label == event and e.incoming == incoming
-            and e.datetime >= datetime_from and e.datetime <= datetime_to
+            (e.datetime, e.payload)
+            for e in EventUnit
+            if e.handler.id == handler_id
+            and e.label == event
+            and e.incoming == incoming
+            and e.datetime >= datetime_from
+            and e.datetime <= datetime_to
         )[:]
 
     ######################
@@ -233,7 +272,9 @@ class Database:
         return EventListener(
             handler_id=event_listener.get_handler_id(),
             label=event_listener.get_label(),
-            workflow_id=event_listener.workflow.get_id() if event_listener.workflow else None,
+            workflow_id=event_listener.workflow.get_id()
+            if event_listener.workflow
+            else None,
             data_listener_status=event_listener.get_data_listener_status(),
         )
 
@@ -242,7 +283,9 @@ class Database:
         listener = self.get_event_listener_by_id(event_listener.get_id())
         listener.handler_id = event_listener.get_handler_id()
         listener.label = event_listener.get_label()
-        listener.workflow_id = event_listener.workflow.get_id() if event_listener.workflow else None
+        listener.workflow_id = (
+            event_listener.workflow.get_id() if event_listener.workflow else None
+        )
         listener.data_listener_status = event_listener.get_data_listener_status()
 
     @orm.db_session

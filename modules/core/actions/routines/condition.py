@@ -1,5 +1,5 @@
-from .helpers.conditions import check_condition
 from .abstract_routine import AbstractRoutine
+from .helpers.conditions import check_condition
 
 
 class Condition(AbstractRoutine):
@@ -11,7 +11,7 @@ class Condition(AbstractRoutine):
         "condition": ["condition", "Condition"],
         "if-workflow": ["workflowInstance", "If true"],
         "else-workflow": ["workflowInstance", "Else"],
-        "once-in-row": ["bool", "Trigger each branch once in a row", False]
+        "once-in-row": ["bool", "Trigger each branch once in a row", False],
     }
     last_state = None
 

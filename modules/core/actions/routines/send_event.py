@@ -1,5 +1,5 @@
-from .abstract_routine import AbstractRoutine
 from modules.core.helpers import create_event
+from .abstract_routine import AbstractRoutine
 
 
 class SendEvent(AbstractRoutine):
@@ -10,7 +10,7 @@ class SendEvent(AbstractRoutine):
     config_fields = {
         "handler": ["handlerInstance", "Target handler"],
         "event-label": ["string", "Event label"],
-        "unique-payload": ["bool", "Send only if payload changes", False]
+        "unique-payload": ["bool", "Send only if payload changes", False],
     }
     last_payload = None
 

@@ -55,23 +55,41 @@ class EventManager:
         return self.event_listeners
 
     def contains_event_listener(self, event_listener: EventListener):
-        return list(filter(lambda e: e.get_label() == event_listener.get_label() and e.get_handler_id() == event_listener.get_handler_id(), self.event_listeners))
+        return list(
+            filter(
+                lambda e: e.get_label() == event_listener.get_label()
+                and e.get_handler_id() == event_listener.get_handler_id(),
+                self.event_listeners,
+            )
+        )
 
     def delete_event_listener(self, event_listener: EventListener):
-        self.event_listeners = list(filter(lambda e: e.get_label() != event_listener.get_label() and e.get_handler_id() == event_listener.get_handler_id(), self.event_listeners))
+        self.event_listeners = list(
+            filter(
+                lambda e: e.get_label() != event_listener.get_label()
+                and e.get_handler_id() == event_listener.get_handler_id(),
+                self.event_listeners,
+            )
+        )
 
     def trigger_event(self, handler_id, event, data_event=False):
         payload = event.get_payload().copy()
         for listener in self.event_listeners:
             if listener.get_handler_id() == handler_id:
                 labels = listener.get_label().split(";")
-                if (labels[0] == event.get_label() and data_event == listener.get_data_listener_status()) \
-                        or (not data_event and event.get_label() in labels):
+                if (
+                    labels[0] == event.get_label()
+                    and data_event == listener.get_data_listener_status()
+                ) or (not data_event and event.get_label() in labels):
                     self.routine_log = []
                     if data_event:
                         all_attributes = listener.get_label().split(";")
                         for attribute in all_attributes:
-                            payload.append(get_nested_attribute(self.manager.last_messages[handler_id][1], attribute))
+                            payload.append(
+                                get_nested_attribute(
+                                    self.manager.last_messages[handler_id][1], attribute
+                                )
+                            )
                     listener.trigger(payload)
                     self.manager.data_manager.add_event_unit(event, handler_id)
 

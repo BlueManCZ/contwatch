@@ -44,12 +44,12 @@ def check_condition(condition, payload, manager):
     operator, left, right = parse_condition(condition, payload, manager)
 
     try:
-        if right and right[0] == "\"" and right[-1] == "\"":
+        if right and right[0] == '"' and right[-1] == '"':
             right = right[1:-1]
         elif right:
             right = right.replace(" ", "")
             right = eval_expr(right)
-        if left[0] == "\"" and left[-1] == "\"":
+        if left[0] == '"' and left[-1] == '"':
             left = left[1:-1]
         else:
             left = left.replace(" ", "")

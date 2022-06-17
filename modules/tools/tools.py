@@ -1,10 +1,10 @@
-from modules import settings
-
 from datetime import datetime
 from os import path
 from platform import processor
 from subprocess import run
 from sys import getsizeof
+
+from modules import settings
 
 
 def cpu_model():
@@ -31,7 +31,7 @@ def distribution():
             if output.stderr:
                 return "Unknown"
             else:
-                return output.stdout.decode().split("\"")[1]
+                return output.stdout.decode().split('"')[1]
     except Exception:
         return "Unknown"
 
@@ -97,7 +97,7 @@ def parse_config(http_form, handler_class):
 def json_error(error, message):
     response = {
         "error": error,
-        "message": message
+        "message": message,
     }
     return response, error
 
@@ -106,7 +106,7 @@ def json_notif(code, status, title, message):
     response = {
         "status": status,
         "title": title,
-        "message": message
+        "message": message,
     }
     return response, code
 

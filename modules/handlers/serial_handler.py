@@ -1,13 +1,12 @@
-from .abstract_handler import AbstractHandler
-from modules.logging.logger import logger
-
 from json import loads
 from json.decoder import JSONDecodeError
+from os import path
+from serial import Serial, SerialException
 from threading import Thread
 from time import sleep
-from os import path
 
-import serial
+from modules.logging.logger import logger
+from .abstract_handler import AbstractHandler
 
 
 class SerialHandler(AbstractHandler):
@@ -29,7 +28,7 @@ class SerialHandler(AbstractHandler):
                             data = bytes.decode(data)
                             data = data.replace("\n", "")
                             self.add_message(data)
-                except serial.SerialException:
+                except SerialException:
                     self.log.warning("Failed to read from device")
                     self._reconnect()
                     sleep(0.1)
@@ -63,11 +62,13 @@ class SerialHandler(AbstractHandler):
             self.log.info("Established connection with device")
             self.add_changed("handlers")
             return True
-        except serial.SerialException:
+        except SerialException:
             if path.exists(self.connection.port):
                 self.log.warning("Failed to establish connection - Permission denied")
             else:
-                self.log.warning("Failed to establish connection - Device does not exist")
+                self.log.warning(
+                    "Failed to establish connection - Device does not exist"
+                )
             self.connection.close()
             return False
 
@@ -76,15 +77,15 @@ class SerialHandler(AbstractHandler):
     config_fields = {
         "port": ["string", "Device port (e.g., /dev/ttyUSB0)"],
         "baudrate": ["int", "Baudrate", 9600],
-        "timeout": ["float", "Timeout in seconds", .1],
-        "auto-reconnect": ["bool", "Auto reconnect", True]
+        "timeout": ["float", "Timeout in seconds", 0.1],
+        "auto-reconnect": ["bool", "Auto reconnect", True],
     }
 
     def __init__(self, settings):
         super().__init__(settings)
         self.log = logger(f"SerialDevice {self.config('port')}")
 
-        self.connection = serial.Serial()
+        self.connection = Serial()
         self.connection.port = self.config("port")
         self.connection.baudrate = self.config("baudrate")
         self.connection.timeout = self.config("timeout")
@@ -119,7 +120,7 @@ class SerialHandler(AbstractHandler):
             try:
                 self.connection.write(bytes(message.text(), "utf-8"))
                 return True
-            except serial.SerialException:
+            except SerialException:
                 pass
 
     def is_connected(self):
