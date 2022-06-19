@@ -30,7 +30,9 @@ class SerialHandler(AbstractHandler):
         while self.active:
             if path.exists(self.connection.port):
                 try:
-                    self.add_message(self._read_message())
+                    message = self._read_message()
+                    if message:
+                        self.add_message(message)
                 except SerialException:
                     self.log.warning("Failed to read from device")
                     self._reconnect()
