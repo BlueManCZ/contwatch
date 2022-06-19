@@ -36,10 +36,10 @@ class BmsSerialHandler(SerialHandler):
             "capacity": _byte(d1, 4) * 10,
             "nominal-capacity": _byte(d1, 6) * 10,
             "cycles": _byte(d1, 8),
-            "percentages": d1[23],
+            "percentages": d1[19],
             "temperatures": {
-                "1": _byte(d1, 27),
-                "2": _byte(d1, 29),
+                "1": _byte(d1, 23),
+                "2": _byte(d1, 25),
             },
             "cell-voltages": {
                 "1": _byte(d2, 0) / 100,
