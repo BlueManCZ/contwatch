@@ -21,6 +21,7 @@ class FlaskWebServer:
         self.manager = _manager
         self.database = _database
         self.start_datetime = datetime.now()
+        self.app.config["JSON_SORT_KEYS"] = False
         self.sio = SocketIO(
             self.app,
             async_mode="eventlet",
