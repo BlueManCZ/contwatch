@@ -10,24 +10,27 @@ from .abstract_handler import AbstractHandler
 
 
 class SerialHandler(AbstractHandler):
-    """Class for handling devices connected by serial port."""
+    """Class for handling devices connected to serial port."""
+
+    def _read_message(self):
+        data = self.connection.readline()
+        if data:
+            try:
+                # Try load as a JSON
+                data_json = loads(data)
+                return data_json
+            except JSONDecodeError:
+                # If this fails, decode as a plain text
+                data = bytes.decode(data)
+                data = data.replace("\n", "")
+                return data
 
     def _message_watcher(self):
         self.log.debug("Starting message watcher")
         while self.active:
             if path.exists(self.connection.port):
                 try:
-                    data = self.connection.readline()
-                    if data:
-                        try:
-                            # Try load as a JSON
-                            data_json = loads(data)
-                            self.add_message(data_json)
-                        except JSONDecodeError:
-                            # If this fails, decode as a plain text
-                            data = bytes.decode(data)
-                            data = data.replace("\n", "")
-                            self.add_message(data)
+                    self.add_message(self._read_message())
                 except SerialException:
                     self.log.warning("Failed to read from device")
                     self._reconnect()
