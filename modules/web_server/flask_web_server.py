@@ -22,6 +22,7 @@ class FlaskWebServer:
         self.database = _database
         self.start_datetime = datetime.now()
         self.app.config["JSON_SORT_KEYS"] = False
+        self.app.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
         self.sio = SocketIO(
             self.app,
             async_mode="eventlet",
