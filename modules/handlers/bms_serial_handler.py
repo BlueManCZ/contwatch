@@ -1,3 +1,4 @@
+from time import sleep
 from .serial_handler import SerialHandler
 
 
@@ -11,6 +12,7 @@ class BmsSerialHandler(SerialHandler):
     type = "bms_serial"
 
     def _read_block(self, query):
+        sleep(10)
         self.connection.write(query)
         data = []
         length = 0
