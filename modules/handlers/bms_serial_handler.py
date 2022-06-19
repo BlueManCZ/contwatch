@@ -24,6 +24,10 @@ class BmsSerialHandler(SerialHandler):
 
         for i in range(0, length):
             data.append(int.from_bytes(self.connection.read(), "big"))
+
+        for i in range(0, 3):
+            self.connection.read()
+
         return data
 
     def _read_message(self):
