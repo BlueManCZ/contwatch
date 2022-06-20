@@ -38,14 +38,16 @@ class BmsSerialHandler(SerialHandler):
 
         json = {
             "voltage": _byte(d1, 0) / 100,
-            "current": _byte(d1, 2),
+            "current": _byte(d1, 2)
+            if _byte(d1, 2) < 2**15
+            else _byte(d1, 2) - 2**15,
             "capacity": _byte(d1, 4) * 10,
             "nominal-capacity": _byte(d1, 6) * 10,
             "cycles": _byte(d1, 8),
             "percentages": d1[19],
             "temperatures": {
-                "1": _byte(d1, 23),
-                "2": _byte(d1, 25),
+                "1": (_byte(d1, 23) - 2731) / 10,
+                "2": (_byte(d1, 25) - 2731) / 10,
             },
             "cell-voltages": {
                 "1": _byte(d2, 0) / 1000,
