@@ -1,4 +1,5 @@
 from time import sleep
+from serial import SerialException
 from .serial_handler import SerialHandler
 
 
@@ -35,6 +36,9 @@ class BmsSerialHandler(SerialHandler):
     def _read_message(self):
         d1 = self._read_block(b"\xDD\xA5\x03\x00\xFF\xFD\x77")
         d2 = self._read_block(b"\xDD\xA5\x04\x00\xFF\xFC\x77")
+
+        if not d1 or not d2:
+            raise SerialException("Missing some block of data")
 
         json = {
             "voltage": _byte(d1, 0) / 100,
