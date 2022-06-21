@@ -66,6 +66,11 @@ class BmsSerialHandler(SerialHandler):
                 "9": _byte(d2, 16) / 1000,
                 "10": _byte(d2, 18) / 1000,
             },
+            "state-bits": {
+                "1": bin(_byte(d1, 12))[2:].zfill(16),
+                "2": bin(_byte(d1, 14))[2:].zfill(16),
+                "3": bin(_byte(d1, 16))[2:].zfill(16),
+            },
         }
 
         return json
