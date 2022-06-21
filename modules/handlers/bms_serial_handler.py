@@ -8,7 +8,7 @@ def _byte(array, index):
 
 
 class BmsSerialHandler(SerialHandler):
-    """Class for handling Battery Management System connected to serial port."""
+    """Class for handling Jiabaida Battery Management System V4 connected to serial port."""
 
     type = "bms_serial"
 
@@ -54,23 +54,17 @@ class BmsSerialHandler(SerialHandler):
                 "1": (_byte(d1, 23) - 2731) / 10,
                 "2": (_byte(d1, 25) - 2731) / 10,
             },
-            "cell-voltages": {
-                "1": _byte(d2, 0) / 1000,
-                "2": _byte(d2, 2) / 1000,
-                "3": _byte(d2, 4) / 1000,
-                "4": _byte(d2, 6) / 1000,
-                "5": _byte(d2, 8) / 1000,
-                "6": _byte(d2, 10) / 1000,
-                "7": _byte(d2, 12) / 1000,
-                "8": _byte(d2, 14) / 1000,
-                "9": _byte(d2, 16) / 1000,
-                "10": _byte(d2, 18) / 1000,
-            },
-            "state-bits": {
-                "1": bin(_byte(d1, 12))[2:].zfill(16),
-                "2": bin(_byte(d1, 14))[2:].zfill(16),
-                "3": bin(_byte(d1, 16))[2:].zfill(16),
-            },
+            "cells": {},
+            "protection-bits": bin(_byte(d1, 16))[2:].zfill(16),
         }
+
+        cell_count = d1[21]
+        balancing = bin(_byte(d1, 14))[2:].zfill(16) + bin(_byte(d1, 12))[2:].zfill(16)
+
+        for i in range(0, cell_count):
+            json["cells"][f"{i+1}"] = {
+                "voltage": _byte(d2, i * 2) / 1000,
+                "balancing": int(balancing[31 - i]),
+            }
 
         return json
