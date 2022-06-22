@@ -134,6 +134,6 @@ class AbstractHandler:
             or self._current_seconds == self._last_seconds
         ):
             self._current_seconds = get_current_seconds()
-            sleep(0.5)
+            sleep(0.1)
 
         self._last_seconds = self._current_seconds
