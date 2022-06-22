@@ -1,3 +1,8 @@
+from time import sleep
+
+from modules.tools import get_current_seconds
+
+
 class AbstractHandler:
     """Abstract class which specifies methods each handler class should implement."""
 
@@ -46,6 +51,9 @@ class AbstractHandler:
     def __init__(self, settings):
         self.settings = settings
         self.message_queue = []
+        self._first_tick = True
+        self._current_seconds = get_current_seconds()
+        self._last_seconds = 0
 
     def update_config(self, new_config):
         """Update handler configuration accordingly."""
@@ -111,3 +119,21 @@ class AbstractHandler:
         if self.ready_to_read():
             return self.message_queue.pop(0)
         return None
+
+    def first_tick(self):
+        """Returns True only when called for the first time."""
+        result = self._first_tick
+        self._first_tick = False
+        return result
+
+    def wait_for_interval(self, interval):
+        """Wait until current seconds % interval equals 0."""
+        self._current_seconds = get_current_seconds()
+        while (
+            self._current_seconds % interval != 0
+            or self._current_seconds == self._last_seconds
+        ):
+            self._current_seconds = get_current_seconds()
+            sleep(0.5)
+
+        self._last_seconds = self._current_seconds

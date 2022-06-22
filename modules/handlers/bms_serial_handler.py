@@ -1,4 +1,3 @@
-from time import sleep
 from serial import SerialException
 from .serial_handler import SerialHandler
 
@@ -15,7 +14,6 @@ class BmsSerialHandler(SerialHandler):
     name = "Jiabaida BMS V4"
 
     def _read_block(self, query):
-        sleep(10)
         self.connection.write(query)
         data = []
         length = 0
@@ -36,17 +34,24 @@ class BmsSerialHandler(SerialHandler):
         return data
 
     def _read_message(self):
+        if not self.first_tick():
+            self.wait_for_interval(self.config("interval"))
+
         d1 = self._read_block(b"\xDD\xA5\x03\x00\xFF\xFD\x77")
         d2 = self._read_block(b"\xDD\xA5\x04\x00\xFF\xFC\x77")
 
         if not d1 or not d2:
             raise SerialException("Missing some block of data")
 
+        current = (
+            _byte(d1, 2) / 100
+            if _byte(d1, 2) < 2**15
+            else (_byte(d1, 2) - 2**16) / 100
+        )
+
         json = {
             "voltage": _byte(d1, 0) / 100,
-            "current": _byte(d1, 2) / 100
-            if _byte(d1, 2) < 2**15
-            else (_byte(d1, 2) - 2**16) / 100,
+            "current": current,
             "capacity": _byte(d1, 4) * 10,
             "nominal-capacity": _byte(d1, 6) * 10,
             "cycles": _byte(d1, 8),

@@ -3,6 +3,7 @@ from os import path
 from platform import processor
 from subprocess import run
 from sys import getsizeof
+from time import time
 
 from modules import settings
 
@@ -134,3 +135,7 @@ def get_nested_attribute(json, attributes_row):
         else:
             return
     return result
+
+
+def get_current_seconds():
+    return int(time())

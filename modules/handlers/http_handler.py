@@ -15,52 +15,46 @@ class HttpHandler(AbstractHandler):
     def _fetcher(self):
         self.log.debug("Starting HTTP data fetcher")
         self.success = False
-        last_secs = int(time())
         self.add_changed("handlers")
         while self.active:
-            # TODO: Timing needs improvement
-            secs = int(time())
-            if (
-                (secs % self.config("interval") == 0) or not self.success
-            ) and secs != last_secs:
-                try:
-                    response = get(self.get_url(), timeout=self.config("timeout"))
-                    if response.status_code == 200:
-                        message = response.text
-                        if self.config("json"):
-                            message = response.json()
-                        self.add_message(message)
-                        last_secs = secs
-                        if not self.success:
-                            self.add_changed("handlers")
-                        self.success = True
-                    elif response.status_code == 404:
-                        message = response.text
-                        if self.config("json"):
-                            message = response.json()
-                        print(response.url, message)
-                        last_secs = secs
-                        self.success = True
-                    else:
-                        self.success = False
+            if self.success:
+                self.wait_for_interval(self.config("interval"))
+            try:
+                response = get(self.get_url(), timeout=self.config("timeout"))
+                if response.status_code == 200:
+                    message = response.text
+                    if self.config("json"):
+                        message = response.json()
+                    self.add_message(message)
+                    if not self.success:
                         self.add_changed("handlers")
-                        Thread(target=self._reconnect_watcher).start()
-                        break
-                except ConnectionError as error:
-                    self._handle_error(error, "Failed to establish a connection")
+                    self.success = True
+                elif response.status_code == 404:
+                    message = response.text
+                    if self.config("json"):
+                        message = response.json()
+                    print(response.url, message)
+                    self.success = True
+                else:
+                    self.success = False
+                    self.add_changed("handlers")
+                    Thread(target=self._reconnect_watcher).start()
                     break
-                except ReadTimeout as error:
-                    self._handle_error(error, "Connection timeout")
-                    break
-                except MissingSchema as error:
-                    self._handle_error(error, "Invalid URL address")
-                    break
-                except JSONDecodeError as error:
-                    self._handle_error(error, "Json decode error")
-                    break
-                except SSLError as error:
-                    self._handle_error(error, "SSL error")
-                    break
+            except ConnectionError as error:
+                self._handle_error(error, "Failed to establish a connection")
+                break
+            except ReadTimeout as error:
+                self._handle_error(error, "Connection timeout")
+                break
+            except MissingSchema as error:
+                self._handle_error(error, "Invalid URL address")
+                break
+            except JSONDecodeError as error:
+                self._handle_error(error, "Json decode error")
+                break
+            except SSLError as error:
+                self._handle_error(error, "SSL error")
+                break
             sleep(0.1)
         self.log.debug("Stopping fetcher")
 
