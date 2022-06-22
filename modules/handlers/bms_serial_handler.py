@@ -12,6 +12,12 @@ class BmsSerialHandler(SerialHandler):
     type = "bms_serial"
     icon = type
     name = "Jiabaida BMS V4"
+    config_fields = {
+        "port": ["string", "Device port (e.g., /dev/ttyUSB0)"],
+        "interval": ["int", "Fetching interval in seconds", 10],
+        "timeout": ["float", "Timeout in seconds", 0.1],
+        "auto-reconnect": ["bool", "Auto reconnect", True],
+    }
 
     def _read_block(self, query):
         self.connection.write(query)

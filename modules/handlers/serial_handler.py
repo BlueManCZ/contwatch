@@ -93,7 +93,7 @@ class SerialHandler(AbstractHandler):
 
         self.connection = Serial()
         self.connection.port = self.config("port")
-        self.connection.baudrate = self.config("baudrate")
+        self.connection.baudrate = self.config("baudrate") or 9600
         self.connection.timeout = self.config("timeout")
 
         self.active = True
@@ -109,7 +109,7 @@ class SerialHandler(AbstractHandler):
 
         self.connection.close()
         self.connection.port = self.config("port")
-        self.connection.baudrate = self.config("baudrate")
+        self.connection.baudrate = self.config("baudrate") or 9600
         self.connection.timeout = self.config("timeout")
         self.connection.close()
 
