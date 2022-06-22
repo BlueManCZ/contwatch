@@ -79,6 +79,7 @@ class SerialHandler(AbstractHandler):
 
     type = "serial"
     icon = type
+    name = "Serial device"
     config_fields = {
         "port": ["string", "Device port (e.g., /dev/ttyUSB0)"],
         "baudrate": ["int", "Baudrate", 9600],

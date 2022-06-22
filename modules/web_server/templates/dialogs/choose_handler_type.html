@@ -3,7 +3,7 @@
     {% for handler in loaded_handlers -%}
         <div class="tile" onclick="window.app.dialog.load('add_new_handler', {'handler_type': '{{ handler.type }}'})">
             <img src="{{ url_for('static', filename='images/icons/types/' + handler.icon + '.png') }}" alt="Handler icon">
-            <h3>{{ handler.type }} handler</h3>
+            <h3>{{ handler.name }}</h3>
         </div>
     {%- endfor %}
 </div>

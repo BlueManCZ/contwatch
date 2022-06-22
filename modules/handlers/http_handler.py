@@ -98,6 +98,7 @@ class HttpHandler(AbstractHandler):
 
     type = "http"
     icon = type
+    name = "HTTP API"
     config_fields = {
         "url": ["string", "URL address"],
         "interval": ["int", "Fetching interval in seconds", 10],

@@ -6,6 +6,9 @@ class AbstractHandler:
     type = ""
     """Type of the handler"""
 
+    name = "Unknown"
+    """Name of the handler"""
+
     icon = "default"
     """Iconname of handler displayed in GUI"""
 
@@ -93,7 +96,7 @@ class AbstractHandler:
         """Returns the standardized name of the handler for GUI."""
         if "label" in self.settings and self.settings["label"]:
             return self.settings["label"]
-        return f"{self.type} handler"
+        return self.name
 
     def add_message(self, message):
         """Appends message to the message queue."""

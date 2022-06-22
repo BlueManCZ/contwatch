@@ -11,6 +11,8 @@ class BmsSerialHandler(SerialHandler):
     """Class for handling Jiabaida Battery Management System V4 connected to serial port."""
 
     type = "bms_serial"
+    icon = type
+    name = "Jiabaida BMS V4"
 
     def _read_block(self, query):
         sleep(10)
