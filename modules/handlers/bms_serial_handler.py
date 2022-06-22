@@ -53,7 +53,7 @@ class BmsSerialHandler(SerialHandler):
             _byte(d1, 2) / 100
             if _byte(d1, 2) < 2**15
             else (_byte(d1, 2) - 2**16) / 100
-        )
+        ) or 0
 
         json = {
             "voltage": _byte(d1, 0) / 100,
