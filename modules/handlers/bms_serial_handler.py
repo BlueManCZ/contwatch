@@ -85,7 +85,7 @@ class BmsSerialHandler(SerialHandler):
     def send_message(self, message):
         if self.is_connected():
             try:
-                self.connection.write(bytes.fromhex(message.label()), "utf-8")
+                self.connection.write(bytes.fromhex(message.get_label()), "utf-8")
                 return True
             except SerialException:
                 pass
