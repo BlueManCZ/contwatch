@@ -40,46 +40,5 @@
   font-weight: 900;
   src: url("../fonts/RobotoMono-Bold.ttf") format("truetype");
 }
-body {
-  background-color: #f1f0f6 !important;
-  position: relative;
-  margin: 0;
-  min-height: 100vh;
-  padding-left: 320px;
-  font-family: Cantarell, Verdana, sans-serif !important;
-  color: #555555 !important;
-  height: 100vh;
-}
 
-a {
-  text-decoration: none !important;
-  outline: none;
-}
-a:hover {
-  text-decoration: underline !important;
-}
-
-label {
-  color: #555555;
-}
-
-.white-edge {
-  content: "";
-  width: 0;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  right: 0;
-  background: white;
-  box-shadow: 0 0 15px 20px white;
-}
-
-img {
-  image-rendering: -webkit-optimize-contrast;
-}
-
-.clickable {
-  cursor: pointer;
-}
-
-/*# sourceMappingURL=defaults.css.map */
+/*# sourceMappingURL=fonts.css.map */

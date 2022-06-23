@@ -1,0 +1,42 @@
+@import '../fonts'
+@import '../variables'
+@import 'navbar_item'
+
+
+.navbar
+  position: fixed
+  top: 0
+  left: 0
+  width: 325px
+  height: 100%
+  padding: 20px
+  background-color: $white
+  font-family: $font1
+  overflow: auto
+  z-index: 100
+  box-sizing: border-box
+
+  &__title
+    margin: 0 0 40px
+    padding-left: 10px
+    color: $grey
+    font-size: 30px
+    font-weight: bold
+
+    &--smaller
+      margin: 0 0 5px
+      padding-left: 10px
+      color: $silver
+      font-size: 14px
+      font-weight: 600
+      letter-spacing: 1px
+      text-transform: uppercase
+
+  &__logo
+    width: 27px
+    margin-bottom: -3px
+    margin-left: 3px
+    opacity: .7
+
+  &__items
+    padding-left: 0

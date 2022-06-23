@@ -1,0 +1,39 @@
+@import '../variables'
+
+.navbar-item
+  display: block
+  height: 70px
+  padding: 10px
+  transition: background-color ease-in-out 200ms
+  border-radius: 10px
+  cursor: pointer
+  box-sizing: border-box
+
+  &:hover
+    box-shadow: 0 0 0 2px inset $light-silver
+
+  &--active
+    background-color: $light-silver
+
+  &__icon
+    width: 50px
+    margin-right: 10px
+    padding: 8px
+    float: left
+    border-radius: 25%
+    box-sizing: border-box
+
+    @each $bind in $bindings
+      &--#{nth($bind, 1)}
+        background-color: #{nth($bind, 2)}
+
+  &__title
+    margin: 4px 0 0
+    color: $grey
+    font-weight: 600
+
+  &__description
+    margin: 3px 0 0
+    color: $grey
+    font-size: 13px
+    font-weight: 500

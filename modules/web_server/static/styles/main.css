@@ -48,6 +48,7 @@ body {
   padding-left: 320px;
   font-family: Cantarell, Verdana, sans-serif !important;
   color: #555555 !important;
+  height: 100vh;
 }
 
 a {
@@ -77,81 +78,8 @@ img {
   image-rendering: -webkit-optimize-contrast;
 }
 
-body {
-  height: 100vh;
-}
-
 .clickable {
   cursor: pointer;
-}
-
-#menu {
-  position: fixed;
-  width: 325px;
-  height: 100%;
-  left: 0;
-  top: 0;
-  padding: 20px;
-  background-color: #f9fafc;
-  font-family: Cantarell, Verdana, sans-serif;
-  overflow: auto;
-  z-index: 100;
-}
-#menu h1 {
-  font-weight: bold;
-  color: #555555;
-  font-size: 30px;
-  padding-left: 10px;
-  margin: 0 0 40px;
-}
-#menu h1 .logo {
-  width: 27px;
-  margin-bottom: 6px;
-  margin-left: 9px;
-  opacity: 0.7;
-}
-#menu h5 {
-  font-size: 14px;
-  color: #9d9d9d;
-  padding-left: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-#menu ul {
-  padding-left: 0;
-}
-#menu ul li {
-  display: block;
-  height: 70px;
-  padding: 10px;
-  cursor: pointer;
-  border-radius: 10px;
-  transition: background-color ease-in-out 200ms;
-}
-#menu ul li:hover {
-  box-shadow: 0 0 0 2px inset #f1f0f6;
-}
-#menu ul li img {
-  width: 50px;
-  padding: 8px;
-  border-radius: 25%;
-  float: left;
-  margin-right: 10px;
-}
-#menu ul li .title {
-  margin: 2px 0 0;
-  color: #555;
-  font-weight: 600;
-}
-#menu ul li .description {
-  font-size: 13px;
-  margin: 0;
-  color: #555;
-  font-weight: 500;
-}
-#menu ul .active {
-  background-color: #f1f0f6;
 }
 
 #notifications-button {
@@ -919,28 +847,22 @@ body {
   body {
     padding-left: 0;
   }
-
   #menu {
     display: none;
     width: 100%;
   }
-
   #menu.visible {
     display: block;
   }
-
   #notifications-button {
     right: 70px;
   }
-
   #menu-button {
     display: block;
   }
-
   #content-container {
     padding: 20px;
   }
-
   #overview {
     position: relative;
     overflow: unset;
@@ -989,7 +911,6 @@ body {
     display: block;
     margin-left: 20px;
   }
-
   #inspector-chart-view {
     border-radius: 0;
     box-shadow: none;
@@ -1023,11 +944,9 @@ body {
     cursor: pointer;
     opacity: 0.6;
   }
-
   #handlers.tile-list .add {
     display: block;
   }
-
   #details .cells div {
     width: 100%;
   }
