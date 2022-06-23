@@ -81,3 +81,11 @@ class BmsSerialHandler(SerialHandler):
             }
 
         return json
+
+    def send_message(self, message):
+        if self.is_connected():
+            try:
+                self.connection.write(bytes.fromhex(message.label()), "utf-8")
+                return True
+            except SerialException:
+                pass
