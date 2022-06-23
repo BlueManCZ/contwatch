@@ -90,7 +90,7 @@ class BmsSerialHandler(SerialHandler):
                 if "mos-state" in label:
                     bits = label.split("-")[2]
                     text = mos_template
-                    text = text.replace("##", bits)
+                    text = text.replace("##", hex(int(bits, 2))[2:].zfill(2))
                     current_bytes = bytes.fromhex(text[6:-9])
                     byte_sum = sum(current_bytes)
                     text = text.replace("?? ??", hex(256 * 256 - byte_sum)[2:])
