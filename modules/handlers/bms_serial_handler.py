@@ -85,7 +85,13 @@ class BmsSerialHandler(SerialHandler):
     def send_message(self, message):
         if self.is_connected():
             try:
-                self.connection.write(bytes.fromhex(message.get_label()))
+                mos_template = "DD 5A E1 02 00 ## FF 1B 77"
+                label = message.get_label()
+                if "mos-state" in label:
+                    bits = label.split("-")[2]
+                    text = mos_template
+                    text.replace("##", bits)
+                    self.connection.write(bytes.fromhex(text))
                 return True
             except SerialException:
                 pass
