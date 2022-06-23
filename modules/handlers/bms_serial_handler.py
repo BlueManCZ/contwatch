@@ -92,6 +92,6 @@ class BmsSerialHandler(SerialHandler):
                     text = mos_template
                     text.replace("##", bits)
                     self.connection.write(bytes.fromhex(text))
-                return True
+                    return True
             except SerialException:
                 pass
