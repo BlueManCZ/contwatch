@@ -1,0 +1,18 @@
+.notifications__button {
+  display: none;
+  position: fixed;
+  top: 24px;
+  right: 26px;
+  width: 34px;
+  height: 34px;
+  border: solid 3px #555;
+  border-radius: 20px;
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 27px;
+  text-align: center;
+  cursor: pointer;
+  z-index: 1;
+}
+
+/*# sourceMappingURL=notifications.css.map */

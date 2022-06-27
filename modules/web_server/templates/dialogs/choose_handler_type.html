@@ -1,9 +1,27 @@
-<h1>Choose handler type</h1>
-<div class="tile-list">
-    {% for handler in loaded_handlers -%}
-        <div class="tile" onclick="window.app.dialog.load('add_new_handler', {'handler_type': '{{ handler.type }}'})">
-            <img src="{{ url_for('static', filename='images/icons/types/' + handler.icon + '.png') }}" alt="Handler icon">
-            <h3>{{ handler.name }}</h3>
-        </div>
-    {%- endfor %}
+{% extends "components/dialog/dialog.html" %}
+
+{% from "components/button/button.html" import button %}
+
+{% block dialog_title %}
+Choose handler type
+{% endblock %}
+
+{% block dialog_form %}
+<div class="form-group">
+    <p class="form-group__title">Available handlers</p>
+    <div class="block-list">
+        {% for handler in loaded_handlers -%}
+            {{ button(
+                handler.name,
+                "window.app.dialog.load('add_new_handler', {'handler_type': '" + handler.type + "'})",
+                "types/" + handler.icon + ".png",
+                ["form"]
+           ) }}
+{#            <div class="tile" onclick="window.app.dialog.load('add_new_handler', {'handler_type': '{{ handler.type }}'})">#}
+{#                <img src="{{ url_for('static', filename='images/icons/types/' + handler.icon + '.png') }}" alt="Handler icon">#}
+{#                <h3>{{ handler.name }}</h3>#}
+{#            </div>#}
+        {%- endfor %}
+    </div>
 </div>
+{% endblock %}

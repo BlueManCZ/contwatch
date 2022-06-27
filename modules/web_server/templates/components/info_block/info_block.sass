@@ -1,0 +1,16 @@
+.info-block
+  @extend %tile
+  width: calc(50% - 20px)
+  margin-top: 20px
+  margin-right: 0
+  padding: 20px 25px
+
+  &:nth-child(2n)
+    margin-left: 40px
+
+  &__title
+    margin-top: 0
+    margin-bottom: 8px
+    font-size: 22px
+
+@import 'info_block_item/info_block_item'

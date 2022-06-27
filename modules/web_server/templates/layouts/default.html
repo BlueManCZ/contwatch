@@ -30,9 +30,9 @@
 
 <body>
 {% include "components/navbar/navbar.html" %}
-{% include "partials/notifications.html" %}
-    <div id="content-container"></div>
-    <div id="dialog-container" class="dialog-hidden" onclick="window.app.dialog.hide()"><dialog open></dialog></div>
+{% include "components/notifications/notifications.html" %}
+    <div id="content-container" class="content-container"></div>
+    {% include "components/dialog/dialog_container.html" %}
     <img src="{{ url_for('static', filename='images/icons/menu.png') }}" id="menu-button" alt="Menu icon" onclick="window.app.menu.show()">
 
     <script src="{{ url_for('static', filename='js/bundle.js') }}"></script>

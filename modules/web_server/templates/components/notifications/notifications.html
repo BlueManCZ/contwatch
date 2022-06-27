@@ -1,0 +1,12 @@
+<div class="notifications">
+    <div id="notifications-button" class="notifications__button" title="Display notification bar" onclick="window.app.notifications.show()"></div>
+    <div id="notifications-wrapper" class="notifications__wrapper">
+        <div id="notifications-items" class="notifications__items"></div>
+    </div>
+    <div class="notifications__resources">
+        <img src="{{ url_for('static', filename='images/icons/info_blue.png') }}" alt="info">
+        <img src="{{ url_for('static', filename='images/icons/ban.png') }}" alt="error">
+        <img src="{{ url_for('static', filename='images/icons/warning.png') }}" alt="error">
+        <img src="{{ url_for('static', filename='images/icons/close.png') }}" alt="error">
+    </div>
+</div>

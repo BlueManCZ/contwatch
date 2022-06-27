@@ -1,0 +1,24 @@
+.info-block-item
+  display: inline-block
+  width: 50%
+  vertical-align: top
+  box-sizing: border-box
+
+  &:nth-child(2n+1)
+    padding-right: 10px
+
+  &:nth-child(2n)
+    padding-left: 10px
+
+  &__title
+    margin-top: 0
+    margin-bottom: 3px
+    padding-top: 15px
+    color: unset
+    font-size: 17px
+    font-weight: bold
+    line-height: 1.2
+
+  &__description
+    margin: 6px 0 0
+    color: $grey-777

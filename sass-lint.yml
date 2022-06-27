@@ -5,4 +5,11 @@ rules:
   class-name-format:
     - 1
     - convention: 'hyphenatedbem'
-  no-important: 0
+  quotes:
+    - 1
+    - style: 'single'
+  placeholder-in-extend:
+    - 0
+  nesting-depth:
+    - 1
+    - max-depth: 3

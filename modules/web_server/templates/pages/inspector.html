@@ -1,6 +1,8 @@
-<h2>Inspector</h2>
+{% from 'components/button/button.html' import button %}
+
+<h2 class="content-container__title">Inspector</h2>
 <div id="inspector" onload="window.app.menu.page.displayCharts(100)">
-    <button onclick="window.app.inspector.openEmpty()"><img src="{{ url_for('static', filename='images/icons/plus_bold.png') }}" alt="Plus icon">New chart</button>
+    {{ button("New chart", "window.app.inspector.openEmpty()", "plus_bold.png") }}
     {% if views %}
     <h3>Saved views</h3>
     {% endif %}

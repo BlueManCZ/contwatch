@@ -1,0 +1,86 @@
+.notification-item
+  position: relative
+  left: 0
+  margin: 15px
+  padding: 0 10px
+  transition: ease-in-out 200ms
+  transition-property: opacity, left
+  border-radius: 7px
+  background: $info-bg
+  color: $info-fg
+  opacity: 1
+
+  $this: &
+
+  &__icon
+    width: 35px
+    height: 35px
+    margin-top: 15px
+    margin-right: 10px
+    margin-left: 5px
+    float: left
+    background-image: url('/static/images/icons/info_blue.png')
+    background-position: center
+    background-size: cover
+    opacity: .5
+
+    &--error
+      background-image: url('/static/images/icons/ban.png')
+
+    &--warning
+      background-image: url('/static/images/icons/warning.png')
+
+    &--success
+      background-image: url('/static/images/icons/success.png')
+
+  &--error
+    background: $error-bg
+    color: $error-fg
+
+  &--warning
+    background: $warning-bg
+    color: $warning-fg
+
+  &--success
+    background: $success-bg
+    color: $success-fg
+
+  &__title
+    display: block
+    margin-bottom: 3px
+    padding-top: 10px
+    font-size: 16px
+    font-weight: bold
+
+  &__description
+    margin-top: 0
+    padding-bottom: 11px
+    padding-left: 50px
+    font-size: 14px
+    line-height: 20px
+
+  &__close-button
+    position: absolute
+    top: 15px
+    right: 15px
+    width: 11px
+    height: 11px
+    transition: opacity 200ms ease-in-out
+    background-image: url('/static/images/icons/close.png')
+    background-position: center
+    background-size: cover
+    cursor: pointer
+    opacity: .1
+
+    &:hover
+      transform: scale(1.1)
+
+  &:hover
+    #{$this}__close-button
+      opacity: .6
+
+  &--active
+    left: -325px
+
+  &--removed
+    opacity: 0

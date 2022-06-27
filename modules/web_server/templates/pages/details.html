@@ -1,21 +1,14 @@
-<h2>Advanced information</h2>
+{% from 'components/info_block/info_block.html' import info_block %}
+{% from 'components/button/button.html' import button %}
+
+<h2 class="content-container__title">Advanced information</h2>
 <div id="details">
     {%- for category in data -%}
-    <div class="tile">
-        <h1>{{ category }}</h1>
-        <div class="cells">
-            {%- for item in data[category] -%}
-            <div>
-                <p>{{ item }}</p>
-                <p>{{ data[category][item] }}</p>
-            </div>
-            {%- endfor -%}
-        </div>
-    </div>
+        {{ info_block(category, data[category]) }}
     {%- endfor -%}
 </div>
 <p><br></p>
-<h2>Options</h2>
+<h2 class="content-container__title">Options</h2>
 <div class="tile-list">
-    <button class="tile-button warning" onclick="window.app.deleteAllTables()">Clear all database tables</button>
+    {{ button("Clear all database tables", "window.app.deleteAllTables()", "trash.png") }}
 </div>

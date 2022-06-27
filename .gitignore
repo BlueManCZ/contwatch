@@ -22,3 +22,6 @@ modules/web_server/static/js
 
 # Nohup
 nohup.out
+
+# Static symlink
+/static

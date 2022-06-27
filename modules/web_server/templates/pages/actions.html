@@ -1,32 +1,32 @@
-<h2>Create custom workflows</h2>
+{% from 'components/block_list/block_list_item/block_list_item.html' import block_list_item %}
+{% from 'components/button/button.html' import button %}
+
+<h2 class="content-container__title">Create custom workflows</h2>
 <div id="actions" class="tile-list" onload="window.app.actions.stopPropagation('arrow-left'); window.app.actions.stopPropagation('arrow-right'); window.app.actions.stopPropagation('workflow-icon')">
-    <button onclick="window.app.dialog.load('add_new_event_listener')"><img src="{{ url_for('static', filename='images/icons/plus_bold.png') }}" alt="Plus icon">New event listener</button>
-    <button onclick="window.app.actions.createNewWorkflow(0)"><img src="{{ url_for('static', filename='images/icons/plus_bold.png') }}" alt="Plus icon">New workflow</button>
+    {{ button("New workflow", "window.app.actions.createNewWorkflow(0)", "plus_bold.png") }}
 
     {% if manager.event_manager.event_listeners %}
     <div id="event-listeners">
-        <h3>Event listeners</h3>
-        {% for listener in manager.event_manager.event_listeners %}
-            <div class="tile" onclick="window.app.dialog.load('edit_event_listener', {'listener_id': '{{ listener.id }}'})">
-                <img src="{{ url_for('static', filename='images/icons/types/'+manager.get_handler(listener.get_handler_id()).icon+'.png') }}" alt="handler icon">
-                <div class="title">{{ manager.get_handler(listener.get_handler_id()).get_name() }} (id: {{ listener.get_handler_id() }})</div>
-                <p class="description small">{{ listener.label }}</p>
-                {% if listener.workflow %}
-                <span class="workflow-id">{{ listener.workflow.id }}</span>
-                {% else %}
-                <img class="workflow-icon"
-                     src="{{ url_for('static', filename='images/icons/workflow.png') }}"
-                     onclick="window.app.actions.createNewWorkflow({{ listener.id }})"
-                     title="Add workflow"
-                     alt="Workflow icon">
-                {% endif %}
-            </div>
-        {% endfor %}
+        <h3 class="content-container__smaller-title">Event listeners</h3>
+        <div class="block-list">
+        {%- for listener in manager.event_manager.event_listeners -%}
+            {{ block_list_item(
+                manager.get_handler(listener.get_handler_id()).get_name(),
+                listener.label,
+                "types/" + manager.get_handler(listener.get_handler_id()).icon + ".png",
+                listener.get_handler_id(),
+                '',
+                "window.app.dialog.load('edit_event_listener', {'listener_id': '" + listener.id|string + "'})",
+                listener.workflow.id
+           ) }}
+        {%- endfor -%}
+        <div class="block-list__add-button" title="New event listener" onclick="window.app.dialog.load('add_new_event_listener')"></div>
+        </div>
     </div>
     {% endif %}
     {% if manager.event_manager.workflows %}
     <div id="workflows">
-        <h3>Workflows</h3>
+        <h3 class="content-container__smaller-title">Workflows</h3>
         {% for workflow in manager.event_manager.workflows %}
             <div class="workflow">
                 <div class="workflow-id">{{ workflow }}</div>

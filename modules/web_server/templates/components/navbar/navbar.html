@@ -1,4 +1,4 @@
-{% from 'components/navbar/navbar_item.html' import navbar_item %}
+{% from 'components/navbar/navbar_item/navbar_item.html' import navbar_item %}
 
 <nav class="navbar" id="menu">
     <h1 class="navbar__title">ContWatch
@@ -7,38 +7,13 @@
     <div>
         <h5 class="navbar__title navbar__title--smaller">Navigation</h5>
         <ul class="navbar__items">
+            <!-- TODO: Rewrite as macro with loop -->
             {{ navbar_item("Overview", "Watch real-time data flow", "overview") }}
             {{ navbar_item("Inspector", "Visualize data from the database", "inspector") }}
-{#            <li class="nav-item" id="menu-item-overview">#}
-{#                <img src="{{ url_for('static', filename='images/icons/overview.png') }}" style="background-color:#7233ff;" alt="List icon">#}
-{#                <p class="title">Overview</p>#}
-{#                <p class="description">Watch real-time data flow</p>#}
-{#            </li>#}
-{#            <li class="nav-item" id="menu-item-inspector">#}
-{#                <img src="{{ url_for('static', filename='images/icons/inspector.png') }}" style="background-color:#299bec;" alt="Graph icon">#}
-{#                <p class="title">Inspector</p>#}
-{#                <p class="description">Visualize data from the database</p>#}
-{#            </li>#}
-{#            <li class="nav-item" id="menu-item-actions">#}
-{#                <img src="{{ url_for('static', filename='images/icons/actions.png') }}" style="background-color:#65c44c;" alt="Actions icon">#}
-{#                <p class="title">Actions</p>#}
-{#                <p class="description">Setup custom rules and actions</p>#}
-{#            </li>#}
-{#            <li class="nav-item" id="menu-item-data">#}
-{#                <img src="{{ url_for('static', filename='images/icons/data.png') }}" style="background-color:#F5A65B;" alt="Data icon">#}
-{#                <p class="title">Database manager</p>#}
-{#                <p class="description">Select data to store</p>#}
-{#            </li>#}
-{#            <li class="nav-item" id="menu-item-handlers">#}
-{#                <img src="{{ url_for('static', filename='images/icons/cpu.png') }}" style="background-color:#fd8f64;" alt="Cpu icon">#}
-{#                <p class="title">Handler manager</p>#}
-{#                <p class="description">Manage configured handlers</p>#}
-{#            </li>#}
-{#            <li class="nav-item" id="menu-item-details">#}
-{#                <img src="{{ url_for('static', filename='images/icons/info.png') }}" style="background-color:#ffcd41;" alt="Info icon">#}
-{#                <p class="title">Details</p>#}
-{#                <p class="description">Display advanced information</p>#}
-{#            </li>#}
+            {{ navbar_item("Actions", "Setup custom rules and actions", "actions") }}
+            {{ navbar_item("Database manager", "Select data to store", "data") }}
+            {{ navbar_item("Handler manager", "Manage configured handlers", "handlers") }}
+            {{ navbar_item("Details", "Display advanced information", "details") }}
         </ul>
     </div>
 </nav>

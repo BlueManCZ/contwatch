@@ -412,7 +412,7 @@ class FlaskWebServer:
                     if handler.type == handler_type:
                         fields = handler.config_fields
                         return render_template(
-                            template_name, fields=fields, handler_type=handler_type
+                            template_name, fields=fields, handler=handler
                         )
 
             if "edit_handler" == dialog_name:
@@ -437,22 +437,28 @@ class FlaskWebServer:
                 else:
                     json = {}
 
-                attributes = []
+                attrs = []
                 if isinstance(json, dict):
-                    tools.linearize_json(json, attributes)
+                    tools.linearize_json(json, attrs)
 
-                for attributes_row in attributes:
+                attributes = {}
+
+                for attributes_row in attrs:
                     result = get_nested_attribute(json, attributes_row)
 
                     try:
                         float(result)
+                        attributes[attributes_row] = result
                     except TypeError:
-                        attributes.remove(attributes_row)
+                        pass
                     except ValueError:
-                        attributes.remove(attributes_row)
+                        pass
 
                 return render_template(
-                    template_name, id=handler_id, handler=handler, attributes=attributes
+                    template_name,
+                    id=handler_id,
+                    handler=handler,
+                    attributes=attributes,
                 )
 
             if "add_new_routine" == dialog_name:
