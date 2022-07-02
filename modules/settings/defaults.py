@@ -12,6 +12,7 @@ DB_HOST = ""
 DB_USER = ""
 DB_PASSWORD = ""
 DB_DATABASE = "contwatch"
+DB_DATA_READONLY = False
 
 WEB_SERVER = True
 WEB_SERVER_ADDRESS = "0.0.0.0"
