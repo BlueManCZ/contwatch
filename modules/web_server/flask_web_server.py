@@ -606,6 +606,13 @@ class FlaskWebServer:
         def edit_event_listener(listener_id):
             listener = self.manager.event_manager.get_event_listener(listener_id)
             listener_label = request.form["listener_label"]
+            if not listener_label:
+                return tools.json_notif(
+                    400,
+                    "error",
+                    "Saving failed",
+                    f"Event label or attribute name cannot be empty.",
+                )
             listener.set_label(listener_label)
             handler_id = int(request.form["listener_handler"])
             listener.set_handler_id(handler_id)

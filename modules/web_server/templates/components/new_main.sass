@@ -11,10 +11,12 @@
 @import 'form/form'
 @import 'input-text/input-text'
 
+
 .content-container
   height: 100%
   padding: 20px 35px
   overflow: auto
+  box-sizing: border-box
 
   &__title
     margin: 7px 0
@@ -23,3 +25,6 @@
   &__smaller-title
     margin-bottom: 0
     font-size: 17px
+
+  @media (max-width: 900px)
+    padding: 20px

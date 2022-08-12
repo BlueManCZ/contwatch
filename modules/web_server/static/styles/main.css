@@ -1,9 +1,10 @@
-/* Error: Undefined variable.
+/* Error: The target selector was not found.
+ * Use "@extend .white-edge !optional" to avoid this error.
  *     ,
- * 752 |       font-family: $font2
- *     |                    ^^^^^^
+ * 488 |         @extend .white-edge
+ *     |         ^^^^^^^^^^^^^^^^^^^
  *     '
- *   main.sass 752:20  root stylesheet */
+ *   main.sass 488:9  root stylesheet */
 
 body::before {
   font-family: "Source Code Pro", "SF Mono", Monaco, Inconsolata, "Fira Mono",
@@ -13,5 +14,5 @@ body::before {
   padding: 1em;
   margin-bottom: 1em;
   border-bottom: 2px solid black;
-  content: "Error: Undefined variable.\a     \2577 \a 752 \2502        font-family: $font2\a     \2502                     ^^^^^^\a     \2575 \a   main.sass 752:20  root stylesheet";
+  content: 'Error: The target selector was not found.\aUse "@extend .white-edge !optional" to avoid this error.\a     \2577 \a 488 \2502          @extend .white-edge\a     \2502          ^^^^^^^^^^^^^^^^^^^\a     \2575 \a   main.sass 488:9  root stylesheet';
 }

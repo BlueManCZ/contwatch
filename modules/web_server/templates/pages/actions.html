@@ -5,7 +5,6 @@
 <div id="actions" class="tile-list" onload="window.app.actions.stopPropagation('arrow-left'); window.app.actions.stopPropagation('arrow-right'); window.app.actions.stopPropagation('workflow-icon')">
     {{ button("New workflow", "window.app.actions.createNewWorkflow(0)", "plus_bold.png") }}
 
-    {% if manager.event_manager.event_listeners %}
     <div id="event-listeners">
         <h3 class="content-container__smaller-title">Event listeners</h3>
         <div class="block-list">
@@ -20,10 +19,9 @@
                 listener.workflow.id
            ) }}
         {%- endfor -%}
-        <div class="block-list__add-button" title="New event listener" onclick="window.app.dialog.load('add_new_event_listener')"></div>
+        <div class="block-list-item block-list__add-button" title="New event listener" onclick="window.app.dialog.load('add_new_event_listener')"></div>
         </div>
     </div>
-    {% endif %}
     {% if manager.event_manager.workflows %}
     <div id="workflows">
         <h3 class="content-container__smaller-title">Workflows</h3>

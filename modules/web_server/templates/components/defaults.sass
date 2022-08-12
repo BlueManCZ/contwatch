@@ -1,6 +1,7 @@
 @import 'fonts'
 @import 'variables'
 
+
 body
   position: relative
   height: 100vh
@@ -11,6 +12,9 @@ body
   color: $grey-555
   font-family: $font1
 
+  @media (max-width: 900px)
+    padding-left: 0
+
 %tile
   display: inline-block
   transition: transform ease-in-out 50ms
@@ -20,6 +24,7 @@ body
   vertical-align: top
   box-sizing: border-box
 
+%white-edge
   &::before
     position: absolute
     top: 0

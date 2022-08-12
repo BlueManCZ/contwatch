@@ -1,5 +1,7 @@
 {% from 'components/navbar/navbar_item/navbar_item.html' import navbar_item %}
 
+<img class="navbar-button" src="{{ url_for('static', filename='images/icons/menu.png') }}" alt="Menu icon" onclick="window.app.menu.show()">
+
 <nav class="navbar" id="menu">
     <h1 class="navbar__title">ContWatch
         <img class="navbar__logo" src="{{ url_for('static', filename='images/favicon.png') }}" alt="Logo">

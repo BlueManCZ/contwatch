@@ -1,5 +1,5 @@
 {%- macro block_list_item(title, description="", icon="", index="", modifier="", onclick="", number="") -%}
-    <div class="block-list-item
+    <div class="block-list-item block-list-item--white-edge
         {% if modifier %}block-list-item--{{ modifier }}{% endif %}
         {% if number %}block-list-item--with-number{% endif %}
         {% if icon %}block-list-item--with-icon{% endif %}"

@@ -53,11 +53,11 @@ export class Menu {
     }
 
     hide(): void {
-        this.element.classList.remove("visible");
+        removeModifier(this.element, "visible");
     }
 
     show(): void {
-        this.element.classList.add("visible");
+        addModifier(this.element, "visible");
     }
 
     scrollUp(): void {

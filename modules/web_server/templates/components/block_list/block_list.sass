@@ -1,6 +1,5 @@
 .block-list
   &__add-button
-    @extend .block-list-item
     width: 69px
     min-width: auto
     height: 69px
@@ -11,5 +10,10 @@
     background-size: 60%
     cursor: pointer
     opacity: .8
+
+    @media (max-width: 550px)
+      display: block
+      width: 69px !important
+      margin: 20px auto !important
 
 @import 'block_list_item/block_list_item'
