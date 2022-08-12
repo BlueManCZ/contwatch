@@ -142,12 +142,16 @@ class Database:
 
     @orm.db_session
     def add_data_unit(self, label, value, handler: Handler):
+        if settings.DB_DATA_READONLY:
+            return False
         return DataUnit(
             label=label, value=value, handler=handler, datetime=datetime.now()
         )
 
     @orm.db_session
     def add_event_unit(self, event, handler, incoming=True):
+        if settings.DB_DATA_READONLY:
+            return False
         return EventUnit(
             label=event.get_label(),
             payload=event.get_payload(),

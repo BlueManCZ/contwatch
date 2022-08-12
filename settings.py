@@ -56,6 +56,10 @@ DB_PASSWORD = ""
 # Default: "contwatch"
 DB_DATABASE = "contwatch"
 
+# Do not save incoming data to the database
+# Default: False
+DB_DATA_READONLY = False
+
 
 # ----| WEB SERVER |----
 

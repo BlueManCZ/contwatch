@@ -81,3 +81,22 @@ class BmsSerialHandler(SerialHandler):
             }
 
         return json
+
+    def send_message(self, message):
+        if self.is_connected():
+            try:
+                mos_template = "DD 5A E1 02 00 ## ?? ?? 77"
+                label = message.get_label()
+                if "mos-state" in label:
+                    bits = label.split("-")[2]
+                    text = mos_template
+                    if bits not in ["00", "01", "10", "11"]:
+                        return False
+                    text = text.replace("##", hex(3 - int(bits, 2))[2:].zfill(2))
+                    current_bytes = bytes.fromhex(text[6:-9])
+                    byte_sum = sum(current_bytes)
+                    text = text.replace("?? ??", hex(256 * 256 - byte_sum)[2:])
+                    self.connection.write(bytes.fromhex(text))
+                    return True
+            except SerialException:
+                pass
