@@ -56,7 +56,7 @@ body {
   }
 }
 
-.table, .block-list-item, .info-block {
+.block-ladder, .table, .block-list-item, .block-info {
   display: inline-block;
   transition: transform ease-in-out 50ms;
   border-radius: 15px;
@@ -344,42 +344,42 @@ img {
   opacity: 0;
 }
 
-.info-block {
+.block-info {
   width: calc(50% - 20px);
   margin-top: 20px;
   margin-right: 0;
   padding: 20px 25px;
 }
-.info-block:nth-child(2n) {
+.block-info:nth-child(2n) {
   margin-left: 40px;
 }
-.info-block__title {
+.block-info__title {
   margin-top: 0;
   margin-bottom: 8px;
   font-size: 22px;
 }
 @media (max-width: 1300px) {
-  .info-block {
+  .block-info {
     width: 100%;
   }
-  .info-block:nth-child(2n) {
+  .block-info:nth-child(2n) {
     margin-left: 0;
   }
 }
 
-.info-block-item {
+.block-info-item {
   display: inline-block;
   width: 50%;
   vertical-align: top;
   box-sizing: border-box;
 }
-.info-block-item:nth-child(2n+1) {
+.block-info-item:nth-child(2n+1) {
   padding-right: 10px;
 }
-.info-block-item:nth-child(2n) {
+.block-info-item:nth-child(2n) {
   padding-left: 10px;
 }
-.info-block-item__title {
+.block-info-item__title {
   margin-top: 0;
   margin-bottom: 3px;
   padding-top: 15px;
@@ -388,15 +388,15 @@ img {
   font-weight: bold;
   line-height: 1.2;
 }
-.info-block-item__description {
+.block-info-item__description {
   margin: 6px 0 0;
   color: #777;
 }
 @media (max-width: 550px) {
-  .info-block-item {
+  .block-info-item {
     width: 100%;
   }
-  .info-block-item:nth-child(n) {
+  .block-info-item:nth-child(n) {
     padding-right: 0;
     padding-left: 0;
   }
@@ -794,6 +794,48 @@ img {
   border-color: #299bec;
   background-color: #f8f9ff;
   color: #444;
+}
+
+.block-ladder {
+  position: relative;
+  width: calc(25% - 19px);
+  height: 270px;
+  margin-top: 20px;
+  margin-right: 25px;
+  padding-left: 20px;
+  overflow: auto;
+  padding-bottom: 15px;
+}
+.block-ladder:nth-child(4n) {
+  margin-right: 0;
+}
+.block-ladder__corner-button {
+  display: block;
+  position: absolute;
+  top: 19px;
+  right: 20px;
+  width: 25px;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.block-ladder-item {
+  display: inline-block;
+  width: calc(100% - 20px);
+  margin-bottom: 6px;
+  padding: 5px 8px;
+  border: 0;
+  border-left: solid 3px #35657b;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: left;
+  cursor: pointer;
+  opacity: 0.5;
+}
+.block-ladder-item:hover {
+  background: #d8e6ff;
+  color: #444;
+  opacity: 1;
 }
 
 .content-container {

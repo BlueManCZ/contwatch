@@ -10,6 +10,8 @@ package-lock.json
 
 # Build
 modules/web_server/static/js
+modules/web_server/static/styles/*.css
+modules/web_server/static/styles/*.css.map
 
 # Logs
 *.log*
