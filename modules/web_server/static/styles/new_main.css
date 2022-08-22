@@ -727,7 +727,7 @@ img {
   font-weight: bold;
 }
 .dialog__title--number {
-  top: 4px;
+  top: 3px;
   min-width: 22px;
   margin-left: 3px;
   padding: 0 7px 0 8px;
@@ -771,7 +771,7 @@ img {
 }
 .form-group__title {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
   color: #299bec;
   font-size: 13px;
   font-weight: bold;
@@ -781,7 +781,7 @@ img {
 
 .input-text {
   width: 100%;
-  padding: 10px;
+  padding: 7px 10px;
   border: solid 2px #d8e6ff;
   border-radius: 5px;
   outline: none;
@@ -802,9 +802,9 @@ img {
   height: 270px;
   margin-top: 20px;
   margin-right: 25px;
+  padding-bottom: 15px;
   padding-left: 20px;
   overflow: auto;
-  padding-bottom: 15px;
 }
 .block-ladder:nth-child(4n) {
   margin-right: 0;
@@ -824,13 +824,14 @@ img {
   width: calc(100% - 20px);
   margin-bottom: 6px;
   padding: 5px 8px;
-  border: 0;
-  border-left: solid 3px #35657b;
+  border: solid 1px #35657b;
+  border-radius: 10px;
   font-size: 14px;
   font-weight: bold;
   text-align: left;
   cursor: pointer;
   opacity: 0.5;
+  border-left: solid 3px #35657b;
 }
 .block-ladder-item:hover {
   background: #d8e6ff;
