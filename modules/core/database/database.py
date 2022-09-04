@@ -1,6 +1,6 @@
 import settings
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from pony import orm
 
 from modules import settings
@@ -209,13 +209,21 @@ class Database:
     @orm.db_session
     def get_handler_stored_events_in_names(self, handler_id):
         return orm.select(
-            e.label for e in EventUnit if e.handler.id == handler_id and e.incoming
+            e.label
+            for e in EventUnit
+            if e.handler.id == handler_id
+            and e.incoming
+            and e.datetime >= datetime.now()
         )[:]
 
     @orm.db_session
     def get_handler_stored_events_out_names(self, handler_id):
         return orm.select(
-            e.label for e in EventUnit if e.handler.id == handler_id and not e.incoming
+            e.label
+            for e in EventUnit
+            if e.handler.id == handler_id
+            and not e.incoming
+            and e.datetime >= datetime.now() - timedelta(days=1)
         )[:]
 
     @orm.db_session

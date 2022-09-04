@@ -301,13 +301,19 @@ class FlaskWebServer:
 
             if settings.CACHING_INTERVAL and cache:
                 if raw_query in self.cache:
-                    for entry in self.cache[raw_query]:
-                        if entry["s"] == smartround and entry["f"] == datetime_from:
-                            delta = datetime.now() - entry["c"]
-                            if settings.CACHING_ASYNC:
-                                return entry["r"]
-                            if delta.total_seconds() / 60 < settings.CACHING_INTERVAL:
-                                return entry["r"]
+                    try:
+                        for entry in self.cache[raw_query]:
+                            if entry["s"] == smartround and entry["f"] == datetime_from:
+                                delta = datetime.now() - entry["c"]
+                                if settings.CACHING_ASYNC:
+                                    return entry["r"]
+                                if (
+                                    delta.total_seconds() / 60
+                                    < settings.CACHING_INTERVAL
+                                ):
+                                    return entry["r"]
+                    except RuntimeError:
+                        print("An error occurred during cache refreshing")
 
             response = build_chart_data(
                 data_map, datetime_from, datetime_to, smartround
