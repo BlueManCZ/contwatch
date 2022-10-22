@@ -1,58 +1,51 @@
-<h1>{{ routine.get_name() }} <span class="id">(id:{{ routine.id }})</span></h1>
-<form id="edit_routine_form">
-    {% for field in routine.config_fields %}
-        {% if routine.config_fields[field].0 == "string" %}
-            <div class="form-group mt-3">
-                <label for="{{ field }}">{{ routine.config_fields[field].1 }}</label>
-                <input id="{{ field }}" name="_{{ field }}_" class="form-control" value="{{ routine.get_config()[field] }}">
-            </div>
-        {% elif routine.config_fields[field].0 == "int" %}
-            <div class="form-group mt-3">
-                <label for="{{ field }}">{{ routine.config_fields[field].1 }}</label>
-                <input id="{{ field }}" name="_{{ field }}_" class="form-control" type="number" step="1" value="{{ routine.get_config()[field] }}">
-            </div>
-        {% elif routine.config_fields[field].0 == "float" %}
-            <div class="form-group mt-3">
-                <label for="{{ field }}">{{ routine.config_fields[field].1 }}</label>
-                <input id="{{ field }}" name="_{{ field }}_" class="form-control" type="number" step="0.01" value="{{ routine.get_config()[field] }}">
-            </div>
-        {% elif routine.config_fields[field].0 == "bool" %}
-            <div class="form-group mt-3">
-                <label for="{{ field }}" class="me-1">{{ routine.config_fields[field].1 }}</label>
-                <input id="{{ field }}" name="_{{ field }}_" class="form-check-input" type="checkbox" {% if routine.get_config()[field] %}checked{% endif %} value="{{ routine.config_fields[field].2 }}">
-            </div>
-        {% elif routine.config_fields[field].0 == "handlerInstance" %}
-            <div class="form-group mt-3">
-                <label for="{{ field }}" class="me-1">{{ routine.config_fields[field].1 }}</label>
-                <select id="{{ field }}" name="_{{ field }}_" class="form-select">
-                    {% for handler in handlers %}
-                        <option value="{{ handler }}" {% if handler == routine.get_config()[field] | int %}selected{% endif %}>{{ handlers[handler].get_name() }} (id:{{ handler }})</option>
-                    {% endfor %}
-                </select>
-            </div>
-        {% elif routine.config_fields[field].0 == "workflowInstance" %}
-            <div class="form-group mt-3">
-                <label for="{{ field }}" class="me-1">{{ routine.config_fields[field].1 }}</label>
-                <select id="{{ field }}" name="_{{ field }}_" class="form-select">
-                    <option value="0">None</option>
-                    {% for workflow in workflows %}
-                        <option value="{{ workflow.id }}" {% if workflow.id == routine.get_config()[field] | int %}selected{% endif %}>Workflow {{ workflow.id }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        {% elif routine.config_fields[field].0 == "condition" %}
-            <div class="form-group mt-3">
-                <label for="{{ field }}">{{ routine.config_fields[field].1 }}</label>
-                <input id="{{ field }}" name="_{{ field }}_" class="form-control" value="{{ routine.get_config()[field] }}">
-            </div>
-        {% elif routine.config_fields[field].0 == "configuration" %}
-            <div class="form-group mt-3">
-                <label for="{{ field }}">{{ routine.config_fields[field].1 }}</label>
-                <textarea id="{{ field }}" name="_{{ field }}_" class="form-control configuration">{{ routine.get_config()[field] }}</textarea>
-            </div>
-        {% endif %}
-    {% endfor %}
+{% extends "components/dialog/dialog.html" %}
 
-    <button type="button" class="mt-3 btn btn-primary btn-sm" onclick="window.app.dialog.send('/edit_routine/{{ routine.id }}')"><b>Save changes</b></button>
-    <button type="button" class="mt-3 ml-2 btn btn-danger btn-sm" onclick="window.app.dialog.send('/delete_routine/{{ routine.id }}')"><b>Delete routine</b></button>
-</form>
+{% from "components/button/button.html" import button %}
+{% from "components/checkbox_list/checkbox_list_item/checkbox_list_item.html" import checkbox_list_item %}
+
+{% block dialog_title %}
+{{ routine.get_name() }} <span class="dialog__title--number">{{ routine.id }}</span>
+{% endblock %}
+
+{% block dialog_form %}
+{% for field in routine.config_fields %}
+    <div class="form-group">
+    {% if routine.config_fields[field].0 == "string" %}
+        <label for="{{ field }}" class="form-group__title">{{ routine.config_fields[field].1 }}</label>
+        <input id="{{ field }}" name="_{{ field }}_" class="input-text" value="{{ routine.get_config()[field] }}">
+    {% elif routine.config_fields[field].0 == "int" %}
+        <label for="{{ field }}" class="form-group__title">{{ routine.config_fields[field].1 }}</label>
+        <input id="{{ field }}" name="_{{ field }}_" class="input-text" type="number" step="1" value="{{ routine.get_config()[field] }}">
+    {% elif routine.config_fields[field].0 == "float" %}
+        <label for="{{ field }}" class="form-group__title">{{ routine.config_fields[field].1 }}</label>
+        <input id="{{ field }}" name="_{{ field }}_" class="input-text" type="number" step="0.01" value="{{ routine.get_config()[field] }}">
+    {% elif routine.config_fields[field].0 == "bool" %}
+        {{ checkbox_list_item(field, routine.config_fields[field].1, routine.get_config()[field], "", "_" + field + "_") }}
+    {% elif routine.config_fields[field].0 == "handlerInstance" %}
+        <label for="{{ field }}" class="form-group__title">{{ routine.config_fields[field].1 }}</label>
+        <select id="{{ field }}" name="_{{ field }}_" class="input-text">
+            {% for handler in handlers %}
+                <option value="{{ handler }}" {% if handler == routine.get_config()[field] | int %}selected{% endif %}>{{ handlers[handler].get_name() }} (id:{{ handler }})</option>
+            {% endfor %}
+        </select>
+    {% elif routine.config_fields[field].0 == "workflowInstance" %}
+        <label for="{{ field }}" class="form-group__title">{{ routine.config_fields[field].1 }}</label>
+        <select id="{{ field }}" name="_{{ field }}_" class="input-text">
+            <option value="0">None</option>
+            {% for workflow in workflows %}
+                <option value="{{ workflow.id }}" {% if workflow.id == routine.get_config()[field] | int %}selected{% endif %}>Workflow {{ workflow.id }}</option>
+            {% endfor %}
+        </select>
+    {% elif routine.config_fields[field].0 == "condition" %}
+        <label for="{{ field }}" class="form-group__title">{{ routine.config_fields[field].1 }}</label>
+        <input id="{{ field }}" name="_{{ field }}_" class="input-text" value="{{ routine.get_config()[field] }}">
+    {% elif routine.config_fields[field].0 == "configuration" %}
+        <label for="{{ field }}" class="form-group__title">{{ routine.config_fields[field].1 }}</label>
+        <textarea id="{{ field }}" name="_{{ field }}_" class="form-group__textarea input-text">{{ routine.get_config()[field] }}</textarea>
+    {% endif %}
+    </div>
+{% endfor %}
+
+{{ button("Save changes", "window.app.dialog.send('/edit_routine/" + routine.id|string + "')", "save.png", ["small"]) }}
+{{ button("Delete routine", "window.app.dialog.send('/delete_routine/" + routine.id|string + "')", "trash_white.png", ["small", "red"]) }}
+{% endblock %}

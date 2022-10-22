@@ -6,11 +6,11 @@ from .perform_workflow import PerformWorkflow
 from .send_event import SendEvent
 
 available_routines = [
-    SendEvent,
-    PerformWorkflow,
     Condition,
-    Barrier,
+    SendEvent,
     PayloadModifier,
+    PerformWorkflow,
+    Barrier,
     DebugMessage,
 ]
 

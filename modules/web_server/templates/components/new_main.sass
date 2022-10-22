@@ -11,6 +11,7 @@
 @import 'form/form'
 @import 'input_text/input_text'
 @import 'block_ladder/block_ladder'
+@import 'workflow/workflow'
 
 
 .content-container
@@ -23,9 +24,16 @@
     margin: 7px 0
     font-size: 22px
 
+    &--with-margin
+      margin-top: 30px
+
   &__smaller-title
     margin-bottom: 0
     font-size: 17px
 
   @media (max-width: 900px)
     padding: 20px
+
+.flex-wrap-container
+  display: flex
+  flex-wrap: wrap

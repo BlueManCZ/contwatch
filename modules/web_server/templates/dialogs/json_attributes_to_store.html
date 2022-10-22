@@ -12,7 +12,7 @@
 {% if not attributes %}
     <p>There are no data to save from this handler.</p>
 {% else %}
-    <p class="form-group__title">Store in a database</p>
+    <p class="form-group__title">Attributes to store</p>
 {% endif %}
 {% for attribute in attributes %}
     {{ checkbox_list_item(attribute, "", attribute in handler.get_storage_attributes(), attributes[attribute]) }}

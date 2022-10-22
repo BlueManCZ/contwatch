@@ -56,7 +56,7 @@ body {
   }
 }
 
-.block-ladder, .table, .block-list-item, .block-info {
+.block-ladder, .table, .block-list-item, .block-list__add-button, .block-info {
   display: inline-block;
   transition: transform ease-in-out 50ms;
   border-radius: 15px;
@@ -66,7 +66,7 @@ body {
   box-sizing: border-box;
 }
 
-.block-list-item--white-edge::before {
+.workflow-item::before, .block-list-item--white-edge::before {
   position: absolute;
   top: 0;
   right: 0;
@@ -77,7 +77,7 @@ body {
   content: "";
 }
 
-.dialog__title--number, .block-list-item__title--number {
+.dialog__title--number, .table__cell--handler-id, .block-list-item__title--number {
   display: inline-block;
   position: relative;
   min-width: 20px;
@@ -405,7 +405,10 @@ img {
 .block-list__add-button {
   width: 69px;
   min-width: auto;
+  max-width: unset;
   height: 69px;
+  margin-top: 20px;
+  margin-right: 20px;
   border-radius: 100%;
   background-image: url("/static/images/icons/plus.png");
   background-repeat: no-repeat;
@@ -413,6 +416,9 @@ img {
   background-size: 60%;
   cursor: pointer;
   opacity: 0.8;
+}
+.block-list__add-button:hover {
+  transform: scale(1.03);
 }
 @media (max-width: 550px) {
   .block-list__add-button {
@@ -424,6 +430,7 @@ img {
 
 .block-list-item {
   position: relative;
+  min-width: 190px;
   max-width: 280px;
   margin-top: 20px;
   margin-right: 20px;
@@ -647,13 +654,11 @@ img {
   opacity: 0.6;
 }
 .table__cell--handler-id {
-  display: inline-block;
-  position: relative;
-  top: -1px;
-  color: #aaa;
-  font-family: "Roboto Mono", monospace;
+  margin-left: 4px;
+  background-color: #ccc;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: bold;
+  line-height: 19px;
 }
 .table__cell--data {
   max-width: calc(100vw - 950px);
@@ -683,6 +688,41 @@ img {
 }
 .table__inspect-button:hover {
   opacity: 0.8;
+}
+@media (max-width: 1300px) {
+  .table {
+    display: block;
+    position: relative;
+  }
+  .table__body {
+    display: block;
+  }
+  .table__row {
+    display: block;
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+  }
+  .table__row--header {
+    display: none;
+  }
+  .table__cell--status {
+    width: auto;
+    padding-right: 20px;
+  }
+  .table__cell--handler {
+    display: block;
+    margin-left: 15px;
+    padding: 0;
+  }
+  .table__cell--data {
+    max-width: 100%;
+    padding: 10px 20px;
+    padding-top: 20px;
+  }
+  .table__cell--data-content {
+    display: block;
+  }
 }
 
 .dialog__container {
@@ -778,6 +818,11 @@ img {
   text-transform: uppercase;
   opacity: 0.7;
 }
+.form-group__textarea {
+  min-height: 50px;
+  max-height: 150px;
+  resize: vertical;
+}
 
 .input-text {
   width: 100%;
@@ -798,8 +843,8 @@ img {
 
 .block-ladder {
   position: relative;
-  width: calc(25% - 19px);
-  height: 270px;
+  flex: 0 0 calc(25% - 19px);
+  max-height: 280px;
   margin-top: 20px;
   margin-right: 25px;
   padding-bottom: 15px;
@@ -808,6 +853,9 @@ img {
 }
 .block-ladder:nth-child(4n) {
   margin-right: 0;
+}
+.block-ladder__title {
+  margin-right: 50px;
 }
 .block-ladder__corner-button {
   display: block;
@@ -818,25 +866,158 @@ img {
   cursor: pointer;
   opacity: 0.6;
 }
+@media (max-width: 1300px) {
+  .block-ladder {
+    flex: 0 0 calc(50% - 13px);
+  }
+  .block-ladder:nth-child(2n) {
+    margin-right: 0;
+  }
+}
+@media (max-width: 550px) {
+  .block-ladder {
+    flex: 0 0 100%;
+    max-height: unset;
+    margin-right: 0;
+  }
+}
 
 .block-ladder-item {
   display: inline-block;
   width: calc(100% - 20px);
   margin-bottom: 6px;
   padding: 5px 8px;
-  border: solid 1px #35657b;
+  border: 0;
   border-radius: 10px;
   font-size: 14px;
   font-weight: bold;
   text-align: left;
   cursor: pointer;
   opacity: 0.5;
-  border-left: solid 3px #35657b;
 }
 .block-ladder-item:hover {
   background: #d8e6ff;
   color: #444;
   opacity: 1;
+}
+
+.workflow-item {
+  display: inline-block;
+  position: relative;
+  max-width: 250px;
+  height: 51px;
+  margin: 15px 5px 0;
+  padding: 2px 20px 0;
+  border-radius: 10px;
+  background: #fff;
+  text-align: center;
+  box-shadow: 2px 2px 3px #dfdfdf;
+  cursor: pointer;
+  overflow: hidden;
+  vertical-align: middle;
+}
+.workflow-item:hover .workflow-item__arrow {
+  display: flex;
+}
+.workflow-item__arrow {
+  display: none;
+  position: absolute;
+  top: 0;
+  width: 28px;
+  height: 100%;
+  cursor: pointer;
+  overflow: hidden;
+}
+.workflow-item__arrow img {
+  height: 15px;
+  margin: auto;
+}
+.workflow-item__arrow:hover img {
+  filter: brightness(0.8);
+}
+.workflow-item__arrow--left {
+  left: 0;
+}
+.workflow-item__arrow--right {
+  right: 0;
+}
+.workflow-item__arrow--right img {
+  transform: scaleX(-1);
+}
+.workflow-item--active {
+  padding-bottom: 50px;
+  border: solid 2px #65c44c;
+}
+.workflow-item__log-index {
+  display: inline-block;
+  min-width: 22px;
+  height: 21px;
+  margin-right: 5px;
+  padding: 0 5px 0 6px;
+  border-radius: 11px;
+  background: #65c44c;
+  color: #fff;
+  line-height: 19px;
+  text-align: center;
+  vertical-align: middle;
+}
+.workflow-item__name {
+  margin: 4px 7px 2px;
+  font-weight: bold;
+}
+.workflow-item__description {
+  margin: 1px 7px 0;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.workflow {
+  position: relative;
+  padding-right: 40px;
+  padding-bottom: 15px;
+  border-bottom: solid 1px #ddd;
+}
+.workflow:last-child {
+  border-bottom: unset;
+}
+.workflow .workflow__delete-item, .workflow .workflow__add-item, .workflow .workflow__id {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  margin-top: 15px;
+  margin-left: 5px;
+  padding: 5px;
+  border-radius: 10px;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+.workflow__id {
+  margin-top: 15px;
+  margin-right: 5px;
+  border: solid 1px #ccc;
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 27px;
+  text-align: center;
+}
+.workflow__add-item {
+  border: solid 1px #ccc;
+  background-color: #fff;
+  cursor: pointer;
+  opacity: 0.5;
+}
+.workflow__add-item:hover {
+  opacity: 0.9;
+}
+.workflow__delete-item {
+  position: absolute;
+  top: 5px;
+  right: 0;
+  cursor: pointer;
+  opacity: 0.5;
+}
+.workflow__delete-item:hover {
+  opacity: 0.9;
 }
 
 .content-container {
@@ -849,6 +1030,9 @@ img {
   margin: 7px 0;
   font-size: 22px;
 }
+.content-container__title--with-margin {
+  margin-top: 30px;
+}
 .content-container__smaller-title {
   margin-bottom: 0;
   font-size: 17px;
@@ -857,6 +1041,11 @@ img {
   .content-container {
     padding: 20px;
   }
+}
+
+.flex-wrap-container {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 /*# sourceMappingURL=new_main.css.map */

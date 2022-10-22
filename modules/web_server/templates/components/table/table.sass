@@ -83,13 +83,12 @@
         opacity: .6
 
       &-id
-        display: inline-block
-        position: relative
-        top: -1px
-        color: $silver-aaa
-        font-family: $font2
+        @extend %small-id
+        margin-left: 4px
+        background-color: $silver-ccc
         font-size: 12px
-        font-weight: 900
+        font-weight: bold
+        line-height: 19px
 
     &--data
       $data: &
@@ -121,3 +120,40 @@
 
     &:hover
       opacity: .8
+
+  @media (max-width: 1300px)
+    display: block
+    position: relative
+
+    &__body
+      display: block
+
+    &__row
+      display: block
+      position: relative
+      width: 100%
+      max-width: 100%
+
+      &--header
+        display: none
+
+    &__cell
+      &--status
+        width: auto
+        padding-right: 20px
+
+      &--handler
+        display: block
+        margin-left: 15px
+        padding: 0
+
+      &--data
+        //display: block
+        max-width: 100%
+        //max-width: unset
+        //margin-left: 20px
+        padding: 10px 20px
+        padding-top: 20px
+
+        &-content
+          display: block
