@@ -5,10 +5,10 @@
   width: calc(100% - 50px)
   height: calc(100% - 50px)
   margin: 25px
-  transition: 0.4s cubic-bezier(.5,-.7,.6,1)
+  transition: .4s cubic-bezier(.5, -.7, .6, 1)
   border-radius: 20px
-  background: #fff
-  box-shadow: 0 0 0 7000px rgba(0, 0, 0, 0.1)
+  background: $white-fff
+  box-shadow: 0 0 0 7000px $black-01
   z-index: 150
 
   @media (max-width: 900px)
@@ -18,11 +18,12 @@
     border-radius: 0
     box-shadow: none
 
+
   &--hidden
     margin-top: -1000%
     transform: scale(0)
-    transition-timing-function: cubic-bezier(0.62, 1.71, 1, 1.64), step-end !important
-    opacity: 0 !important
+    transition-timing-function: cubic-bezier(.62, 1.71, 1, 1.64), step-end
+    opacity: 0
 
   &__close-button
     position: absolute
@@ -30,7 +31,7 @@
     right: 25px
     width: 25px
     cursor: pointer
-    opacity: 0.6
+    opacity: .6
 
     &:hover
       opacity: 1
@@ -41,7 +42,7 @@
     left: 25px
     width: 25px
     cursor: pointer
-    opacity: 0.6
+    opacity: .6
 
     &:hover
       opacity: 1
@@ -57,8 +58,8 @@
   padding: 30px 20px 15px
   transition: ease-in-out 100ms
   border-radius: 20px
-  background: #fff
-  box-shadow: 0 0 5px #c0c0c0
+  background: $white-fff
+  box-shadow: 0 0 5px $silver-ccc
   overflow: auto
   box-sizing: border-box
 
@@ -70,19 +71,21 @@
     padding: 40px 20px 20px
     border-radius: 0
 
+
   &__close-button
     position: absolute
     top: 15px
     right: 25px
     width: 20px
     cursor: pointer
-    opacity: 0.6
+    opacity: .6
+
+    &:hover
+      opacity: 1
 
     @media (max-width: 900px)
       width: 25px
 
-    &:hover
-      opacity: 1
 
   &__section-title
     font-size: 20px

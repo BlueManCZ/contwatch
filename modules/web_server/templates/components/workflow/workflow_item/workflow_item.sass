@@ -8,9 +8,9 @@
   margin: 15px 5px 0
   padding: 2px 20px 0
   border-radius: 10px
-  background: #fff
+  background: $white-fff
   text-align: center
-  box-shadow: 2px 2px 3px #dfdfdf
+  box-shadow: 2px 2px 3px $white-ddd
   cursor: pointer
   overflow: hidden
 
@@ -35,7 +35,7 @@
 
     &:hover
       img
-        filter: brightness(0.8)
+        filter: brightness(.8)
 
     &--left
       left: 0
@@ -47,7 +47,7 @@
         transform: scaleX(-1)
 
   &--active
-    border: solid 2px #65c44c
+    border: solid 2px $green
 
   &__log-index
     display: inline-block
@@ -56,8 +56,8 @@
     margin-right: 5px
     padding: 0 5px 0 6px
     border-radius: 11px
-    background: #65c44c
-    color: #fff
+    background: $green
+    color: $white-fff
     line-height: 19px
     text-align: center
     vertical-align: middle

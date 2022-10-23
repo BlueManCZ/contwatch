@@ -429,8 +429,8 @@ hr {
 @media (max-width: 550px) {
   .block-list__add-button {
     display: block;
-    width: 69px !important;
-    margin: 20px auto !important;
+    width: 69px;
+    margin: 20px auto;
   }
 }
 
@@ -917,7 +917,7 @@ hr {
   border-radius: 10px;
   background: #fff;
   text-align: center;
-  box-shadow: 2px 2px 3px #dfdfdf;
+  box-shadow: 2px 2px 3px #ddd;
   cursor: pointer;
   overflow: hidden;
   vertical-align: middle;
@@ -1060,8 +1060,8 @@ hr {
 .inspector-chart-view--hidden {
   margin-top: -1000%;
   transform: scale(0);
-  transition-timing-function: cubic-bezier(0.62, 1.71, 1, 1.64), step-end !important;
-  opacity: 0 !important;
+  transition-timing-function: cubic-bezier(0.62, 1.71, 1, 1.64), step-end;
+  opacity: 0;
 }
 .inspector-chart-view__close-button {
   position: absolute;
@@ -1098,7 +1098,7 @@ hr {
   transition: ease-in-out 100ms;
   border-radius: 20px;
   background: #fff;
-  box-shadow: 0 0 5px #c0c0c0;
+  box-shadow: 0 0 5px #ccc;
   overflow: auto;
   box-sizing: border-box;
 }
@@ -1120,13 +1120,13 @@ hr {
   cursor: pointer;
   opacity: 0.6;
 }
+.inspector-config-panel__close-button:hover {
+  opacity: 1;
+}
 @media (max-width: 900px) {
   .inspector-config-panel__close-button {
     width: 25px;
   }
-}
-.inspector-config-panel__close-button:hover {
-  opacity: 1;
 }
 .inspector-config-panel__section-title {
   font-size: 20px;
