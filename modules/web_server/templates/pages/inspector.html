@@ -4,10 +4,10 @@
 <div id="inspector" onload="window.app.menu.page.displayCharts(100)">
     {{ button("New chart", "window.app.inspector.openEmpty()", "plus_bold.png") }}
     {% if views %}
-    <h3>Saved views</h3>
+    <h2 class="content-container__title">Saved views</h2>
     {% endif %}
     {% for view in views -%}
-        <div class="tile chart-preview" onclick="window.app.inspector.open({{ view.id }}, '{{ view.label }}'); {% for handler in view.settings %}
+        <div class="block-small-chart" onclick="window.app.inspector.open({{ view.id }}, '{{ view.label }}'); {% for handler in view.settings %}
             {%- for attribute in view.settings[handler] -%}
                 {%- if attribute[0:3] == "in:" -%}
                     window.app.inspector.addEvent('{{ handler }}', '{{ attribute[4:] }}', 'in');
@@ -17,58 +17,102 @@
                     window.app.inspector.addChart('{{ handler }}', '{{ attribute }}');
                 {%- endif -%}
             {%- endfor -%}{%- endfor -%}">
-            <h1>{{ view.label }}</h1>
-            <canvas class="chart" data-query="{% for handler in view.settings %}{% for attribute in view.settings[handler] %}{{ handler }}-{{ attribute }},{% endfor %}{% endfor %}"></canvas>
+            <h1 class="block-small-chart__title">{{ view.label }}</h1>
+            <canvas class="chart block-small-chart__chart" data-query="{% for handler in view.settings %}{% for attribute in view.settings[handler] %}{{ handler }}-{{ attribute }},{% endfor %}{% endfor %}"></canvas>
         </div>
     {%- endfor %}
 </div>
-<div id="inspector-chart-view" class="inspector-chart-view-hidden">
-    <img src="{{ url_for('static', filename='images/icons/settings.png') }}" class="settings-button" alt="Settings icon" onclick="window.app.inspector.showConfigPanel()">
-    <img src="{{ url_for('static', filename='images/icons/close.png') }}" class="close-button" onclick="window.app.inspector.hide()" alt="Close icon">
-    <div id="inspector-config-panel">
+<div id="inspector-chart-view" class="inspector-chart-view inspector-chart-view--hidden">
+    <img src="{{ url_for('static', filename='images/icons/settings.png') }}" class="inspector-chart-view__settings-button" alt="Settings icon" onclick="window.app.inspector.showConfigPanel()">
+    <img src="{{ url_for('static', filename='images/icons/close.png') }}" class="inspector-chart-view__close-button" onclick="window.app.inspector.hide()" alt="Close icon">
+    <div id="inspector-config-panel" class="inspector-config-panel">
         <div class="mobile-top-panel">
-            <img class="close-button" src="{{ url_for('static', filename='images/icons/close.png') }}" alt="Close icon" onclick="window.app.inspector.hideConfigPanel()">
+            <img class="inspector-config-panel__close-button" src="{{ url_for('static', filename='images/icons/close.png') }}" alt="Close icon" onclick="window.app.inspector.hideConfigPanel()">
         </div>
-        <h1><label for="date-select">Select date</label></h1>
-        <input id="date-select" type="date" oninput="window.app.inspector.changDate();">
-        <h1>Chart data</h1>
+        <div class="form-group">
+            <label for="date-select" class="form-group__title">Select date</label>
+            <input id="date-select" type="date" class="input-text" oninput="window.app.inspector.changDate();">
+        </div>
+        <h1 class="inspector-config-panel__section-title">Chart data</h1>
         {% for handler in manager.get_handlers() %}
+            <div class="form-group">
             {% if manager.get_handlers()[handler].get_storage_attributes() %}
-                <h2>{{ manager.get_handlers()[handler].get_name() }}</h2>
+                <h2 class="form-group__title">{{ manager.get_handlers()[handler].get_name() }}</h2>
                 {% for attribute in manager.get_handlers()[handler].get_storage_attributes() %}
-                    <div>
-                        <input id="{{ handler }}-{{ attribute }}" type="checkbox" class="inspector-data-checkbox" data-handler="{{ handler }}" data-attribute="{{ attribute }}" oninput="window.app.inspector.toggleChart('{{ handler }}', '{{ attribute }}')">
-                        <label for="{{ handler }}-{{ attribute }}">{{ attribute }}</label>
-                    </div>
+                    <label class="checkbox-list-item" for="{{ handler }}-{{ attribute }}">
+                        <input
+                            type="checkbox"
+                            class="checkbox-list-item__input inspector-data-checkbox"
+                            id="{{ handler }}-{{ attribute }}"
+                            data-handler="{{ handler }}"
+                            data-attribute="{{ attribute }}"
+                            oninput="
+                                window.app.inspector.toggleChart('{{ handler }}', '{{ attribute }}');
+                                if (this.checked) {
+                                    this.parentNode.classList.add('checkbox-list-item--checked');
+                                } else {
+                                    this.parentNode.classList.remove('checkbox-list-item--checked');
+                                }"
+                        ><span class="checkbox-list-item__text">{{ attribute }}</span>
+                    </label>
                 {% endfor %}
             {% endif %}
+            </div>
         {% endfor %}
-        <br>
-        <h1>Events</h1>
+        <h1 class="inspector-config-panel__section-title">Events</h1>
         {% for handler in manager.get_handlers() %}
+            <div class="form-group">
             {% set event_names = manager.event_manager.get_storage_events_names(handler) %}
             {% if event_names["in"] or event_names["out"] %}
-                <h2>{{ manager.get_handlers()[handler].get_name() }}</h2>
+                <h2 class="form-group__title">{{ manager.get_handlers()[handler].get_name() }}</h2>
                 {% for event in event_names["in"] %}
-                    <div>
-                        <input id="{{ handler }}-{{ event }}-in" type="checkbox" class="inspector-data-checkbox" data-handler="{{ handler }}" data-attribute="in::{{ event }}" oninput="window.app.inspector.toggleEvent('{{ handler }}', '{{ event }}', 'in')">
-                        <label for="{{ handler }}-{{ event }}-in">← {{ event }}</label>
-                    </div>
+                    <label class="checkbox-list-item" for="{{ handler }}-{{ event }}-in">
+                        <input
+                            type="checkbox"
+                            class="checkbox-list-item__input inspector-data-checkbox"
+                            id="{{ handler }}-{{ event }}-in"
+                            data-handler="{{ handler }}"
+                            data-attribute="in::{{ event }}"
+                            oninput="
+                                window.app.inspector.toggleEvent('{{ handler }}', '{{ event }}', 'in');
+                                if (this.checked) {
+                                    this.parentNode.classList.add('checkbox-list-item--checked');
+                                } else {
+                                    this.parentNode.classList.remove('checkbox-list-item--checked');
+                                }"
+                        ><span class="checkbox-list-item__text">← {{ event }}</span>
+                    </label>
                 {% endfor %}
                 {% for event in event_names["out"] %}
-                    <div>
-                        <input id="{{ handler }}-{{ event }}-out" type="checkbox" class="inspector-data-checkbox" data-handler="{{ handler }}" data-attribute="out::{{ event }}" oninput="window.app.inspector.toggleEvent('{{ handler }}', '{{ event }}', 'out')">
-                        <label for="{{ handler }}-{{ event }}-out">→ {{ event }}</label>
-                    </div>
+                    <label class="checkbox-list-item" for="{{ handler }}-{{ event }}-out">
+                        <input
+                            type="checkbox"
+                            class="checkbox-list-item__input inspector-data-checkbox"
+                            id="{{ handler }}-{{ event }}-out"
+                            data-handler="{{ handler }}"
+                            data-attribute="out::{{ event }}"
+                            oninput="
+                                window.app.inspector.toggleEvent('{{ handler }}', '{{ event }}', 'out');
+                                if (this.checked) {
+                                    this.parentNode.classList.add('checkbox-list-item--checked');
+                                } else {
+                                    this.parentNode.classList.remove('checkbox-list-item--checked');
+                                }"
+                        ><span class="checkbox-list-item__text">→ {{ event }}</span>
+                    </label>
                 {% endfor %}
             {% endif %}
+            </div>
         {% endfor %}
         <hr>
-        <h2>Save view</h2>
-        <input type="text" class="view-label" id="view-label" placeholder="View label">
-        <div class="btn btn-sm btn-primary mt-3" onclick="window.app.inspector.saveView()">Save</div>
-        <div class="btn btn-sm btn-danger mt-3" onclick="window.app.inspector.deleteView()">Delete</div>
-    </div><div class="canvas-parent">
+        <br>
+        <div class="form-group">
+            <label for="view-label" class="form-group__title">Save view</label>
+            <input id="view-label" type="text" class="input-text" placeholder="View label">
+        </div>
+        {{ button("Save", "window.app.inspector.saveView()", "save.png", ["small"]) }}
+        {{ button("Delete", "window.app.inspector.deleteView()", "trash_white.png", ["small", "red"]) }}
+    </div><div class="inspector-chart-view__chart">
         <canvas id="inspector-chart"></canvas>
     </div>
 </div>

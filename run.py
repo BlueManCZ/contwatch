@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from eventlet import monkey_patch
+
 monkey_patch()
 
 from modules import settings
@@ -37,13 +38,22 @@ if __name__ == "__main__":
 
     parser = OptionParser()
 
-    parser.add_option("-e", "--export-config",
-                      action="store_true", dest="export_config", default=False,
-                      help="export configuration in JSON format")
+    parser.add_option(
+        "-e",
+        "--export-config",
+        action="store_true",
+        dest="export_config",
+        default=False,
+        help="export configuration in JSON format",
+    )
 
-    parser.add_option("-i", "--import-config", dest="import_config",
-                      help="import configuration from JSON_FILE",
-                      metavar="JSON_FILE")
+    parser.add_option(
+        "-i",
+        "--import-config",
+        dest="import_config",
+        help="import configuration from JSON_FILE",
+        metavar="JSON_FILE",
+    )
 
     (options, args) = parser.parse_args()
 

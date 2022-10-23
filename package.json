@@ -1,7 +1,8 @@
 {
   "name": "contwatch",
+  "version": "1.1.0",
   "type": "module",
-  "description": "System for controlling single-board microcontrollers",
+  "description": "Scalable system for IoT automatization",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/BlueManCZ/contwatch.git"

@@ -12,6 +12,8 @@ package-lock.json
 modules/web_server/static/js
 modules/web_server/static/styles/*.css
 modules/web_server/static/styles/*.css.map
+!modules/web_server/static/styles/main.css
+!modules/web_server/static/styles/main.css.map
 
 # Logs
 *.log*

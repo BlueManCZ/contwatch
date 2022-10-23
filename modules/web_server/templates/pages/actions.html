@@ -19,9 +19,9 @@
         <div class="block-list__add-button" title="New event listener" onclick="window.app.dialog.load('add_new_event_listener')"></div>
         </div>
     </div>
+    <h2 class="content-container__title content-container__title--with-margin">Workflows</h2>
     {% if manager.event_manager.workflows %}
     <div id="workflows">
-        <h2 class="content-container__title content-container__title--with-margin">Workflows</h2>
         {% for workflow in manager.event_manager.workflows %}
             <div class="workflow">
                 <div class="workflow__id">{{ workflow }}</div>
@@ -56,6 +56,6 @@
             </div>
         {% endfor %}
     </div>
-    {{ button("New workflow", "window.app.actions.createNewWorkflow(0)", "plus_bold.png") }}
     {% endif %}
+    {{ button("New workflow", "window.app.actions.createNewWorkflow(0)", "plus_bold.png") }}
 </div>

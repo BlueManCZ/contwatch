@@ -1,6 +1,7 @@
 import { BigChart } from "./widgets/BigChart";
 import { dateISO, dateISOString } from "./utils/DateTime";
 import { get } from "./utils/URLTools";
+import { addModifier, removeModifier } from "./utils/ElementTools";
 
 export class Inspector {
     private readonly colors: string[];
@@ -61,6 +62,7 @@ export class Inspector {
 
         for (let i = 0; i < checkboxes.length; i++) {
             (<HTMLInputElement> checkboxes[i]).checked = false;
+            removeModifier(checkboxes[i].parentElement, "checked");
         }
     }
 
@@ -126,7 +128,9 @@ export class Inspector {
 
                         this.bigChart.chart.data.datasets.push(dataset);
 
-                        (<HTMLInputElement> document.getElementById(`${handler}-${line}`)).checked = true;
+                        const checkbox = (<HTMLInputElement> document.getElementById(`${handler}-${line}`));
+                        checkbox.checked = true;
+                        addModifier(checkbox.parentElement, "checked");
 
                         this.bigChart.sort();
                         this.bigChart.recolor();
@@ -269,7 +273,9 @@ export class Inspector {
 
                         this.bigChart.chart.data.datasets.push(dataset);
 
-                        (<HTMLInputElement> document.getElementById(`${handler}-${line}-${type}`)).checked = true;
+                        const checkbox = (<HTMLInputElement> document.getElementById(`${handler}-${line}-${type}`));
+                        checkbox.checked = true;
+                        addModifier(checkbox.parentElement, "checked");
 
                         this.bigChart.sort();
                         this.bigChart.recolor();
@@ -382,11 +388,11 @@ export class Inspector {
     }
 
     show(): void {
-        this.element.classList.remove("inspector-chart-view-hidden");
+        removeModifier(this.element, "hidden");
     }
 
     hide(): void {
-        this.element.classList.add("inspector-chart-view-hidden");
+        addModifier(this.element, "hidden");
         this.displayedCharts = {};
         this.displayedEvents = {};
         this.displayedEventsCount = 0;

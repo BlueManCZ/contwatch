@@ -2,7 +2,7 @@ from modules import settings, tools
 from modules.core import HandlerManager, database
 from modules.core.actions import *
 from modules.handlers import *
-from modules.tools import get_nested_attribute
+from modules.tools import get_nested_attribute, get_version
 
 from datetime import datetime, timedelta
 from flask import Flask, redirect, render_template, request
@@ -145,14 +145,15 @@ class FlaskWebServer:
                     "Distribution": tools.distribution(),
                 },
                 "ContWatch instance": {
+                    "Git fetch": tools.get_update_datetime(),
                     "Uptime": hr_datetime(
                         (datetime.now() - self.start_datetime).total_seconds()
                     ),
-                    "Last update": tools.get_update_datetime(),
                     "Handlers": len(self.manager.get_handlers()),
                     "Connections": self.connections,
                     "Database": settings.DB_TYPE,
                     "Cache size": hr_filesize(tools.get_size(self.cache)),
+                    "Version": get_version(),
                 },
             }
             return render_template("pages/details.html", data=dictionary)

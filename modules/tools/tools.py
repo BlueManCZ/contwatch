@@ -4,6 +4,7 @@ from platform import processor
 from subprocess import run
 from sys import getsizeof
 from time import time
+from json import load
 
 from modules import settings
 
@@ -139,3 +140,11 @@ def get_nested_attribute(json, attributes_row):
 
 def get_current_seconds():
     return int(time())
+
+
+def get_version():
+    """Returns version of the application based on package.json"""
+    real_path = path.dirname(path.realpath(__file__))
+    with open(f"{real_path}/../../package.json") as json_file:
+        data = load(json_file)
+        return data["version"]
