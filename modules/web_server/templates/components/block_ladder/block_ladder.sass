@@ -1,0 +1,39 @@
+.block-ladder
+  @extend %tile
+  position: relative
+  flex: 0 0 calc(25% - 19px)
+  max-height: 280px
+  margin-top: 20px
+  margin-right: 25px
+  padding-bottom: 15px
+  padding-left: 20px
+  overflow: auto
+
+  &:nth-child(4n)
+    margin-right: 0
+
+  &__title
+    margin-right: 50px
+
+  &__corner-button
+    display: block
+    position: absolute
+    top: 19px
+    right: 20px
+    width: 25px
+    cursor: pointer
+    opacity: .6
+
+  @media (max-width: 1300px)
+    flex: 0 0 calc(50% - 13px)
+
+    &:nth-child(2n)
+      margin-right: 0
+
+  @media (max-width: 550px)
+    flex: 0 0 100%
+    max-height: unset
+    margin-right: 0
+
+
+@import 'block_ladder_item/block_ladder_item'

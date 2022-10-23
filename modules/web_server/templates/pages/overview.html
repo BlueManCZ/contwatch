@@ -1,64 +1,68 @@
-<h2>Overview</h2>
+<h2 class="content-container__title">Overview</h2>
 <div id="overview">
-    <table>
-        {% if messages %}
-        <tr>
-            <th class="status">Status</th>
-            <th class="type">Type</th>
-            <th class="time">Time</th>
-            <th class="handler">Handler</th>
-            <th class="data">Data</th>
-        </tr>
-        {% else %}
-        <p><br>Nothing to display</p>
-        {% endif %}
-        {% for message in messages -%}
-        <tr>
-            <td class="status {% if message.incoming %}in{% else %}out{% endif %}">
-                {% if message.incoming %}
-                    Incoming
-                {% else %}
-                    Outgoing
-                    {% if message.type == "event" %}
-                        <img class="inspect clickable"
-                             src="{{ url_for('static', filename='images/icons/inspect.png') }}"
-                             alt="Eye icon"
-                             onclick="window.app.menu.page.setConfigArgument('action-routine-log', {{ message.queue_index }});
-                                      window.app.menu.selectPage('actions')"
-                             title="Inspect event in actions">
-                    {% endif %}
-                {% endif %}
-            </td>
-            <td class="type">
-                <span class="{{ message.type }}">{{ message.type }}</span>
-            </td>
-            <td class="time">
-                {{ message.time }}
-            </td>
-            <td class="handler">
-                {% if message.handler %}
-                    <img class="icon" src="{{ url_for('static', filename='images/icons/types/'+message.handler.icon+'.png') }}" alt="handler icon">
-                    {{ message.handler.get_name() }}
-                {% else %}
-                    Deleted handler
-                {% endif %}
-                <span class="id">(id:{{ message.handler_id }})</span>
-            </td>
-            <td class="data">
-                <span>
-                {%- if message.type == "event" -%}
-                    <span class="event-label">{{ message.data.label }}:</span>
-                    {% if "routine_log" in message %}
-                        {{ message.routine_log[-1][1] }}
+    <table class="table">
+        <tbody class="table__body">
+            {% if messages %}
+            <tr class="table__row table__row--header">
+                <th class="table__cell table__cell--title table__cell--status">Status</th>
+                <th class="table__cell table__cell--title table__cell--type">Type</th>
+                <th class="table__cell table__cell--title table__cell--time">Time</th>
+                <th class="table__cell table__cell--title table__cell--handler">Handler</th>
+                <th class="table__cell table__cell--title table__cell--data">Data</th>
+            </tr>
+            {% else %}
+            <p><br>Nothing to display</p>
+            {% endif %}
+            {% for message in messages -%}
+            <tr class="table__row">
+                <td class="table__cell table__cell--status table__cell--status-{% if message.incoming %}in{% else %}out{% endif %}">
+                    {% if message.incoming %}
+                        Incoming
                     {% else %}
-                        {{ message.data.payload }}
+                        Outgoing
+                        {% if message.type == "event" %}
+                            <img class="table__inspect-button"
+                                 src="{{ url_for('static', filename='images/icons/inspect.png') }}"
+                                 alt="Eye icon"
+                                 onclick="window.app.menu.page.setConfigArgument('action-routine-log', {{ message.queue_index }});
+                                          window.app.menu.selectPage('actions')"
+                                 title="Inspect event in actions">
+                        {% endif %}
                     {% endif %}
-                {%- else -%}
-                    {{ message.data }}
-                {%- endif -%}
-                </span>
-            </td>
-        </tr>
-        {% endfor %}
+                </td>
+                <td class="table__cell table__cell--type">
+                    <span class="table__cell--type-span table__cell--type-{{ message.type }}">{{ message.type }}</span>
+                </td>
+                <td class="table__cell table__cell--time">
+                    {{ message.time }}
+                </td>
+                <td class="table__cell table__cell--handler">
+                    <span class="table__cell--handler-title">
+                    {% if message.handler %}
+                        <img class="table__cell--handler-icon" src="{{ url_for('static', filename='images/icons/types/'+message.handler.icon+'.png') }}" alt="handler icon">
+                        {{ message.handler.get_name() }}
+                    {% else %}
+                        Deleted handler
+                    {% endif %}
+                    </span>
+                    <span class="table__cell--handler-id">{{ message.handler_id }}</span>
+                </td>
+                <td class="table__cell table__cell--data">
+                    <span class="table__cell--data-content">
+                    {%- if message.type == "event" -%}
+                        <span class="table__cell--data-content-event">{{ message.data.label }}:</span>
+                        {% if "routine_log" in message %}
+                            {{ message.routine_log[-1][1] }}
+                        {% else %}
+                            {{ message.data.payload }}
+                        {% endif %}
+                    {%- else -%}
+                        {{ message.data }}
+                    {%- endif -%}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
 </div>

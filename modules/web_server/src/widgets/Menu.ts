@@ -1,4 +1,5 @@
 import { Page } from "./Page";
+import { addModifier, removeModifier } from "../utils/ElementTools";
 
 export class Menu {
     private element: HTMLElement;
@@ -8,7 +9,7 @@ export class Menu {
     constructor(id: string, colors: string[]) {
         this.element = document.getElementById(id);
         this._page = new Page("content-container", colors);
-        this.buttons = document.getElementsByClassName("nav-item");
+        this.buttons = document.getElementsByClassName("navbar-item");
 
         this.bindEventListeners();
     }
@@ -26,7 +27,7 @@ export class Menu {
     }
 
     buttonFocus(button: HTMLElement): void {
-        button.classList.add("active");
+        addModifier(button, "active");
     }
 
     selectPage(name: string, callback: () => void = () => { /* */ }): void {
@@ -45,18 +46,18 @@ export class Menu {
         this.hide();
 
         for (let i = 0; i < this.buttons.length; i++) {
-            this.buttons[i].classList.remove("active");
+            removeModifier(<HTMLElement> this.buttons[i], "active");
         }
 
         this.buttonFocus(button);
     }
 
     hide(): void {
-        this.element.classList.remove("visible");
+        removeModifier(this.element, "visible");
     }
 
     show(): void {
-        this.element.classList.add("visible");
+        addModifier(this.element, "visible");
     }
 
     scrollUp(): void {

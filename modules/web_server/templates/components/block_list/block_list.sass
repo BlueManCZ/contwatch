@@ -1,0 +1,26 @@
+.block-list
+  &__add-button
+    @extend %tile
+    width: 69px
+    min-width: auto
+    max-width: unset
+    height: 69px
+    margin-top: 20px
+    margin-right: 20px
+    border-radius: 100%
+    background-image: url('/static/images/icons/plus.png')
+    background-repeat: no-repeat
+    background-position: center
+    background-size: 60%
+    cursor: pointer
+    opacity: .8
+
+    &:hover
+      transform: scale(1.03)
+
+    @media (max-width: 550px)
+      display: block
+      width: 69px
+      margin: 20px auto
+
+@import 'block_list_item/block_list_item'

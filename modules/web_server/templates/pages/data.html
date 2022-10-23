@@ -1,5 +1,5 @@
-<h2>Data stored in the database</h2>
-<div id="data" class="tile-list pt-2">
+<h2 class="content-container__title">Data stored in the database</h2>
+<div id="data" class="flex-wrap-container">
 {#    <div class="mt-3 mb-4 pb-2 form-check">#}
 {#        <input type="checkbox" class="form-check-input" id="exampleCheck1" oninput="window.app.menu.page.setConfigArgument('ghost_data', {% if site_config['ghost_data'] %}0{% else %}1{% endif %}); window.app.menu.page.load('data')" {% if site_config['ghost_data'] %}checked{% endif %}>#}
 {#        <label class="form-check-label text-muted" for="exampleCheck1" title="Data remaining in the database that are no longer tracked">Display ghost data (?)</label>#}
@@ -7,20 +7,23 @@
     {% if not manager.registered_handlers %}
         <p>Nothing to display</p>
     {% endif %}
-    {% for handler in manager.registered_handlers %}
-        <h3>{{ manager.registered_handlers[handler].get_name() }} <button class="settings" onclick="window.app.dialog.load('json_attributes_to_store', {'handler_id': '{{ handler }}'})">Settings</button></h3>
+    {%- for handler in manager.registered_handlers -%}
+        <div class="block-ladder">
+            <h3 class="block-ladder__title">{{ manager.registered_handlers[handler].get_name() }}</h3>
+            <img class="block-ladder__corner-button" src="{{ url_for('static', filename='images/icons/settings.png') }}" onclick="window.app.dialog.load('json_attributes_to_store', {'handler_id': '{{ handler }}'})">
 
-        {% if (site_config["ghost_data"] and not attributes[handler] and not ghost_attributes[handler]) or (not site_config["ghost_data"] and not attributes[handler]) %}
-            <div class="text-muted mt-1 mb-4">There is nothing to display.</div>
-        {% else %}
-            {% for attribute in attributes[handler] %}
-                <button class="attribute" onclick="window.app.menu.selectPage('inspector', () => { window.app.inspector.openEmpty(); window.app.inspector.addChart({{ handler }}, '{{ attribute }}') })">{{ attribute }}</button>
-            {% endfor %}
-            {% if site_config["ghost_data"] %}
-                {% for attribute in ghost_attributes[handler] %}
-                    <a href="/graph/{{ handler }}/{{ attribute }}"><button class="ghost">{{ attribute }}</button></a>
+            {% if (site_config["ghost_data"] and not attributes[handler] and not ghost_attributes[handler]) or (not site_config["ghost_data"] and not attributes[handler]) %}
+                <div class="text-muted mt-1 mb-4">There is nothing to display.</div>
+            {% else %}
+                {% for attribute in attributes[handler] %}
+                    <button class="block-ladder-item" onclick="window.app.menu.selectPage('inspector', () => { window.app.inspector.openEmpty(); window.app.inspector.addChart({{ handler }}, '{{ attribute }}') })">{{ attribute }}</button>
                 {% endfor %}
+                {% if site_config["ghost_data"] %}
+                    {% for attribute in ghost_attributes[handler] %}
+                        <a href="/graph/{{ handler }}/{{ attribute }}"><button class="ghost">{{ attribute }}</button></a>
+                    {% endfor %}
+                {% endif %}
             {% endif %}
-        {% endif %}
-    {% endfor %}
+        </div>
+    {%- endfor -%}
 </div>

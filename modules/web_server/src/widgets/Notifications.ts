@@ -1,3 +1,5 @@
+import { addModifier, removeModifier } from "../utils/ElementTools";
+
 export class Notifications {
     private element: HTMLElement;
     private notifications: HTMLElement;
@@ -5,8 +7,8 @@ export class Notifications {
 
     constructor(id: string) {
         this.element = document.getElementById(`${id}-wrapper`);
-        this.notifications = document.getElementById(`${id}`);
-        this.button = document.getElementById("notifications-button");
+        this.notifications = document.getElementById(`${id}-items`);
+        this.button = document.getElementById(`${id}-button`);
         document.addEventListener("click", () => {
             this.hide();
         });
@@ -21,49 +23,55 @@ export class Notifications {
     }
 
     show(): void {
-        this.element.classList.add("visible");
+        addModifier(this.element, "visible");
     }
 
     hide(): void {
-        this.element.classList.remove("visible");
+        removeModifier(this.element, "visible");
     }
 
     addNotification(titleText: string, messageText: string, type: string): void {
         const notif = document.createElement("div");
-        notif.classList.add("notification");
-        notif.classList.add(type);
-        notif.classList.add("active");
+        const baseClass = "notification-item";
+        notif.classList.add(baseClass);
+        addModifier(notif, type);
+        addModifier(notif, "active");
 
         const icon = document.createElement("div");
+        icon.classList.add(`${baseClass}__icon`);
+        addModifier(icon, type);
 
         const title = document.createElement("h3");
+        title.classList.add(`${baseClass}__title`);
         title.innerHTML = titleText;
 
-        const message = document.createElement("p");
-        message.innerHTML = messageText;
+        const description = document.createElement("p");
+        description.classList.add(`${baseClass}__description`);
+        description.innerHTML = messageText;
 
         const close = document.createElement("span");
+        close.classList.add(`${baseClass}__close-button`);
         close.addEventListener("click", () => {
             this.closeNotification(notif);
         });
 
         notif.appendChild(icon);
         notif.appendChild(title);
-        notif.appendChild(message);
+        notif.appendChild(description);
         notif.appendChild(close);
 
         this.notifications.prepend(notif);
 
         setTimeout(() => {
-            notif.classList.remove("active");
+            removeModifier(notif, "active");
         }, 3000);
 
         this.updateNotificationCount();
     }
 
     closeNotification(notification: HTMLElement): void {
-        notification.classList.add("removed");
-        notification.classList.remove("active");
+        addModifier(notification, "removed");
+        removeModifier(notification, "active");
         setTimeout(() => {
             notification.remove();
             this.updateNotificationCount();
@@ -75,9 +83,9 @@ export class Notifications {
         this.button.innerHTML = count ? `${count}` : "";
 
         if (count > 0) {
-            this.button.classList.add("active");
+            addModifier(this.button, "active");
         } else {
-            this.button.classList.remove("active");
+            removeModifier(this.button, "active");
             this.hide();
         }
     }

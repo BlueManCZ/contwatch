@@ -1,25 +1,29 @@
 import { post } from "../utils/URLTools";
+import { addModifier, removeModifier } from "../utils/ElementTools";
 
 export class Dialog {
-    private element: HTMLElement;
+    private readonly element: HTMLElement;
+    private readonly dialog: HTMLElement;
 
     constructor(id: string) {
         this.element = document.getElementById(id);
+        this.dialog = this.element.getElementsByTagName("dialog")[0];
 
-        this.element.firstChild.addEventListener("click", (e) => {
+        this.dialog.addEventListener("click", (e) => {
             e.stopPropagation();
         });
     }
 
     load(dialogName: string, data: Record<string, string> = {}): void {
         post(`/dialog/${dialogName}`, (request) => {
-            (<HTMLElement> this.element.firstChild).innerHTML = request.responseText;
+            this.dialog.innerHTML = request.responseText;
             this.show();
         }, data, "JSON");
     }
 
     show(): void {
-        this.element.classList.remove("dialog-hidden");
+        this.dialog.scrollTo(0, 0);
+        removeModifier(this.element, "hidden");
     }
 
     send(url:string): void {
@@ -33,7 +37,7 @@ export class Dialog {
     }
 
     hide(): void {
-        this.element.classList.add("dialog-hidden");
+        addModifier(this.element, "hidden");
     }
 
     form(): HTMLFormElement {

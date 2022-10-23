@@ -20,10 +20,10 @@ export class Actions {
     }
 
     stopPropagation(className: string): void {
-        const arrows = document.getElementsByClassName(className);
-        for (let i = 0; i <= arrows.length; i++) {
-            if (arrows[i]) {
-                arrows[i].addEventListener("click", (evt) => {
+        const elements = document.getElementsByClassName(className);
+        for (let i = 0; i <= elements.length; i++) {
+            if (elements[i]) {
+                elements[i].addEventListener("click", (evt) => {
                     evt.stopPropagation();
                 });
             }

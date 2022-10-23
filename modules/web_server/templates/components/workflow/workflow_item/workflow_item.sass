@@ -1,0 +1,72 @@
+.workflow-item
+  @extend %white-edge
+  $this: &
+  display: inline-block
+  position: relative
+  max-width: 250px
+  height: 51px
+  margin: 15px 5px 0
+  padding: 2px 20px 0
+  border-radius: 10px
+  background: $white-fff
+  text-align: center
+  box-shadow: 2px 2px 3px $white-ddd
+  cursor: pointer
+  overflow: hidden
+
+  vertical-align: middle
+
+  &:hover
+    #{$this}__arrow
+      display: flex
+
+  &__arrow
+    display: none
+    position: absolute
+    top: 0
+    width: 28px
+    height: 100%
+    cursor: pointer
+    overflow: hidden
+
+    img
+      height: 15px
+      margin: auto
+
+    &:hover
+      img
+        filter: brightness(.8)
+
+    &--left
+      left: 0
+
+    &--right
+      right: 0
+
+      img
+        transform: scaleX(-1)
+
+  &--active
+    border: solid 2px $green
+
+  &__log-index
+    display: inline-block
+    min-width: 12px
+    height: 21px
+    margin-right: 5px
+    padding: 0 5px 0 6px
+    border-radius: 11px
+    background: $green
+    color: $white-fff
+    line-height: 19px
+    text-align: center
+    vertical-align: middle
+
+  &__name
+    margin: 4px 7px 2px
+    font-weight: bold
+
+  &__description
+    margin: 1px 7px 0
+    font-size: 13px
+    white-space: nowrap

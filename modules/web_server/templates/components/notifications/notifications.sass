@@ -1,0 +1,47 @@
+.notifications
+  &__button
+    display: none
+    position: fixed
+    top: 24px
+    right: 26px
+    width: 34px
+    height: 34px
+    border: solid 3px $grey-555
+    border-radius: 20px
+    font-size: 20px
+    font-weight: bold
+    line-height: 27px
+    text-align: center
+    cursor: pointer
+    z-index: 1
+    box-sizing: border-box
+
+    &--active
+      display: unset
+      background: $grey-555
+      color: $white-bg
+
+    @media (max-width: 900px)
+      right: 70px
+
+
+  &__wrapper
+    position: fixed
+    top: 0
+    right: -325px
+    width: 325px
+    height: 100%
+    transition: right ease-in-out 200ms
+    background: $white-main
+    z-index: 2
+
+    &--visible
+      right: 0
+
+      .notification-item--active
+        left: 0
+
+  &__resources
+    display: none
+
+@import 'notification_item/notification_item'

@@ -53,5 +53,5 @@ info.append(f"Database type: {DB_TYPE}")
 if DB_TYPE == "sqlite":
     info.append(f"Database file: {DB_SQLITE_FILE}")
 info.append(f"Log file: {LOG_FILE}")
-info.append(f"Web server: {WEB_SERVER_ADDRESS}:{WEB_SERVER_PORT}")
+info.append(f"Web server: http://{WEB_SERVER_ADDRESS}:{WEB_SERVER_PORT}")
 info.append(f"Async cache: {CACHING_ASYNC}")

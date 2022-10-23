@@ -1,0 +1,24 @@
+{%- macro block_list_item(title, description="", icon="", index="", modifier="", onclick="", number="") -%}
+    <div class="block-list-item block-list-item--white-edge
+        {% if modifier %}block-list-item--{{ modifier }}{% endif %}
+        {% if number %}block-list-item--with-number{% endif %}
+        {% if icon %}block-list-item--with-icon{% endif %}"
+         {% if onclick %}onclick="{{ onclick }}"{% endif %}
+    >
+
+        {% if icon %}
+            <img class="block-list-item__icon" src="{{ url_for('static', filename='images/icons/' + icon) }}" alt="{{ title }} icon">
+        {% endif %}
+
+        <div class="block-list-item__title">{{ title }}{% if index %} <span class="block-list-item__title--number">{{ index }}</span>{% endif %}</div>
+
+        <p class="block-list-item__description">
+            {{ description }}
+        </p>
+
+        {% if number %}
+            <span class="block-list-item__number">{{ number }}</span>
+        {% endif %}
+
+    </div>
+{%- endmacro -%}

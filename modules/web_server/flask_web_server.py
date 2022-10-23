@@ -2,7 +2,7 @@ from modules import settings, tools
 from modules.core import HandlerManager, database
 from modules.core.actions import *
 from modules.handlers import *
-from modules.tools import get_nested_attribute
+from modules.tools import get_nested_attribute, get_version
 
 from datetime import datetime, timedelta
 from flask import Flask, redirect, render_template, request
@@ -145,14 +145,15 @@ class FlaskWebServer:
                     "Distribution": tools.distribution(),
                 },
                 "ContWatch instance": {
+                    "Git fetch": tools.get_update_datetime(),
                     "Uptime": hr_datetime(
                         (datetime.now() - self.start_datetime).total_seconds()
                     ),
-                    "Last update": tools.get_update_datetime(),
                     "Handlers": len(self.manager.get_handlers()),
                     "Connections": self.connections,
                     "Database": settings.DB_TYPE,
                     "Cache size": hr_filesize(tools.get_size(self.cache)),
+                    "Version": get_version(),
                 },
             }
             return render_template("pages/details.html", data=dictionary)
@@ -418,7 +419,7 @@ class FlaskWebServer:
                     if handler.type == handler_type:
                         fields = handler.config_fields
                         return render_template(
-                            template_name, fields=fields, handler_type=handler_type
+                            template_name, fields=fields, handler=handler
                         )
 
             if "edit_handler" == dialog_name:
@@ -443,22 +444,28 @@ class FlaskWebServer:
                 else:
                     json = {}
 
-                attributes = []
+                attrs = []
                 if isinstance(json, dict):
-                    tools.linearize_json(json, attributes)
+                    tools.linearize_json(json, attrs)
 
-                for attributes_row in attributes:
+                attributes = {}
+
+                for attributes_row in attrs:
                     result = get_nested_attribute(json, attributes_row)
 
                     try:
                         float(result)
+                        attributes[attributes_row] = result
                     except TypeError:
-                        attributes.remove(attributes_row)
+                        pass
                     except ValueError:
-                        attributes.remove(attributes_row)
+                        pass
 
                 return render_template(
-                    template_name, id=handler_id, handler=handler, attributes=attributes
+                    template_name,
+                    id=handler_id,
+                    handler=handler,
+                    attributes=attributes,
                 )
 
             if "add_new_routine" == dialog_name:
@@ -606,6 +613,13 @@ class FlaskWebServer:
         def edit_event_listener(listener_id):
             listener = self.manager.event_manager.get_event_listener(listener_id)
             listener_label = request.form["listener_label"]
+            if not listener_label:
+                return tools.json_notif(
+                    400,
+                    "error",
+                    "Saving failed",
+                    f"Event label or attribute name cannot be empty.",
+                )
             listener.set_label(listener_label)
             handler_id = int(request.form["listener_handler"])
             listener.set_handler_id(handler_id)

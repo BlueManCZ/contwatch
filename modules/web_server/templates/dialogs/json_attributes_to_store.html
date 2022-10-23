@@ -1,14 +1,22 @@
-<h1>Select JSON attributes to store in database</h1>
-<form id="json-attributes-to-store" action="">
-    {% if not attributes %}
-        <p><br>There are no data to save from this handler.</p>
-    {% endif %}
-    {% for attribute in attributes %}
-        <div class="form-check">
-            <input type="checkbox" class="form-check-input" name="{{ attribute }}" id="{{ attribute }}" {% if attribute in handler.get_storage_attributes() %}checked{% endif %}>
-            <label class="form-check-label text-muted" for="{{ attribute }}">{{ attribute }}</label>
-        </div>
-    {% endfor %}
+{% extends "components/dialog/dialog.html" %}
 
-    <button type="button" class="mt-3 btn btn-primary btn-sm" onclick="window.app.dialog.send('/edit_json_attributes_to_store/{{ id }}')"><b>Save</b></button>
-</form>
+{% from "components/button/button.html" import button %}
+{% from "components/checkbox_list/checkbox_list_item/checkbox_list_item.html" import checkbox_list_item %}
+
+{% block dialog_title %}
+{{ handler.get_name() }} <span class="dialog__title--number">{{ id }}</span>
+{% endblock %}
+
+{% block dialog_form %}
+<div class="form-group">
+{% if not attributes %}
+    <p>There are no data to save from this handler.</p>
+{% else %}
+    <p class="form-group__title">Attributes to store</p>
+{% endif %}
+{% for attribute in attributes %}
+    {{ checkbox_list_item(attribute, "", attribute in handler.get_storage_attributes(), attributes[attribute]) }}
+{% endfor %}
+</div>
+{{ button("Save", "window.app.dialog.send('/edit_json_attributes_to_store/" + id|string + "')", "save.png", ["small"]) }}
+{% endblock %}

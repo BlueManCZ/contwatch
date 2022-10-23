@@ -1,0 +1,21 @@
+{% from 'components/navbar/navbar_item/navbar_item.html' import navbar_item %}
+
+<img class="navbar-button" src="{{ url_for('static', filename='images/icons/menu.png') }}" alt="Menu icon" onclick="window.app.menu.show()">
+
+<nav class="navbar" id="menu">
+    <h1 class="navbar__title">ContWatch
+        <img class="navbar__logo" src="{{ url_for('static', filename='images/favicon.png') }}" alt="Logo">
+    </h1>
+    <div>
+        <h5 class="navbar__title navbar__title--smaller">Navigation</h5>
+        <ul class="navbar__items">
+            <!-- TODO: Rewrite as macro with loop -->
+            {{ navbar_item("Overview", "Watch real-time data flow", "overview") }}
+            {{ navbar_item("Inspector", "Visualize data from the database", "inspector") }}
+            {{ navbar_item("Actions", "Setup custom rules and actions", "actions") }}
+            {{ navbar_item("Database manager", "Select data to store", "data") }}
+            {{ navbar_item("Handler manager", "Manage configured handlers", "handlers") }}
+            {{ navbar_item("Details", "Display advanced information", "details") }}
+        </ul>
+    </div>
+</nav>

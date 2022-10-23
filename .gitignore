@@ -10,6 +10,10 @@ package-lock.json
 
 # Build
 modules/web_server/static/js
+modules/web_server/static/styles/*.css
+modules/web_server/static/styles/*.css.map
+!modules/web_server/static/styles/main.css
+!modules/web_server/static/styles/main.css.map
 
 # Logs
 *.log*
@@ -22,3 +26,6 @@ modules/web_server/static/js
 
 # Nohup
 nohup.out
+
+# Static symlink
+/static
