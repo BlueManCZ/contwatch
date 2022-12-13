@@ -4,3 +4,4 @@ flask-socketio
 pony
 pyserial
 requests
+simplejson

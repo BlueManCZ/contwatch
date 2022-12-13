@@ -1,13 +1,9 @@
 from .abstract_handler import AbstractHandler
 from modules.logging.logger import logger
 
+from simplejson import JSONDecodeError
 from requests import get
-from requests.exceptions import (
-    JSONDecodeError,
-    ConnectionError,
-    ReadTimeout,
-    MissingSchema,
-)
+from requests.exceptions import ConnectionError, ReadTimeout, MissingSchema
 from ssl import SSLError
 from threading import Thread
 from time import sleep

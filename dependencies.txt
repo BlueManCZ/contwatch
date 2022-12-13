@@ -4,3 +4,4 @@ python3-flask-socketio
 python3-pony
 python3-requests
 python3-serial
+python3-simplejson
