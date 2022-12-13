@@ -1,12 +1,16 @@
 from .abstract_handler import AbstractHandler
 from modules.logging.logger import logger
 
-from json.decoder import JSONDecodeError
 from requests import get
-from requests.exceptions import ConnectionError, ReadTimeout, MissingSchema
+from requests.exceptions import (
+    JSONDecodeError,
+    ConnectionError,
+    ReadTimeout,
+    MissingSchema,
+)
 from ssl import SSLError
 from threading import Thread
-from time import sleep, time
+from time import sleep
 
 
 class HttpHandler(AbstractHandler):
@@ -17,6 +21,7 @@ class HttpHandler(AbstractHandler):
         self.success = False
         self.add_changed("handlers")
         while self.active:
+            response = None
             if self.success:
                 self.wait_for_interval(self.config("interval"))
             try:
@@ -51,6 +56,9 @@ class HttpHandler(AbstractHandler):
                 break
             except JSONDecodeError as error:
                 self._handle_error(error, "Json decode error")
+                self.log.error(error)
+                if response:
+                    self.log.debug(response.text)
                 break
             except SSLError as error:
                 self._handle_error(error, "SSL error")
