@@ -18,6 +18,9 @@ modules/web_server/static/styles/*.css.map
 # Logs
 *.log*
 
+# Configs
+*.json
+
 # SASS
 .sass-cache/
 
