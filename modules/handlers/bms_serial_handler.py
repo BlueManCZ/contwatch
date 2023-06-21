@@ -29,7 +29,7 @@ class BmsSerialHandler(SerialHandler):
 
         # TODO: Auto detect echoed messages and trim them automatically.
         incoming_length = 11
-        if self.config("trim-echo"):
+        if not self.config("trim-echo"):
             incoming_length = 4
         for i in range(0, incoming_length):
             byte = int.from_bytes(self.connection.read(), "big")
