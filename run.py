@@ -8,17 +8,14 @@ from modules import settings
 from modules.logging.logger import logger
 from modules.core import HandlerManager, database
 from modules.web_server.flask_web_server import FlaskWebServer
+from modules.tools.modules_registrator import ModulesRegistrator
 
 from json import dumps, load
 from optparse import OptionParser
 from signal import signal, SIGINT
 
-registered_modules = []
 
-
-def register_modules(*modules):
-    for module in modules:
-        registered_modules.append(module)
+registered_modules = ModulesRegistrator()
 
 
 def _quit_handler(_, __):
@@ -28,8 +25,7 @@ def _quit_handler(_, __):
 
 
 def _quit():
-    for module in registered_modules:
-        module.exit()
+    registered_modules.exit()
     quit()
 
 
@@ -65,7 +61,7 @@ if __name__ == "__main__":
     manager = HandlerManager(db)
 
     # Register modules for SIGINT handler
-    register_modules(db, manager)
+    registered_modules.add(db, manager)
 
     if options.export_config:
         data = manager.export_config()
@@ -84,7 +80,7 @@ if __name__ == "__main__":
 
     if settings.WEB_SERVER:
         web = FlaskWebServer(manager, db)
-        register_modules(web)
+        registered_modules.add(web)
 
     # Wait for the manager thread to end
     manager.thread.join()

@@ -17,18 +17,26 @@ class BmsSerialHandler(SerialHandler):
         "interval": ["int", "Fetching interval in seconds", 10],
         "timeout": ["float", "Timeout in seconds", 0.1],
         "auto-reconnect": ["bool", "Auto reconnect", True],
+        "trim-echo": ["bool", "Trim echoed messages", False],
     }
 
     def _read_block(self, query):
+        self.connection.flushInput()
+        self.connection.flushOutput()
         self.connection.write(query)
         data = []
         length = 0
-        for i in range(0, 11):
+
+        # TODO: Auto detect echoed messages and trim them automatically.
+        incoming_length = 11
+        if self.config("trim-echo"):
+            incoming_length = 4
+        for i in range(0, incoming_length):
             byte = int.from_bytes(self.connection.read(), "big")
-            if i == 9:
+            if i == incoming_length - 2:
                 if byte != 0:
                     break
-            if i == 10:
+            if i == incoming_length - 1:
                 length = byte
 
         for i in range(0, length):
@@ -64,6 +72,7 @@ class BmsSerialHandler(SerialHandler):
             "percentages": d1[19],
             "mos-state": d1[20],
             "temperatures": {
+                # TODO: Number of temps is provided in data too, do this in loop.
                 "1": (_byte(d1, 23) - 2731) / 10,
                 "2": (_byte(d1, 25) - 2731) / 10,
             },
@@ -97,6 +106,7 @@ class BmsSerialHandler(SerialHandler):
                     byte_sum = sum(current_bytes)
                     text = text.replace("?? ??", hex(256 * 256 - byte_sum)[2:])
                     self.connection.write(bytes.fromhex(text))
+                    # TODO: Read answer from device and detect return state.
                     return True
             except SerialException:
                 pass
