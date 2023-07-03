@@ -42,6 +42,7 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
 
         for section_type in self.registers.keys():
             for key, data in self.registers[section_type].items():
+                print(result)
                 result[section_type][key] = self.connection.read_register(
                     data[0], data[1]
                 )
@@ -111,6 +112,7 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
 
         self.active = True
         self.suspended = False
+        print(self.connection)
         self.add_changed("handlers")
 
         Thread(target=self._reconnect_watcher).start()
@@ -125,6 +127,7 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
         self.connection.serial.timeout = self.config("timeout")
         self.connection.address = self.config("slave-address")
         self.connection.serial.close()
+        print(self.connection)
 
         if self.suspended:
             Thread(target=self._reconnect_watcher).start()
