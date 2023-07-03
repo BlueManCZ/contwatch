@@ -1,4 +1,4 @@
-from minimalmodbus import Instrument, NoResponseError
+from minimalmodbus import Instrument, NoResponseError, InvalidResponseError
 from os import path
 from serial import SerialException
 from threading import Thread
@@ -69,6 +69,9 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
                 except NoResponseError as error:
                     self._handle_error(error, "Communication error")
                     break
+                except InvalidResponseError as error:
+                    self._handle_error(error, "Invalid response error")
+                    break
             else:
                 self.log.info("Lost connection with device")
                 self.connection.serial.close()
@@ -114,6 +117,8 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
             self.connection.serial.close()
             return False
         except NoResponseError:
+            return False
+        except InvalidResponseError:
             return False
 
     def __init__(self, settings):
