@@ -46,6 +46,7 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
                 result[section_type][key] = self.connection.read_register(
                     data[0], data[1]
                 )
+                sleep(0.1)
 
         return result
 
