@@ -24,16 +24,16 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
 
     registers = {
         "charger": {
-            "pv-voltage": [15205, 0.1],
-            "battery-voltage": [15206, 0.1],
-            "current": [15207, 0.1],
-            "power": [15208, 1],
+            "pv-voltage": [15205, 1],
+            "battery-voltage": [15206, 1],
+            "current": [15207, 1],
+            "power": [15208, 0],
         },
         "inverter": {
-            "battery-voltage": [25205, 0.1],
-            "power": [25213, 1],
-            "power-grid": [25214, 1],
-            "power-load": [25215, 1],
+            "battery-voltage": [25205, 1],
+            "power": [25213, 0],
+            "power-grid": [25214, 0],
+            "power-load": [25215, 0],
         },
     }
 
