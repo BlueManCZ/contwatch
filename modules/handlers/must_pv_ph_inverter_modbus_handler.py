@@ -1,4 +1,4 @@
-from minimalmodbus import Instrument
+from minimalmodbus import Instrument, NoResponseError
 from os import path
 from serial import SerialException
 from threading import Thread
@@ -60,13 +60,15 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
                     message = self._read_message()
                     if message:
                         self.add_message(message)
-                except SerialException:
-                    self.log.warning("Failed to read from device")
-                    self._reconnect()
-                    sleep(0.1)
+                except SerialException as error:
+                    self._handle_error(error, "Failed to read from device")
+                    break
                 except UnicodeDecodeError as error:
                     self.log.warning(error)
                     sleep(0.1)
+                except NoResponseError as error:
+                    self._handle_error(error, "Communication error")
+                    break
             else:
                 self.log.info("Lost connection with device")
                 self.connection.serial.close()
@@ -77,6 +79,14 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
                     self.suspended = True
                 break
         self.log.debug("Stopping message watcher")
+
+    def _handle_error(self, error, message):
+        # print(error)
+        self.log.warning(message)
+        self.log.error(error)
+        self.success = False
+        self.add_changed("handlers")
+        Thread(target=self._reconnect_watcher).start()
 
     def _reconnect_watcher(self):
         self.log.debug("Starting reconnect watcher")
@@ -102,6 +112,8 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
                     "Failed to establish connection - Device does not exist"
                 )
             self.connection.serial.close()
+            return False
+        except NoResponseError:
             return False
 
     def __init__(self, settings):
