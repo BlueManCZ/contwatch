@@ -130,3 +130,6 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
             Thread(target=self._reconnect_watcher).start()
 
         self.add_changed("handlers")
+
+    def is_connected(self):
+        return self.connection.serial.is_open
