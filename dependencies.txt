@@ -1,6 +1,7 @@
 python3-eventlet
 python3-flask
 python3-flask-socketio
+python3-minimalmodbus
 python3-pony
 python3-requests
 python3-serial

@@ -1,6 +1,7 @@
 eventlet
 flask
 flask-socketio
+minimalmodbus
 pony
 pyserial
 requests
