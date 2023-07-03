@@ -13,7 +13,7 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
 
     type = "must_pv_ph_modbus"
     icon = "inverter"
-    name = "MUST PV/PH solar system inverter"
+    name = "MUST PV/PH solar inverter"
     config_fields = {
         "port": ["string", "Device port (e.g., /dev/ttyUSB0)"],
         "slave-address": ["int", "Device slave address", 4],
@@ -38,15 +38,17 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
     }
 
     def _read_message(self):
+        if not self.first_tick():
+            self.wait_for_interval(self.config("interval"))
+
         result = {"charger": {}, "inverter": {}}
 
         for section_type in self.registers.keys():
             for key, data in self.registers[section_type].items():
-                print(result)
                 result[section_type][key] = self.connection.read_register(
                     data[0], data[1]
                 )
-                sleep(0.1)
+                sleep(0.05)
 
         return result
 
@@ -113,7 +115,6 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
 
         self.active = True
         self.suspended = False
-        print(self.connection)
         self.add_changed("handlers")
 
         Thread(target=self._reconnect_watcher).start()
@@ -128,12 +129,14 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
         self.connection.serial.timeout = self.config("timeout")
         self.connection.address = self.config("slave-address")
         self.connection.serial.close()
-        print(self.connection)
 
         if self.suspended:
             Thread(target=self._reconnect_watcher).start()
 
         self.add_changed("handlers")
+
+    def get_description(self):
+        return self.connection.serial.port
 
     def is_connected(self):
         return self.connection.serial.is_open
