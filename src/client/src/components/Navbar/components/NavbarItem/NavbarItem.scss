@@ -1,0 +1,19 @@
+.navbar-item {
+    margin: 5px 0 0;
+    padding: 13px 15px;
+    background: $white;
+    border-radius: 10px;
+    font-weight: bold;
+    width: 70%;
+    cursor: pointer;
+
+    &:hover {
+        background: $primary-background;
+        opacity: 0.8;
+    }
+
+    &--active {
+        background: $primary-background;
+        opacity: 1 !important;
+    }
+}

@@ -1,34 +1,26 @@
-# JetBrains
+# JetBrains IDE
 .idea/
 
 # Python
 __pycache__/
+*.pyc
 
 # Node.js
 node_modules
-package-lock.json
+*config.js
 
-# Build
-modules/web_server/static/js
-modules/web_server/static/styles/*.css
-modules/web_server/static/styles/*.css.map
-!modules/web_server/static/styles/main.css
-!modules/web_server/static/styles/main.css.map
+# Next.js
+.next/
 
 # Logs
 *.log*
 
-# Configs
-*.json
-
-# SASS
-.sass-cache/
-
 # Database
 *.sqlite*
 
+# Environment
+*.env*
+
 # Nohup
 nohup.out
-
-# Static symlink
-/static
+ 

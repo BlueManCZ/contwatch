@@ -1,0 +1,11 @@
+@mixin card-item {
+    padding: 30px;
+
+    &:first-child {
+        padding-bottom: 0;
+    }
+
+    &:only-child {
+        padding-bottom: 30px;
+    }
+}

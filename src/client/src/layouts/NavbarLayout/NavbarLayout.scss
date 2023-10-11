@@ -1,0 +1,15 @@
+.navbar-layout {
+    position: relative;
+    display: flex;
+    max-height: 100vh;
+
+    &__content {
+        position: relative;
+        box-sizing: border-box;
+        flex-grow: 1;
+        max-height: 100%;
+        overflow: auto;
+        z-index: 0;
+        padding: 0 40px;
+    }
+}

@@ -1,0 +1,25 @@
+@import "./components/MenuItem/MenuItem";
+@import "./components/MenuSection/MenuSection";
+
+.menu {
+    background: $white;
+    max-width: 350px;
+    padding: 30px;
+    height: 100vh;
+    box-sizing: border-box;
+
+    &__header {
+        margin-bottom: 30px;
+    }
+
+    &__title {
+        margin: 0;
+        font-size: 23px;
+    }
+
+    &__description {
+        margin: 0;
+        font-size: 14px;
+        font-weight: normal;
+    }
+}

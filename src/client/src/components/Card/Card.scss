@@ -1,0 +1,33 @@
+@import "./mixins";
+
+@import "./components/CardBody/CardBody";
+@import "./components/CardHeader/CardHeader";
+
+.card {
+    @include card;
+
+    &--fullwidth {
+        width: 100%;
+    }
+
+    &--overflow {
+        &-auto {
+            overflow: auto;
+        }
+    }
+
+    &--variant {
+        &-clickable {
+            cursor: pointer;
+
+            &:hover {
+                box-shadow: 2px 2px 5px $grey-ccc;
+            }
+        }
+    }
+
+    &--variant-clickable#{&}--active {
+        background: $purple;
+        color: white;
+    }
+}

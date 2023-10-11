@@ -1,0 +1,18 @@
+.menu-section {
+    margin-top: 20px;
+
+    &__header {
+        margin-bottom: 10px;
+    }
+
+    &__title {
+        margin: 0;
+        font-size: 18px;
+    }
+
+    &__description {
+        margin: 0;
+        font-size: 14px;
+        font-weight: normal;
+    }
+}

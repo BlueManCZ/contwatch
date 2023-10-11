@@ -1,0 +1,73 @@
+@import "./mixins";
+
+.button {
+    background: none;
+    font-family: $font-cantarell;
+    cursor: pointer;
+    border: none;
+
+    &--expand {
+        width: 100%;
+    }
+
+    &--grow {
+        flex-grow: 1;
+    }
+
+    &--variant {
+        &-none {
+            padding: 0;
+            text-align: left;
+        }
+
+        &-default {
+            @include button-theme;
+
+            background: $primary-action;
+            color: $primary-text-light;
+            display: flex;
+            align-items: center;
+
+            &:hover {
+                @include active-shadow;
+
+                filter: brightness(1.1);
+            }
+        }
+
+        &-outline {
+            @include button-theme;
+
+            box-shadow: inset 0 0 0 2px $blue;
+            color: $blue;
+
+            &:hover {
+                box-shadow: inset 0 0 0 2px $blue, 0 0 10px $grey-bbb;
+            }
+        }
+
+        &-navbar {
+            text-transform: unset;
+            font-weight: normal;
+            font-size: 15px;
+            background: unset;
+            color: $grey-333;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px;
+            border-radius: 10px;
+
+            &:hover {
+                background: $grey-eee;
+            }
+        }
+    }
+
+    &--variant-navbar#{&}--active {
+        @include active;
+
+        font-weight: bold;
+    }
+}

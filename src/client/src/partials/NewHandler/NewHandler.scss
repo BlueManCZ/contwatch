@@ -1,0 +1,17 @@
+.new-handler {
+    &__icon {
+        @include active;
+
+        display: flex;
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    &__description {
+        @include subtitle;
+    }
+
+    &__title {
+        margin: 0;
+    }
+}

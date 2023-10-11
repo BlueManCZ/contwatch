@@ -1,0 +1,53 @@
+@font-face {
+    font-family: Cantarell;
+    font-weight: 200;
+    src: url("/public/fonts/Cantarell-Thin.otf") format("opentype");
+}
+
+@font-face {
+    font-family: Cantarell;
+    font-weight: 300;
+    src: url("/public/fonts/Cantarell-Light.otf") format("opentype");
+}
+
+@font-face {
+    font-family: Cantarell;
+    src: url("/public/fonts/Cantarell-Regular.otf") format("opentype");
+}
+
+@font-face {
+    font-family: Cantarell;
+    font-weight: bold;
+    src: url("/public/fonts/Cantarell-Bold.otf") format("opentype");
+}
+
+@font-face {
+    font-family: Cantarell;
+    font-weight: 900;
+    src: url("/public/fonts/Cantarell-ExtraBold.otf") format("opentype");
+}
+
+@font-face {
+    font-family: IndieFlower;
+    src: url("/public/fonts/IndieFlower-Regular.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Roboto Mono";
+    src: url("/public/fonts/RobotoMono-Regular.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Roboto Mono";
+    font-weight: 700;
+    src: url("/public/fonts/RobotoMono-Medium.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Roboto Mono";
+    font-weight: 900;
+    src: url("/public/fonts/RobotoMono-Bold.ttf") format("truetype");
+}
+
+$font-cantarell: "Cantarell", "Verdana", sans-serif;
+$font2: "Roboto Mono", monospace;
