@@ -1,6 +1,6 @@
 import { FunctionComponent, ReactNode } from "react";
 
-import { FlexLayout, Navbar, NavbarItem, NavbarLogo, NavbarSection,ThemedIconName  } from "../../components";
+import { FlexLayout, Navbar, NavbarItem, NavbarLogo, NavbarSection, ThemedIconName } from "../../components";
 import { bemClassNames, GLOBAL_LOC_KEYS } from "../../utils";
 
 const bem = bemClassNames("navbar-layout");
@@ -20,7 +20,7 @@ export const NavbarLayout: FunctionComponent<NavbarLayoutProps> = ({ children })
         <FlexLayout className={bem()}>
             <Navbar>
                 <NavbarSection>
-                    <NavbarLogo image="/public/images/favicon.png" />
+                    <NavbarLogo />
                 </NavbarSection>
                 <NavbarSection>
                     {navbarItems.map((item) => (

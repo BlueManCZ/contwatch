@@ -1,25 +1,16 @@
 {
   "extends": "next/core-web-vitals",
   "plugins": [
-    "simple-import-sort",
+    "import",
     "unused-imports",
-    "import"
+    "simple-import-sort",
+    "prettier"
   ],
-  "ignorePatterns": ["**/*.ts"],
   "rules": {
-//    "indent": "off",
-//    "@typescript-eslint/indent": "error",
-
     "import/no-duplicates": "error",
     "simple-import-sort/imports": "error",
     "simple-import-sort/exports": "error",
-
-    "no-unused-vars": "off",
-    "@typescript-eslint/no-unused-vars": "off",
-    "unused-imports/no-unused-imports": "error"
-//    "unused-imports/no-unused-vars": [
-//      "warn",
-//      { "vars": "all", "varsIgnorePattern": "^_", "args": "after-used", "argsIgnorePattern": "^_" }
-//    ]
+    "unused-imports/no-unused-imports": "error",
+    "prettier/prettier": "error"
   }
 }

@@ -1,2 +1,2 @@
-export * from "./availableHandlers";
 export * from "./handlers";
+export * from "./widgets";

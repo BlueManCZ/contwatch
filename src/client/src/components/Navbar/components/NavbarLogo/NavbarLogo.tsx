@@ -4,8 +4,7 @@ import { bemClassNames } from "../../../../utils";
 import { FlexLayout } from "../../../FlexLayout";
 import { CustomIconName, Icon } from "../../../Icon";
 
-export type NavbarLogoProps = {
-};
+export type NavbarLogoProps = {};
 
 const classNames = bemClassNames("navbar-logo");
 

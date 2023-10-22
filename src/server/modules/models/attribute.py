@@ -8,10 +8,11 @@ class Attribute(db.Entity):
 
     name = orm.Required(str, index=True)
     handler = orm.Required("Handler")
-    # stats_to_store = orm.Set(str)
     data_units = orm.Set("DataUnit")
     data_stats = orm.Set("DataStat")
+    widgets = orm.Set("WidgetTile")
     enabled = orm.Required(bool)
+    unit = orm.Optional(str)
 
     # def to_json(self):
     #     return {}

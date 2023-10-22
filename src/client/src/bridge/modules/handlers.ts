@@ -19,3 +19,7 @@ export const addHandler = (
 ) => {
     return postJson(getApiEndpoint(Endpoint.addHandler), handler, onSuccess, onError);
 };
+
+export const useAvailableHandlers = () => {
+    return useSWR<HandlerModel[]>(getApiEndpoint(Endpoint.availableHandlers), getJson);
+};

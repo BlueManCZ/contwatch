@@ -1,7 +1,7 @@
 import { FC } from "react";
 
 import { bemClassNames } from "../../../utils";
-import { Icon, ThemedIconName } from "../../Icon";
+import { Icon, IconName } from "../../Icon";
 
 const bem = bemClassNames("attribute-widget");
 
@@ -10,7 +10,7 @@ export type AttributeWidgetProps = {
     description: string;
     value: string | number | boolean;
     unit: string;
-    icon: ThemedIconName;
+    icon: IconName;
 };
 
 export const AttributeWidget: FC<AttributeWidgetProps> = ({ title, description, value, unit, icon }) => {
