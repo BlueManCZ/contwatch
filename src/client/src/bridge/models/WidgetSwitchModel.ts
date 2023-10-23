@@ -1,11 +1,11 @@
 import { IconName } from "../../components";
 
-export interface WidgetModel {
+export interface WidgetSwitchModel {
     id: number;
     name: string;
+    description: string;
     handler: number;
     icon: IconName;
     attribute: string;
-    unit: string;
-    value: string | number | boolean;
+    active: boolean;
 }

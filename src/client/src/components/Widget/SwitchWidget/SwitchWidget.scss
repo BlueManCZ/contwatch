@@ -1,0 +1,65 @@
+.switch-widget {
+    background: $white;
+    padding: 10px 12px;
+    border-radius: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-grow: 1;
+    flex-wrap: wrap;
+    max-width: 400px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    &__text-body {
+        flex-grow: 1;
+    }
+
+    &__title {
+        font-weight: bold;
+    }
+
+    &__description {
+        font-size: 13px;
+    }
+
+    $this: &;
+
+    &__toggle {
+        width: 60px;
+        height: 33px;
+        background: $primary-background;
+        border-radius: 50px;
+        position: relative;
+        transition: all 0.2s ease-in-out;
+
+        &::after {
+            content: '';
+            display: block;
+            position: relative;
+            width: 25px;
+            height: 25px;
+            top: 4px;
+            left: 4px;
+            background: $grey-ddd;
+            border-radius: 50%;
+            transition: all 0.2s ease-in-out;
+        }
+    }
+
+    &--active {
+        background: #5278FF;
+        color: $white;
+
+        #{$this} {
+            &__toggle {
+                background: #333C62;
+            }
+
+            &__toggle::after {
+                background: $white;
+                left: 30px;
+            }
+        }
+    }
+}

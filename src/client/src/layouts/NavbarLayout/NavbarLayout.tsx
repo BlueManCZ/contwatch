@@ -28,7 +28,7 @@ export const NavbarLayout: FunctionComponent<NavbarLayoutProps> = ({ children })
                     ))}
                 </NavbarSection>
             </Navbar>
-            <FlexLayout direction="column" className={bem("content")}>
+            <FlexLayout direction="column" gap="20px" className={bem("content")}>
                 {children}
             </FlexLayout>
         </FlexLayout>

@@ -1,25 +1,37 @@
-import { useWidgets } from "../src/bridge";
+import { useWidgetSwitches, useWidgetTiles } from "../src/bridge";
 import { FlexLayout, Header, HeaderSize, Loc } from "../src/components";
-import { AttributeWidget } from "../src/components/Widget";
+import { AttributeWidget, SwitchWidget } from "../src/components/Widget";
 import { NavbarLayout } from "../src/layouts";
 import { GLOBAL_LOC_KEYS } from "../src/utils";
 
 export const Dashboard = () => {
-    const { data: widgets } = useWidgets();
+    const { data: tiles } = useWidgetTiles();
+    const { data: switches } = useWidgetSwitches();
     return (
         <NavbarLayout>
             <Header size={HeaderSize.h2}>
                 <Loc>{GLOBAL_LOC_KEYS.DASHBOARD}</Loc>
             </Header>
             <FlexLayout gap="20px" wrap="wrap">
-                {widgets?.map((widget) => (
+                {tiles?.map((widget) => (
                     <AttributeWidget
                         key={widget.id}
                         title={widget.name}
-                        description={widget.attribute}
-                        value={widget.value}
-                        unit={widget.unit}
+                        description={widget.description}
                         icon={widget.icon}
+                        unit={widget.unit}
+                        value={widget.value}
+                    />
+                ))}
+            </FlexLayout>
+            <FlexLayout gap="20px" wrap="wrap">
+                {switches?.map((widget) => (
+                    <SwitchWidget
+                        key={widget.id}
+                        title={widget.name}
+                        description={widget.description}
+                        icon={widget.icon}
+                        active={widget.active}
                     />
                 ))}
             </FlexLayout>

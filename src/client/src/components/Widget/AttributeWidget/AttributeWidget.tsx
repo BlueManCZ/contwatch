@@ -8,9 +8,9 @@ const bem = bemClassNames("attribute-widget");
 export type AttributeWidgetProps = {
     title: string;
     description: string;
-    value: string | number | boolean;
-    unit: string;
     icon: IconName;
+    unit: string;
+    value: string | number | boolean;
 };
 
 export const AttributeWidget: FC<AttributeWidgetProps> = ({ title, description, value, unit, icon }) => {

@@ -1,9 +1,13 @@
 import useSWR from "swr";
 
 import { Endpoint, getApiEndpoint } from "../endpoints";
-import { WidgetModel } from "../models/WidgetModel";
+import { WidgetSwitchModel, WidgetTileModel } from "../models";
 import { getJson } from "../utils";
 
-export const useWidgets = () => {
-    return useSWR<WidgetModel[]>(getApiEndpoint(Endpoint.widgets), getJson);
+export const useWidgetSwitches = () => {
+    return useSWR<WidgetSwitchModel[]>(getApiEndpoint(Endpoint.widgetSwitches), getJson);
+};
+
+export const useWidgetTiles = () => {
+    return useSWR<WidgetTileModel[]>(getApiEndpoint(Endpoint.widgetTiles), getJson);
 };

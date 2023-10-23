@@ -10,7 +10,8 @@ class Attribute(db.Entity):
     handler = orm.Required("Handler")
     data_units = orm.Set("DataUnit")
     data_stats = orm.Set("DataStat")
-    widgets = orm.Set("WidgetTile")
+    widget_tiles = orm.Set("WidgetTile")
+    widget_switches = orm.Set("WidgetSwitch")
     enabled = orm.Required(bool)
     unit = orm.Optional(str)
 

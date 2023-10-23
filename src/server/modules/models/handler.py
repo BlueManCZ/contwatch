@@ -17,7 +17,6 @@ class Handler(db.Entity):
     data = orm.Set(DataUnit)
     stats = orm.Set(DataStat)
     attributes = orm.Set(Attribute)
-    widgets = orm.Set(WidgetTile)
     # events = orm.Set("EventUnit")
 
 

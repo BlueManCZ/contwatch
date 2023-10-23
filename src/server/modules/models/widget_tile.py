@@ -7,7 +7,6 @@ class WidgetTile(db.Entity):
     """Database entity representing widget tile"""
 
     name = orm.Optional(str, index=True)
-    handler = orm.Required("Handler")
     icon = orm.Optional(str)
     attribute = orm.Required("Attribute")
 
