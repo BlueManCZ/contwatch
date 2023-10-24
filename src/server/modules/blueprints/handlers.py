@@ -38,7 +38,7 @@ def handlers_blueprint(_init: BlueprintInit):
             for h_id, handler in _init.manager.registered_handlers.items()
         ], StatusCode.OK
 
-    @blueprint.route("/<int:handler_id>", methods=["GET"])
+    @blueprint.route("/<int:handler_id>")
     def handler_info(handler_id):
         handler = _init.manager.registered_handlers.get(handler_id, None)
         if handler:

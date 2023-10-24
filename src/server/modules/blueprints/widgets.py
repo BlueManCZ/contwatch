@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, request
 from pony import orm
 
 from modules.blueprints.enums import StatusCode
@@ -36,6 +36,7 @@ def widgets_blueprint(_init: BlueprintInit):
                 "name": tile.name,
                 "description": get_handler(tile).get_name(),
                 "handler": tile.attribute.handler.id,
+                "status": 1 if get_handler(tile).is_connected() else 0,
                 "icon": tile.icon,
                 "attribute": tile.attribute.name,
                 "unit": tile.attribute.unit,
@@ -53,11 +54,33 @@ def widgets_blueprint(_init: BlueprintInit):
                 "name": switch.name,
                 "description": get_handler(switch).get_name(),
                 "handler": switch.attribute.handler.id,
+                "status": 1 if get_handler(switch).is_connected() else 0,
                 "icon": switch.icon,
                 "attribute": switch.attribute.name,
                 "active": evaluate_attribute(switch),
             }
             for switch in WidgetSwitch.select()
         ], StatusCode.OK
+
+    @blueprint.route("/switches/toggle/<int:switch_id>", methods=["POST"])
+    @orm.db_session
+    def widget_switches_toggle(switch_id):
+        value = request.json.get("value", None)
+        for switch in WidgetSwitch.select(lambda s: s.id == switch_id):
+            handler = get_handler(switch)
+            if value:
+                handler.send_message({"label": switch.action_on.message})
+            else:
+                handler.send_message({"label": switch.action_off.message})
+            return {
+                "id": switch.id,
+                "name": switch.name,
+                "description": get_handler(switch).get_name(),
+                "handler": switch.attribute.handler.id,
+                "icon": switch.icon,
+                "attribute": switch.attribute.name,
+                "active": evaluate_attribute(switch),
+            }, StatusCode.OK
+        return {"status": "not found"}, StatusCode.NOT_FOUND
 
     return blueprint

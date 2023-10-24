@@ -9,6 +9,8 @@
     flex-wrap: wrap;
     max-width: 400px;
 
+    $this: &;
+
     &__text-body {
         flex-grow: 1;
     }
@@ -33,5 +35,17 @@
     &__unit {
         font-weight: normal;
         font-size: 18px;
+    }
+
+    &--disabled {
+        color: $grey-999;
+
+        .icon {
+            opacity: 0.3;
+        }
+
+        #{$this}__value {
+            display: none;
+        }
     }
 }

@@ -1,11 +1,5 @@
-import { IconName } from "../../components";
+import { Widget } from "./Widget";
 
-export interface WidgetSwitchModel {
-    id: number;
-    name: string;
-    description: string;
-    handler: number;
-    icon: IconName;
-    attribute: string;
+export interface WidgetSwitchModel extends Widget {
     active: boolean;
 }

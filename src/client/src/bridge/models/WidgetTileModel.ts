@@ -1,12 +1,6 @@
-import { IconName } from "../../components";
+import { Widget } from "./Widget";
 
-export interface WidgetTileModel {
-    id: number;
-    name: string;
-    description: string;
-    handler: number;
-    icon: IconName;
-    attribute: string;
+export interface WidgetTileModel extends Widget {
     unit: string;
     value: string | number | boolean;
 }

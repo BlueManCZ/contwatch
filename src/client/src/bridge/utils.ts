@@ -29,7 +29,7 @@ export const postJson = (
 ) => {
     postJsonFetcher(key, payload)
         .then((response) => {
-            if (response.status === 201) {
+            if (response.ok) {
                 onSuccess?.();
             }
         })

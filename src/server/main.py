@@ -39,7 +39,5 @@ if __name__ == "__main__":
 
     # Blueprints registration
     for name, blueprint in blueprints.items():
-        app.register_blueprint(
-            blueprint(BlueprintInit(manager)), url_prefix=f"/api/core/{name}"
-        )
+        app.register_blueprint(blueprint(BlueprintInit(manager)), url_prefix=f"/api/core/{name}")
     app.run(host="0.0.0.0", debug=True, use_reloader=False)

@@ -19,6 +19,7 @@ export const Dashboard = () => {
                         title={widget.name}
                         description={widget.description}
                         icon={widget.icon}
+                        status={widget.status}
                         unit={widget.unit}
                         value={widget.value}
                     />
@@ -28,9 +29,11 @@ export const Dashboard = () => {
                 {switches?.map((widget) => (
                     <SwitchWidget
                         key={widget.id}
+                        id={widget.id}
                         title={widget.name}
                         description={widget.description}
                         icon={widget.icon}
+                        status={widget.status}
                         active={widget.active}
                     />
                 ))}

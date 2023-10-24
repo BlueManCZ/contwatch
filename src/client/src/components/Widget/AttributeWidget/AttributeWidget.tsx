@@ -9,21 +9,31 @@ export type AttributeWidgetProps = {
     title: string;
     description: string;
     icon: IconName;
+    status: number;
     unit: string;
     value: string | number | boolean;
 };
 
-export const AttributeWidget: FC<AttributeWidgetProps> = ({ title, description, value, unit, icon }) => {
+export const AttributeWidget: FC<AttributeWidgetProps> = ({
+    title,
+    description,
+    icon,
+    status,
+    unit,
+    value,
+}) => {
     return (
-        <div className={bem()}>
+        <div className={bem({ disabled: status !== 1 })}>
             <Icon icon={icon} />
             <div className={bem("text-body")}>
                 <div className={bem("title")}>{title}</div>
                 <div className={bem("description")}>{description}</div>
             </div>
-            <div className={bem("value")}>
-                {value} <span className={bem("unit")}>{unit}</span>
-            </div>
+            {value && (
+                <div className={bem("value")}>
+                    {value} <span className={bem("unit")}>{unit}</span>
+                </div>
+            )}
         </div>
     );
 };

@@ -59,9 +59,7 @@ class HandlerManager:
         handler_id = db_attribute.handler.id
         if handler_id not in self.registered_attributes:
             self.registered_attributes[handler_id] = {}
-        self.registered_attributes[handler_id][db_attribute.name] = AttributeManager(
-            db_attribute
-        )
+        self.registered_attributes[handler_id][db_attribute.name] = AttributeManager(db_attribute)
 
     def process_message(self, handler_id: AbstractHandler, message):
         linearized_json = linearize(message)
@@ -71,9 +69,7 @@ class HandlerManager:
         for attribute in self.registered_attributes.get(handler_id, []):
             print(attribute, linearized_json[attribute])
             if attribute in linearized_json:
-                self.registered_attributes.get(handler_id).get(attribute).add_data_unit(
-                    linearized_json.get(attribute)
-                )
+                self.registered_attributes.get(handler_id).get(attribute).add_data_unit(linearized_json.get(attribute))
 
     def exit(self):
         for handler in self.registered_handlers:

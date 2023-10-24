@@ -45,11 +45,9 @@ class AttributeManager:
     @orm.db_session
     def add_data_unit(self, value):
         if self.check_value_change(value):
-            if self.value:
+            if self.value is not None:
                 print("Value changed")
-                data_unit_model.add(
-                    self.handler_id, self.id, self.value, self.last_datetime
-                )
+                data_unit_model.add(self.handler_id, self.id, self.value, self.last_datetime)
             self.value = value
             data_unit_model.add(self.handler_id, self.id, value, datetime.now())
             self.check_and_add_stat_units(value)
@@ -60,20 +58,19 @@ class AttributeManager:
     def check_and_add_stat_units(self, value):
         now = datetime.now()
         for predicate_name, stat_predicate in self.stat_predicates.items():
-            if not self.stats[predicate_name]:
-                db_stat = data_stat_model.get_by_type_and_date(
-                    self.handler_id, self.id, predicate_name, now.date()
-                )
+            if self.stats[predicate_name] is None:
+                # If stat is not found, it may not be loaded from DB yet. Try to load it.
+                db_stat = data_stat_model.get_by_type_and_date(self.handler_id, self.id, predicate_name, now.date())
                 self.stats[predicate_name] = db_stat.value if db_stat else None
 
-            if self.stats[predicate_name] and stat_predicate(value):
+            if self.stats[predicate_name] is not None and stat_predicate(value):
+                # If stat is found in db and predicate is true, update stat in db.
                 print("Updating", predicate_name, "stat in DB")
-                db_stat = data_stat_model.get_by_type_and_date(
-                    self.handler_id, self.id, predicate_name, now.date()
-                )
+                db_stat = data_stat_model.get_by_type_and_date(self.handler_id, self.id, predicate_name, now.date())
                 self.stats[predicate_name] = db_stat.value if db_stat else None
                 db_stat.time = now.time()
                 db_stat.value = value
-            elif not self.stats[predicate_name]:
+            elif self.stats[predicate_name] is None:
+                # If stat is still not in db, add it.
                 print("Writing", predicate_name, "stat to DB")
                 data_stat_model.add(self.handler_id, self.id, predicate_name, value)

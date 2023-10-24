@@ -23,6 +23,7 @@ class HttpHandler(AbstractHandler):
             try:
                 response = get(self.get_url(), timeout=self.get_config_option("timeout"))
                 if response.status_code == 200:
+                    self.last_response = response
                     self.add_message(response.json())
                     if not self.success:
                         pass
@@ -102,6 +103,7 @@ class HttpHandler(AbstractHandler):
         self.log = Logger(f"{self.name} {self.get_url()}")
         self.success = False
         self.active = True
+        self.last_response = None
         # self.add_changed("handlers")
         Thread(target=self._fetcher).start()
 
@@ -122,14 +124,32 @@ class HttpHandler(AbstractHandler):
         try:
             args = {}
             index = 0
-            for arg in message.json()["payload"]:
-                args[f"arg{index}"] = arg
-                index += 1
+            # for arg in message.json()["payload"]:
+            #     args[f"arg{index}"] = arg
+            #     index += 1
             base_url = self.get_base_url()
-            target = f"{base_url}{'/' if base_url[-1] != '/' else ''}{message.get_label()}"
+            # TODO: Implement proper message class?
+            target = f"{base_url}{'/' if base_url[-1] != '/' else ''}{message.get('label', None)}"
             response = get(target, params=args, timeout=self.get_config_option("timeout"))
             # TODO: Maybe use response.ok instead?
             if response.status_code:
+                if self.last_response:
+                    response_keys = list(response.json().keys())
+                    response_keys.sort()
+                    last_message_keys = list(self.last_response.json().keys())
+                    last_message_keys.sort()
+                    if response_keys == last_message_keys:
+                        self.add_message(response.json())
+                    else:
+                        response = get(self.get_url(), timeout=self.get_config_option("timeout"))
+                        if response.status_code == 200:
+                            self.last_response = response
+                            self.add_message(response.json())
+                else:
+                    response = get(self.get_url(), timeout=self.get_config_option("timeout"))
+                    if response.status_code == 200:
+                        self.last_response = response
+                        self.add_message(response.json())
                 return True
         except ConnectionError as error:
             print(error)
