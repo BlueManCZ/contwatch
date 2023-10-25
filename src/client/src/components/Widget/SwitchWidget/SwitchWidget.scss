@@ -62,4 +62,13 @@
             }
         }
     }
+
+    &--disabled {
+        cursor: not-allowed;
+        color: $grey-999;
+
+        .icon {
+            opacity: 0.3;
+        }
+    }
 }
