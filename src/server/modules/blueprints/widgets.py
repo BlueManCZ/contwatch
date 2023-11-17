@@ -1,10 +1,9 @@
 from flask import Blueprint, request
 from pony import orm
 
-from modules.blueprints.enums import StatusCode
 from modules.models.widget_switch import WidgetSwitch
 from modules.models.widget_tile import WidgetTile
-from modules.tools import BlueprintInit, this_name
+from modules.utils import BlueprintInit, this_name, StatusCode
 
 
 def widgets_blueprint(_init: BlueprintInit):

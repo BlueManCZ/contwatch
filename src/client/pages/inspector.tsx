@@ -1,3 +1,5 @@
+import "chartjs-adapter-date-fns";
+
 import {
     CategoryScale,
     Chart,
@@ -5,46 +7,63 @@ import {
     LinearScale,
     LineElement,
     PointElement,
+    TimeScale,
     Title,
     Tooltip,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 
+import { useAttributeChart } from "../src/bridge";
 import { Header, HeaderSize, Loc } from "../src/components";
 import { NavbarLayout } from "../src/layouts";
 import { GLOBAL_LOC_KEYS } from "../src/utils";
 
-Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+Chart.register(CategoryScale, LinearScale, TimeScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 export const options = {
+    scales: {
+        x: {
+            type: "time",
+            time: {
+                unit: "hour",
+            },
+            beginAtZero: true,
+        },
+        y: {
+            beginAtZero: true,
+            stack: "main",
+        },
+    },
+    pointRadius: 0,
     responsive: true,
-};
-
-const labels = ["January", "February", "March", "April", "May", "June", "July"];
-
-export const data = {
-    labels,
-    datasets: [
-        {
-            label: "Dataset 1",
-            data: [1, 54, 10, 36, 98, 54, 5],
-            borderColor: "rgb(255, 99, 132)",
-        },
-        {
-            label: "Dataset 2",
-            data: [12, 43, 23, 76, 65, 43, 9],
-            borderColor: "rgb(53, 162, 235)",
-        },
-    ],
+    maintainAspectRatio: false,
 };
 
 export const App = () => {
+    const attributes = [2, 3];
+
+    const { data: attributeChartData } = useAttributeChart(attributes.sort());
+
+    const data = {
+        datasets:
+            attributeChartData?.map((attributeChart) => ({
+                label: attributeChart.label,
+                data: attributeChart.data.map((data) => ({
+                    x: data.x * 1000,
+                    y: data.y,
+                })),
+                borderColor: "red",
+            })) ?? [],
+    };
+    console.log(attributeChartData);
+
     return (
         <NavbarLayout>
             <Header size={HeaderSize.h2}>
                 <Loc>{GLOBAL_LOC_KEYS.INSPECTOR}</Loc>
             </Header>
             <div style={{ width: "50dvw", height: "30dvw" }}>
+                {/** @ts-ignore */}
                 <Line options={options} data={data} />
             </div>
         </NavbarLayout>

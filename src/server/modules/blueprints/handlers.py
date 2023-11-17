@@ -1,11 +1,10 @@
 from flask import Blueprint, request
 from pony import orm
 
-from modules.blueprints.enums import StatusCode
-from modules.models import handler as handler_model
-from modules.models import attribute as attribute_model
 from modules.handlers import get_handler_class, available_handlers
-from modules.tools import this_name, BlueprintInit, parse_config
+from modules.models import attribute as attribute_model
+from modules.models import handler as handler_model
+from modules.utils import this_name, BlueprintInit, parse_config, StatusCode
 
 
 def handlers_blueprint(_init: BlueprintInit):

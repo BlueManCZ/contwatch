@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from signal import signal, SIGINT
+
 from flask import Flask
 from flask_cors import CORS
 
@@ -8,7 +9,7 @@ from config import ApplicationConfig
 from modules.blueprints import blueprints
 from modules.database import init_database
 from modules.handler_manager import HandlerManager
-from modules.tools import BlueprintInit, ModulesRegistrator
+from modules.utils import BlueprintInit, ModulesRegistrator, IntListConverter
 
 registered_modules = ModulesRegistrator()
 
@@ -29,6 +30,7 @@ if __name__ == "__main__":
 
     app = Flask(__name__)
     app.config.from_object(ApplicationConfig)
+    app.url_map.converters["int_list"] = IntListConverter
     cors = CORS(app, supports_credentials=True)
 
     # Database initialization

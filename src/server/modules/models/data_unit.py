@@ -1,5 +1,6 @@
+from datetime import date, time
+
 from pony import orm
-from datetime import date, datetime, time
 
 from modules.database import db
 

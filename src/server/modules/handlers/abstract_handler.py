@@ -1,6 +1,6 @@
 from time import sleep
 
-from modules.tools import get_current_seconds
+from modules.utils import get_current_seconds
 
 
 class AbstractHandler:

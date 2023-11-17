@@ -1,9 +1,11 @@
 from datetime import datetime
-from pony import orm
 
-from modules.models import data_unit as data_unit_model
-from modules.models import data_stat as data_stat_model
+from pony import orm
+from pony.orm import desc
+
 from modules.models import attribute as attribute_model
+from modules.models import data_stat as data_stat_model
+from modules.models import data_unit as data_unit_model
 
 
 class AttributeManager:
@@ -14,7 +16,13 @@ class AttributeManager:
         self.handler_id = db_instance.handler.id
         self.name = db_instance.name
 
-        self.value = None
+        value = None
+        if db_instance.data_units:
+            last_unit = list(db_instance.data_units.select().order_by(lambda u: desc(u.id)).limit(1))
+            if last_unit:
+                value = last_unit[-1].value
+
+        self.value = value
         self.last_datetime = None
 
         self.stats = {
@@ -45,7 +53,7 @@ class AttributeManager:
     @orm.db_session
     def add_data_unit(self, value):
         if self.check_value_change(value):
-            if self.value is not None:
+            if self.value is not None and self.last_datetime is not None:
                 print("Value changed")
                 data_unit_model.add(self.handler_id, self.id, self.value, self.last_datetime)
             self.value = value

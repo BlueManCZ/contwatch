@@ -1,5 +1,6 @@
 from threading import Thread
 from time import sleep
+
 from pony import orm
 
 from modules.attribute_manager import AttributeManager
@@ -7,7 +8,7 @@ from modules.handlers import get_handler_class
 from modules.handlers.abstract_handler import AbstractHandler
 from modules.logging import Logger
 from modules.models import handler as handler_model
-from modules.tools import linearize
+from modules.utils import linearize
 
 
 class HandlerManager:
@@ -40,6 +41,7 @@ class HandlerManager:
 
     @orm.db_session
     def initialize_handlers(self):
+        """Load handlers from database and initialize them"""
         db_handlers = handler_model.get_all()
         self.log.info(f"Loaded {len(db_handlers)} handlers from database")
         for db_handler in db_handlers:

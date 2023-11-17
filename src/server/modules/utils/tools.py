@@ -3,15 +3,6 @@ import inspect
 from time import time
 
 
-class BlueprintInit:
-    def __init__(self, manager):
-        self._manager = manager
-
-    @property
-    def manager(self):
-        return self._manager
-
-
 def this_name():
     """Returns the name of the function that called this function"""
     return inspect.stack()[1].function
@@ -48,21 +39,6 @@ def get_nested_attribute(json, attributes_row):
         else:
             return
     return result
-
-
-class ModulesRegistrator:
-    """Handles modules registration and their exit on shutdown"""
-
-    def __init__(self):
-        self.registered_modules = []
-
-    def add(self, *modules):
-        for module in modules:
-            self.registered_modules.append(module)
-
-    def exit(self):
-        for module in self.registered_modules:
-            module.exit()
 
 
 def parse_config(config, handler_class):

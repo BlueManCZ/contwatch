@@ -14,13 +14,16 @@
   "dependencies": {
     "@reduxjs/toolkit": "^1.9.7",
     "chart.js": "^4.4.0",
+    "chartjs-adapter-date-fns": "^3.0.0",
+    "date-fns": "^2.30.0",
     "next": "^13.5.4",
     "next-redux-wrapper": "^8.1.0",
     "react": "^18.2.0",
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.2.0",
     "sass": "^1.69.2",
-    "swr": "^2.2.4"
+    "swr": "^2.2.4",
+    "typescript": "5.2.2"
   },
   "devDependencies": {
     "@types/node": "20.8.9",
@@ -39,8 +42,7 @@
     "prettier": "3.0.3",
     "stylelint": "^15.11.0",
     "stylelint-config-prettier-scss": "^1.0.0",
-    "stylelint-config-standard-scss": "^11.0.0",
-    "typescript": "5.2.2"
+    "stylelint-config-standard-scss": "^11.0.0"
   },
   "lint-staged": {
     "*.js": [

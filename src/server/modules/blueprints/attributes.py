@@ -1,9 +1,8 @@
 from flask import Blueprint
 from pony import orm
 
-from modules.blueprints.enums import StatusCode
 from modules.models.attribute import Attribute
-from modules.tools import BlueprintInit, this_name
+from modules.utils import BlueprintInit, this_name, StatusCode
 
 
 def attributes_blueprint(_init: BlueprintInit):
