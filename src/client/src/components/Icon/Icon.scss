@@ -1,9 +1,9 @@
 .icon {
-    filter: grayscale(1);
-    opacity: 0.7;
-    transition: ease-in-out 200ms;
     width: 24px;
     height: 24px;
+    transition: ease-in-out 200ms;
+    opacity: 0.7;
+    filter: grayscale(1);
 
     &--invert {
         opacity: 1;
@@ -16,9 +16,9 @@
 
     &--variant {
         &-circle {
-            background: $primary-text-light;
             padding: 7px;
             border-radius: 100%;
+            background: $primary-text-light;
         }
 
         &-button {

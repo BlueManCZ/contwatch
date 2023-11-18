@@ -1,16 +1,11 @@
 .handler {
     min-width: 400px;
 
-    &__header {
-    }
-
     &__texts {
         flex-grow: 1;
     }
 
     &__icon {
-        //@include active-shadow;
-
         display: flex;
         padding: 10px;
         border-radius: 100%;
@@ -41,15 +36,15 @@
 
         &-title {
             color: $white;
+            font-size: 15px;
             font-weight: bold;
             text-transform: uppercase;
-            font-size: 15px;
         }
 
         &-description {
+            padding: 0 10px;
             color: $white;
             font-size: 12px;
-            padding: 0 10px;
         }
 
         &--color {
@@ -68,29 +63,29 @@
     }
 
     &__attribute {
-        padding: 10px;
-        background: $primary-text-light;
-        border-radius: 10px;
         flex-grow: 1;
+        padding: 10px;
+        border-radius: 10px;
+        background: $primary-text-light;
 
         &:hover {
-            cursor: pointer;
             background: $grey-eee;
+            cursor: pointer;
         }
 
         &-name {
-            font-weight: bold;
-            margin-right: 6px;
             flex-grow: 1;
+            margin-right: 6px;
+            font-weight: bold;
         }
 
         &-value {
+            padding: 2px 6px;
+            border-radius: 6px;
             background: $blue;
             color: $white;
-            font-weight: bold;
-            border-radius: 6px;
             font-size: 14px;
-            padding: 2px 6px;
+            font-weight: bold;
         }
     }
 }

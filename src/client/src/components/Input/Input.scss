@@ -3,20 +3,20 @@
 .input-wrapper {
     $this: &;
 
-    background: $primary-text-light;
     display: block;
     padding: 9px 10px 10px;
     border-radius: 7px;
+    background: $primary-text-light;
 
     &__title {
-        text-transform: uppercase;
-        color: $blue;
-        font-weight: 700;
-        font-size: 12px;
-        margin-bottom: 3px;
         display: inline-block;
+        margin-bottom: 3px;
         transition: all 100ms ease-in-out;
         opacity: 0.6;
+        color: $blue;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
     }
 
     &__input-element,

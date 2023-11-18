@@ -1,10 +1,10 @@
 @import "./mixins";
 
 .button {
+    border: none;
     background: none;
     font-family: $font-cantarell;
     cursor: pointer;
-    border: none;
 
     &--expand {
         width: 100%;
@@ -23,10 +23,10 @@
         &-default {
             @include button-theme;
 
-            background: $primary-action;
-            color: $primary-text-light;
             display: flex;
             align-items: center;
+            background: $primary-action;
+            color: $primary-text-light;
 
             &:hover {
                 @include active-shadow;
@@ -47,17 +47,17 @@
         }
 
         &-navbar {
-            text-transform: unset;
-            font-weight: normal;
-            font-size: 15px;
-            background: unset;
-            color: $grey-333;
-            text-align: left;
             display: flex;
             align-items: center;
-            gap: 12px;
             padding: 13px;
             border-radius: 10px;
+            background: unset;
+            color: $grey-333;
+            font-size: 15px;
+            font-weight: normal;
+            text-align: left;
+            text-transform: unset;
+            gap: 12px;
 
             &:hover {
                 background: $grey-eee;

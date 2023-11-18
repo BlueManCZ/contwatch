@@ -1,11 +1,12 @@
 import { NextPage } from "next";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 const Index: NextPage = () => {
+    const router = useRouter();
     useEffect(() => {
         router.push("/dashboard");
-    }, []);
+    }, [router]);
 
     return <></>;
 };

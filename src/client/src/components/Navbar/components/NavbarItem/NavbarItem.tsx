@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { usePathname, useRouter } from "next/navigation";
 import { FC } from "react";
 import { useSelector } from "react-redux";
 
@@ -18,10 +18,11 @@ export type NavbarItemProps = {
 
 export const NavbarItem: FC<NavbarItemProps> = ({ locKey, icon, href }) => {
     const navbarCollapsed = useSelector(selectNavbarCollapsedState);
+    const pathName = usePathname();
     const router = useRouter();
     return (
         <FlexLayout
-            className={bem({ active: router.asPath.startsWith(href) })}
+            className={bem({ active: pathName.startsWith(href) })}
             onClick={() => {
                 if (href) router.push(href);
             }}

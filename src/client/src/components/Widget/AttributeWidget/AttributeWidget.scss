@@ -1,13 +1,13 @@
 .attribute-widget {
-    background: $white;
-    padding: 10px 12px;
-    border-radius: 10px;
     display: flex;
-    gap: 10px;
-    align-items: center;
     flex-grow: 1;
     flex-wrap: wrap;
+    align-items: center;
     max-width: 400px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: $white;
+    gap: 10px;
 
     $this: &;
 
@@ -24,17 +24,17 @@
     }
 
     &__value {
-        background: $primary-background;
-        font-weight: bold;
-        font-size: 21px;
         padding: 5px 15px;
         border-radius: 10px;
+        background: $primary-background;
+        font-size: 21px;
+        font-weight: bold;
         white-space: nowrap;
     }
 
     &__unit {
-        font-weight: normal;
         font-size: 18px;
+        font-weight: normal;
     }
 
     &--disabled {

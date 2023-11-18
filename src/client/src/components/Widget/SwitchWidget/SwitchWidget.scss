@@ -1,15 +1,15 @@
 .switch-widget {
-    background: $white;
-    padding: 10px 12px;
-    border-radius: 10px;
     display: flex;
-    gap: 10px;
-    align-items: center;
     flex-grow: 1;
     flex-wrap: wrap;
+    align-items: center;
     max-width: 400px;
-    cursor: pointer;
+    padding: 10px 12px;
     transition: all 0.2s ease-in-out;
+    border-radius: 10px;
+    background: $white;
+    cursor: pointer;
+    gap: 10px;
 
     &__text-body {
         flex-grow: 1;
@@ -26,24 +26,24 @@
     $this: &;
 
     &__toggle {
+        position: relative;
         width: 60px;
         height: 33px;
-        background: $primary-background;
-        border-radius: 50px;
-        position: relative;
         transition: all 0.2s ease-in-out;
+        border-radius: 50px;
+        background: $primary-background;
 
         &::after {
             content: '';
             display: block;
             position: relative;
-            width: 25px;
-            height: 25px;
             top: 4px;
             left: 4px;
-            background: $grey-ddd;
-            border-radius: 50%;
+            width: 25px;
+            height: 25px;
             transition: all 0.2s ease-in-out;
+            border-radius: 50%;
+            background: $grey-ddd;
         }
     }
 
@@ -57,15 +57,15 @@
             }
 
             &__toggle::after {
-                background: $white;
                 left: 30px;
+                background: $white;
             }
         }
     }
 
     &--disabled {
-        cursor: not-allowed;
         color: $grey-999;
+        cursor: not-allowed;
 
         .icon {
             opacity: 0.3;

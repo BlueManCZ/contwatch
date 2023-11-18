@@ -3,17 +3,17 @@
 @import "./components/NavbarUser/NavbarUser";
 
 .navbar {
-    background: $white;
     min-width: $navbar-max-width;
     height: 100vh;
+    background: $white;
 
     &__header {
         height: 150px;
     }
 
     &__items {
-        height: 100%;
         flex-grow: 1;
+        height: 100%;
     }
 
     &--collapsed {

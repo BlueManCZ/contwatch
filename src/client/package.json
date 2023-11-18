@@ -8,6 +8,7 @@
     "build": "npm run build:config; next build",
     "start": "next start",
     "lint": "next lint",
+    "stylelint": "stylelint '**/*.scss'",
     "precommit": "lint-staged",
     "fmt": "prettier --write './**/*.js'"
   },
@@ -16,7 +17,7 @@
     "chart.js": "^4.4.0",
     "chartjs-adapter-date-fns": "^3.0.0",
     "date-fns": "^2.30.0",
-    "next": "^13.5.4",
+    "next": "^14.0.3",
     "next-redux-wrapper": "^8.1.0",
     "react": "^18.2.0",
     "react-chartjs-2": "^5.2.0",
@@ -26,23 +27,25 @@
     "typescript": "5.2.2"
   },
   "devDependencies": {
-    "@types/node": "20.8.9",
-    "@types/react": "18.2.32",
-    "@types/react-dom": "18.2.14",
+    "@types/node": "^20.9.1",
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
     "@typescript-eslint/eslint-plugin": "^6.9.0",
     "@typescript-eslint/parser": "^6.9.0",
-    "eslint": "8.52.0",
-    "eslint-config-next": "^13.5.4",
+    "eslint": "^8.54.0",
+    "eslint-config-next": "^14.0.3",
     "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-prettier": "^5.0.1",
     "eslint-plugin-simple-import-sort": "^10.0.0",
     "eslint-plugin-unused-imports": "^3.0.0",
     "husky": "^8.0.3",
     "lint-staged": "^15.0.2",
-    "prettier": "3.0.3",
+    "prettier": "^3.1.0",
     "stylelint": "^15.11.0",
     "stylelint-config-prettier-scss": "^1.0.0",
-    "stylelint-config-standard-scss": "^11.0.0"
+    "stylelint-config-property-sort-order-smacss": "^9.1.0",
+    "stylelint-config-standard-scss": "^11.0.0",
+    "stylelint-order": "^6.0.3"
   },
   "lint-staged": {
     "*.js": [

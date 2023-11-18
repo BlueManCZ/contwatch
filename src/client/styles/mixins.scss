@@ -1,7 +1,7 @@
 @mixin card {
-    background: $white;
-    border-radius: 15px;
     transition: ease-in-out 200ms;
+    border-radius: 15px;
+    background: $white;
     color: $grey-333;
 
     // box-shadow: 2px 2px 5px $grey-ddd;
@@ -18,10 +18,10 @@
 }
 
 @mixin subtitle {
+    margin: 0;
     color: $grey-999;
     font-size: 13px;
     font-weight: bold;
-    text-transform: uppercase;
-    margin: 0;
     letter-spacing: 0.5px;
+    text-transform: uppercase;
 }

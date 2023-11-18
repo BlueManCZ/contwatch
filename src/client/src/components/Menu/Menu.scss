@@ -2,11 +2,11 @@
 @import "./components/MenuSection/MenuSection";
 
 .menu {
-    background: $white;
-    max-width: 350px;
-    padding: 30px;
-    height: 100vh;
     box-sizing: border-box;
+    max-width: 350px;
+    height: 100vh;
+    padding: 30px;
+    background: $white;
 
     &__header {
         margin-bottom: 30px;
