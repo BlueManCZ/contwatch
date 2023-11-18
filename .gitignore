@@ -5,8 +5,7 @@
 __pycache__/
 *.pyc
 
-# Node.js (using BUN)
-.package-lock.json
+# Node.js
 node_modules
 *config.js
 
