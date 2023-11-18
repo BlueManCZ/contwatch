@@ -1,20 +1,20 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-import { supportedLocales } from "../components/Loc/utils";
+import { LOCALES } from "../localization";
 import { AppState } from "./store";
 
 // Type for the state
 export interface SettingsState {
     navbarCollapsedState: boolean;
     iconThemeState: string;
-    localeState: supportedLocales;
+    localeState: LOCALES;
 }
 
 // Initial state
 const initialState: SettingsState = {
     navbarCollapsedState: false,
     iconThemeState: "cosmic",
-    localeState: supportedLocales.en_US,
+    localeState: LOCALES.en_US,
 };
 
 // Actual Slice

@@ -25,7 +25,7 @@
 
             display: flex;
             align-items: center;
-            background: $primary-action;
+            background: $blue;
             color: $primary-text-light;
 
             &:hover {
@@ -33,6 +33,13 @@
 
                 filter: brightness(1.1);
             }
+        }
+
+        &-white {
+            @include button-theme;
+
+            background: $white;
+            color: $primary-text;
         }
 
         &-outline {
@@ -63,6 +70,12 @@
                 background: $grey-eee;
             }
         }
+    }
+
+    &--variant-white#{&}--active {
+        @include active;
+
+        color: $white;
     }
 
     &--variant-navbar#{&}--active {

@@ -19,14 +19,17 @@ export interface HandlerAttribute {
     value: string | number;
 }
 
-export interface HandlerModel {
-    id: number;
+export interface HandlerTypeModel {
     type: string;
     name: string;
     icon: CustomIconName;
+    configFields?: Record<string, string[]>;
+}
+
+export interface HandlerModel extends HandlerTypeModel {
+    id: number;
     description: string;
     status?: HandlerStatus;
     options?: HandlerOptions;
-    configFields?: Record<string, string[]>;
     attributes?: HandlerAttribute[];
 }

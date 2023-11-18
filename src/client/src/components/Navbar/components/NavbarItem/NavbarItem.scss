@@ -8,12 +8,16 @@
     cursor: pointer;
 
     &:hover {
-        opacity: 0.8;
         background: $primary-background;
     }
 
     &--active {
-        opacity: 1 !important;
-        background: $primary-background;
+        background: $blue;
+        box-shadow: $primary-shadow-box;
+        color: $white;
+
+        &:hover {
+            background: $blue;
+        }
     }
 }

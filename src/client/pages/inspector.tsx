@@ -1,73 +1,53 @@
-import "chartjs-adapter-date-fns";
+import { useState } from "react";
 
-import {
-    CategoryScale,
-    Chart,
-    Legend,
-    LinearScale,
-    LineElement,
-    PointElement,
-    TimeScale,
-    Title,
-    Tooltip,
-} from "chart.js";
-import { Line } from "react-chartjs-2";
-
-import { useAttributeChart } from "../src/bridge";
-import { Header, HeaderSize, Loc } from "../src/components";
+import { useHandlers } from "../src/bridge";
+import { Button, ButtonVariant, FlexLayout, ThemedIconName, Toolbar } from "../src/components";
 import { NavbarLayout } from "../src/layouts";
-import { GLOBAL_LOC_KEYS } from "../src/utils";
+import { LOC_KEY, useLocalization } from "../src/localization";
+import { InspectorChart } from "../src/partials/InspectorChart";
 
-Chart.register(CategoryScale, LinearScale, TimeScale, PointElement, LineElement, Title, Tooltip, Legend);
+export const Inspector = () => {
+    const { data: handlers } = useHandlers();
+    const { translate } = useLocalization();
 
-export const options = {
-    scales: {
-        x: {
-            type: "time",
-            time: {
-                unit: "hour",
-            },
-            beginAtZero: true,
-        },
-        y: {
-            beginAtZero: true,
-            stack: "main",
-        },
-    },
-    pointRadius: 0,
-    responsive: true,
-    maintainAspectRatio: false,
-};
+    /** TODO: Store selected attributes in redux */
+    const [attributes, setAttributes] = useState<number[]>([]);
 
-export const App = () => {
-    const attributes = [2, 3];
-
-    const { data: attributeChartData } = useAttributeChart(attributes.sort());
-
-    const data = {
-        datasets:
-            attributeChartData?.map((attributeChart) => ({
-                label: attributeChart.label,
-                data: attributeChart.data.map((data) => ({
-                    x: data.x * 1000,
-                    y: data.y,
-                })),
-                borderColor: "red",
-            })) ?? [],
+    const onAttributeClick = (id: number) => {
+        setAttributes((prev) => {
+            if (prev.includes(id)) {
+                return prev.filter((item) => item !== id);
+            }
+            return [...prev, id];
+        });
     };
-    console.log(attributeChartData);
 
     return (
         <NavbarLayout>
-            <Header size={HeaderSize.h2}>
-                <Loc>{GLOBAL_LOC_KEYS.INSPECTOR}</Loc>
-            </Header>
-            <div style={{ width: "50dvw", height: "30dvw" }}>
-                {/** @ts-ignore */}
-                <Line options={options} data={data} />
-            </div>
+            <Toolbar
+                icon={ThemedIconName.chartSquare}
+                title={translate(LOC_KEY.INSPECTOR)}
+                description={translate(LOC_KEY.INSPECTOR_INFO)}
+            />
+            <FlexLayout gap="1rem">
+                {handlers?.map(
+                    (handler) =>
+                        handler.attributes?.map((attribute) => (
+                            // <InspectorChart key={attribute.id} attributes={[attribute.id]} />
+                            <Button
+                                key={attribute.id}
+                                active={attributes.includes(attribute.id)}
+                                onClick={() => onAttributeClick(attribute.id)}
+                                variant={ButtonVariant.white}
+                            >
+                                {attribute.name}
+                            </Button>
+                        )),
+                )}
+            </FlexLayout>
+            <InspectorChart {...{ attributes }} />
         </NavbarLayout>
     );
 };
 
-export default App;
+export default Inspector;

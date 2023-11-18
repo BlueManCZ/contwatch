@@ -15,3 +15,7 @@ black = "*"
 
 [requires]
 python_version = "3.11"
+
+[scripts]
+black = "black --check --line-length 120 ."
+server = "./main.py"

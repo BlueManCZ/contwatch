@@ -5,6 +5,7 @@ import { Icon, IconVariant, ThemedIconName } from "../Icon";
 
 export enum ButtonVariant {
     default = "default",
+    white = "white",
     outline = "outline",
     navbar = "navbar",
     menu = "menu",
@@ -40,7 +41,7 @@ export const Button: FunctionComponent<ButtonProps> = ({
     children,
 }) => {
     return (
-        <button className={classNames("", { variant, expand, grow, active })} type={type} onClick={onClick}>
+        <button className={classNames({ variant, expand, grow, active })} {...{ type, onClick }}>
             {icon && (
                 <Icon
                     icon={icon}

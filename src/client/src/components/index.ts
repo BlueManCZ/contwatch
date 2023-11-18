@@ -11,3 +11,5 @@ export * from "./Loc";
 export * from "./Menu";
 export * from "./Navbar";
 export * from "./Separator";
+export * from "./Toolbar";
+export * from "./Widget";

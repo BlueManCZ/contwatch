@@ -10,6 +10,7 @@ from modules.utils import BlueprintInit, this_name
 def charts_blueprint(_init: BlueprintInit):
     blueprint = Blueprint(this_name(), __name__)
 
+    @blueprint.route("/attribute/", defaults={"attribute_ids": []})
     @blueprint.route("/attribute/<int_list:attribute_ids>")
     @orm.db_session
     def attribute(attribute_ids):

@@ -1,14 +1,15 @@
 import { FunctionComponent, ReactNode } from "react";
 
 import { FlexLayout, Navbar, NavbarItem, NavbarLogo, NavbarSection, ThemedIconName } from "../../components";
-import { bemClassNames, GLOBAL_LOC_KEYS } from "../../utils";
+import { LOC_KEY } from "../../localization";
+import { bemClassNames } from "../../utils";
 
 const bem = bemClassNames("navbar-layout");
 
 const navbarItems = [
-    { locKey: GLOBAL_LOC_KEYS.DASHBOARD, href: "/dashboard", icon: ThemedIconName.gridMixed },
-    { locKey: GLOBAL_LOC_KEYS.INSPECTOR, href: "/inspector", icon: ThemedIconName.chartSquare },
-    { locKey: GLOBAL_LOC_KEYS.HANDLERS, href: "/handlers", icon: ThemedIconName.processor },
+    { locKey: LOC_KEY.DASHBOARD, href: "/dashboard", icon: ThemedIconName.gridMixed },
+    { locKey: LOC_KEY.INSPECTOR, href: "/inspector", icon: ThemedIconName.chartSquare },
+    { locKey: LOC_KEY.HANDLERS, href: "/handlers", icon: ThemedIconName.processor },
 ];
 
 export type NavbarLayoutProps = {

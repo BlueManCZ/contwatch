@@ -24,4 +24,4 @@ jobs:
       - name: Stylelint
         run: npm run stylelint
       - name: Test
-        run: npm test
+        run: npm run test

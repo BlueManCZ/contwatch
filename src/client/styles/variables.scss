@@ -1,7 +1,6 @@
 // Color palette
-
 $white: #fff;
-$blue: #3c81e9;
+$blue: #5278FF;
 $grey-blue: #426395;
 $dark-blue: #333c62;
 $purple: #601f99;
@@ -9,7 +8,6 @@ $green: #6ca758;
 $red: #a75858;
 
 // Greyscale
-
 $grey-eee: #eee;
 $grey-ddd: #ddd;
 $grey-ccc: #ccc;
@@ -21,13 +19,15 @@ $grey-444: #444;
 $grey-333: #333;
 
 // Primary colors
-
 $primary-text: $grey-444;
 $primary-action: $grey-blue;
 $primary-text-light: #f8f8f8;
 $primary-background: #f5f6fa;
 $primary-connected: $green;
 $primary-disconnected: $red;
+
+// Primary shadows
+$primary-shadow-box: 0 0 6px rgba(0 0 0 / 25%);
 
 // Navbar width
 $navbar-max-width: 300px;

@@ -33,6 +33,14 @@ def handlers_blueprint(_init: BlueprintInit):
                 "icon": handler.icon,
                 "description": handler.get_description(),
                 "status": 1 if handler.is_connected() else 0,
+                "attributes": [
+                    {
+                        "id": attribute_manager.get_id(),
+                        "name": attribute_name,
+                        "value": attribute_manager.get_current_value(),
+                    }
+                    for attribute_name, attribute_manager in _init.manager.registered_attributes.get(h_id, {}).items()
+                ],
             }
             for h_id, handler in _init.manager.registered_handlers.items()
         ], StatusCode.OK

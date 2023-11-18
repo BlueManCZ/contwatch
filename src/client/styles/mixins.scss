@@ -8,7 +8,7 @@
 }
 
 @mixin active-shadow {
-    box-shadow: 0 0 10px $grey-bbb;
+    box-shadow: $primary-shadow-box;
 }
 
 @mixin active {

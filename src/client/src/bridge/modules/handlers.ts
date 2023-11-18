@@ -1,7 +1,7 @@
 import useSWR from "swr";
 
 import { Endpoint, getApiEndpoint } from "../endpoints";
-import { HandlerModel, NewHandlerModel } from "../models";
+import { HandlerModel, HandlerTypeModel, NewHandlerModel } from "../models";
 import { getJson, postJson } from "../utils";
 
 export const useHandlers = () => {
@@ -21,5 +21,5 @@ export const addHandler = (
 };
 
 export const useAvailableHandlers = () => {
-    return useSWR<HandlerModel[]>(getApiEndpoint(Endpoint.availableHandlers), getJson);
+    return useSWR<HandlerTypeModel[]>(getApiEndpoint(Endpoint.availableHandlers), getJson);
 };

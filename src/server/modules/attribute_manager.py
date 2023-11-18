@@ -15,6 +15,7 @@ class AttributeManager:
         self.id = db_instance.id
         self.handler_id = db_instance.handler.id
         self.name = db_instance.name
+        self.last_value_save_skipped = False
 
         value = None
         if db_instance.data_units:
@@ -53,14 +54,16 @@ class AttributeManager:
     @orm.db_session
     def add_data_unit(self, value):
         if self.check_value_change(value):
-            if self.value is not None and self.last_datetime is not None:
-                print("Value changed")
+            print("Value changed")
+            if self.value is not None and self.last_datetime is not None and self.last_value_save_skipped:
                 data_unit_model.add(self.handler_id, self.id, self.value, self.last_datetime)
+                self.last_value_save_skipped = False
             self.value = value
             data_unit_model.add(self.handler_id, self.id, value, datetime.now())
             self.check_and_add_stat_units(value)
         else:
             print("Value didn't change")
+            self.last_value_save_skipped = True
         self.last_datetime = datetime.now()
 
     def check_and_add_stat_units(self, value):

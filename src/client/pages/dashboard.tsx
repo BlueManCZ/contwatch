@@ -1,17 +1,19 @@
 import { useWidgetSwitches, useWidgetTiles } from "../src/bridge";
-import { FlexLayout, Header, HeaderSize, Loc } from "../src/components";
-import { AttributeWidget, SwitchWidget } from "../src/components/Widget";
+import { AttributeWidget, FlexLayout, SwitchWidget, ThemedIconName, Toolbar } from "../src/components";
 import { NavbarLayout } from "../src/layouts";
-import { GLOBAL_LOC_KEYS } from "../src/utils";
+import { LOC_KEY, useLocalization } from "../src/localization";
 
 export const Dashboard = () => {
+    const { translate } = useLocalization();
     const { data: tiles } = useWidgetTiles();
     const { data: switches } = useWidgetSwitches();
     return (
         <NavbarLayout>
-            <Header size={HeaderSize.h2}>
-                <Loc>{GLOBAL_LOC_KEYS.DASHBOARD}</Loc>
-            </Header>
+            <Toolbar
+                icon={ThemedIconName.gridMixed}
+                title={translate(LOC_KEY.DASHBOARD)}
+                description={translate(LOC_KEY.DASHBOARD_INFO)}
+            />
             <FlexLayout gap="20px" wrap="wrap">
                 {tiles?.map((widget) => (
                     <AttributeWidget

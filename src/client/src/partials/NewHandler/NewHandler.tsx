@@ -4,7 +4,7 @@ import { useSWRConfig } from "swr";
 
 import { addHandler } from "../../bridge";
 import { Endpoint, getApiEndpoint } from "../../bridge/endpoints";
-import { HandlerModel } from "../../bridge/models";
+import { HandlerTypeModel } from "../../bridge/models";
 import { Button, Card, CardBody, FlexLayout, Icon, InputRenderer, ThemedIconName } from "../../components";
 import { bemClassNames } from "../../utils";
 import {
@@ -17,7 +17,7 @@ import {
 
 const bem = bemClassNames("new-handler");
 
-export const NewHandler: FC<HandlerModel> = ({ type, name, icon, configFields }) => {
+export const NewHandler: FC<HandlerTypeModel> = ({ type, name, icon, configFields }) => {
     const dispatch = useDispatch();
     const newHandlerConfig = useSelector(selectConfig);
     const newHandlerLAbel = useSelector(selectLabel);
