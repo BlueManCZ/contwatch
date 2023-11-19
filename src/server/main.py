@@ -9,7 +9,7 @@ from config import ApplicationConfig
 from modules.blueprints import blueprints
 from modules.database import init_database
 from modules.handler_manager import HandlerManager
-from modules.utils import BlueprintInit, ModulesRegistrator, IntListConverter
+from modules.utils import Context, ModulesRegistrator, IntListConverter
 
 registered_modules = ModulesRegistrator()
 
@@ -41,5 +41,5 @@ if __name__ == "__main__":
 
     # Blueprints registration
     for name, blueprint in blueprints.items():
-        app.register_blueprint(blueprint(BlueprintInit(manager)), url_prefix=f"/api/core/{name}")
+        app.register_blueprint(blueprint(Context(manager)), url_prefix=f"/api/core/{name}")
     app.run(host="0.0.0.0", debug=True, use_reloader=False)

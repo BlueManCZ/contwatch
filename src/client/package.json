@@ -19,6 +19,7 @@
     "chartjs-adapter-date-fns": "3.0.0",
     "chartjs-plugin-zoom": "^2.0.1",
     "date-fns": "2.30.0",
+    "flume": "^1.0.4",
     "next": "14.0.3",
     "next-redux-wrapper": "8.1.0",
     "react": "18.2.0",

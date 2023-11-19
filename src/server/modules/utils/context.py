@@ -1,5 +1,5 @@
-class BlueprintInit:
-    """Class for passing references to blueprints constructors"""
+class Context:
+    """Class for passing references to constructors"""
 
     def __init__(self, manager):
         self._manager = manager

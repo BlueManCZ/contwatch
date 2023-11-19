@@ -4,10 +4,10 @@ from flask import Blueprint
 from pony import orm
 
 from modules.models.data_unit import DataUnit
-from modules.utils import BlueprintInit, this_name
+from modules.utils import Context, this_name
 
 
-def charts_blueprint(_init: BlueprintInit):
+def charts_blueprint(_context: Context):
     blueprint = Blueprint(this_name(), __name__)
 
     @blueprint.route("/attribute/", defaults={"attribute_ids": []})

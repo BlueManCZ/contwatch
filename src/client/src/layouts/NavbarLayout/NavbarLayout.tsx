@@ -10,6 +10,7 @@ const navbarTopItems = [
     { locKey: LOC_KEY.DASHBOARD, href: "/dashboard", icon: ThemedIconName.gridMixed },
     { locKey: LOC_KEY.INSPECTOR, href: "/inspector", icon: ThemedIconName.chartSquare },
     { locKey: LOC_KEY.HANDLERS, href: "/handlers", icon: ThemedIconName.processor },
+    { locKey: LOC_KEY.ACTIONS, href: "/actions", icon: ThemedIconName.branchHorizontal },
 ];
 
 const navbarBottomItems = [

@@ -3,17 +3,17 @@ from pony import orm
 
 from modules.models.widget_switch import WidgetSwitch
 from modules.models.widget_tile import WidgetTile
-from modules.utils import BlueprintInit, this_name, StatusCode
+from modules.utils import Context, this_name, StatusCode
 
 
-def widgets_blueprint(_init: BlueprintInit):
+def widgets_blueprint(_context: Context):
     blueprint = Blueprint(this_name(), __name__)
 
     def get_handler(widget):
-        return _init.manager.registered_handlers.get(widget.attribute.handler.id, None)
+        return _context.manager.registered_handlers.get(widget.attribute.handler.id, None)
 
     def get_attribute(widget):
-        return _init.manager.registered_attributes.get(widget.attribute.handler.id, {}).get(widget.attribute.name)
+        return _context.manager.registered_attributes.get(widget.attribute.handler.id, {}).get(widget.attribute.name)
 
     def evaluate_attribute(widget):
         return (

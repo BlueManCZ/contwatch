@@ -17,7 +17,7 @@ export const useLocalization = () => {
         if (loadedTranslation) {
             return loadedTranslation[targetLocale] ?? loadedTranslation["en-US"];
         } else {
-            return "???";
+            return locKey;
         }
     };
 

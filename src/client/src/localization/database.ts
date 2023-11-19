@@ -14,10 +14,12 @@ export const enum LOC_KEY {
     DASHBOARD = "dashboard",
     INSPECTOR = "inspector",
     HANDLERS = "handlers",
+    ACTIONS = "actions",
     SETTINGS = "settings",
     DASHBOARD_INFO = "dashboardInfo",
     INSPECTOR_INFO = "inspectorInfo",
     HANDLERS_INFO = "handlersInfo",
+    ACTIONS_INFO = "actionsInfo",
     HANDLERS_DESCRIPTION = "handlersDescription",
     SETTINGS_INFO = "settingsInfo",
 }
@@ -43,6 +45,10 @@ export const LOC_KEY_DATABASE: Record<LOC_KEY, Record<string, string>> = {
         "en-US": "Handlers",
         "cs-CZ": "Zařízení",
     },
+    actions: {
+        "en-US": "Actions",
+        "cs-CZ": "Akce",
+    },
     settings: {
         "en-US": "Settings",
         "cs-CZ": "Nastavení",
@@ -58,6 +64,10 @@ export const LOC_KEY_DATABASE: Record<LOC_KEY, Record<string, string>> = {
     handlersInfo: {
         "en-US": "Manage your devices",
         "cs-CZ": "Spravujte svá zařízení",
+    },
+    actionsInfo: {
+        "en-US": "Setup custom rules and actions",
+        "cs-CZ": "Nastavte si vlastní pravidla a akce",
     },
     settingsInfo: {
         "en-US": "Manage ContWatch configuration",

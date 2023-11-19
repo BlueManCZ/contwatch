@@ -2,10 +2,10 @@ from flask import Blueprint
 from pony import orm
 
 from modules.models.attribute import Attribute
-from modules.utils import BlueprintInit, this_name, StatusCode
+from modules.utils import Context, this_name, StatusCode
 
 
-def attributes_blueprint(_init: BlueprintInit):
+def attributes_blueprint(_context: Context):
     blueprint = Blueprint(this_name(), __name__)
 
     @blueprint.route("/")

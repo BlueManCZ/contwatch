@@ -4,10 +4,10 @@ from pony import orm
 from modules.handlers import get_handler_class, available_handlers
 from modules.models import attribute as attribute_model
 from modules.models import handler as handler_model
-from modules.utils import this_name, BlueprintInit, parse_config, StatusCode
+from modules.utils import this_name, Context, parse_config, StatusCode
 
 
-def handlers_blueprint(_init: BlueprintInit):
+def handlers_blueprint(_context: Context):
     blueprint = Blueprint(this_name(), __name__)
 
     @blueprint.route("/available-handlers")
@@ -39,15 +39,17 @@ def handlers_blueprint(_init: BlueprintInit):
                         "name": attribute_name,
                         "value": attribute_manager.get_current_value(),
                     }
-                    for attribute_name, attribute_manager in _init.manager.registered_attributes.get(h_id, {}).items()
+                    for attribute_name, attribute_manager in _context.manager.registered_attributes.get(
+                        h_id, {}
+                    ).items()
                 ],
             }
-            for h_id, handler in _init.manager.registered_handlers.items()
+            for h_id, handler in _context.manager.registered_handlers.items()
         ], StatusCode.OK
 
     @blueprint.route("/<int:handler_id>")
     def handler_info(handler_id):
-        handler = _init.manager.registered_handlers.get(handler_id, None)
+        handler = _context.manager.registered_handlers.get(handler_id, None)
         if handler:
             return {
                 "id": handler.get_id(),
@@ -63,7 +65,7 @@ def handlers_blueprint(_init: BlueprintInit):
                         "name": attribute_name,
                         "value": attribute_manager.get_current_value(),
                     }
-                    for attribute_name, attribute_manager in _init.manager.registered_attributes.get(
+                    for attribute_name, attribute_manager in _context.manager.registered_attributes.get(
                         handler_id, {}
                     ).items()
                 ],
@@ -72,7 +74,7 @@ def handlers_blueprint(_init: BlueprintInit):
                         "name": attribute_name,
                         "value": attribute_value,
                     }
-                    for attribute_name, attribute_value in _init.manager.last_messages.get(handler_id, {}).items()
+                    for attribute_name, attribute_value in _context.manager.last_messages.get(handler_id, {}).items()
                 ],
             }, StatusCode.OK
         return {"status": "not found"}, StatusCode.NOT_FOUND
@@ -87,7 +89,7 @@ def handlers_blueprint(_init: BlueprintInit):
         handler_db = handler_model.add(handler)
         handler_db.flush()
         handler.set_id(handler_db.id)
-        _init.manager.register_handler(handler)
+        _context.manager.register_handler(handler)
         return {"status": "ok"}, StatusCode.CREATED
 
     @blueprint.route("/add-handler-attribute", methods=["POST"])
