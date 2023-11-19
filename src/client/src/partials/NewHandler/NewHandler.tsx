@@ -27,22 +27,20 @@ export const NewHandler: FC<HandlerTypeModel> = ({ type, name, icon, configField
         dispatch(resetNewHandler());
     }, [dispatch]);
 
-    // useEffect(() => {
-    //     console.log("Hey, input mounted");
-    //     if (configFields) {
-    //         for (const field of Object.keys(configFields)) {
-    //             dispatch(
-    //                 setNewHandlerConfigField({
-    //                     fieldName: field,
-    //                     fieldValue: configFields[field][2],
-    //                 }),
-    //             );
-    //         }
-    //     }
-    // }, [configFields, dispatch]);
     useEffect(() => {
-        clearNewHandler();
-    }, [clearNewHandler, dispatch]);
+        console.log("Hey, input mounted");
+        if (configFields) {
+            for (const field of Object.keys(configFields)) {
+                dispatch(
+                    setConfigField({
+                        fieldName: field,
+                        fieldValue: configFields[field][2],
+                    }),
+                );
+            }
+        }
+    }, [configFields, dispatch]);
+
     return (
         <FlexLayout className={bem()}>
             <Card>
@@ -73,7 +71,7 @@ export const NewHandler: FC<HandlerTypeModel> = ({ type, name, icon, configField
                                     name={field}
                                     type={configFields[field][0]}
                                     title={configFields[field][1]}
-                                    value={""}
+                                    value={configFields[field][2]}
                                     onValueChange={(value) => {
                                         console.log(value);
                                         dispatch(
@@ -88,7 +86,7 @@ export const NewHandler: FC<HandlerTypeModel> = ({ type, name, icon, configField
                     </FlexLayout>
                     <Button
                         active={true}
-                        icon={ThemedIconName.plus}
+                        icon={ThemedIconName.plusSmall}
                         onClick={() => {
                             console.log("Hey hou", newHandlerConfig, type);
                             addHandler(

@@ -5,7 +5,6 @@ import { bemClassNames } from "../../utils";
 const classNames = bemClassNames("input-wrapper");
 
 export type InputProps = {
-    locKey?: number;
     type?: HTMLInputTypeAttribute | "pick";
     placeholder?: string;
     value?: string;

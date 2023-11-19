@@ -26,7 +26,7 @@ export const Card: FunctionComponent<CardProps> = ({
     className,
     fullwidth = false,
     overflow,
-    gap = "20px",
+    gap,
     variant = CardVariant.default,
     active = false,
     children,

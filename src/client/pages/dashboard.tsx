@@ -3,16 +3,16 @@ import { AttributeWidget, FlexLayout, SwitchWidget, ThemedIconName, Toolbar } fr
 import { NavbarLayout } from "../src/layouts";
 import { LOC_KEY, useLocalization } from "../src/localization";
 
-export const Dashboard = () => {
-    const { translate } = useLocalization();
+const Dashboard = () => {
+    const { localize } = useLocalization();
     const { data: tiles } = useWidgetTiles();
     const { data: switches } = useWidgetSwitches();
     return (
         <NavbarLayout>
             <Toolbar
                 icon={ThemedIconName.gridMixed}
-                title={translate(LOC_KEY.DASHBOARD)}
-                description={translate(LOC_KEY.DASHBOARD_INFO)}
+                title={localize(LOC_KEY.DASHBOARD)}
+                description={localize(LOC_KEY.DASHBOARD_INFO)}
             />
             <FlexLayout gap="20px" wrap="wrap">
                 {tiles?.map((widget) => (

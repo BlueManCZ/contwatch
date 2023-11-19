@@ -6,18 +6,12 @@ import { FlexLayout } from "../FlexLayout";
 const bem = bemClassNames("menu");
 
 export type MenuComponentProps = {
-    title: string;
-    description: string;
     children?: ReactNode;
 };
 
-export const Menu: FC<MenuComponentProps> = ({ title, description, children }) => {
+export const Menu: FC<MenuComponentProps> = ({ children }) => {
     return (
-        <FlexLayout className={bem()} direction="column">
-            <div className={bem("header")}>
-                <h1 className={bem("title")}>{title}</h1>
-                <p className={bem("description")}>{description}</p>
-            </div>
+        <FlexLayout className={bem()} direction="column" gap="1rem">
             {children}
         </FlexLayout>
     );

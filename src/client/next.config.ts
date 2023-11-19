@@ -18,6 +18,9 @@ export const nextConfig = {
             },
         ],
     },
+    serverRuntimeConfig: {
+        appVersion: process.env.npm_package_version || "",
+    },
     async rewrites() {
         return [
             ...API_SERVER_ROUTES.map((route) => ({

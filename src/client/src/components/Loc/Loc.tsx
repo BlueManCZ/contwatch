@@ -9,7 +9,7 @@ export type LocProps = {
 };
 
 export const Loc: FC<LocProps> = ({ children }) => {
-    const { translate } = useLocalization();
+    const { localize } = useLocalization();
     const locale = useSelector(selectLocaleState);
-    return translate(children, locale);
+    return localize(children, locale);
 };

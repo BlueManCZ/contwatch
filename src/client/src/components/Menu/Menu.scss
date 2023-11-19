@@ -4,22 +4,8 @@
 .menu {
     box-sizing: border-box;
     max-width: 350px;
-    height: 100vh;
-    padding: 30px;
+    height: 100%;
+    padding: 2rem;
+    border-radius: 2rem;
     background: $white;
-
-    &__header {
-        margin-bottom: 30px;
-    }
-
-    &__title {
-        margin: 0;
-        font-size: 23px;
-    }
-
-    &__description {
-        margin: 0;
-        font-size: 14px;
-        font-weight: normal;
-    }
 }

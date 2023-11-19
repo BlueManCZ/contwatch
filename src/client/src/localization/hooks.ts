@@ -11,7 +11,7 @@ export const useLocalization = () => {
      * @param locKey The LOC_KEY to translate.
      * @param locale The locale to translate to. Defaults to the current locale.
      */
-    const translate = (locKey: LOC_KEY, locale?: LOCALES) => {
+    const localize = (locKey: LOC_KEY, locale?: LOCALES) => {
         const targetLocale = locale ?? currentLocale;
         const loadedTranslation = LOC_KEY_DATABASE[locKey];
         if (loadedTranslation) {
@@ -22,6 +22,6 @@ export const useLocalization = () => {
     };
 
     return {
-        translate,
+        localize,
     };
 };

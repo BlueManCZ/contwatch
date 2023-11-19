@@ -6,9 +6,9 @@ import { NavbarLayout } from "../src/layouts";
 import { LOC_KEY, useLocalization } from "../src/localization";
 import { InspectorChart } from "../src/partials/InspectorChart";
 
-export const Inspector = () => {
+const Inspector = () => {
     const { data: handlers } = useHandlers();
-    const { translate } = useLocalization();
+    const { localize } = useLocalization();
 
     /** TODO: Store selected attributes in redux */
     const [attributes, setAttributes] = useState<number[]>([]);
@@ -26,8 +26,8 @@ export const Inspector = () => {
         <NavbarLayout>
             <Toolbar
                 icon={ThemedIconName.chartSquare}
-                title={translate(LOC_KEY.INSPECTOR)}
-                description={translate(LOC_KEY.INSPECTOR_INFO)}
+                title={localize(LOC_KEY.INSPECTOR)}
+                description={localize(LOC_KEY.INSPECTOR_INFO)}
             />
             <FlexLayout gap="1rem">
                 {handlers?.map(

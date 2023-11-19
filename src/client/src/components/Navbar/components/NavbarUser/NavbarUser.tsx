@@ -7,7 +7,7 @@ import { Icon, IconVariant, ThemedIconName } from "../../../Icon";
 export type NavbarUserProps = {
     userName: string;
     email: string;
-    picture?: string;
+    // picture?: string;
     collapsed: boolean;
 };
 

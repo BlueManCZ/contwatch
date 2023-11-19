@@ -57,9 +57,11 @@ export const InspectorChart: FC<InspectorChartProps> = ({ attributes = [] }) => 
     };
 
     return (
-        <div className={bem()}>
-            {/** @ts-ignore */}
-            <Line {...{ ref, options, data }} />
-        </div>
+        data.datasets.length > 0 && (
+            <div className={bem()}>
+                {/** @ts-ignore */}
+                <Line {...{ ref, options, data }} />
+            </div>
+        )
     );
 };

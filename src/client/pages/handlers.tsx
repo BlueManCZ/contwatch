@@ -11,11 +11,14 @@ import {
     Separator,
     SeparatorVariant,
     ThemedIconName,
+    Toolbar,
 } from "../src/components";
 import { NavbarLayout } from "../src/layouts";
+import { LOC_KEY, useLocalization } from "../src/localization";
 import { Handler, NewHandler } from "../src/partials";
 
-export const Handlers = () => {
+const Handlers = () => {
+    const { localize } = useLocalization();
     const { data: handlers } = useHandlers();
     const { data: availableHandlers } = useAvailableHandlers();
 
@@ -37,9 +40,17 @@ export const Handlers = () => {
 
     return (
         <NavbarLayout>
-            <FlexLayout direction="row">
-                <Menu title="ContWatch" description="Scalable system for IoT automatization">
-                    <MenuSection title="Handlers" description="Your configured devices">
+            <Toolbar
+                icon={ThemedIconName.processor}
+                title={localize(LOC_KEY.HANDLERS)}
+                description={localize(LOC_KEY.HANDLERS_INFO)}
+            />
+            <FlexLayout direction="row" gap="1rem">
+                <Menu>
+                    <MenuSection
+                        title={localize(LOC_KEY.HANDLERS)}
+                        description={localize(LOC_KEY.HANDLERS_DESCRIPTION)}
+                    >
                         {handlers?.map((handler) => (
                             <MenuItem
                                 key={handler.id}
