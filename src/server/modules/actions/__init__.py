@@ -1,2 +1,2 @@
-from .nodes import NODES
+from .nodes import NODES, NODES_MAP
 from .ports import PORTS

@@ -3,12 +3,15 @@ from time import sleep
 
 from pony import orm
 
+from modules.actions.nodes import NODES_MAP
+from modules.actions.nodes.abstract_node import AbstractNode
 from modules.attribute_manager import AttributeManager
 from modules.handlers import get_handler_class
 from modules.handlers.abstract_handler import AbstractHandler
 from modules.logging import Logger
 from modules.models import handler as handler_model
-from modules.utils import linearize
+from modules.models.settings import get_settings
+from modules.utils import linearize, Context
 
 
 class HandlerManager:
@@ -23,9 +26,12 @@ class HandlerManager:
                     self.process_message(h_id, message)
             sleep(0.01)
 
+    @orm.db_session
     def __init__(self):
         self.active = True
         self.log = Logger("HandlerManager")
+
+        settings = get_settings(1)
 
         # Dictionary for handler instances
         self.registered_handlers: dict = {}
@@ -35,6 +41,13 @@ class HandlerManager:
         self.registered_attributes = {}
 
         self.initialize_handlers()
+
+        # NodeMap for actions from database
+        self.actions_node_map = settings.actions_node_map if settings else {}
+        # Actual node instances
+        self.actions_node_instances_map = {}
+
+        self.rebuild_nodes()
 
         self.thread = Thread(target=self._handler_watcher)
         self.thread.start()
@@ -69,9 +82,62 @@ class HandlerManager:
         print(linearized_json)
 
         for attribute in self.registered_attributes.get(handler_id, []):
-            print(attribute, linearized_json[attribute])
             if attribute in linearized_json:
                 self.registered_attributes.get(handler_id).get(attribute).add_data_unit(linearized_json.get(attribute))
+
+        # Find listeners for this handler and execute them
+        for node_id, node in self.actions_node_instances_map.items():
+            node: AbstractNode
+            if node.node_settings.get("type") == "listener":
+                if node.node_settings.get("inputData", {}).get("handler", {}).get("select") == handler_id:
+                    node.execute()
+
+    def set_actions_node_map(self, actions_node_map):
+        self.actions_node_map = actions_node_map
+        self.rebuild_nodes()
+
+    def rebuild_nodes(self):
+        """Parse actions_node_map and create node instances"""
+        self.actions_node_instances_map.clear()
+        for node_id, node in self.actions_node_map.items():
+            node: dict
+
+            new_node_instance = self.actions_node_instances_map.get(node_id)
+            if not new_node_instance:
+                new_node_instance = NODES_MAP.get(node.get("type"))(Context(self), node)
+                self.actions_node_instances_map[node_id] = new_node_instance
+            else:
+                new_node_instance.load_node_settings(node)
+
+            # Add input connections to the node
+            for port_name, connection_list in node.get("connections", {}).get("inputs", {}).items():
+                for connection in connection_list:
+                    connection: dict
+                    connection_id = connection.get("nodeId")
+                    connection_name = self.actions_node_map.get(connection_id).get("type")
+
+                    input_node_instance = self.actions_node_instances_map.get(connection_id)
+                    # If node instance is not created yet, create it
+                    if not input_node_instance:
+                        input_node_instance = NODES_MAP.get(connection_name)(Context(self))
+                        self.actions_node_instances_map[connection_id] = input_node_instance
+
+                    new_node_instance.add_input_connection(port_name, input_node_instance)
+
+            # Add output connections to the node
+            for port_name, connection_list in node.get("connections", {}).get("outputs", {}).items():
+                for connection in connection_list:
+                    connection: dict
+                    connection_id = connection.get("nodeId")
+                    connection_name = self.actions_node_map.get(connection_id).get("type")
+
+                    output_node_instance = self.actions_node_instances_map.get(connection_id)
+                    # If node instance is not created yet, create it
+                    if not output_node_instance:
+                        output_node_instance = NODES_MAP.get(connection_name)(Context(self))
+                        self.actions_node_instances_map[connection_id] = output_node_instance
+
+                    new_node_instance.add_output_connection(port_name, output_node_instance)
 
     def exit(self):
         for handler in self.registered_handlers:

@@ -2,6 +2,8 @@ export enum Endpoint {
     // Actions
     availableNode = "core/actions/available-nodes",
     availablePorts = "core/actions/available-ports",
+    nodeMap = "core/actions/node-map",
+    saveNodeMap = "core/actions/save-node-map",
     // Charts
     attributeChart = "core/charts/attribute",
     // Handlers

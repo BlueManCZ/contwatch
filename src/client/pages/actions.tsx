@@ -1,8 +1,8 @@
-import { Controls, FlumeConfig, NodeEditor } from "flume";
+import { Controls, FlumeConfig, NodeEditor, NodeMap } from "flume";
 import { NextPage } from "next";
 import { useEffect, useState } from "react";
 
-import { useAvailableNodes, useAvailablePorts } from "../src/bridge";
+import { fetchNodeMap, saveNodeMap, useAvailableNodes, useAvailablePorts } from "../src/bridge";
 import { NodeModel, PortModel } from "../src/bridge/modules/actions/models";
 import { ThemedIconName, Toolbar } from "../src/components";
 import { NavbarLayout } from "../src/layouts";
@@ -47,6 +47,13 @@ const Actions: NextPage = () => {
     const { data: availableNodes } = useAvailableNodes();
 
     const [config, setConfig] = useState<FlumeConfig | null>(null);
+    const [nodeMap, setNodeMap] = useState<NodeMap | null>(null);
+
+    const saveNodeMapOnServer = (nodeMap: NodeMap) => {
+        if (Object.keys(nodeMap).length > 0) {
+            saveNodeMap(nodeMap);
+        }
+    };
 
     useEffect(() => {
         if (availableNodes && availablePorts) {
@@ -57,7 +64,11 @@ const Actions: NextPage = () => {
         }
     }, [availableNodes, availablePorts]);
 
-    console.log(config);
+    useEffect(() => {
+        fetchNodeMap().then((nodeMap) => {
+            setNodeMap(nodeMap);
+        });
+    }, []);
 
     return (
         <NavbarLayout>
@@ -67,9 +78,10 @@ const Actions: NextPage = () => {
                 description={localize(LOC_KEY.ACTIONS_INFO)}
             />
             <div style={{ flexGrow: 1 }}>
-                {config && (
+                {config && nodeMap && (
                     <NodeEditor
-                        onChange={(nodes) => console.log(nodes)}
+                        nodes={nodeMap}
+                        onChange={saveNodeMapOnServer}
                         portTypes={config.portTypes}
                         nodeTypes={config.nodeTypes}
                     />
