@@ -1,31 +1,16 @@
-import { Controls, FlumeConfig, NodeEditor, NodeMap } from "flume";
+import { FlumeConfig, NodeEditor, NodeMap, PortTypeConfig } from "flume";
 import { NextPage } from "next";
 import { useEffect, useState } from "react";
 
 import { fetchNodeMap, saveNodeMap, useAvailableNodes, useAvailablePorts } from "../src/bridge";
-import { NodeModel, PortModel } from "../src/bridge/modules/actions/models";
+import { NodeModel } from "../src/bridge/modules/actions/models";
 import { ThemedIconName, Toolbar } from "../src/components";
 import { NavbarLayout } from "../src/layouts";
 import { LOC_KEY, useLocalization } from "../src/localization";
 
-const addPorts = (config: FlumeConfig, availablePorts: PortModel[]) => {
+const addPorts = (config: FlumeConfig, availablePorts: PortTypeConfig[]) => {
     availablePorts.forEach((port) => {
-        config.addPortType({
-            type: port.type,
-            name: port.name,
-            label: port.label,
-            hidePort: port.hidePort,
-            // color: port.color,
-            controls: port.controls
-                .map((control) =>
-                    Controls[control.type]({
-                        name: control.name,
-                        label: control.name,
-                        options: control.options,
-                    }),
-                )
-                .filter((c) => c !== null),
-        });
+        config.addPortType(port);
     });
 };
 

@@ -5,9 +5,10 @@ from ..controls import Select
 class HandlerPort(AbstractPort):
     name = "handler"
     label = "Handler"
+    hide = True
 
-    def __init__(self, context):
-        super().__init__(context)
+    def __init__(self, context, *args):
+        super().__init__(context, *args)
         self.controls = [
             Select(
                 [

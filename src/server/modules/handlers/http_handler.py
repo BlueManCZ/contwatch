@@ -1,9 +1,10 @@
-from simplejson import JSONDecodeError
-from requests import get
-from requests.exceptions import ConnectionError, ReadTimeout, MissingSchema
 from ssl import SSLError
 from threading import Thread
 from time import sleep
+
+from requests import get
+from requests.exceptions import ConnectionError, ReadTimeout, MissingSchema
+from simplejson import JSONDecodeError
 
 from modules.logging import Logger
 from .abstract_handler import AbstractHandler
@@ -151,6 +152,8 @@ class HttpHandler(AbstractHandler):
                         self.last_response = response
                         self.add_message(response.json())
                 return True
+        except JSONDecodeError as error:
+            print(error)
         except ConnectionError as error:
             print(error)
         except ReadTimeout as error:

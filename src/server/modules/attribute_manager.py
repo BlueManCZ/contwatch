@@ -54,7 +54,7 @@ class AttributeManager:
     @orm.db_session
     def add_data_unit(self, value):
         if self.check_value_change(value):
-            print("Value changed")
+            # Value has changed
             if self.value is not None and self.last_datetime is not None and self.last_value_save_skipped:
                 data_unit_model.add(self.handler_id, self.id, self.value, self.last_datetime)
                 self.last_value_save_skipped = False
@@ -62,7 +62,7 @@ class AttributeManager:
             data_unit_model.add(self.handler_id, self.id, value, datetime.now())
             self.check_and_add_stat_units(value)
         else:
-            print("Value didn't change")
+            # Value hasn't changed
             self.last_value_save_skipped = True
         self.last_datetime = datetime.now()
 
@@ -76,12 +76,10 @@ class AttributeManager:
 
             if self.stats[predicate_name] is not None and stat_predicate(value):
                 # If stat is found in db and predicate is true, update stat in db.
-                print("Updating", predicate_name, "stat in DB")
                 db_stat = data_stat_model.get_by_type_and_date(self.handler_id, self.id, predicate_name, now.date())
                 self.stats[predicate_name] = db_stat.value if db_stat else None
                 db_stat.time = now.time()
                 db_stat.value = value
             elif self.stats[predicate_name] is None:
                 # If stat is still not in db, add it.
-                print("Writing", predicate_name, "stat to DB")
                 data_stat_model.add(self.handler_id, self.id, predicate_name, value)

@@ -7,7 +7,7 @@ class Select(AbstractControl):
 
     def __init__(self, options):
         super().__init__()
-        self.options = options
+        self.options = sorted(options, key=lambda option: option["value"])
 
     def get_definition(self):
         return {

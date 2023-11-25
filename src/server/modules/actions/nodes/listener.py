@@ -6,8 +6,10 @@ class Listener(AbstractNode):
     label = "Event Listener"
     description = "Triggers when an event is received"
 
-    input_ports = [HandlerPort]
-    output_ports = [EventPort]
+    def __init__(self, context, node_settings=None):
+        super().__init__(context, node_settings)
+        self.input_ports = [HandlerPort(context)]
+        self.output_ports = [EventPort(context)]
 
     def execute(self):
         """Execute the node."""

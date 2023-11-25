@@ -7,4 +7,8 @@ class AbstractControl:
         self.type = type(self).__name__.lower()
 
     def get_definition(self):
-        pass
+        return {
+            "type": self.type,
+            "name": self.name,
+            "label": self.label,
+        }

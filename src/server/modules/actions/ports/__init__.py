@@ -1,7 +1,8 @@
 from .action_port import ActionPort
+from .attribute_port import AttributePort
 from .event_port import EventPort
 from .handler_port import HandlerPort
 from .number_port import NumberPort
-from .string_port import StringPort
+from .value_port import ValuePort
 
-PORTS = [EventPort, NumberPort, ActionPort, HandlerPort, StringPort]
+PORTS = [ActionPort, AttributePort, EventPort, HandlerPort, NumberPort, ValuePort]

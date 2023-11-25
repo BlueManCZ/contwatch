@@ -103,6 +103,7 @@ class HandlerManager:
             node: dict
 
             new_node_instance = self.actions_node_instances_map.get(node_id)
+            new_node_instance: AbstractNode
             if not new_node_instance:
                 new_node_instance = NODES_MAP.get(node.get("type"))(Context(self), node)
                 self.actions_node_instances_map[node_id] = new_node_instance
@@ -122,7 +123,9 @@ class HandlerManager:
                         input_node_instance = NODES_MAP.get(connection_name)(Context(self))
                         self.actions_node_instances_map[connection_id] = input_node_instance
 
-                    new_node_instance.add_input_connection(port_name, input_node_instance)
+                    new_node_instance.add_input_connection(
+                        new_node_instance.input_ports[len(new_node_instance.input_connections)].tag, input_node_instance
+                    )
 
             # Add output connections to the node
             for port_name, connection_list in node.get("connections", {}).get("outputs", {}).items():
@@ -137,7 +140,10 @@ class HandlerManager:
                         output_node_instance = NODES_MAP.get(connection_name)(Context(self))
                         self.actions_node_instances_map[connection_id] = output_node_instance
 
-                    new_node_instance.add_output_connection(port_name, output_node_instance)
+                    new_node_instance.add_output_connection(
+                        new_node_instance.output_ports[len(new_node_instance.output_connections)].tag,
+                        output_node_instance,
+                    )
 
     def exit(self):
         for handler in self.registered_handlers:

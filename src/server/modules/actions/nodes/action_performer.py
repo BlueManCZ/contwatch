@@ -5,17 +5,19 @@ from .abstract_node import AbstractNode
 from ..ports import ActionPort, EventPort, HandlerPort
 
 
-class PerformAction(AbstractNode):
-    label = "Perform Action"
+class ActionPerformer(AbstractNode):
+    label = "Action Performer"
     description = "Performs an action"
 
-    input_ports = [EventPort, HandlerPort, ActionPort]
+    def __init__(self, context, node_settings=None):
+        super().__init__(context, node_settings)
+        self.input_ports = [EventPort(context), HandlerPort(context), ActionPort(context)]
 
     @orm.db_session
     def execute(self):
         print("Performing action")
-        handler_id = self.node_settings.get("inputData", {}).get("handler", {}).get("select")
-        action_id = self.node_settings.get("inputData", {}).get("action", {}).get("select")
+        handler_id = self.get_input("handler")
+        action_id = self.get_input("action")
         if handler_id and action_id:
             handler = self.context.manager.registered_handlers.get(handler_id)
             action = Action.select(lambda a: a.id == action_id).first()
