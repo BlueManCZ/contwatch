@@ -6,10 +6,11 @@ class AbstractPort:
     hide = False
     controls = []
 
-    def __init__(self, context, tag=None):
+    def __init__(self, context, name=None, label=None):
         self.type = type(self).__name__.lower()
         self.context = context
-        self.tag = tag or self.name
+        self.name = name or self.name
+        self.label = label or self.label
 
     def get_definition(self):
         return {

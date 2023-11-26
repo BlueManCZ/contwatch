@@ -124,7 +124,8 @@ class HandlerManager:
                         self.actions_node_instances_map[connection_id] = input_node_instance
 
                     new_node_instance.add_input_connection(
-                        new_node_instance.input_ports[len(new_node_instance.input_connections)].tag, input_node_instance
+                        port_name,
+                        input_node_instance,
                     )
 
             # Add output connections to the node
@@ -141,7 +142,7 @@ class HandlerManager:
                         self.actions_node_instances_map[connection_id] = output_node_instance
 
                     new_node_instance.add_output_connection(
-                        new_node_instance.output_ports[len(new_node_instance.output_connections)].tag,
+                        port_name,
                         output_node_instance,
                     )
 

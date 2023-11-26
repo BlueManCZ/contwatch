@@ -1,4 +1,4 @@
-import { FlumeConfig, NodeEditor, NodeMap, PortTypeConfig } from "flume";
+import { FlumeConfig, NodeEditor, NodeMap, PortType, PortTypeConfig } from "flume";
 import { NextPage } from "next";
 import { useEffect, useState } from "react";
 
@@ -20,8 +20,43 @@ const addNodes = (config: FlumeConfig, availableNodes: NodeModel[]) => {
             type: node.type,
             label: node.label,
             description: node.description,
-            inputs: (ports) => node.inputs?.map((port) => ports[port]()) ?? [],
-            outputs: (ports) => node.outputs?.map((port) => ports[port]()) ?? [],
+            // @ts-ignore flume types don't like this, but it's fine
+            inputs: (ports) => {
+                if (node.repeatableInput) {
+                    return (inputData, connections) => {
+                        const result: PortType[] = [];
+                        const repeatableInput = node.inputs.find(
+                            (input) => input.name === node.repeatableInput,
+                        );
+                        let maximumIndex = -1;
+                        node.inputs.forEach((input) => {
+                            if (input.name !== node.repeatableInput) {
+                                result.push(ports[input.type](input));
+                            } else {
+                                Object.keys(connections.inputs).forEach((name) => {
+                                    result.push(
+                                        ports[input.type]({
+                                            ...input,
+                                            name: name,
+                                        }),
+                                    );
+                                    maximumIndex = Math.max(maximumIndex, parseInt(name.split("##")[1]));
+                                });
+                            }
+                        });
+                        result.push(
+                            ports[repeatableInput?.type ?? ""]({
+                                ...repeatableInput,
+                                name: (repeatableInput?.name ?? "") + "##" + (maximumIndex + 1),
+                            }),
+                        );
+                        return result;
+                    };
+                } else {
+                    return node.inputs?.map((port) => ports[port.type](port)) ?? [];
+                }
+            },
+            outputs: (ports) => node.outputs?.map((port) => ports[port.type](port)) ?? [],
         });
     });
 };
