@@ -2,8 +2,7 @@ from .abstract_port import AbstractPort
 from ..controls import Select
 
 
-class AttributePort(AbstractPort):
-    name = "attribute"
+class Attribute(AbstractPort):
     label = "Attribute"
     hide = True
 

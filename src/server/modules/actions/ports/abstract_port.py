@@ -7,9 +7,9 @@ class AbstractPort:
     controls = []
 
     def __init__(self, context, name=None, label=None):
-        self.type = type(self).__name__.lower()
+        self.type = type(self).__name__
         self.context = context
-        self.name = name or self.name
+        self.name = name or self.type
         self.label = label or self.label
 
     def get_definition(self):

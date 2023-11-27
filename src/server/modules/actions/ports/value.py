@@ -3,8 +3,7 @@ from .utils import Color
 from ..controls import Text
 
 
-class ValuePort(AbstractPort):
-    name = "value"
+class Value(AbstractPort):
     label = "Value"
     color = Color.BLUE
 

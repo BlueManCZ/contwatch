@@ -3,8 +3,7 @@ from .utils.aggregate_functions import AGGREGATE_FUNCTIONS
 from ..controls import Select
 
 
-class AggregateFunctionPort(AbstractPort):
-    name = "aggregate_function"
+class AggregateFunction(AbstractPort):
     label = "Function"
     hide = True
 

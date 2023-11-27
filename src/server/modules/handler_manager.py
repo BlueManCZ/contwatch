@@ -81,15 +81,37 @@ class HandlerManager:
         self.last_messages[handler_id] = linearized_json
         print(linearized_json)
 
-        for attribute in self.registered_attributes.get(handler_id, []):
+        stored_attributes = self.registered_attributes.get(handler_id, {})
+        for attribute in stored_attributes:
             if attribute in linearized_json:
-                self.registered_attributes.get(handler_id).get(attribute).add_data_unit(linearized_json.get(attribute))
+                attribute_instance = stored_attributes.get(attribute)
+                new_value = linearized_json.get(attribute)
 
-        # Find listeners for this handler and execute them
+                changed = False
+                if attribute_instance.check_value_change(new_value):
+                    changed = True
+
+                attribute_instance.add_data_unit(linearized_json.get(attribute))
+
+                if changed:
+                    self.execute_attribute_listeners(attribute_instance.get_id())
+
+        self.execute_handler_listeners(handler_id)
+
+    def execute_handler_listeners(self, handler_id):
+        """Find listeners for this handler and execute them."""
         for node_id, node in self.actions_node_instances_map.items():
             node: AbstractNode
-            if node.node_settings.get("type") == "listener":
+            if node.node_settings.get("type") == "HandlerListener":
                 if node.node_settings.get("inputData", {}).get("handler", {}).get("select") == handler_id:
+                    node.execute()
+
+    def execute_attribute_listeners(self, attribute_id):
+        """Find listeners for this attribute and execute them."""
+        for node_id, node in self.actions_node_instances_map.items():
+            node: AbstractNode
+            if node.node_settings.get("type") == "AttributeReaderListener":
+                if node.node_settings.get("inputData", {}).get("attribute", {}).get("select") == attribute_id:
                     node.execute()
 
     def set_actions_node_map(self, actions_node_map):

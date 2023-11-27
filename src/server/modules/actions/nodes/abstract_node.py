@@ -5,7 +5,7 @@ class AbstractNode:
     repeatable_input = ""
 
     def __init__(self, context, node_settings=None):
-        self.type = type(self).__name__.lower()
+        self.type = type(self).__name__
         self.context = context
 
         self.input_ports = []
@@ -18,6 +18,7 @@ class AbstractNode:
             self.load_node_settings(node_settings)
 
     def get_definition(self):
+        """Serialize the node to a dictionary."""
         return {
             "type": self.type,
             "label": self.label,
@@ -28,6 +29,7 @@ class AbstractNode:
         }
 
     def get_input(self, name):
+        """Get the value of an input."""
         for connection in self.input_connections.get(name, []):
             return connection.evaluate()
         for port in self.input_ports:
@@ -35,6 +37,7 @@ class AbstractNode:
                 return self.node_settings.get("inputData", {}).get(port.name, {}).get(port.controls[0].name)
 
     def get_repeatable_inputs(self, name):
+        """Get all values of a repeatable input."""
         result = []
         for connection_name in self.input_connections:
             if connection_name.startswith(name):
@@ -69,8 +72,8 @@ class AbstractNode:
 
     def execute(self):
         """Execute the node."""
-        pass
+        raise NotImplementedError()
 
     def evaluate(self):
         """Evaluate the node."""
-        pass
+        raise NotImplementedError()

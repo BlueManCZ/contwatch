@@ -3,13 +3,12 @@ from .utils import RELATIONAL_OPERATIONS
 from ..controls import Select
 
 
-class RelationalOperatorPort(AbstractPort):
-    name = "relational_operator"
+class RelationalOperator(AbstractPort):
     label = "Operator"
     hide = True
 
-    def __init__(self, context, *args):
-        super().__init__(context, *args)
+    def __init__(self, *args):
+        super().__init__(*args)
         self.controls = [
             Select(
                 [

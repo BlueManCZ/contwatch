@@ -1,22 +1,25 @@
+from pony import orm
+
+from modules.models.action import Action as ActionModel
 from .abstract_port import AbstractPort
 from ..controls import Select
 
 
-class HandlerPort(AbstractPort):
-    name = "handler"
-    label = "Handler"
+class Action(AbstractPort):
+    label = "Action"
     hide = True
 
+    @orm.db_session
     def __init__(self, context, *args):
         super().__init__(context, *args)
         self.controls = [
             Select(
                 [
                     {
-                        "label": handler.get_name(),
-                        "value": handler_id,
+                        "label": action.name,
+                        "value": action.id,
                     }
-                    for handler_id, handler in self.context.manager.registered_handlers.items()
+                    for action in ActionModel.select()
                 ]
             )
         ]

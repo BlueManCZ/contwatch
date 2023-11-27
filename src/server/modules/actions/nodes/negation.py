@@ -1,5 +1,5 @@
 from .abstract_node import AbstractNode
-from ..ports import ValuePort
+from ..ports import Value
 
 
 class Negation(AbstractNode):
@@ -8,9 +8,9 @@ class Negation(AbstractNode):
 
     def __init__(self, context, node_settings=None):
         super().__init__(context, node_settings)
-        self.input_ports = [ValuePort(context)]
-        self.output_ports = [ValuePort(context)]
+        self.input_ports = [Value(context)]
+        self.output_ports = [Value(context)]
 
     def evaluate(self):
         """Return the negated value."""
-        return not self.get_input("value")
+        return not self.get_input("Value")

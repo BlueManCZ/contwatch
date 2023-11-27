@@ -1,5 +1,5 @@
 from .abstract_node import AbstractNode
-from ..ports import EventPort, ValuePort
+from ..ports import Event, Value
 
 
 class Condition(AbstractNode):
@@ -8,16 +8,16 @@ class Condition(AbstractNode):
 
     def __init__(self, context, node_settings=None):
         super().__init__(context, node_settings)
-        self.input_ports = [EventPort(context), ValuePort(context)]
+        self.input_ports = [Event(context), Value(context)]
         self.output_ports = [
-            EventPort(context, "true_event", "True Event"),
-            EventPort(context, "false_event", "False Event"),
+            Event(context, "TrueEvent", "True Event"),
+            Event(context, "FalseEvent", "False Event"),
         ]
 
     def execute(self):
         if self.get_input("value"):
-            for connection in self.output_connections.get("true_event", []):
+            for connection in self.output_connections.get("TrueEvent", []):
                 connection.execute()
         else:
-            for connection in self.output_connections.get("false_event", []):
+            for connection in self.output_connections.get("FalseEvent", []):
                 connection.execute()
