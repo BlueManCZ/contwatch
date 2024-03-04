@@ -15,7 +15,7 @@ class Condition(AbstractNode):
         ]
 
     def execute(self):
-        if self.get_input("value"):
+        if self.get_input("Value"):
             for connection in self.output_connections.get("TrueEvent", []):
                 connection.execute()
         else:

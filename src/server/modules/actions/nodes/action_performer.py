@@ -1,6 +1,6 @@
 from pony import orm
 
-from modules.models.action import Action
+from modules.models.action import Action as ActionModel
 from .abstract_node import AbstractNode
 from ..ports import Action, Event, Handler
 
@@ -20,6 +20,6 @@ class ActionPerformer(AbstractNode):
         action_id = self.get_input("Action")
         if handler_id and action_id:
             handler = self.context.manager.registered_handlers.get(handler_id)
-            action = Action.select(lambda a: a.id == action_id).first()
+            action = ActionModel.select(lambda a: a.id == action_id).first()
             if handler and action:
                 handler.send_message({"label": action.message})

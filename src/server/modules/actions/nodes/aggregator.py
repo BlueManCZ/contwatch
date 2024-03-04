@@ -6,7 +6,7 @@ from ..ports.utils import AGGREGATE_FUNCTIONS
 class Aggregator(AbstractNode):
     label = "Aggregator"
     description = "Aggregates input values and returns value"
-    repeatable_input = "value"
+    repeatable_input = "Value"
 
     def __init__(self, context, node_settings=None):
         super().__init__(context, node_settings)

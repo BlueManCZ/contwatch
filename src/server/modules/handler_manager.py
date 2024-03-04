@@ -103,7 +103,7 @@ class HandlerManager:
         for node_id, node in self.actions_node_instances_map.items():
             node: AbstractNode
             if node.node_settings.get("type") == "HandlerListener":
-                if node.node_settings.get("inputData", {}).get("handler", {}).get("select") == handler_id:
+                if node.node_settings.get("inputData", {}).get("Handler", {}).get("select") == handler_id:
                     node.execute()
 
     def execute_attribute_listeners(self, attribute_id):
@@ -111,7 +111,7 @@ class HandlerManager:
         for node_id, node in self.actions_node_instances_map.items():
             node: AbstractNode
             if node.node_settings.get("type") == "AttributeReaderListener":
-                if node.node_settings.get("inputData", {}).get("attribute", {}).get("select") == attribute_id:
+                if node.node_settings.get("inputData", {}).get("Attribute", {}).get("select") == attribute_id:
                     node.execute()
 
     def set_actions_node_map(self, actions_node_map):
