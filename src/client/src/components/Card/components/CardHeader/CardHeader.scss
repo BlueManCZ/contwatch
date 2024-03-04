@@ -1,0 +1,17 @@
+.card-header {
+    @include card-item;
+
+    align-items: center;
+
+    &__title {
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    &__subtitle {
+        margin-top: 2px;
+        color: $grey-555;
+        font-size: 14px;
+        font-weight: normal;
+    }
+}

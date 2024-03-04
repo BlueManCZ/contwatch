@@ -1,0 +1,91 @@
+.handler {
+    min-width: 400px;
+
+    &__texts {
+        flex-grow: 1;
+    }
+
+    &__icon {
+        display: flex;
+        padding: 10px;
+        border-radius: 100%;
+
+        &--color {
+            &-red {
+                background: $primary-disconnected;
+            }
+
+            &-green {
+                background: $primary-connected;
+            }
+        }
+    }
+
+    &__title {
+        margin: 0;
+    }
+
+    &__description {
+        margin: 0;
+        font-size: 14px;
+    }
+
+    &__status-button {
+        padding: 10px;
+        border-radius: 10px;
+
+        &-title {
+            color: $white;
+            font-size: 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        &-description {
+            padding: 0 10px;
+            color: $white;
+            font-size: 12px;
+        }
+
+        &--color {
+            &-red {
+                background: $primary-disconnected;
+            }
+
+            &-green {
+                background: $primary-connected;
+            }
+        }
+    }
+
+    &__subtitle {
+        @include subtitle;
+    }
+
+    &__attribute {
+        flex-grow: 1;
+        padding: 10px;
+        border-radius: 10px;
+        background: $primary-text-light;
+
+        &:hover {
+            background: $grey-eee;
+            cursor: pointer;
+        }
+
+        &-name {
+            flex-grow: 1;
+            margin-right: 6px;
+            font-weight: bold;
+        }
+
+        &-value {
+            padding: 2px 6px;
+            border-radius: 6px;
+            background: $blue;
+            color: $white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    }
+}

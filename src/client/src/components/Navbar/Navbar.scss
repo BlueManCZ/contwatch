@@ -1,0 +1,25 @@
+@import "./components/NavbarItem/NavbarItem";
+@import "./components/NavbarLogo/NavbarLogo";
+@import "./components/NavbarUser/NavbarUser";
+
+.navbar {
+    box-sizing: border-box;
+    min-width: $navbar-max-width;
+    height: 100vh;
+    padding: 2rem 0;
+    background: $white;
+
+    &__header {
+        height: 150px;
+    }
+
+    &__items {
+        flex-grow: 1;
+        height: 100%;
+    }
+
+    &--collapsed {
+        min-width: $navbar-width-collapsed;
+        transition: ease-in-out 200ms;
+    }
+}

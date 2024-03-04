@@ -1,0 +1,64 @@
+{
+  "name": "contwatch-client",
+  "version": "2.0.0-beta",
+  "private": true,
+  "scripts": {
+    "build:config": "tsc next.config.ts --skipLibCheck --module commonjs --target esnext --esModuleInterop true --allowSyntheticDefaultImports true --moduleResolution node",
+    "dev": "npm run build:config; next dev",
+    "build": "npm run build:config; next build",
+    "start": "next start",
+    "test": "jest --verbose",
+    "lint": "next lint",
+    "stylelint": "stylelint '**/*.scss'",
+    "precommit": "lint-staged",
+    "fmt": "prettier --write './**/*.js'"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "1.9.7",
+    "chart.js": "4.4.0",
+    "chartjs-adapter-date-fns": "3.0.0",
+    "chartjs-plugin-zoom": "^2.0.1",
+    "date-fns": "2.30.0",
+    "flume": "^1.0.4",
+    "next": "14.0.3",
+    "next-redux-wrapper": "8.1.0",
+    "react": "18.2.0",
+    "react-chartjs-2": "5.2.0",
+    "react-dom": "18.2.0",
+    "sass": "1.69.5",
+    "swr": "2.2.4",
+    "typescript": "5.2.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.8",
+    "@types/node": "20.9.1",
+    "@types/react": "18.2.37",
+    "@types/react-dom": "18.2.15",
+    "@typescript-eslint/eslint-plugin": "6.11.0",
+    "@typescript-eslint/parser": "6.11.0",
+    "eslint": "8.54.0",
+    "eslint-config-next": "14.0.3",
+    "eslint-plugin-import": "2.29.0",
+    "eslint-plugin-prettier": "5.0.1",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-simple-import-sort": "10.0.0",
+    "eslint-plugin-unused-imports": "3.0.0",
+    "husky": "8.0.3",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "lint-staged": "15.1.0",
+    "prettier": "3.1.0",
+    "stylelint": "15.11.0",
+    "stylelint-config-prettier-scss": "1.0.0",
+    "stylelint-config-property-sort-order-smacss": "9.1.0",
+    "stylelint-config-standard-scss": "11.1.0",
+    "stylelint-order": "6.0.3",
+    "ts-node": "^10.9.1"
+  },
+  "lint-staged": {
+    "*.js": [
+      "prettier --write",
+      "git add"
+    ]
+  }
+}

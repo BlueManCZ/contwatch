@@ -1,0 +1,36 @@
+@import "./mixins";
+
+.input-wrapper {
+    $this: &;
+
+    display: block;
+    padding: 9px 10px 10px;
+    border-radius: 7px;
+    background: $primary-text-light;
+
+    &__title {
+        display: inline-block;
+        margin-bottom: 3px;
+        transition: all 100ms ease-in-out;
+        opacity: 0.6;
+        color: $blue;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    &__input-element,
+    &__select-element {
+        @extend %input;
+    }
+
+    &:focus-within {
+        box-shadow: inset 0 0 0 1px $blue;
+
+        #{$this}__title,
+        #{$this}__input-element,
+        #{$this}__select-element {
+            opacity: 1;
+        }
+    }
+}

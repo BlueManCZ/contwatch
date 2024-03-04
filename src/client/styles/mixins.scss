@@ -1,0 +1,27 @@
+@mixin card {
+    transition: ease-in-out 200ms;
+    border-radius: 2rem;
+    background: $white;
+    color: $grey-333;
+
+    // box-shadow: 2px 2px 5px $grey-ddd;
+}
+
+@mixin active-shadow {
+    box-shadow: $primary-shadow-box;
+}
+
+@mixin active {
+    @include active-shadow;
+
+    background: $blue;
+}
+
+@mixin subtitle {
+    margin: 0;
+    color: $grey-999;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}

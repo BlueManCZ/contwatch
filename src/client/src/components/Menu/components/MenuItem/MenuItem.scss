@@ -1,0 +1,47 @@
+.menu-item {
+    align-items: center;
+    padding: 12px 15px;
+    border-radius: 10px;
+    background: $primary-text-light;
+    cursor: pointer;
+
+    &:hover {
+        background: $grey-eee;
+    }
+
+    &__title {
+        font-size: 15px;
+        font-weight: bold;
+    }
+
+    &__description {
+        font-size: 13px;
+    }
+
+    &__color-flag {
+        box-sizing: border-box;
+        width: 8px;
+        height: 100%;
+        border-radius: 10px;
+
+        &--color {
+            &-green {
+                background: #80dc60;
+            }
+
+            &-red {
+                background: #dc6860;
+            }
+        }
+    }
+
+    &--active {
+        @include active;
+
+        color: white;
+
+        &:hover {
+            background: $blue;
+        }
+    }
+}

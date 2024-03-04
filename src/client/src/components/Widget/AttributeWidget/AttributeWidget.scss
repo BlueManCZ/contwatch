@@ -1,0 +1,51 @@
+.attribute-widget {
+    display: flex;
+    flex-grow: 1;
+    flex-wrap: wrap;
+    align-items: center;
+    max-width: 400px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: $white;
+    gap: 10px;
+
+    $this: &;
+
+    &__text-body {
+        flex-grow: 1;
+    }
+
+    &__title {
+        font-weight: bold;
+    }
+
+    &__description {
+        font-size: 13px;
+    }
+
+    &__value {
+        padding: 5px 15px;
+        border-radius: 10px;
+        background: $primary-background;
+        font-size: 21px;
+        font-weight: bold;
+        white-space: nowrap;
+    }
+
+    &__unit {
+        font-size: 18px;
+        font-weight: normal;
+    }
+
+    &--disabled {
+        color: $grey-999;
+
+        .icon {
+            opacity: 0.3;
+        }
+
+        #{$this}__value {
+            display: none;
+        }
+    }
+}

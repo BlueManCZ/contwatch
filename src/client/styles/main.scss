@@ -1,0 +1,14 @@
+@import "variables";
+@import "fonts";
+@import "mixins";
+
+@import "../src/components/components";
+@import "../src/layouts/layouts";
+@import "../src/partials/partials";
+
+body {
+    margin: 0;
+    background: #f5f6fa;
+    color: $primary-text;
+    font-family: $font-cantarell;
+}

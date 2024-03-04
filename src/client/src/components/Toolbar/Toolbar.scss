@@ -1,0 +1,33 @@
+.toolbar {
+    display: flex;
+    box-sizing: border-box;
+    align-items: center;
+    height: 4rem;
+    padding: 1rem;
+    border-radius: 4rem;
+    background-color: $white;
+    gap: .8rem;
+
+    &__icon-plate {
+        display: block;
+        padding: .5rem;
+        border-radius: 2rem;
+        background: $blue;
+        box-shadow: $primary-shadow-box;
+    }
+
+    &__header {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__title {
+        margin: 0;
+        font-size: 1.2rem;
+    }
+
+    &__description {
+        margin: 0;
+        font-size: 14px;
+    }
+}

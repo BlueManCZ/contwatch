@@ -1,0 +1,19 @@
+.navbar-user {
+    $border: solid 1px $primary-text-light;
+
+    margin: 5px 15px 5px 20px;
+    padding: 20px 0;
+    border-top: $border;
+    gap: 12px;
+
+    &__name {
+        color: $grey-333;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    &__email {
+        color: $grey-555;
+        font-size: 12px;
+    }
+}

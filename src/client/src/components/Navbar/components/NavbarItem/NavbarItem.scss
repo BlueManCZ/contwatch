@@ -1,0 +1,23 @@
+.navbar-item {
+    width: 70%;
+    margin: 5px 0 0;
+    padding: 13px 15px;
+    border-radius: 10px;
+    background: $white;
+    font-weight: bold;
+    cursor: pointer;
+
+    &:hover {
+        background: $primary-background;
+    }
+
+    &--active {
+        background: $blue;
+        box-shadow: $primary-shadow-box;
+        color: $white;
+
+        &:hover {
+            background: $blue;
+        }
+    }
+}

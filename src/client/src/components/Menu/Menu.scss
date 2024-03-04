@@ -1,0 +1,11 @@
+@import "./components/MenuItem/MenuItem";
+@import "./components/MenuSection/MenuSection";
+
+.menu {
+    box-sizing: border-box;
+    max-width: 350px;
+    height: 100%;
+    padding: 2rem;
+    border-radius: 2rem;
+    background: $white;
+}
