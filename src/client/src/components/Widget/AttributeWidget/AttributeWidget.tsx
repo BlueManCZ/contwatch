@@ -24,7 +24,7 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
 }) => {
     return (
         <div className={bem({ disabled: status !== 1 })}>
-            <Icon icon={icon} />
+            {icon && <Icon icon={icon} />}
             <div className={bem("text-body")}>
                 <div className={bem("title")}>{title}</div>
                 <div className={bem("description")}>{description}</div>

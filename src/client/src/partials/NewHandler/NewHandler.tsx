@@ -71,6 +71,7 @@ export const NewHandler: FC<HandlerTypeModel> = ({ type, name, icon, configField
                                     name={field}
                                     type={configFields[field][0]}
                                     title={configFields[field][1]}
+                                    // TODO: This doesn't work with Redux
                                     value={configFields[field][2]}
                                     onValueChange={(value) => {
                                         console.log(value);

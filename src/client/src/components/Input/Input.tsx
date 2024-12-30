@@ -7,12 +7,12 @@ const classNames = bemClassNames("input-wrapper");
 export type InputProps = {
     type?: HTMLInputTypeAttribute | "pick";
     placeholder?: string;
-    value?: string;
+    value?: string | boolean;
     name?: string;
     innerRef?: MutableRefObject<any>;
     min?: number;
     step?: number;
-    onValueChange?: (value: string) => void;
+    onValueChange?: (value: string | boolean) => void;
     onDateChange?: (date: Date | null) => void;
 };
 
@@ -34,12 +34,17 @@ export const Input: FC<InputProps> = ({
             <input
                 ref={innerRef}
                 className={classNames("input-element")}
-                value={valueState}
+                value={valueState.toString()}
+                checked={valueState as boolean}
                 onChange={(e) => {
-                    setValueState(e.target.value);
                     if (type === "datetime-local") {
+                        setValueState(e.target.value);
                         onDateChange?.(e.target.valueAsDate);
+                    } else if (type === "checkbox") {
+                        setValueState(e.target.checked);
+                        onValueChange?.(e.target.checked);
                     } else {
+                        setValueState(e.target.value);
                         onValueChange?.(e.target.value);
                     }
                 }}

@@ -16,6 +16,7 @@ export interface HandlerOptions {
 export interface HandlerAttribute {
     id: number;
     name: string;
+    label?: string;
     value: string | number;
 }
 

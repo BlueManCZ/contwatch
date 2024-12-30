@@ -10,8 +10,8 @@ export type InputRendererProps = {
     name: string;
     type: string;
     title: string;
-    value?: string;
-    onValueChange?: (value: string) => void;
+    value?: string | boolean;
+    onValueChange?: (value: string | boolean) => void;
 };
 
 export const InputRenderer: FC<InputRendererProps> = ({ name, type, title, value, onValueChange }) => {
@@ -21,6 +21,7 @@ export const InputRenderer: FC<InputRendererProps> = ({ name, type, title, value
                 {title}
             </label>
             {type === "string" && <Input {...{ value, name, onValueChange }} />}
+            {type === "bool" && <Input {...{ value, name, onValueChange }} type="checkbox" />}
             {type === "float" && <Input {...{ value, name, onValueChange }} type="number" step={0.1} />}
             {type === "int" && <Input {...{ value, name, onValueChange }} type="number" />}
         </FlexLayout>

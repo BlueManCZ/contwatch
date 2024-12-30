@@ -29,7 +29,7 @@ const Inspector = () => {
                 title={localize(LOC_KEY.INSPECTOR)}
                 description={localize(LOC_KEY.INSPECTOR_INFO)}
             />
-            <FlexLayout gap="1rem">
+            <FlexLayout gap="1rem" wrap={"wrap"}>
                 {handlers?.map(
                     (handler) =>
                         handler.attributes?.map((attribute) => (
@@ -40,7 +40,7 @@ const Inspector = () => {
                                 onClick={() => onAttributeClick(attribute.id)}
                                 variant={ButtonVariant.white}
                             >
-                                {attribute.name}
+                                {attribute.label ?? attribute.name}
                             </Button>
                         )),
                 )}

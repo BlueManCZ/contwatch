@@ -11,10 +11,11 @@ import {
     Title,
     Tooltip,
 } from "chart.js";
-import { FC, useEffect, useRef } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { Line } from "react-chartjs-2";
 
 import { useAttributeChart } from "../../bridge";
+import { Button, ButtonVariant, FlexLayout, ThemedIconName } from "../../components";
 import { bemClassNames } from "../../utils";
 import { options } from "./chartOptions";
 
@@ -28,6 +29,8 @@ type InspectorChartProps = {
 
 export const InspectorChart: FC<InspectorChartProps> = ({ attributes = [] }) => {
     const ref = useRef<Chart>(null);
+
+    const [fullScreen, setFullScreen] = useState(false);
 
     // Loading the zoom plugin only on client side, because it doesn't support SSR
     useEffect(() => {
@@ -58,7 +61,16 @@ export const InspectorChart: FC<InspectorChartProps> = ({ attributes = [] }) => 
 
     return (
         data.datasets.length > 0 && (
-            <div className={bem()}>
+            <div className={bem({ fullScreen })}>
+                <FlexLayout className={bem("toolbar")} gap="1rem">
+                    <Button onClick={() => ref?.current?.resetZoom?.()}>Reset Zoom</Button>
+                    <Button
+                        onClick={() => setFullScreen((prev) => !prev)}
+                        active={fullScreen}
+                        variant={ButtonVariant.white}
+                        icon={ThemedIconName.arrowMaximize}
+                    />
+                </FlexLayout>
                 {/** @ts-ignore */}
                 <Line {...{ ref, options, data }} />
             </div>

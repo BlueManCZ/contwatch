@@ -32,11 +32,11 @@ def widgets_blueprint(_context: Context):
         return [
             {
                 "id": tile.id,
-                "name": tile.name,
+                "name": tile.attribute.label or tile.attribute.name, # TODO: Split label and name
                 "description": get_handler(tile).get_name(),
                 "handler": tile.attribute.handler.id,
                 "status": 1 if get_handler(tile).is_connected() else 0,
-                "icon": tile.icon,
+                "icon": tile.attribute.icon,
                 "attribute": tile.attribute.name,
                 "unit": tile.attribute.unit,
                 "value": get_attribute(tile).get_current_value() if get_attribute(tile) else None,

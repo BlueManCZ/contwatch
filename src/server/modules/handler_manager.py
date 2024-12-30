@@ -84,16 +84,10 @@ class HandlerManager:
         stored_attributes = self.registered_attributes.get(handler_id, {})
         for attribute in stored_attributes:
             if attribute in linearized_json:
-                attribute_instance = stored_attributes.get(attribute)
-                new_value = linearized_json.get(attribute)
+                attribute_instance: AttributeManager = stored_attributes.get(attribute)
 
-                changed = False
-                if attribute_instance.check_value_change(new_value):
-                    changed = True
-
-                attribute_instance.add_data_unit(linearized_json.get(attribute))
-
-                if changed:
+                if attribute_instance.add_data_unit(linearized_json.get(attribute)):
+                    # If value has changed, execute listeners
                     self.execute_attribute_listeners(attribute_instance.get_id())
 
         self.execute_handler_listeners(handler_id)

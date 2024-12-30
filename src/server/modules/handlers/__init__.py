@@ -1,7 +1,10 @@
 from .abstract_handler import AbstractHandler
 from .http_handler import HttpHandler
+from .jiabaida_bms_serial_handler import JiabaidaBmsSerialHandler
+from .must_pv_ph_inverter_modbus_handler import MustPVPHInverterModbusHandler
+from .serial_handler import SerialHandler
 
-available_handlers = [HttpHandler]
+available_handlers = [HttpHandler, SerialHandler, JiabaidaBmsSerialHandler, MustPVPHInverterModbusHandler]
 
 
 def get_handler_class(handler_type):

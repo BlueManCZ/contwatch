@@ -10,6 +10,7 @@ export enum ThemedIconName {
     arrowCircleLeft = "arrow-circle-left",
     arrowCircleRight = "arrow-circle-right",
     arrowLeft = "arrow-left",
+    arrowMaximize = "arrow-maximize",
     arrowRight = "arrow-right",
     basket = "basket",
     batteryMedium = "battery-medium",
@@ -48,8 +49,11 @@ export enum ThemedIconName {
 }
 
 export enum CustomIconName {
+    battery = "battery",
     http = "http",
+    inverter = "inverter",
     logo = "logo",
+    serial = "serial",
 }
 
 export type IconName = ThemedIconName | CustomIconName;

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import json
 from signal import signal, SIGINT
 
 from flask import Flask
@@ -31,10 +31,19 @@ if __name__ == "__main__":
     app = Flask(__name__)
     app.config.from_object(ApplicationConfig)
     app.url_map.converters["int_list"] = IntListConverter
+    app.url_map.strict_slashes = False
     cors = CORS(app, supports_credentials=True)
 
+    config = {}
+    # Try to load the configuration from the file
+    try:
+        with open("config.json", "r") as file:
+            config = json.load(file)
+    except FileNotFoundError:
+        print("Configuration file not found. Using default configuration.")
+
     # Database initialization
-    init_database()
+    init_database(config.get("database", {}))
     # HandlerManager initialization
     manager = HandlerManager()
     registered_modules.add(manager)

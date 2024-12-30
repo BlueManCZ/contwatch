@@ -13,6 +13,8 @@ def get_current_seconds():
     return int(time())
 
 
+# TODO: Refactor to not use result as an argument
+# TODO: Unit test
 def linearize(input_json, result=None, current_branch=()):
     if result is None:
         result = {}
@@ -21,6 +23,9 @@ def linearize(input_json, result=None, current_branch=()):
             new_branch = list(current_branch)
             new_branch.append(attribute)
             linearize(input_json[attribute], result, new_branch)
+        elif isinstance(input_json[attribute], list):
+            for index, item in enumerate(input_json[attribute]):
+                linearize({attribute: {str(index): item}}, result, current_branch)
         else:
             branch = list(current_branch)
             branch.append(attribute)

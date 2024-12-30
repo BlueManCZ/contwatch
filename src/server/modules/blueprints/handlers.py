@@ -22,7 +22,7 @@ def handlers_blueprint(_context: Context):
             for handler in available_handlers
         ], StatusCode.OK
 
-    @blueprint.route("/")
+    @blueprint.route("/all") # TODO: Investigate why this doesn't work with just / on mobile
     @orm.db_session
     def handlers():
         return [
@@ -37,6 +37,7 @@ def handlers_blueprint(_context: Context):
                     {
                         "id": attribute_manager.get_id(),
                         "name": attribute_name,
+                        "label": attribute_manager.label,
                         "value": attribute_manager.get_current_value(),
                     }
                     for attribute_name, attribute_manager in _context.manager.registered_attributes.get(
@@ -47,7 +48,7 @@ def handlers_blueprint(_context: Context):
             for h_id, handler in _context.manager.registered_handlers.items()
         ], StatusCode.OK
 
-    @blueprint.route("/<int:handler_id>")
+    @blueprint.route("/all/<int:handler_id>") # TODO: Investigate why this doesn't work with just / on mobile
     def handler_info(handler_id):
         handler = _context.manager.registered_handlers.get(handler_id, None)
         if handler:
@@ -77,6 +78,13 @@ def handlers_blueprint(_context: Context):
                     for attribute_name, attribute_value in _context.manager.last_messages.get(handler_id, {}).items()
                 ],
             }, StatusCode.OK
+        return {"status": "not found"}, StatusCode.NOT_FOUND
+
+    @blueprint.route("/<int:handler_id>/last")
+    def handler_last_message(handler_id):
+        handler = _context.manager.last_messages.get(handler_id, None)
+        if handler:
+            return _context.manager.last_messages.get(handler_id), StatusCode.OK
         return {"status": "not found"}, StatusCode.NOT_FOUND
 
     @blueprint.route("/add-handler", methods=["POST"])

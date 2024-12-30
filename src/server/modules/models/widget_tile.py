@@ -6,8 +6,6 @@ from modules.database import db
 class WidgetTile(db.Entity):
     """Database entity representing widget tile"""
 
-    name = orm.Optional(str, index=True)
-    icon = orm.Optional(str)
     attribute = orm.Required("Attribute")
 
 

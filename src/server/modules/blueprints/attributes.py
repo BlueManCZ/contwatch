@@ -18,6 +18,7 @@ def attributes_blueprint(_context: Context):
                 "handler": attribute.handler.id,
                 "enabled": attribute.enabled,
                 "unit": attribute.unit,
+                "label": attribute.label,
             }
             for attribute in Attribute.select()
         ], StatusCode.OK

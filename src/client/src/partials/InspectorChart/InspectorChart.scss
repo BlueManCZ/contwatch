@@ -4,4 +4,12 @@
     padding: 1rem;
     border-radius: 2rem;
     background: $white;
+
+    &--fullScreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: calc(100% - 2rem);
+        height: calc(100% - 2rem);
+    }
 }

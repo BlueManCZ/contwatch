@@ -7,7 +7,7 @@ export enum Endpoint {
     // Charts
     attributeChart = "core/charts/attribute",
     // Handlers
-    handlers = "core/handlers",
+    handlers = "core/handlers/all",
     addHandler = "core/handlers/add-handler",
     availableHandlers = "core/handlers/available-handlers",
     // Widgets
