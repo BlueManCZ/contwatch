@@ -20,7 +20,7 @@ const Dashboard = () => {
                 {attributes?.map((attribute) => (
                     <AttributeWidget
                         key={attribute.id}
-                        title={attribute.name}
+                        title={attribute.label ?? attribute.name}
                         description={attribute.data.handler_name}
                         icon={attribute.icon}
                         unit={attribute.unit}

@@ -29,7 +29,7 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
                 <div className={bem("title")}>{title}</div>
                 <div className={bem("description")}>{description}</div>
             </div>
-            {value && (
+            {value !== null && value !== undefined && (
                 <div className={bem("value")}>
                     {value} <span className={bem("unit")}>{unit}</span>
                 </div>
