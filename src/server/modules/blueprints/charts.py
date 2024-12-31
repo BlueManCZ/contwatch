@@ -30,7 +30,7 @@ def charts_blueprint(_context: Context):
                     "label": data_units.first().attribute.name,
                     "data": [
                         {
-                            "x": int(datetime.combine(data_unit.date, time.fromisoformat(data_unit.time)).timestamp()),
+                            "x": int(datetime.combine(data_unit.date, time.fromisoformat(str(data_unit.time))).timestamp()),
                             "y": data_unit.value,
                         }
                         for data_unit in data_units
