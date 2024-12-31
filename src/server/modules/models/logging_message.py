@@ -11,7 +11,7 @@ class LoggingMessage(db.Entity):
     source = orm.Required(str)
     level = orm.Required(int)
     message = orm.Required(str)
-    payload = orm.Optional(orm.Json)
+    payload = orm.Optional(orm.Json, nullable=True)
     date = orm.Required(date, index=True)
     time = orm.Required(time)
 

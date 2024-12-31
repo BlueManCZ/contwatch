@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useAvailableHandlers, useHandlers } from "../src/bridge";
 import { getStatusColor } from "../src/bridge/models/utils";
 import {
-    CustomIconName,
     FlexLayout,
     Menu,
     MenuItem,
@@ -57,7 +56,7 @@ const Handlers = () => {
                                 title={handler.name}
                                 description={handler.description}
                                 colorFlag={getStatusColor(handler.status)}
-                                icon={handler.type as CustomIconName}
+                                icon={handler.icon}
                                 onClick={() => showHandlerInfo(handler.id)}
                                 active={currentHandlerId === handler.id}
                             />

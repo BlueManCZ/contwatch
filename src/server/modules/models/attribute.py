@@ -13,9 +13,9 @@ class Attribute(db.Entity):
     widget_tiles = orm.Set("WidgetTile")
     widget_switches = orm.Set("WidgetSwitch")
     enabled = orm.Required(bool)
-    unit = orm.Optional(str)
-    label = orm.Optional(str)
-    icon = orm.Optional(str)
+    unit = orm.Optional(str, nullable=True)
+    label = orm.Optional(str, nullable=True)
+    icon = orm.Optional(str, nullable=True)
 
     # def to_json(self):
     #     return {}

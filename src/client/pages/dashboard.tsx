@@ -1,4 +1,5 @@
 import { useWidgetSwitches, useWidgetTiles } from "../src/bridge";
+import { useAttributes } from "../src/bridge/modules/attributes";
 import { AttributeWidget, FlexLayout, SwitchWidget, ThemedIconName, Toolbar } from "../src/components";
 import { NavbarLayout } from "../src/layouts";
 import { LOC_KEY, useLocalization } from "../src/localization";
@@ -6,6 +7,7 @@ import { LOC_KEY, useLocalization } from "../src/localization";
 const Dashboard = () => {
     const { localize } = useLocalization();
     const { data: tiles } = useWidgetTiles();
+    const { data: attributes } = useAttributes();
     const { data: switches } = useWidgetSwitches();
     return (
         <NavbarLayout>
@@ -15,15 +17,15 @@ const Dashboard = () => {
                 description={localize(LOC_KEY.DASHBOARD_INFO)}
             />
             <FlexLayout gap="20px" wrap="wrap">
-                {tiles?.map((widget) => (
+                {attributes?.map((attribute) => (
                     <AttributeWidget
-                        key={widget.id}
-                        title={widget.name}
-                        description={widget.description}
-                        icon={widget.icon}
-                        status={widget.status}
-                        unit={widget.unit}
-                        value={widget.value}
+                        key={attribute.id}
+                        title={attribute.name}
+                        description={attribute.data.handler_name}
+                        icon={attribute.icon}
+                        unit={attribute.unit}
+                        status={attribute.data.status}
+                        value={attribute.data.value}
                     />
                 ))}
             </FlexLayout>
