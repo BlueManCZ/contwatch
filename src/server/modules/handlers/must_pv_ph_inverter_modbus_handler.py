@@ -117,6 +117,7 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
             self.connection.serial.timeout = self.get_config_option("timeout")
             if not self.connection.serial.is_open:
                 self.connection.serial.open()
+            self._read_message()
             self.log.info("Established connection with device")
             # self.add_changed("handlers")
             return True
