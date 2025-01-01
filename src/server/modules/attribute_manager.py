@@ -84,12 +84,12 @@ class AttributeManager:
         for predicate_name, stat_predicate in self.stat_predicates.items():
             if self.stats[predicate_name] is None:
                 # If stat is not found, it may not be loaded from DB yet. Try to load it.
-                db_stat = data_stat_model.get_by_type_and_date(self.handler_id, self.id, predicate_name, now.date())
+                db_stat = data_stat_model.get_by_type_and_date(self.id, predicate_name, now.date())
                 self.stats[predicate_name] = db_stat.value if db_stat else None
 
             if self.stats[predicate_name] is not None and stat_predicate(value):
                 # If stat is found in db and predicate is true, update stat in db.
-                db_stat = data_stat_model.get_by_type_and_date(self.handler_id, self.id, predicate_name, now.date())
+                db_stat = data_stat_model.get_by_type_and_date(self.id, predicate_name, now.date())
                 self.stats[predicate_name] = db_stat.value if db_stat else None
                 db_stat.time = now.time()
                 db_stat.value = value

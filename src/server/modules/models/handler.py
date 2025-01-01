@@ -3,7 +3,6 @@ from pony import orm
 from modules.database import db
 from modules.handlers.abstract_handler import AbstractHandler
 from modules.models.attribute import Attribute
-from modules.models.data_stat import DataStat
 from modules.models.data_unit import DataUnit
 
 
@@ -14,7 +13,6 @@ class Handler(db.Entity):
     options = orm.Required(orm.Json)
     enabled = orm.Required(bool)
     data = orm.Set(DataUnit)
-    stats = orm.Set(DataStat)
     attributes = orm.Set(Attribute)
     # events = orm.Set("EventUnit")
 

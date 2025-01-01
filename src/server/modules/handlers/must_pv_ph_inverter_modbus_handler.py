@@ -120,8 +120,7 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
             self.log.info("Established connection with device")
             # self.add_changed("handlers")
             return True
-        except SerialException as error:
-            print(error)
+        except SerialException:
             return False
         except NoResponseError:
             return False

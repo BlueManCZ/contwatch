@@ -131,6 +131,7 @@ class SerialHandler(AbstractHandler):
                 pass
 
     def is_connected(self):
+        # TODO: Check if the messages are being sent
         return self.connection.is_open
 
     def exit(self):

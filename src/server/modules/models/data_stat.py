@@ -8,7 +8,6 @@ from modules.database import db
 class DataStat(db.Entity):
     """Database entity representing data statistics"""
 
-    handler = orm.Required("Handler")
     attribute = orm.Required("Attribute", index=True)
     type = orm.Required(str)
     value = orm.Required(float)
@@ -23,7 +22,6 @@ def add(handler, attribute, stat_type, value) -> DataStat:
     """Adds DataStat to database"""
     now = datetime.now()
     return DataStat(
-        handler=handler,
         attribute=attribute,
         type=stat_type,
         value=value,
@@ -32,6 +30,6 @@ def add(handler, attribute, stat_type, value) -> DataStat:
     )
 
 
-def get_by_type_and_date(handler, attribute, stat_type, stat_date) -> DataStat | None:
-    """Return DataStat by handler, attribute and date"""
-    return DataStat.get(handler=handler, attribute=attribute, type=stat_type, date=stat_date)
+def get_by_type_and_date(attribute, stat_type, stat_date) -> DataStat | None:
+    """Return DataStat by attribute and date"""
+    return DataStat.get(attribute=attribute, type=stat_type, date=stat_date)
