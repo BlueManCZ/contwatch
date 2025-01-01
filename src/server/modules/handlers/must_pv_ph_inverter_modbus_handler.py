@@ -7,6 +7,7 @@ from serial import SerialException
 
 from modules.logging.logger import Logger
 from .abstract_handler import AbstractHandler
+from ..utils import get_current_seconds
 
 
 class MustPVPHInverterModbusHandler(AbstractHandler):
@@ -46,9 +47,7 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
 
         for section_type in self.registers.keys():
             for key, data in self.registers[section_type].items():
-                result[section_type][key] = self.connection.read_register(
-                    data[0], data[1]
-                )
+                result[section_type][key] = self.connection.read_register(data[0], data[1])
                 sleep(0.05)
 
         return result
@@ -66,9 +65,7 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
                     if path.exists(self.get_config_option("port")):
                         self._handle_error(error, "Failed to establish connection - Permission denied")
                     else:
-                        self._handle_error(error,
-                            "Failed to establish connection - Device does not exist"
-                        )
+                        self._handle_error(error, "Failed to establish connection - Device does not exist")
                     break
                 except UnicodeDecodeError as error:
                     self.log.warning(error)
@@ -95,7 +92,6 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
         # print(error)
         self.log.warning(message)
         self.log.error(error)
-        self.success = False
         # self.add_changed("handlers")
         Thread(target=self._reconnect_watcher).start()
 
@@ -130,9 +126,7 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
 
     def __init__(self, settings):
         super().__init__(settings)
-        self.log = Logger(
-            f"SerialDevice {self.get_config_option('port')}:{self.get_config_option('slave-address')}"
-        )
+        self.log = Logger(f"{self.name} {self.get_config_option('port')}:{self.get_config_option('slave-address')}")
 
         self.connection = None
         self.active = True
@@ -159,3 +153,8 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
 
     def is_connected(self):
         return self.connection and self.connection.serial.is_open
+
+    def is_communicating(self):
+        return self.get_last_message_seconds() > (
+            get_current_seconds() - self.get_config_option("interval") - self.get_config_option("timeout")
+        )

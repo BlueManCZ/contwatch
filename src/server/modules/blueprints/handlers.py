@@ -10,6 +10,10 @@ from modules.utils import this_name, Context, parse_config, StatusCode
 def handlers_blueprint(_context: Context):
     blueprint = Blueprint(this_name(), __name__)
 
+    def get_status(handler):
+        """Returns 1 if handler is connected and communication. Returns 2 if handler is connected but not communicating. Returns 0 if handler is not connected."""
+        return 2 if handler.is_connected() and not handler.is_communicating() else 1 if handler.is_connected() else 0
+
     @blueprint.route("/available-handlers")
     def get_available_handlers():
         return [
@@ -22,7 +26,7 @@ def handlers_blueprint(_context: Context):
             for handler in available_handlers
         ], StatusCode.OK
 
-    @blueprint.route("/all") # TODO: Investigate why this doesn't work with just / on mobile
+    @blueprint.route("/all")  # TODO: Investigate why this doesn't work with just / on mobile
     @orm.db_session
     def handlers():
         return [
@@ -32,7 +36,7 @@ def handlers_blueprint(_context: Context):
                 "name": handler.get_name(),
                 "icon": handler.icon,
                 "description": handler.get_description(),
-                "status": 1 if handler.is_connected() else 0,
+                "status": get_status(handler),
                 "attributes": [
                     {
                         "id": attribute_manager.get_id(),
@@ -48,7 +52,7 @@ def handlers_blueprint(_context: Context):
             for h_id, handler in _context.manager.registered_handlers.items()
         ], StatusCode.OK
 
-    @blueprint.route("/all/<int:handler_id>") # TODO: Investigate why this doesn't work with just / on mobile
+    @blueprint.route("/all/<int:handler_id>")  # TODO: Investigate why this doesn't work with just / on mobile
     def handler_info(handler_id):
         handler = _context.manager.registered_handlers.get(handler_id, None)
         if handler:

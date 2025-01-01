@@ -35,7 +35,11 @@ class AbstractHandler:
         pass
 
     def is_connected(self):
-        """Returns True if the target is connected and can communicate."""
+        """Returns True if the target is connected and ready to use."""
+        return False
+
+    def is_communicating(self):
+        """Returns True if the target is responding to messages."""
         return False
 
     def exit(self):
@@ -60,6 +64,7 @@ class AbstractHandler:
         self._first_tick = True
         self._current_seconds = get_current_seconds()
         self._last_seconds = 0
+        self._last_message_seconds = None
 
     def get_options(self):
         return self.options
@@ -88,6 +93,10 @@ class AbstractHandler:
         """Returns single form configuration option value"""
         return self.get_config().get(attribute, None)
 
+    def get_last_message_seconds(self):
+        """Returns the time in seconds when the last message was received."""
+        return self._last_message_seconds
+
     # def add_changed(self, value):
     #     """
     #     Add appropriate string if there is a need to refresh GUI.
@@ -114,8 +123,9 @@ class AbstractHandler:
     #     self.set_option("label", label)
 
     def add_message(self, message):
-        """Appends message to the message queue."""
+        """Appends message to the message queue and updates the last message seconds."""
         self.message_queue.append(message)
+        self._last_message_seconds = get_current_seconds()
 
     def ready_to_read(self):
         """Returns True if there is a message ready to read."""

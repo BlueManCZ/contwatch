@@ -8,6 +8,7 @@ from simplejson import JSONDecodeError
 
 from modules.logging import Logger
 from .abstract_handler import AbstractHandler
+from ..utils import get_current_seconds
 
 
 class HttpHandler(AbstractHandler):
@@ -163,3 +164,8 @@ class HttpHandler(AbstractHandler):
 
     def is_connected(self):
         return self.success
+
+    def is_communicating(self):
+        return self.get_last_message_seconds() > (
+            get_current_seconds() - self.get_config_option("interval") - self.get_config_option("timeout")
+        )

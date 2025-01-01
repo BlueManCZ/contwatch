@@ -8,6 +8,7 @@ from serial import Serial, SerialException
 
 from modules.logging import Logger
 from .abstract_handler import AbstractHandler
+from ..utils import get_current_seconds
 
 
 class SerialHandler(AbstractHandler):
@@ -72,9 +73,7 @@ class SerialHandler(AbstractHandler):
             if path.exists(self.connection.port):
                 self.log.warning("Failed to establish connection - Permission denied")
             else:
-                self.log.warning(
-                    "Failed to establish connection - Device does not exist"
-                )
+                self.log.warning("Failed to establish connection - Device does not exist")
             self.connection.close()
             return False
 
@@ -133,6 +132,11 @@ class SerialHandler(AbstractHandler):
     def is_connected(self):
         # TODO: Check if the messages are being sent
         return self.connection.is_open
+
+    def is_communicating(self):
+        return self.get_last_message_seconds() > (
+            get_current_seconds() - self.get_config_option("interval") - self.get_config_option("timeout")
+        )
 
     def exit(self):
         self.active = False

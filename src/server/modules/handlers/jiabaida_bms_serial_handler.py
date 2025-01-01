@@ -58,11 +58,7 @@ class JiabaidaBmsSerialHandler(SerialHandler):
         if not d1 or not d2:
             raise SerialException("Missing some block of data")
 
-        current = (
-            _byte(d1, 2) / 100
-            if _byte(d1, 2) < 2**15
-            else (_byte(d1, 2) - 2**16) / 100
-        ) or 0
+        current = (_byte(d1, 2) / 100 if _byte(d1, 2) < 2**15 else (_byte(d1, 2) - 2**16) / 100) or 0
 
         json = {
             "voltage": _byte(d1, 0) / 100,
