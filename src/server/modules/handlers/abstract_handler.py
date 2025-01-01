@@ -94,8 +94,8 @@ class AbstractHandler:
         return self.get_config().get(attribute, None)
 
     def get_last_message_seconds(self):
-        """Returns the time in seconds when the last message was received."""
-        return self._last_message_seconds
+        """Returns the time in seconds when the last message was received or 0 if no message was received."""
+        return self._last_message_seconds or 0
 
     # def add_changed(self, value):
     #     """
