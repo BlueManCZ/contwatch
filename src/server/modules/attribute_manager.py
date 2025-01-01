@@ -17,6 +17,7 @@ class AttributeManager:
         self.name = db_instance.name
         self.label = db_instance.label
         self.last_value_save_skipped = False
+        self.last_date = datetime.now().date()
 
         value = None
         if db_instance.data_units:
@@ -27,14 +28,18 @@ class AttributeManager:
         self.value = value
         self.last_datetime = None
 
+        self.stats = {}
+        self.init_stats()
+
+        self.stat_predicates = {
+            "max": lambda val: val > self.stats["max"],
+            "min": lambda val: val < self.stats["min"],
+        }
+
+    def init_stats(self):
         self.stats = {
             "max": None,
             "min": None,
-        }
-
-        self.stat_predicates = {
-            "max": lambda value: value > self.stats["max"],
-            "min": lambda value: value < self.stats["min"],
         }
 
     def get_id(self):
@@ -72,6 +77,10 @@ class AttributeManager:
 
     def check_and_add_stat_units(self, value):
         now = datetime.now()
+        if now.date() > self.last_date:
+            # New day has started, reset stats
+            self.init_stats()
+            self.last_date = now.date()
         for predicate_name, stat_predicate in self.stat_predicates.items():
             if self.stats[predicate_name] is None:
                 # If stat is not found, it may not be loaded from DB yet. Try to load it.

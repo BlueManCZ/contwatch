@@ -63,6 +63,12 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
                         self.add_message(message)
                 except SerialException as error:
                     self._handle_error(error, "Failed to read from device")
+                    if path.exists(self.get_config_option("port")):
+                        self._handle_error(error, "Failed to establish connection - Permission denied")
+                    else:
+                        self._handle_error(error,
+                            "Failed to establish connection - Device does not exist"
+                        )
                     break
                 except UnicodeDecodeError as error:
                     self.log.warning(error)
@@ -95,27 +101,23 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
     def _reconnect_watcher(self):
         self.log.debug("Starting reconnect watcher")
         while self.active:
-            if path.exists(self.connection.serial.port):
-                if self._reconnect():
-                    Thread(target=self._message_watcher).start()
-                    break
+            if self._reconnect():
+                Thread(target=self._message_watcher).start()
+                break
             sleep(1)
         self.log.debug("Stopping reconnect watcher")
 
     def _reconnect(self):
         try:
+            if self.connection:
+                self.connection.serial.close()
+            self.connection = Instrument(self.get_config_option("port"), self.get_config_option("slave-address"))
+            self.connection.serial.timeout = self.get_config_option("timeout")
             self.connection.serial.open()
             self.log.info("Established connection with device")
             # self.add_changed("handlers")
             return True
         except SerialException:
-            if path.exists(self.connection.serial.port):
-                self.log.warning("Failed to establish connection - Permission denied")
-            else:
-                self.log.warning(
-                    "Failed to establish connection - Device does not exist"
-                )
-            self.connection.serial.close()
             return False
         except NoResponseError:
             return False
@@ -129,9 +131,8 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
         )
 
         # TODO: This is failing if the device is not connected at the start
-        self.connection = Instrument(self.get_config_option("port"), self.get_config_option("slave-address"))
-        self.connection.serial.timeout = self.get_config_option("timeout")
 
+        self.connection = None
         self.active = True
         self.suspended = False
         # self.add_changed("handlers")
@@ -155,7 +156,7 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
         # self.add_changed("handlers")
 
     def get_description(self):
-        return self.connection.serial.port
+        return self.get_config_option("port")
 
     def is_connected(self):
-        return self.connection.serial.is_open
+        return self.connection and self.connection.serial.is_open

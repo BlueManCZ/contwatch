@@ -1,4 +1,4 @@
-import { useWidgetSwitches, useWidgetTiles } from "../src/bridge";
+import { useWidgetSwitches } from "../src/bridge";
 import { useAttributes } from "../src/bridge/modules/attributes";
 import { AttributeWidget, FlexLayout, SwitchWidget, ThemedIconName, Toolbar } from "../src/components";
 import { NavbarLayout } from "../src/layouts";
@@ -6,7 +6,6 @@ import { LOC_KEY, useLocalization } from "../src/localization";
 
 const Dashboard = () => {
     const { localize } = useLocalization();
-    const { data: tiles } = useWidgetTiles();
     const { data: attributes } = useAttributes();
     const { data: switches } = useWidgetSwitches();
     return (
