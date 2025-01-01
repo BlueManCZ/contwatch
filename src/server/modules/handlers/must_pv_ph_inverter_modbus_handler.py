@@ -82,6 +82,7 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
             else:
                 self.log.info("Lost connection with device")
                 self.connection.serial.close()
+                self.connection = None
                 # self.add_changed("handlers")
                 if self.get_config_option("auto-reconnect"):
                     Thread(target=self._reconnect_watcher).start()
@@ -111,13 +112,15 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
         try:
             if self.connection:
                 self.connection.serial.close()
+                self.connection = None
             self.connection = Instrument(self.get_config_option("port"), self.get_config_option("slave-address"))
             self.connection.serial.timeout = self.get_config_option("timeout")
             self.connection.serial.open()
             self.log.info("Established connection with device")
             # self.add_changed("handlers")
             return True
-        except SerialException:
+        except SerialException as error:
+            print(error)
             return False
         except NoResponseError:
             return False
@@ -129,8 +132,6 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
         self.log = Logger(
             f"SerialDevice {self.get_config_option('port')}:{self.get_config_option('slave-address')}"
         )
-
-        # TODO: This is failing if the device is not connected at the start
 
         self.connection = None
         self.active = True
@@ -145,10 +146,7 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
         # TODO: Semaphore may be required
 
         self.connection.serial.close()
-        self.connection.serial.port = self.get_config_option("port")
-        self.connection.serial.timeout = self.get_config_option("timeout")
-        self.connection.address = self.get_config_option("slave-address")
-        self.connection.serial.close()
+        self.connection = None
 
         if self.suspended:
             Thread(target=self._reconnect_watcher).start()
