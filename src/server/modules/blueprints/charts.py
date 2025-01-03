@@ -10,15 +10,18 @@ from modules.utils import Context, this_name
 def charts_blueprint(_context: Context):
     blueprint = Blueprint(this_name(), __name__)
 
-    @blueprint.route("/attribute/", defaults={"attribute_ids": []})
-    @blueprint.route("/attribute/<int_list:attribute_ids>")
+    @blueprint.route("/attribute", defaults={"attribute_ids": []})
+    @blueprint.route("/attribute/<int_list:attribute_ids>/", defaults={"date": None})
+    @blueprint.route("/attribute/<int_list:attribute_ids>/<string:date>")
     @orm.db_session
-    def attribute(attribute_ids):
+    def attribute(attribute_ids, date):
         charts_data = []
+
+        date = datetime.now().date() if not date else datetime.fromisoformat(date).date()
 
         for attribute_id in attribute_ids:
             data_units = DataUnit.select(
-                lambda data_unit: data_unit.attribute.id == attribute_id and data_unit.date == datetime.now().date()
+                lambda data_unit: data_unit.attribute.id == attribute_id and data_unit.date == date
             )
 
             if not data_units:

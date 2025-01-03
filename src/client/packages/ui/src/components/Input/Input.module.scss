@@ -1,0 +1,102 @@
+@use "sass:map";
+@use "sass:color";
+@use "../definition" as d;
+
+.input {
+    $this: &;
+
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 200px;
+
+    --icon-filter: var(--themed-filter);
+
+    &--grow {
+        flex-grow: 1;
+        width: 0;
+
+        &Mobile {
+            @media (max-width: 768px) {
+                flex-grow: 1;
+            }
+        }
+    }
+
+    &__wrapper {
+        display: flex;
+        position: relative;
+        flex-grow: 1;
+        align-items: center;
+        transition: var(--transition-default);
+        border-radius: 2rem;
+        background: var(--color-primary-transparent);
+        cursor: text;
+        gap: 12px;
+
+        --icon-opacity: .5;
+
+        &:focus-within {
+            background: unset;
+            box-shadow: 0 0 0 3px var(--color-primary) inset;
+
+            --icon-opacity: .8;
+        }
+
+        &:has(input:invalid) {
+            background: rgba(map.get(map.get(d.$predefined-text, "color"), "red"), 0.2);
+            box-shadow: 0 0 0 3px var(--color-red) inset;
+
+            --color-primary: var(--color-red);
+
+            &:focus-within {
+                background: var(--primary-background);
+                box-shadow: 0 0 0 3px var(--color-red) inset;
+            }
+        }
+
+        &--controls {
+            padding: 10px 12px;
+
+            --icon-filter: none;
+
+            #{$this}__input {
+                padding: 0;
+            }
+        }
+    }
+
+    &__input {
+        flex-grow: 1;
+        width: 100%;
+        padding: 12px 25px;
+        border: none;
+        outline: transparent;
+        background: transparent;
+        color: var(--color-mono-dark);
+        font-family: inherit;
+        font-size: var(--font-size-normal);
+        font-weight: var(--font-weight-medium);
+
+        &[type="pick"] {
+            appearance: none;
+            cursor: pointer;
+        }
+    }
+
+    &__right-control,
+    &__left-control {
+        transition: var(--transition-default);
+    }
+
+    &__icon {
+        position: absolute;
+        right: 1.2rem;
+    }
+
+    &--hasIcon {
+        #{$this}__input {
+            padding-right: 50px;
+        }
+    }
+}

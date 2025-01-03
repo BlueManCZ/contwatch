@@ -1,0 +1,11 @@
+.separator {
+    content: "";
+
+    &--variant {
+        &-navbar {
+            width: 1px;
+            height: 27px;
+            background-color: var(--color-primary);
+        }
+    }
+}

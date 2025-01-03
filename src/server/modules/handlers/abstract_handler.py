@@ -97,6 +97,10 @@ class AbstractHandler:
         """Returns the time in seconds when the last message was received or 0 if no message was received."""
         return self._last_message_seconds or 0
 
+    def set_last_message_seconds(self, seconds):
+        """Sets the time in seconds when the last message was received."""
+        self._last_message_seconds = seconds
+
     # def add_changed(self, value):
     #     """
     #     Add appropriate string if there is a need to refresh GUI.

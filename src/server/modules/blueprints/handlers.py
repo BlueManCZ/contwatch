@@ -4,7 +4,7 @@ from pony import orm
 from modules.handlers import get_handler_class, available_handlers
 from modules.models import attribute as attribute_model
 from modules.models import handler as handler_model
-from modules.utils import this_name, Context, parse_config, StatusCode
+from modules.utils import this_name, Context, parse_config, StatusCode, get_current_seconds
 
 
 def handlers_blueprint(_context: Context):
@@ -37,6 +37,11 @@ def handlers_blueprint(_context: Context):
                 "icon": handler.icon,
                 "description": handler.get_description(),
                 "status": get_status(handler),
+                "last_message": (
+                    get_current_seconds() - handler.get_last_message_seconds()
+                    if handler.get_last_message_seconds()
+                    else None
+                ),
                 "attributes": [
                     {
                         "id": attribute_manager.get_id(),

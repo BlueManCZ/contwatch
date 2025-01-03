@@ -1,0 +1,52 @@
+@use "../definition" as d;
+@use "../mixins" as m;
+@use "../variables" as v;
+
+.flex {
+    display: flex;
+    position: relative;
+    box-sizing: border-box;
+    max-width: 100%;
+
+    &--fill {
+        width: 100%;
+        height: 100%;
+    }
+
+    &--variant {
+        &-popup,
+        &-card {
+            @include m.card;
+        }
+    }
+
+    &--background {
+        &-always-dark {
+            background: var(--color-mono-always-dark);
+
+            --color-mono-light: #{v.$mono-light};
+        }
+
+        &-dark {
+            background: var(--color-mono-dark);
+        }
+
+        &-light {
+            background: var(--color-mono-light);
+        }
+
+        &-white {
+            background: var(--color-mono-white);
+        }
+    }
+
+    @each $key, $value in d.$predefined-block {
+        &--#{$key} {
+            @each $item, $item-value in $value {
+                &-#{$item} {
+                    #{$key}: var(--#{$key}-#{$item});
+                }
+            }
+        }
+    }
+}

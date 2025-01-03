@@ -1,3 +1,4 @@
+from datetime import datetime, time
 from threading import Thread
 from time import sleep
 
@@ -9,6 +10,7 @@ from modules.attribute_manager import AttributeManager
 from modules.handlers import get_handler_class
 from modules.handlers.abstract_handler import AbstractHandler
 from modules.logging import Logger
+from modules.models import data_unit as data_unit_model
 from modules.models import handler as handler_model
 from modules.models.settings import get_settings
 from modules.utils import linearize, Context
@@ -60,6 +62,12 @@ class HandlerManager:
         for db_handler in db_handlers:
             handler = get_handler_class(db_handler.type)(db_handler.options)
             handler.set_id(db_handler.id)
+            last_data_unit_select = data_unit_model.get_by_handler_id(db_handler.id)
+            last_data_unit = last_data_unit_select[-1] if last_data_unit_select else None
+            if last_data_unit:
+                handler.set_last_message_seconds(
+                    datetime.combine(last_data_unit.date, time.fromisoformat(str(last_data_unit.time))).timestamp()
+                )
             self.register_handler(handler)
             for db_attribute in db_handler.attributes:
                 self.register_attribute(db_attribute)

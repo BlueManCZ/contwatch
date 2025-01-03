@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, request
 from pony import orm
 
 from modules.models.attribute import Attribute
@@ -17,6 +17,7 @@ def attributes_blueprint(_context: Context):
     @blueprint.route("/")
     @orm.db_session
     def attributes():
+        handler = request.args.get("handler", None)
         return [
             {
                 "id": attribute.id,
@@ -31,9 +32,10 @@ def attributes_blueprint(_context: Context):
                     "status": 1 if get_handler(attribute).is_connected() else 0,
                     "handler_name": get_handler(attribute).get_name(),
                     "value": get_attribute(attribute).get_current_value(),
+                    "trend": get_attribute(attribute).get_trend(),
                 },
             }
-            for attribute in Attribute.select()
+            for attribute in (Attribute.select(lambda a: a.handler.id == handler) if handler else Attribute.select())
         ], StatusCode.OK
 
     return blueprint

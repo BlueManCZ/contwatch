@@ -1,0 +1,25 @@
+{
+  "name": "contwatch-client",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint --max-warnings 0",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@repo/ui": "*",
+    "@repo/utils": "*",
+    "@repo/store": "*",
+    "@repo/types": "*",
+    "next": "^15.1.0",
+    "swr": "2.3.0"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*"
+  }
+}

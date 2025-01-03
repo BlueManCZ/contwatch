@@ -1,3 +1,4 @@
+from collections import deque
 from datetime import datetime
 
 from pony import orm
@@ -18,6 +19,24 @@ class AttributeManager:
         self.label = db_instance.label
         self.last_value_save_skipped = False
         self.last_date = datetime.now().date()
+
+        last_values = [
+            unit.value
+            for unit in reversed(
+                db_instance.data_units.select(
+                    lambda unit: unit.attribute.id == self.id and unit.date == datetime.now().date()
+                )
+                .order_by(lambda u: desc(u.id))
+                .limit(6)
+            )
+        ]
+        self.trend_queue = deque(maxlen=3)
+
+        last_added = None
+        for value in last_values:
+            if last_added != value:
+                self.trend_queue.append(value)
+                last_added = value
 
         value = None
         if db_instance.data_units:
@@ -54,12 +73,22 @@ class AttributeManager:
     def get_instance(self):
         return attribute_model.get_by_id(self.id)
 
+    def get_trend(self):
+        if len(self.trend_queue) < 3:
+            return 0
+        if self.trend_queue[0] < self.trend_queue[1] < self.trend_queue[2]:
+            return 1
+        if self.trend_queue[0] > self.trend_queue[1] > self.trend_queue[2]:
+            return -1
+        return 0
+
     def check_value_change(self, value):
         return value != self.value
 
     @orm.db_session
     def add_data_unit(self, value):
         value_changed = False
+        # TODO: We need to create two new data units when the day changes.
         if self.check_value_change(value):
             # Value has changed
             if self.value is not None and self.last_datetime is not None and self.last_value_save_skipped:
@@ -67,6 +96,7 @@ class AttributeManager:
                 self.last_value_save_skipped = False
             self.value = value
             data_unit_model.add(self.handler_id, self.id, value, datetime.now())
+            self.trend_queue.append(self.value)
             self.check_and_add_stat_units(value)
             value_changed = True
         else:

@@ -1,0 +1,19 @@
+{
+  "name": "@repo/store",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@repo/types": "*",
+    "@reduxjs/toolkit": "2.5.0",
+    "next-redux-wrapper": "8.1.0"
+  },
+  "exports": {
+    "./store": "./src/store.ts",
+    "./StoreProvider": "./src/components/StoreProvider.tsx",
+    "./hooks/useLocalization": "./src/hooks/useLocalization.ts",
+    "./slices/settingsSlice": "./src/slices/settingsSlice.ts"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0 --cache"
+  }
+}

@@ -1,0 +1,101 @@
+.icon {
+    transform: var(--icon-transform);
+    transition: var(--transition-default);
+    opacity: var(--icon-opacity);
+    display: inline-block;
+
+    $this: &;
+
+    &__image {
+        display: block;
+        align-self: center;
+        width: 24px;
+        height: 24px;
+        filter: var(--icon-filter);
+    }
+
+    &--invert {
+        --icon-filter: invert(1);
+
+        &-auto {
+            --icon-filter: var(--themed-filter);
+        }
+    }
+
+    &--active {
+        --icon-filter: var(--primary-color-filter) !important;
+    }
+
+    &--disabled {
+        transform: none;
+        cursor: not-allowed !important;
+        filter: none;
+    }
+
+    &--clickable {
+        cursor: pointer;
+
+        &:hover {
+            --icon-transform: scale(1.11);
+            --icon-filter: brightness(1.2);
+            --icon-opacity: 0.9;
+        }
+
+        &:active {
+            --icon-filter: brightness(0.9);
+            --icon-transition: var(--transition-click);
+        }
+    }
+
+    &--variant {
+        &-circle {
+            padding: .6rem;
+            border-radius: 100%;
+            background: var(--color-mono-light);
+        }
+
+        &-small-circle {
+            --icon-filter: invert(1);
+
+            padding: 5px;
+            border-radius: 100%;
+            background: var(--color-primary);
+        }
+
+        &-primary {
+            --icon-filter: invert(1) var(--primary-color-filter);
+        }
+
+        &-card {
+            padding: 5px;
+            border-radius: 20px;
+
+            #{$this}__image {
+                width: 22px !important;
+                height: 22px !important;
+            }
+        }
+    }
+
+    &--background {
+        &-primary {
+            background: var(--color-primary);
+        }
+
+        &-green {
+            background: var(--color-green);
+        }
+
+        &-red {
+            background: var(--color-red);
+        }
+
+        &-purple {
+            background: var(--color-purple);
+        }
+
+        &-silver {
+            background: var(--color-silver);
+        }
+    }
+}

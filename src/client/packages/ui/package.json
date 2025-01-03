@@ -1,0 +1,42 @@
+{
+  "name": "@repo/ui",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./Button": "./src/components/Button/Button.tsx",
+    "./Flex": "./src/components/Flex/Flex.tsx",
+    "./Icon": "./src/components/Icon/Icon.tsx",
+    "./Input": "./src/components/Input/Input.tsx",
+    "./Navbar": "./src/components/Navbar/Navbar.tsx",
+    "./NavbarItem": "./src/components/Navbar/components/NavbarItem/NavbarItem.tsx",
+    "./NavbarLayout": "./src/components/NavbarLayout/NavbarLayout.tsx",
+    "./Popup": "./src/components/Popup/Popup.tsx",
+    "./Separator": "./src/components/Separator/Separator.tsx",
+    "./Text": "./src/components/Text/Text.tsx",
+
+    "./FlexPartials": "./src/partials/FlexPartials/FlexPartials.tsx",
+
+    "./fonts": "./src/fonts.ts"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "generate:component": "turbo gen react-component",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "next": "^15.1.0",
+    "react-spinners": "0.15.0"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@turbo/gen": "^1.12.4",
+    "@types/node": "^20.11.24",
+    "@types/react": "19.0.2",
+    "@types/react-dom": "19.0.2",
+    "typescript": "5.5.4"
+  }
+}

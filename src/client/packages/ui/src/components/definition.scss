@@ -1,0 +1,65 @@
+@use "variables" as v;
+
+$predefined-text: (
+    color: (
+        "mono-always-dark": v.$mono-dark,
+        "mono-dark": v.$mono-dark,
+        "mono-light": v.$mono-light,
+        "mono-white": v.$mono-white,
+        "primary": v.$primary,
+        "primary-transparent": v.$primary-transparent,
+        "secondary": v.$secondary,
+        "silver": v.$silver,
+        "red": v.$red,
+        "orange": v.$orange,
+        "green": v.$green,
+        "theme": var(--color-primary),
+    ),
+    font-weight: (
+        "light": 300,
+        "normal": 400,
+        "medium": 600,
+        "bold": 700,
+        "black": 900,
+    ),
+    font-size: (
+        "tiny": clamp(12px, 1.2vw, 14px),
+        "small": clamp(15px, 1.4vw, 16px),
+        "normal": clamp(15px, 1.8vw, 18px),
+        "medium": clamp(17px, 2.1vw, 22px),
+        "large": clamp(20px, 2.5vw, 32px),
+        "huge": clamp(40px, 7vw, 50px),
+        "logo": clamp(25px, 2.1vw, 30px),
+    ),
+);
+$predefined-block: (
+    padding: (
+        "content": 0 clamp(20px, 6vw, 90px),
+        "block": clamp(18px, 1.5vw, 25px) clamp(20px, 2.1vw, 32px),
+        "block-small": 17px 14px,
+        "card-content": 10px,
+        "groupbox": 10px,
+    ),
+    margin: (
+        "vertical-large": clamp(40px, 5vw, 90px) 0,
+        "vertical-medium": clamp(30px, 2.5vw, 45px) 0,
+        "vertical-rem": 1rem 0,
+    ),
+    border-radius: (
+        "small": 10px,
+        "medium": 25px,
+        "large": 30px,
+    ),
+    box-shadow: (
+        "card": 0 0 10px rgb(0 0 0 / 5%),
+        "button": 4px 4px 10px rgb(0 0 0 / 10%),
+        "button-hover": 0 0 10px rgb(0 0 0 / 15%),
+    ),
+    transform: (
+        "hover": scale(1.03),
+    ),
+    transition: (
+        "default": ease-in-out .1s,
+        "click": ease-in-out .05s,
+    ),
+);

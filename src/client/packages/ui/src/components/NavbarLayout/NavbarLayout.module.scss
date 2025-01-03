@@ -1,0 +1,27 @@
+.navbar-layout {
+    display: flex;
+    width: 100%;
+
+    &__content {
+        padding: 2rem;
+        box-sizing: border-box;
+        width: 0;
+        flex-grow: 1;
+
+        @media (max-width: 1000px) {
+            padding: 1rem;
+            width: 100%;
+        }
+    }
+
+    &__mobile-menu-button {
+        display: none;
+        position: absolute;
+        right: 1rem;
+        top: .8rem;
+
+        @media (max-width: 1000px) {
+            display: block;
+        }
+    }
+}

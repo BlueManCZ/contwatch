@@ -22,4 +22,5 @@ python_version = "3.12"
 
 [scripts]
 black = "black --check --line-length 120 ."
+black_fix = "black --line-length 120 ."
 server = "./main.py"
