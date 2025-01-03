@@ -15,7 +15,7 @@ export const getIcon = (icon: string) => {
     return `/icons/${icon}.svg`;
 };
 
-export const CustomIcons = ["http", "serial"];
+export const CustomIcons = ["battery", "http", "inverter", "serial"];
 
 export type IconProps = {
     icon:
