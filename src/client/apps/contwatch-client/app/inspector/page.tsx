@@ -11,10 +11,13 @@ import { Popup } from "@repo/ui/Popup";
 import { Column } from "@repo/ui/FlexPartials";
 import { Input } from "@repo/ui/Input";
 import { useSearchParams } from "next/navigation";
+import { useLocalization } from "@repo/store/hooks/useLocalization";
 
 export default function Inspector() {
     const { t } = useTranslation();
     const { data: attributes } = useAttributes();
+
+    const { localizeDate } = useLocalization();
 
     const searchParams = useSearchParams();
     const paramAttribute = searchParams.get("attribute");
@@ -41,7 +44,7 @@ export default function Inspector() {
     return (
         <>
             <Text size={"medium"} weight={"bold"}>
-                {t("Inspector")}
+                {t("Inspector")} {selectedDate ? `(${localizeDate(new Date(selectedDate))})` : ""}
             </Text>
             <Popup visible={showSettings} onClose={() => setShowSettings(false)} title={t("Settings")}>
                 <Column padding={"block"} gap={"2rem"}>

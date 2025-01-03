@@ -30,11 +30,11 @@ export const Popup: FC<PropsWithChildren<PopupProps>> = ({
         visible && (
             <div className={bem({ visible })}>
                 <div className={bem("overlay")} onClick={onClose} />
-                <Column padding="content" width="100%">
+                <Column padding="content" width="100%" height={"90%"}>
                     <Column variant="popup" width="100%">
-                        <div style={{ position: "sticky", top: 0, zIndex: 1 }}>
+                        <div style={{ position: "sticky", top: 0, zIndex: 1, background: "white" }}>
                             <Flex padding={"block"}>
-                                <Flex justifyContent="space-between" grow>
+                                <Flex justifyContent="space-between" alignItems={"center"} grow>
                                     {title ? (
                                         titleHref ? (
                                             <Text size="medium" weight="black">

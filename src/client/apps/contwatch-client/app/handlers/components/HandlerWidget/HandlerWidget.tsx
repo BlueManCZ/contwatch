@@ -77,16 +77,20 @@ export const HandlerWidget: FC<HandlerWidgetProps> = ({ handler }) => {
                                     <Column>
                                         <Text size={"small"} weight={"bold"} nowrap>
                                             {attribute.label ?? attribute.name}{" "}
-                                            {minStat?.value === attribute.data.value && (
-                                                <div className={bem("peak-indicator", { color: "red" })}>
-                                                    <Icon icon={"arrow-down-square"} size={13} />
-                                                </div>
-                                            )}
-                                            {maxStat?.value === attribute.data.value && (
-                                                <div className={bem("peak-indicator", { color: "green" })}>
-                                                    <Icon icon={"arrow-up-square"} size={13} />
-                                                </div>
-                                            )}
+                                            {minStat?.value === attribute.data.value &&
+                                                minStat?.value !== maxStat?.value && (
+                                                    <div className={bem("peak-indicator", { color: "red" })}>
+                                                        <Icon icon={"arrow-down-square"} size={13} />
+                                                    </div>
+                                                )}
+                                            {maxStat?.value === attribute.data.value &&
+                                                minStat?.value !== maxStat?.value && (
+                                                    <div
+                                                        className={bem("peak-indicator", { color: "green" })}
+                                                    >
+                                                        <Icon icon={"arrow-up-square"} size={13} />
+                                                    </div>
+                                                )}
                                             {attribute.data.trend === -1 && (
                                                 <div className={bem("peak-indicator", { color: "red" })}>
                                                     <Icon icon={"arrow-right-down"} size={13} />
