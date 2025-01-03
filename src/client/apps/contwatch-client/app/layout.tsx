@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.scss";
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, Suspense } from "react";
 import { NavbarLayout } from "@repo/ui/NavbarLayout";
 import { openSans } from "@repo/ui/fonts";
 import { Providers } from "./providers";
@@ -15,7 +15,9 @@ export default function RootLayout({ children }: PropsWithChildren) {
         <html lang="en">
             <body className={openSans.className}>
                 <Providers>
-                    <NavbarLayout>{children}</NavbarLayout>
+                    <NavbarLayout>
+                        <Suspense>{children}</Suspense>
+                    </NavbarLayout>
                 </Providers>
             </body>
         </html>
