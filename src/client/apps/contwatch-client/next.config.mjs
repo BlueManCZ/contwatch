@@ -11,9 +11,9 @@ const nextConfig = {
             useSwcCss: true,
         },
     },
-    // eslint: {
-    //     ignoreDuringBuilds: true,
-    // },
+    eslint: {
+        ignoreDuringBuilds: true,
+    },
     async rewrites() {
         return {
             afterFiles: [

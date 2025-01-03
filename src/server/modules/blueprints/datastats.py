@@ -18,7 +18,7 @@ def datastats_blueprint(_context: Context):
             "type": data_stat.type,
             "value": data_stat.value,
             "date": data_stat.date,
-            "time": data_stat.time,
+            "time": str(data_stat.time),
         }
 
     @blueprint.route("/")
