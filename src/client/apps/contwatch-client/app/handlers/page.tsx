@@ -1,10 +1,10 @@
 "use client";
 
-import { Column } from "@repo/ui/FlexPartials";
 import { Text } from "@repo/ui/Text";
 import { useHandlers } from "@repo/utils/swrEndpoints";
 import { HandlerWidget } from "./components/HandlerWidget/HandlerWidget";
 import { useTranslation } from "@repo/utils/useTranslation";
+import { HandlersWrapper } from "./components/HandlersWrapper/HandlersWrapper";
 
 export default function Handlers() {
     const { t } = useTranslation();
@@ -15,9 +15,9 @@ export default function Handlers() {
             <Text size={"medium"} weight={"bold"}>
                 {t("Handlers")}
             </Text>
-            <Column gap={"1rem"}>
+            <HandlersWrapper>
                 {handlers?.map((handler) => <HandlerWidget key={handler.id} handler={handler} />)}
-            </Column>
+            </HandlersWrapper>
         </>
     );
 }

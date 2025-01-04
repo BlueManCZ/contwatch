@@ -8,6 +8,7 @@ const bem = bemClassNames(styles);
 
 export type FlexProps = PropsWithChildren<{
     justifyContent?: Property.JustifyContent;
+    alignContent?: Property.AlignContent;
     alignItems?: Property.AlignItems;
     alignSelf?: Property.AlignSelf;
     direction?: Property.FlexDirection;
@@ -28,6 +29,7 @@ export type FlexProps = PropsWithChildren<{
 
 export const Flex: FC<FlexProps> = ({
     justifyContent,
+    alignContent,
     alignItems,
     alignSelf,
     direction,
@@ -56,6 +58,7 @@ export const Flex: FC<FlexProps> = ({
         className={bem({ padding, margin, fill, variant, background }) + (className ? ` ${className}` : "")}
         style={{
             justifyContent,
+            alignContent,
             alignItems,
             alignSelf,
             flexDirection: direction,

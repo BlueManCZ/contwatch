@@ -27,7 +27,7 @@ export const HandlerWidget: FC<HandlerWidgetProps> = ({ handler }) => {
     return (
         <Column className={bem()}>
             <Flex
-                className={bem("header", { color: handler.status?.toString() })}
+                className={bem("header", { color: handler.status })}
                 alignItems={"center"}
                 padding={"groupbox"}
                 gap={".5rem"}
