@@ -1,13 +1,13 @@
 "use client";
 
-import { LOCALES, selectLocaleState } from "@repo/store/slices/settingsSlice";
+import { type LOCALES, selectLocaleState } from "@repo/store/slices/settingsSlice";
 import { bemClassNames } from "@repo/utils/bemClassNames";
-import { Property } from "csstype";
-import { FC, HTMLInputTypeAttribute, useCallback, useEffect, useState } from "react";
+import type { Property } from "csstype";
+import { type FC, type HTMLInputTypeAttribute, useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
 import { openSans } from "../../fonts";
-import { Icon, IconProps } from "../Icon/Icon";
+import { Icon, type IconProps } from "../Icon/Icon";
 import { Text } from "../Text/Text";
 import styles from "./Input.module.scss";
 
@@ -64,9 +64,11 @@ export const Input: FC<InputProps> = ({
         (value: number) => {
             if (min !== undefined && value < min) {
                 return min;
-            } else if (max && value > max) {
+            }
+            if (max && value > max) {
                 return max;
-            } else if (isNaN(value)) {
+            }
+            if (Number.isNaN(value)) {
                 return min ?? 0;
             }
 
@@ -97,7 +99,7 @@ export const Input: FC<InputProps> = ({
     const currentLocale = useSelector(selectLocaleState);
 
     useEffect(() => {
-        let newValue;
+        let newValue: number;
         if (typeof value === "number") {
             newValue = value;
         } else {
@@ -121,7 +123,7 @@ export const Input: FC<InputProps> = ({
         const normalizedInput = input.split(groupSeparator).join("").split(decimalSeparator).join(".");
 
         // Parse the normalized number
-        return parseFloat(normalizedInput);
+        return Number.parseFloat(normalizedInput);
     }
 
     function formatLocalizedFloat(value: number, locale: LOCALES) {
@@ -131,10 +133,12 @@ export const Input: FC<InputProps> = ({
     const Component = type === "long-text" ? "textarea" : type === "pick" ? "select" : "input";
 
     return (
+        // biome-ignore lint/a11y/noLabelWithoutControl:
         <label className={bem({ grow, growMobile, hasIcon: !!icon })} style={{ flexBasis: basis }}>
             {title && <Text size="small">{title}</Text>}
-            <div className={bem("wrapper", { controls }) + " " + openSans.variable}>
+            <div className={`${bem("wrapper", { controls })} ${openSans.variable}`}>
                 {controls && type === "number" && (
+                    // biome-ignore lint/a11y/useKeyWithClickEvents:
                     <div className={bem("left-control")} onClick={(e) => e.preventDefault()}>
                         <Icon
                             icon="minus"
@@ -169,7 +173,7 @@ export const Input: FC<InputProps> = ({
                         }
 
                         const parsedValue = parseLocalizedFloat(e.target.value, currentLocale);
-                        if (isNaN(parsedValue)) {
+                        if (Number.isNaN(parsedValue)) {
                             commitEmptyValue(!postponedChanged);
                             return;
                         }
@@ -190,7 +194,7 @@ export const Input: FC<InputProps> = ({
                         }
 
                         const parsedValue = parseLocalizedFloat(e.target.value, currentLocale);
-                        if (isNaN(parsedValue)) {
+                        if (Number.isNaN(parsedValue)) {
                             commitEmptyValue(true);
                             return;
                         }
@@ -204,7 +208,7 @@ export const Input: FC<InputProps> = ({
                                     onValueChange?.(e.target.value);
                                 } else {
                                     const parsedValue = parseLocalizedFloat(e.target.value, currentLocale);
-                                    if (isNaN(parsedValue)) {
+                                    if (Number.isNaN(parsedValue)) {
                                         commitEmptyValue(true);
                                         return;
                                     }
@@ -215,15 +219,11 @@ export const Input: FC<InputProps> = ({
                         }
                     }}
                 >
-                    {options && (
-                        <>
-                            {options.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.name}
-                                </option>
-                            ))}
-                        </>
-                    )}
+                    {options?.map((option) => (
+                        <option key={option.value} value={option.value}>
+                            {option.name}
+                        </option>
+                    ))}
                 </Component>
                 {unit && <Text weight="medium">{unit}</Text>}
                 {icon && (

@@ -36,11 +36,10 @@ export const useLocalization = () => {
      * @param currency The currency to localize to.
      * @param locale The locale to localize to. Defaults to the current locale.
      */
-    const localizeCurrency = (value: number = NaN, currency: string = "CZK", locale?: LOCALES) => {
+    const localizeCurrency = (value: number = Number.NaN, currency = "CZK", locale?: LOCALES) => {
         const result = new Intl.NumberFormat(locale ?? currentLocale, {
             style: "currency",
             currency,
-            // @ts-ignore
             trailingZeroDisplay: "stripIfInteger",
         }).format(value);
         if (Number.isNaN(value)) {

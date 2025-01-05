@@ -1,14 +1,13 @@
 "use client";
 
+import { Icon, type IconProps } from "@repo/ui/Icon";
+import { Text } from "@repo/ui/Text";
+import { bemClassNames } from "@repo/utils/bemClassNames";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FC } from "react";
-
-import { Text } from "@repo/ui/Text";
-import { Icon, IconProps } from "@repo/ui/Icon";
+import type { FC } from "react";
 
 import styles from "./NavbarItem.module.scss";
-import { bemClassNames } from "@repo/utils/bemClassNames";
 
 const bem = bemClassNames(styles);
 

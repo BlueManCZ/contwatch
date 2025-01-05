@@ -1,6 +1,6 @@
 import { bemClassNames } from "@repo/utils/bemClassNames";
-import { Property } from "csstype";
-import { FC } from "react";
+import type { Property } from "csstype";
+import type { FC } from "react";
 
 import styles from "./Separator.module.scss";
 
@@ -13,5 +13,5 @@ export type SeparatorProps = {
 };
 
 export const Separator: FC<SeparatorProps> = ({ variant, width, height }) => {
-    return <div className={bem({ variant })} style={{ width, height }}></div>;
+    return <div className={bem({ variant })} style={{ width, height }} />;
 };

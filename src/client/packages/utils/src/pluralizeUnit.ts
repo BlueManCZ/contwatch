@@ -10,11 +10,12 @@ export default function pluralizeUnit(
 ) {
     if (value === 0) {
         return config.zero || config.plural || config.singular;
-    } else if (value == 1) {
-        return config.singular || config.plural;
-    } else if (value > 1 && value < 5) {
-        return config.semiSingular || config.plural || config.singular;
-    } else {
-        return config.plural || config.semiSingular || config.singular;
     }
+    if (value === 1) {
+        return config.singular || config.plural;
+    }
+    if (value > 1 && value < 5) {
+        return config.semiSingular || config.plural || config.singular;
+    }
+    return config.plural || config.semiSingular || config.singular;
 }

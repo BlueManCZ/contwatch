@@ -1,16 +1,17 @@
 "use client";
 
-import { FC, PropsWithChildren, useCallback, useRef } from "react";
+import { type FC, type PropsWithChildren, useCallback, useRef } from "react";
 import { Provider } from "react-redux";
 
 import { setLocaleState } from "../slices/settingsSlice";
-import { AppStore, makeStore } from "../store";
+import { type AppStore, makeStore } from "../store";
 
 type StoreProviderProps = PropsWithChildren<{
     lang?: string;
 }>;
 
-export const StoreProvider: FC<StoreProviderProps> = ({ lang, children }) => {
+// export const StoreProvider: FC<StoreProviderProps> = ({ lang, children }) => {
+export const StoreProvider: FC<StoreProviderProps> = ({ children }) => {
     /**
      * Get the current locale. Uses the browser's locale if available, otherwise defaults to en-US.
      * This is used only for state initialization. Use redux selector "selectLocaleState" to get the current locale.

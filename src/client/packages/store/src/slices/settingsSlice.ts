@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 // import { LOCALES } from "../localization";
-import { AppState } from "../store";
+import type { AppState } from "../store";
 
 export enum LOCALES {
     cs = "cs",

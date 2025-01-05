@@ -1,14 +1,14 @@
 "use client";
 
-import { AttributeModel } from "../../../types/src/models/AttributeModel";
+import type { AttributeChartModel } from "@repo/types/AttributeChartModel";
+import type { AttributeModel } from "@repo/types/AttributeModel";
+import type { DataStatModel } from "@repo/types/DataStatModel";
+import type { HandlerModel } from "@repo/types/HandlerModel";
 import useSWR from "swr";
 
 import { getJson } from "../communication";
 import { Endpoint } from "../endpoints";
 import { getApiEndpoint } from "../getApiEndpoint";
-import { HandlerModel } from "@repo/types/HandlerModel";
-import { DataStatModel } from "@repo/types/DataStatModel";
-import { AttributeChartModel } from "@repo/types/AttributeChartModel";
 
 export const useHandlers = () => {
     return useSWR<HandlerModel[]>(getApiEndpoint(Endpoint.handlers), getJson);

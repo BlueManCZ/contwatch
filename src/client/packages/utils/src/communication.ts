@@ -17,9 +17,9 @@ export const jsonFetcher = (key: string, method: "GET" | "POST" | "DELETE" = "GE
 export const executeRequest = (
     key: string,
     method: "POST" | "DELETE" = "POST",
-    payload: any,
+    payload?: object,
     onSuccess?: (response: Response) => void,
-    onError?: (error: any) => void,
+    onError?: (error: unknown) => void,
 ) => {
     jsonFetcher(key, method, payload)
         .then((response) => {

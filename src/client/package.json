@@ -7,6 +7,7 @@
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "stylelint": "turbo stylelint",
+    "biome": "biome check",
     "test": "turbo test",
     "ci": "turbo build lint stylelint test"
   },
@@ -22,7 +23,9 @@
     "typescript": "5.7.2"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@types/luxon": "^3.4.2",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
     "prettier": "^3.2.5",
     "stylelint": "16.10.0",
     "stylelint-config-prettier-scss": "1.0.0",
@@ -31,7 +34,7 @@
     "stylelint-order": "6.0.4"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "packageManager": "npm@10.8.1",
   "workspaces": [

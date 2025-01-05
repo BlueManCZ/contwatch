@@ -2,7 +2,7 @@
 
 import { StoreProvider } from "@repo/store/StoreProvider";
 // import { ThemeProvider } from "next-themes";
-import { PropsWithChildren } from "react";
+import type { PropsWithChildren } from "react";
 
 export function Providers({ children }: PropsWithChildren) {
     return (

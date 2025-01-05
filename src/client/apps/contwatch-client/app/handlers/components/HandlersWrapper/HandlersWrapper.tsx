@@ -1,8 +1,8 @@
-import { FC, PropsWithChildren } from "react";
 import { Column } from "@repo/ui/FlexPartials";
+import { bemClassNames } from "@repo/utils/bemClassNames";
+import type { FC, PropsWithChildren } from "react";
 
 import styles from "./HandlersWrapper.module.scss";
-import { bemClassNames } from "@repo/utils/bemClassNames";
 
 type HandlersWrapperProps = PropsWithChildren;
 

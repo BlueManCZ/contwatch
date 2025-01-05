@@ -1,16 +1,16 @@
 "use client";
 
-import { FC, PropsWithChildren, useState } from "react";
-import { Flex } from "../Flex/Flex";
+import { bemClassNames } from "@repo/utils/bemClassNames";
+import { useTranslation } from "@repo/utils/useTranslation";
 import Image from "next/image";
+import { type FC, type PropsWithChildren, useState } from "react";
+
+import { Column } from "../../partials/FlexPartials/FlexPartials";
+import { Flex } from "../Flex/Flex";
+import { Icon } from "../Icon/Icon";
 import { NavbarItem } from "../Navbar/components/NavbarItem/NavbarItem";
 import { Navbar } from "../Navbar/Navbar";
-import { Icon } from "../Icon/Icon";
-
 import styles from "./NavbarLayout.module.scss";
-import { bemClassNames } from "@repo/utils/bemClassNames";
-import { Column } from "../../partials/FlexPartials/FlexPartials";
-import { useTranslation } from "@repo/utils/useTranslation";
 
 export type NavbarLayoutProps = PropsWithChildren;
 

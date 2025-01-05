@@ -1,4 +1,4 @@
-name: Frontend CI
+name: Client CI
 on: [push]
 
 jobs:
@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [21.x]
+        node-version: [ 22.x ]
     defaults:
       run:
         working-directory: ./src/client
@@ -19,9 +19,13 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Install dependencies
         run: npm install
-      - name: Client build
-        run: npm run build
+      - name: Lint
+        run: npm run lint
+      - name: Biome
+        run: npm run biome
       - name: Stylelint
         run: npm run stylelint
+      - name: Build
+        run: npm run build
       - name: Test
-        run: npm run test
+        run: npm test

@@ -1,6 +1,6 @@
-import { FC } from "react";
+import type { FC } from "react";
 
-import { Flex, FlexProps } from "../../components/Flex/Flex";
+import { Flex, type FlexProps } from "../../components/Flex/Flex";
 
 export const Column: FC<FlexProps> = (props) => {
     return <Flex direction="column" {...props} />;

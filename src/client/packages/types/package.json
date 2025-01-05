@@ -1,9 +1,10 @@
 {
   "name": "@repo/types",
   "version": "1.0.0",
+  "type": "module",
   "private": true,
   "exports": {
-    "./AttributeModel": "./src/models/ArticleModel.ts",
+    "./AttributeModel": "./src/models/AttributeModel.ts",
     "./AttributeChartModel": "./src/models/AttributeChartModel.ts",
     "./DataStatModel": "./src/models/DataStatModel.ts",
     "./HandlerModel": "./src/models/HandlerModel.ts"

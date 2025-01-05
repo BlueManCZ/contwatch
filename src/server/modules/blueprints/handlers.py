@@ -26,7 +26,7 @@ def handlers_blueprint(_context: Context):
             for handler in available_handlers
         ], StatusCode.OK
 
-    @blueprint.route("/all")  # TODO: Investigate why this doesn't work with just / on mobile
+    @blueprint.route("/")
     @orm.db_session
     def handlers():
         return [
@@ -57,7 +57,7 @@ def handlers_blueprint(_context: Context):
             for h_id, handler in _context.manager.registered_handlers.items()
         ], StatusCode.OK
 
-    @blueprint.route("/all/<int:handler_id>")  # TODO: Investigate why this doesn't work with just / on mobile
+    @blueprint.route("/<int:handler_id>")
     def handler_info(handler_id):
         handler = _context.manager.registered_handlers.get(handler_id, None)
         if handler:

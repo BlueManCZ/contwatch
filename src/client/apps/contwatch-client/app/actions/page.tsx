@@ -1,25 +1,25 @@
 "use client";
 
+// import "@xyflow/react/dist/base.css";
+import "@xyflow/react/dist/style.css";
+
 import { Text } from "@repo/ui/Text";
 import { useTranslation } from "@repo/utils/useTranslation";
-
 import {
     addEdge,
     Background,
     BackgroundVariant,
     Controls,
-    Edge,
+    type Edge,
     MiniMap,
-    Node,
+    type Node,
     Position,
     ReactFlow,
     useEdgesState,
     useNodesState,
 } from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
-// import "@xyflow/react/dist/base.css";
+import type { Connection } from "@xyflow/system";
 import { useCallback, useEffect } from "react";
-import { Connection } from "@xyflow/system";
 
 export default function Actions() {
     // TODO: Use SSR translation and remove "use client"
@@ -63,7 +63,8 @@ export default function Actions() {
             nodes.map((node) => {
                 if (node.id === "1") {
                     return { ...node, data: { ...node.data, label: firstTitle } };
-                } else if (node.id === "2") {
+                }
+                if (node.id === "2") {
                     return { ...node, data: { ...node.data, label: secondTitle } };
                 }
                 return node;

@@ -1,11 +1,11 @@
 "use client";
 
 import { bemClassNames } from "@repo/utils/bemClassNames";
-import { Property } from "csstype";
+import type { Property } from "csstype";
 import Link from "next/link";
-import { FunctionComponent, PropsWithChildren } from "react";
+import type { FunctionComponent, PropsWithChildren } from "react";
 
-import { Font, fontDefinitions } from "../../fonts";
+import { type Font, fontDefinitions } from "../../fonts";
 import styles from "./Text.module.scss";
 
 export type TextProps = {
@@ -56,10 +56,10 @@ export const Text: FunctionComponent<PropsWithChildren<TextProps>> = ({
         variant,
         glitched,
     });
-    if (className) resultClassName += " " + className;
+    if (className) resultClassName += ` ${className}`;
 
     if (font) {
-        resultClassName += " " + fontDefinitions[font].className;
+        resultClassName += ` ${fontDefinitions[font].className}`;
     }
 
     return (

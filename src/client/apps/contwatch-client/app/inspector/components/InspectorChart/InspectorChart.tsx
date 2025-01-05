@@ -1,9 +1,15 @@
 import "chartjs-adapter-date-fns";
 
+import { Button } from "@repo/ui/Button";
+import { Flex } from "@repo/ui/Flex";
+import { Column } from "@repo/ui/FlexPartials";
+import { bemClassNames } from "@repo/utils/bemClassNames";
+import { useAttributeChart } from "@repo/utils/swrEndpoints";
+import { useTranslation } from "@repo/utils/useTranslation";
 import {
     CategoryScale,
     Chart,
-    ChartOptions,
+    type ChartOptions,
     Legend,
     LinearScale,
     LineElement,
@@ -12,18 +18,11 @@ import {
     Title,
     Tooltip,
 } from "chart.js";
-import { FC, useCallback, useEffect, useState } from "react";
+import { type FC, useCallback, useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
 
 import { options } from "./chartOptions";
-
 import styles from "./InspectorChart.module.scss";
-import { bemClassNames } from "@repo/utils/bemClassNames";
-import { Flex } from "@repo/ui/Flex";
-import { Button } from "@repo/ui/Button";
-import { useAttributeChart } from "@repo/utils/swrEndpoints";
-import { Column } from "@repo/ui/FlexPartials";
-import { useTranslation } from "@repo/utils/useTranslation";
 
 Chart.register(CategoryScale, LinearScale, TimeScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -57,10 +56,10 @@ export const InspectorChart: FC<InspectorChartProps> = ({ attributes = [], date,
         ref?.resetZoom?.();
     }, [ref]);
 
-    // Reset zoom on attributes change
+    // biome-ignore lint/correctness/useExhaustiveDependencies: Reset zoom on attributes change
     useEffect(() => {
         resetZoomLevel();
-    }, [attributes, resetZoomLevel, ref]);
+    }, [attributes, resetZoomLevel]);
 
     // TODO: Fetch each attribute data separately, this is bad for caching.
     const { data: attributeChartData } = useAttributeChart(attributes.sort(), date);
@@ -129,8 +128,8 @@ export const InspectorChart: FC<InspectorChartProps> = ({ attributes = [], date,
                 <Line
                     {...{ options: options as ChartOptions<"line">, data }}
                     ref={(ref) => setRef(ref as unknown as Chart)}
-                    onWheel={() => setZoomLevel((ref?.["getZoomLevel"] && ref?.getZoomLevel()) ?? 1)}
-                    onTouchEnd={() => setZoomLevel((ref?.["getZoomLevel"] && ref?.getZoomLevel()) ?? 1)}
+                    onWheel={() => setZoomLevel(ref?.getZoomLevel?.() ?? 1)}
+                    onTouchEnd={() => setZoomLevel(ref?.getZoomLevel?.() ?? 1)}
                 />
             </div>
         </Column>

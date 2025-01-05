@@ -1,4 +1,4 @@
-import { IconProps } from "@repo/ui/Icon";
+import type { IconProps } from "@repo/ui/Icon";
 
 export interface AttributeModel {
     id: number;
@@ -9,9 +9,7 @@ export interface AttributeModel {
     label?: string;
     icon?: IconProps["icon"];
     data: {
-        handler_name: string;
         value?: string | number;
-        status: 0 | 1 | 2;
         trend: -1 | 0 | 1;
     };
 }

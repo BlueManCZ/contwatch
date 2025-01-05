@@ -1,9 +1,9 @@
-import { IconProps } from "@repo/ui/Icon";
+import type { IconProps } from "@repo/ui/Icon";
 
 export enum HandlerStatus {
-    DISCONNECTED,
-    CONNECTED,
-    DISABLED,
+    DISCONNECTED = 0,
+    CONNECTED = 1,
+    DISABLED = 2,
 }
 
 export type HandlerConfig = Record<string, string>;

@@ -1,6 +1,6 @@
 import { bemClassNames } from "@repo/utils/bemClassNames";
-import { Property } from "csstype";
-import { FC, PropsWithChildren } from "react";
+import type { Property } from "csstype";
+import type { FC, PropsWithChildren } from "react";
 
 import styles from "./Flex.module.scss";
 
@@ -16,6 +16,7 @@ export type FlexProps = PropsWithChildren<{
     gap?: Property.Gap;
     basis?: Property.FlexBasis;
     height?: Property.Height;
+    maxHeight?: Property.MaxHeight;
     width?: Property.Width;
     maxWidth?: Property.MaxWidth;
     grow?: Property.FlexGrow | boolean;
@@ -37,6 +38,7 @@ export const Flex: FC<FlexProps> = ({
     gap,
     basis,
     height,
+    maxHeight,
     width,
     maxWidth,
     grow,
@@ -67,6 +69,7 @@ export const Flex: FC<FlexProps> = ({
             flexGrow: typeof grow === "boolean" ? (grow ? 1 : 0) : grow,
             flexBasis: basis,
             height,
+            maxHeight,
             maxWidth,
             width,
         }}

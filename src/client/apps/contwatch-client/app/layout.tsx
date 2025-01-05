@@ -1,8 +1,10 @@
-import type { Metadata } from "next";
 import "./globals.scss";
-import { PropsWithChildren, Suspense } from "react";
-import { NavbarLayout } from "@repo/ui/NavbarLayout";
+
 import { openSans } from "@repo/ui/fonts";
+import { NavbarLayout } from "@repo/ui/NavbarLayout";
+import type { Metadata } from "next";
+import { type PropsWithChildren, Suspense } from "react";
+
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {

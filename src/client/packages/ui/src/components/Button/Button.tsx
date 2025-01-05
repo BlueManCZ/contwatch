@@ -2,10 +2,10 @@
 
 import { bemClassNames } from "@repo/utils/bemClassNames";
 import Link from "next/link";
-import { FC, PropsWithChildren, useState } from "react";
+import { type FC, type PropsWithChildren, useState } from "react";
 import { ClipLoader } from "react-spinners";
 
-import { Icon, IconProps } from "../Icon/Icon";
+import { Icon, type IconProps } from "../Icon/Icon";
 import styles from "./Button.module.scss";
 
 export type ButtonProps = {
@@ -22,7 +22,7 @@ export type ButtonProps = {
     navbar?: boolean;
     blank?: boolean;
     uppercased?: boolean;
-    onClick?: string | (() => Promise<boolean> | void);
+    onClick?: string | (() => Promise<boolean>) | (() => void);
     afterClick?: () => void;
     redirect?: boolean;
     slim?: boolean;
@@ -69,7 +69,7 @@ export const Button: FC<PropsWithChildren<ButtonProps>> = ({
 
     return (
         <Component
-            // @ts-ignore
+            // @ts-expect-error Dont use `href` if it's an empty string.
             href={href ? href : null}
             target={blank ? "_blank" : undefined}
             onClick={async () => {

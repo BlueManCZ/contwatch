@@ -1,17 +1,18 @@
 "use client";
-import { useState } from "react";
 
-import { Text } from "@repo/ui/Text";
-import { useAttributes } from "@repo/utils/swrEndpoints";
+import { useLocalization } from "@repo/store/hooks/useLocalization";
 import { Button } from "@repo/ui/Button";
 import { Flex } from "@repo/ui/Flex";
-import { InspectorChart } from "./components/InspectorChart/InspectorChart";
-import { useTranslation } from "@repo/utils/useTranslation";
-import { Popup } from "@repo/ui/Popup";
 import { Column } from "@repo/ui/FlexPartials";
 import { Input } from "@repo/ui/Input";
+import { Popup } from "@repo/ui/Popup";
+import { Text } from "@repo/ui/Text";
+import { useAttributes } from "@repo/utils/swrEndpoints";
+import { useTranslation } from "@repo/utils/useTranslation";
 import { useSearchParams } from "next/navigation";
-import { useLocalization } from "@repo/store/hooks/useLocalization";
+import { useState } from "react";
+
+import { InspectorChart } from "./components/InspectorChart/InspectorChart";
 
 export default function Inspector() {
     const { t } = useTranslation();
@@ -21,7 +22,7 @@ export default function Inspector() {
 
     const searchParams = useSearchParams();
     const paramAttribute = searchParams.get("attribute");
-    const paramAttributeInt = paramAttribute ? parseInt(paramAttribute) : undefined;
+    const paramAttributeInt = paramAttribute ? Number.parseInt(paramAttribute) : undefined;
 
     /** TODO: Store selected attributes in redux */
     const [selectedAttributes, setSelectedAttributes] = useState<number[]>(

@@ -1,8 +1,8 @@
 import { bemClassNames } from "@repo/utils/bemClassNames";
-import { FC, PropsWithChildren } from "react";
+import type { FC, PropsWithChildren } from "react";
 
-import styles from "./Navbar.module.scss";
 import { Flex } from "../Flex/Flex";
+import styles from "./Navbar.module.scss";
 
 const bem = bemClassNames(styles);
 

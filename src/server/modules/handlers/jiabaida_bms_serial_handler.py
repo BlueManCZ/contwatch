@@ -68,11 +68,7 @@ class JiabaidaBmsSerialHandler(SerialHandler):
             "cycles": _byte(d1, 8),
             "percentages": d1[19],
             "mos-state": d1[20],
-            "temperatures": {
-                # TODO: Number of temps is provided in data too, do this in loop.
-                # "1": (_byte(d1, 23) - 2731) / 10,
-                # "2": (_byte(d1, 25) - 2731) / 10,
-            },
+            "temperatures": {},
             "cells": {},
             "protection-bits": bin(_byte(d1, 16))[2:].zfill(16),
         }

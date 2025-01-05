@@ -4,7 +4,7 @@
 // import { selectIconThemeState } from "../../store/settingsSlice";
 import { bemClassNames } from "@repo/utils/bemClassNames";
 import Image from "next/image";
-import { EventHandler, FC, KeyboardEvent, MouseEvent } from "react";
+import type { EventHandler, FC, KeyboardEvent, MouseEvent } from "react";
 
 import styles from "./Icon.module.scss";
 
@@ -70,7 +70,7 @@ export const Icon: FC<IconProps> = ({
                 active,
                 disabled,
                 background,
-                clickable: clickable || onClick,
+                clickable: !!(clickable || onClick),
             })}
             onClick={onClick}
             {...{ title }}

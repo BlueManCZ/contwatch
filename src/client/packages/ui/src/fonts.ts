@@ -1,4 +1,4 @@
-import { NextFont } from "next/dist/compiled/@next/font";
+import type { NextFont } from "next/dist/compiled/@next/font";
 import { Open_Sans, Source_Code_Pro } from "next/font/google";
 
 export const openSans = Open_Sans({

@@ -2,9 +2,10 @@
 
 import { Text } from "@repo/ui/Text";
 import { useHandlers } from "@repo/utils/swrEndpoints";
-import { HandlerWidget } from "./components/HandlerWidget/HandlerWidget";
 import { useTranslation } from "@repo/utils/useTranslation";
+
 import { HandlersWrapper } from "./components/HandlersWrapper/HandlersWrapper";
+import { HandlerWidget } from "./components/HandlerWidget/HandlerWidget";
 
 export default function Handlers() {
     const { t } = useTranslation();
@@ -16,7 +17,9 @@ export default function Handlers() {
                 {t("Handlers")}
             </Text>
             <HandlersWrapper>
-                {handlers?.map((handler) => <HandlerWidget key={handler.id} handler={handler} />)}
+                {handlers?.map((handler) => (
+                    <HandlerWidget key={handler.id} {...{ handler }} />
+                ))}
             </HandlersWrapper>
         </>
     );
