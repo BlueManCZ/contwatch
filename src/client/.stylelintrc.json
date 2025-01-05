@@ -6,8 +6,5 @@
   ],
   "plugins": [
     "stylelint-order"
-  ],
-  "rules": {
-    "media-feature-range-notation": null
-  }
+  ]
 }

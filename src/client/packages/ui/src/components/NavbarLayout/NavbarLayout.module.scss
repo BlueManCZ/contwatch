@@ -8,7 +8,7 @@
         width: 0;
         padding: 2rem;
 
-        @media (max-width: 1000px) {
+        @media (width <= 1000px) {
             width: 100%;
             padding: 1rem;
         }
@@ -20,7 +20,7 @@
         top: .8rem;
         right: 1rem;
 
-        @media (max-width: 1000px) {
+        @media (width <= 1000px) {
             display: block;
         }
     }

@@ -65,7 +65,7 @@
         flex-grow: 1;
 
         &Mobile {
-            @media (max-width: 768px) {
+            @media (width <= 768px) {
                 flex-grow: 1;
             }
         }
@@ -97,9 +97,8 @@
             --icon-filter: var(--primary-color-filter);
 
             &:hover {
-                --button-box-shadow:
-                        inset 0 0 0 3px var(--color-primary),
-                        var(--box-shadow-button-hover);
+                --button-box-shadow: inset 0 0 0 3px var(--color-primary),
+                var(--box-shadow-button-hover);
             }
 
             &:disabled {

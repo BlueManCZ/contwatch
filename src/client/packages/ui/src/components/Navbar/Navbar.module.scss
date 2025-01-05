@@ -6,7 +6,7 @@
     background: #fff;
     gap: 5px;
 
-    @media (max-width: 1000px) {
+    @media (width <= 1000px) {
         display: none;
         position: fixed;
         z-index: 100;
