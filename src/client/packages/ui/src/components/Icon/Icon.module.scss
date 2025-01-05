@@ -1,8 +1,8 @@
 .icon {
+    display: inline-block;
     transform: var(--icon-transform);
     transition: var(--transition-default);
     opacity: var(--icon-opacity);
-    display: inline-block;
 
     $this: &;
 

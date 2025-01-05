@@ -21,6 +21,7 @@
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0 --cache",
+    "stylelint": "stylelint \"**/*.scss\"",
     "test": "jest",
     "generate:component": "turbo gen react-component"
   },

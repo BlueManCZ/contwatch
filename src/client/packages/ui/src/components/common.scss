@@ -8,12 +8,12 @@ html {
 }
 
 body {
-    margin: 0;
-    background: #f5f6fa;
-    color: var(--color-mono-dark);
     display: flex;
     flex-direction: row;
     flex-grow: 1;
+    margin: 0;
+    background: #f5f6fa;
+    color: var(--color-mono-dark);
 }
 
 :root {

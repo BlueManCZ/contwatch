@@ -3,22 +3,22 @@
     width: 100%;
 
     &__content {
-        padding: 2rem;
         box-sizing: border-box;
-        width: 0;
         flex-grow: 1;
+        width: 0;
+        padding: 2rem;
 
         @media (max-width: 1000px) {
-            padding: 1rem;
             width: 100%;
+            padding: 1rem;
         }
     }
 
     &__mobile-menu-button {
         display: none;
         position: absolute;
-        right: 1rem;
         top: .8rem;
+        right: 1rem;
 
         @media (max-width: 1000px) {
             display: block;

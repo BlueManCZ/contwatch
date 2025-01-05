@@ -86,7 +86,7 @@
         $steps: 20;
         @for $i from 0 through $steps {
             #{math.percentage(calc($i*(1/$steps)))} {
-                clip:rect(math.random(150) + px, 100vw, math.random(150) + px, 0)
+                clip: rect(math.random(150) + px, 100vw, math.random(150) + px, 0)
             }
         }
     }
@@ -95,17 +95,8 @@
         $steps: 20;
         @for $i from 0 through $steps {
             #{math.percentage(calc($i*(1/$steps)))} {
-                clip:rect(math.random(150) + px, 100vw, math.random(150) + px, 0)
+                clip: rect(math.random(150) + px, 100vw, math.random(150) + px, 0)
             }
         }
     }
-
-    //a {
-    //    color: var(--color-primary);
-    //    text-decoration: none;
-    //
-    //    &:hover {
-    //        text-decoration: underline;
-    //    }
-    //}
 }
