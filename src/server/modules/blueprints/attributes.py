@@ -24,6 +24,7 @@ def attributes_blueprint(_context: Context):
                 "unit": attribute.unit,
                 "label": attribute.label,
                 "icon": attribute.icon,
+                "order": attribute.order,
                 "data": {
                     "value": get_attribute(attribute).get_current_value(),
                     "trend": get_attribute(attribute).get_trend(),
@@ -31,5 +32,13 @@ def attributes_blueprint(_context: Context):
             }
             for attribute in (Attribute.select(lambda a: a.handler.id == handler) if handler else Attribute.select())
         ], StatusCode.OK
+
+    @blueprint.route("/set-order", methods=["POST"])
+    @orm.db_session
+    def set_order():
+        order = request.json
+        for index, attribute_id in enumerate(order):
+            Attribute[attribute_id].order = index
+        return {"message": "Order set successfully."}, StatusCode.OK
 
     return blueprint

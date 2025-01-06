@@ -8,6 +8,7 @@ export interface AttributeModel {
     unit?: string;
     label?: string;
     icon?: IconProps["icon"];
+    order: number;
     data: {
         value?: string | number;
         trend: -1 | 0 | 1;

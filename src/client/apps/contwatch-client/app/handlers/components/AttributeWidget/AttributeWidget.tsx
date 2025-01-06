@@ -1,3 +1,5 @@
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { AttributeModel } from "@repo/types/AttributeModel";
 import { Flex } from "@repo/ui/Flex";
 import { Column } from "@repo/ui/FlexPartials";
@@ -6,24 +8,47 @@ import { Separator } from "@repo/ui/Separator";
 import { Text } from "@repo/ui/Text";
 import { bemClassNames } from "@repo/utils/bemClassNames";
 import { useDataStats } from "@repo/utils/swrEndpoints";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { FC } from "react";
 
 import styles from "./AttributeWidget.module.scss";
 
 type AttributeWidgetProps = {
     attribute: AttributeModel;
+    editMode?: boolean;
 };
 
 const bem = bemClassNames(styles);
 
-export const AttributeWidget: FC<AttributeWidgetProps> = ({ attribute }) => {
+export const AttributeWidget: FC<AttributeWidgetProps> = ({ attribute, editMode }) => {
     const { data: dataStats } = useDataStats();
+
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+        id: attribute.id,
+        disabled: !editMode,
+    });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+
+    const router = useRouter();
 
     const minStat = dataStats?.find((stat) => stat.type === "min" && stat.attribute === attribute.id);
     const maxStat = dataStats?.find((stat) => stat.type === "max" && stat.attribute === attribute.id);
+
     return (
-        <Link href={`/inspector?attribute=${attribute.id}`} className={bem()}>
+        <div
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            {...listeners}
+            className={bem({ dragging: isDragging })}
+            onClick={() => {
+                router.push(`/inspector?attribute=${attribute.id}`);
+            }}
+        >
             <Icon icon={attribute.icon ?? "circle"} variant={"circle"} />
             <Flex alignItems={"center"} gap={".5rem"} grow wrap={"wrap"}>
                 <Column>
@@ -75,6 +100,6 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({ attribute }) => {
             <Text className={bem("value")} nowrap>
                 <b>{attribute.data.value}</b> {attribute.unit}
             </Text>
-        </Link>
+        </div>
     );
 };
