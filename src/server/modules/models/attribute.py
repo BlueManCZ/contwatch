@@ -38,4 +38,4 @@ def modify(handler, name, enabled=True) -> Attribute:
     if existing_attribute:
         existing_attribute.enabled = enabled
         return existing_attribute
-    return Attribute(handler=handler, name=name, enabled=enabled)
+    return Attribute(handler=handler, name=name, enabled=enabled, order=Attribute.select().count())

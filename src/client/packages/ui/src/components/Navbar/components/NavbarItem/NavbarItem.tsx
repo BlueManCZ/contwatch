@@ -20,7 +20,7 @@ type NavbarItemProps = {
 
 export const NavbarItem: FC<NavbarItemProps> = ({ href, name, icon, onClick }) => {
     const pathname = usePathname();
-    const active = pathname.endsWith(href);
+    const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
 
     return (
         <Link href={href} className={bem({ active })} onClick={onClick}>

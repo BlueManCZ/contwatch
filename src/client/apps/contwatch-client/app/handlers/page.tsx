@@ -1,9 +1,9 @@
 "use client";
 
 import { Text } from "@repo/ui/Text";
-import { useHandlers } from "@repo/utils/swrEndpoints";
 import { useTranslation } from "@repo/utils/useTranslation";
 
+import { useHandlers } from "../swrEndpoints";
 import { HandlersWrapper } from "./components/HandlersWrapper/HandlersWrapper";
 import { HandlerWidget } from "./components/HandlerWidget/HandlerWidget";
 

@@ -21,8 +21,8 @@ export type FlexProps = PropsWithChildren<{
     maxWidth?: Property.MaxWidth;
     grow?: Property.FlexGrow | boolean;
     fill?: boolean;
-    padding?: "content" | "card-content" | "block" | "block-small" | "groupbox";
-    margin?: "vertical-large" | "vertical-medium" | "vertical-rem";
+    padding?: "content" | "card-content" | "block" | "block-small" | "groupbox" | "half-rem";
+    margin?: "vertical-large" | "vertical-medium" | "vertical-rem" | "horizontal-half-rem";
     className?: string;
     variant?: "card" | "popup";
     background?: "always-dark" | "dark" | "light" | "white";

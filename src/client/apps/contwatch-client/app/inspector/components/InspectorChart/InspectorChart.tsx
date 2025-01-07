@@ -4,7 +4,6 @@ import { Button } from "@repo/ui/Button";
 import { Flex } from "@repo/ui/Flex";
 import { Column } from "@repo/ui/FlexPartials";
 import { bemClassNames } from "@repo/utils/bemClassNames";
-import { useAttributeChart } from "@repo/utils/swrEndpoints";
 import { useTranslation } from "@repo/utils/useTranslation";
 import {
     CategoryScale,
@@ -21,6 +20,7 @@ import {
 import { type FC, useCallback, useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
 
+import { useAttributeChart } from "../../../swrEndpoints";
 import { options } from "./chartOptions";
 import styles from "./InspectorChart.module.scss";
 

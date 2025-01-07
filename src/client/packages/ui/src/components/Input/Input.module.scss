@@ -29,7 +29,7 @@
         flex-grow: 1;
         align-items: center;
         transition: var(--transition-default);
-        border-radius: 2rem;
+        border-radius: var(--border-radius-small);
         background: var(--color-primary-transparent);
         cursor: text;
         gap: 12px;
@@ -69,13 +69,13 @@
     &__input {
         flex-grow: 1;
         width: 100%;
-        padding: 12px 25px;
+        padding: 12px 15px;
         border: none;
         outline: transparent;
         background: transparent;
         color: var(--color-mono-dark);
         font-family: inherit;
-        font-size: var(--font-size-normal);
+        font-size: var(--font-size-small);
         font-weight: var(--font-weight-medium);
 
         &[type="pick"] {

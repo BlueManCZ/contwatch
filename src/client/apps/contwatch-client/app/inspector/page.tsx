@@ -7,11 +7,11 @@ import { Column } from "@repo/ui/FlexPartials";
 import { Input } from "@repo/ui/Input";
 import { Popup } from "@repo/ui/Popup";
 import { Text } from "@repo/ui/Text";
-import { useAttributes } from "@repo/utils/swrEndpoints";
 import { useTranslation } from "@repo/utils/useTranslation";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
+import { useAttributes } from "../swrEndpoints";
 import { InspectorChart } from "./components/InspectorChart/InspectorChart";
 
 export default function Inspector() {

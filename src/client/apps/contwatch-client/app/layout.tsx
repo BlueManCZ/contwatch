@@ -3,7 +3,7 @@ import "./globals.scss";
 import { openSans } from "@repo/ui/fonts";
 import { NavbarLayout } from "@repo/ui/NavbarLayout";
 import type { Metadata } from "next";
-import { type PropsWithChildren, Suspense } from "react";
+import type { PropsWithChildren } from "react";
 
 import { Providers } from "./providers";
 
@@ -17,9 +17,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
         <html lang="en">
             <body className={openSans.className}>
                 <Providers>
-                    <NavbarLayout>
-                        <Suspense>{children}</Suspense>
-                    </NavbarLayout>
+                    <NavbarLayout>{children}</NavbarLayout>
                 </Providers>
             </body>
         </html>

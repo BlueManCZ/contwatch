@@ -34,18 +34,18 @@ export const Popup: FC<PropsWithChildren<PopupProps>> = ({
                 <Column maxHeight={"90%"} maxWidth={"90%"}>
                     <Column variant="popup" width="100%">
                         <div style={{ position: "sticky", top: 0, zIndex: 1, background: "white" }}>
-                            <Flex padding={"block"}>
-                                <Flex justifyContent="space-between" alignItems={"center"} grow>
+                            <Flex className={bem("header")} padding={"block"}>
+                                <Flex justifyContent="space-between" alignItems={"center"} gap={"3rem"} grow>
                                     {title ? (
                                         titleHref ? (
                                             <Text size="medium" weight="black">
                                                 <Link href="/" onClick={titleOnClick}>
-                                                    {title.toUpperCase()}
+                                                    {title}
                                                 </Link>
                                             </Text>
                                         ) : (
                                             <Text size="medium" weight="black">
-                                                {title.toUpperCase()}
+                                                {title}
                                             </Text>
                                         )
                                     ) : (

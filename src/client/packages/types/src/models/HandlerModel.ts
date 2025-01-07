@@ -13,13 +13,6 @@ export interface HandlerOptions {
     config: HandlerConfig;
 }
 
-export interface HandlerAttribute {
-    id: number;
-    name: string;
-    label?: string;
-    value: string | number;
-}
-
 export interface HandlerTypeModel {
     type: string;
     name: string;
@@ -32,6 +25,7 @@ export interface HandlerModel extends HandlerTypeModel {
     description: string;
     status?: HandlerStatus;
     last_message?: number;
+    attributes: number[];
     options?: HandlerOptions;
-    attributes?: HandlerAttribute[];
+    availableAttributes: { name: string; value: string | number }[];
 }

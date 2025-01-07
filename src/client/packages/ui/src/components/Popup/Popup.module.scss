@@ -15,6 +15,10 @@
         display: flex;
     }
 
+    &__header {
+        padding-bottom: .5rem;
+    }
+
     &__overlay {
         position: absolute;
         right: 0;

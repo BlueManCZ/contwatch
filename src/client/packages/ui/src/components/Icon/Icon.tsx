@@ -29,12 +29,14 @@ export type IconProps = {
         | "circle"
         | "chart-square"
         | "cross-small"
+        | "edit-square"
         | "grid-mixed"
         | "menu"
         | "minus"
         | "plus"
         | "processor"
         | "search-trending-up"
+        | "trash"
         | "wrench"
         | "zoom-out";
     variant?: "circle" | "small-circle" | "primary" | "card" | "button";

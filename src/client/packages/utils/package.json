@@ -4,7 +4,6 @@
   "type": "module",
   "private": true,
   "exports": {
-    "./swrEndpoints": "./src/hooks/swrEndpoints.ts",
     "./useUser": "./src/hooks/useUser.ts",
 
     "./ssrTranslation": "./src/i18n/index.ts",

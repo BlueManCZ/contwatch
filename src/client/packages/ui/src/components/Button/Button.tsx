@@ -9,7 +9,7 @@ import { Icon, type IconProps } from "../Icon/Icon";
 import styles from "./Button.module.scss";
 
 export type ButtonProps = {
-    variant?: "default" | "outline" | "card";
+    variant?: "default" | "outline" | "card" | "red";
     disabled?: boolean;
     expand?: boolean;
     grow?: boolean;

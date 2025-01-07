@@ -12,5 +12,12 @@
   "Show data for date": "Zobrazit data pro den",
   "Displayed attributes": "Zobrazené atributy",
   "New action editor": "Nový editor akcí",
-  "is currently in development": "je aktuálně ve vývoji"
+  "is currently in development": "je aktuálně ve vývoji",
+  "Custom label": "Vlastní popis",
+  "Unit": "Jednotka",
+  "Icon": "Ikona",
+  "Save": "Uložit",
+  "Stored attributes": "Uložené atributy",
+  "Available attributes": "Dostupné atributy",
+  "Do you want to delete attribute": "Opravdu chcete smazat atribut"
 }

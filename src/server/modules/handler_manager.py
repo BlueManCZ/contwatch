@@ -61,7 +61,7 @@ class HandlerManager:
         self.log.info(f"Loaded {len(db_handlers)} handlers from database")
         for db_handler in db_handlers:
             handler = get_handler_class(db_handler.type)(db_handler.options)
-            handler.set_id(db_handler.id)
+            handler.set_db_instance(db_handler)
             last_data_unit_select = data_unit_model.get_by_handler_id(db_handler.id)
             last_data_unit = last_data_unit_select[-1] if last_data_unit_select else None
             if last_data_unit:

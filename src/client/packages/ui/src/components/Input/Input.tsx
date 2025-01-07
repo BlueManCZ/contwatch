@@ -135,7 +135,7 @@ export const Input: FC<InputProps> = ({
     return (
         // biome-ignore lint/a11y/noLabelWithoutControl:
         <label className={bem({ grow, growMobile, hasIcon: !!icon })} style={{ flexBasis: basis }}>
-            {title && <Text size="small">{title}</Text>}
+            {title && <Text size="tiny">{title}</Text>}
             <div className={`${bem("wrapper", { controls })} ${openSans.variable}`}>
                 {controls && type === "number" && (
                     // biome-ignore lint/a11y/useKeyWithClickEvents:

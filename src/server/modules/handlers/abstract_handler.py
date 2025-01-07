@@ -60,7 +60,7 @@ class AbstractHandler:
         self.active = False
         self.options = options or {}
         self.message_queue = []
-        self._id = None
+        self._db_instance = None
         self._first_tick = True
         self._current_seconds = get_current_seconds()
         self._last_seconds = 0
@@ -157,7 +157,10 @@ class AbstractHandler:
         self._last_seconds = self._current_seconds
 
     def get_id(self) -> int:
-        return self._id
+        return self._db_instance.id
 
-    def set_id(self, db_id: int):
-        self._id = db_id
+    def set_db_instance(self, db_instance):
+        self._db_instance = db_instance
+
+    def get_db_instance(self):
+        return self._db_instance

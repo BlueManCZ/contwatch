@@ -10,9 +10,13 @@
     }
 
     &__header {
+        display: flex;
+        align-items: center;
         padding: 0.6rem 1rem;
         background-color: var(--color-primary);
         color: var(--color-mono-light);
+        gap: .5rem;
+        text-decoration: none;
 
         &--color-0 {
             background: #682723;
@@ -29,5 +33,6 @@
 
     &__body {
         padding: .5rem 0;
+        overflow: auto;
     }
 }

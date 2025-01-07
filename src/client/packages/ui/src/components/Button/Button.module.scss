@@ -76,6 +76,11 @@
     }
 
     &--variant {
+        &-red {
+            background-color: var(--color-red);
+        }
+
+        &-red,
         &-default {
             @include button-default;
 

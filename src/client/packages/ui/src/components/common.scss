@@ -14,6 +14,11 @@ body {
     margin: 0;
     background: #f5f6fa;
     color: var(--color-mono-dark);
+
+    a {
+        color: var(--color-primary);
+        text-decoration: none;
+    }
 }
 
 :root {

@@ -10,7 +10,7 @@ describe("Bridge - Endpoints", () => {
     });
 
     test("Correct route generating", () => {
-        expect(getApiEndpoint(Endpoint.attributes)).toBe("/api/core/attributes/");
-        expect(getApiEndpoint(Endpoint.dataStats)).toBe("/api/core/data-stats/");
+        expect(getApiEndpoint(Endpoint.attributes, "/1")).toBe("/api/core/attributes/1");
+        expect(getApiEndpoint(Endpoint.dataStats)).toBe("/api/core/data-stats");
     });
 });
