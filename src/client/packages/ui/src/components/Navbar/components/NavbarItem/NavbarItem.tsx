@@ -1,10 +1,8 @@
-"use client";
-
 import { Icon, type IconProps } from "@repo/ui/Icon";
 import { Text } from "@repo/ui/Text";
 import { bemClassNames } from "@repo/utils/bemClassNames";
+import { useActivePathname } from "@repo/utils/useActivePathname";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import type { FC } from "react";
 
 import styles from "./NavbarItem.module.scss";
@@ -19,8 +17,7 @@ type NavbarItemProps = {
 };
 
 export const NavbarItem: FC<NavbarItemProps> = ({ href, name, icon, onClick }) => {
-    const pathname = usePathname();
-    const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+    const { active } = useActivePathname(href);
 
     return (
         <Link href={href} className={bem({ active })} onClick={onClick}>

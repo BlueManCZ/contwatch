@@ -16,6 +16,33 @@ def handlers_blueprint(_context: Context):
         """Returns 1 if handler is connected and communication. Returns 2 if handler is connected but not communicating. Returns 0 if handler is not connected."""
         return 2 if handler.is_connected() and not handler.is_communicating() else 1 if handler.is_connected() else 0
 
+    def handler_serializer(handler):
+        return {
+            "id": handler.get_id(),
+            "type": handler.type,
+            "name": handler.get_name(),
+            "icon": handler.icon,
+            "description": handler.get_description(),
+            "status": get_status(handler),
+            "options": handler.get_options(),
+            "attributes": [
+                attribute.id
+                for attribute in handler.get_db_instance().attributes.order_by(attribute_model.Attribute.order)
+            ],
+            "availableAttributes": [
+                {
+                    "name": attribute_name,
+                    "value": attribute_value,
+                }
+                for attribute_name, attribute_value in _context.manager.last_messages.get(handler.get_id(), {}).items()
+            ],
+            "last_message": (
+                get_current_seconds() - handler.get_last_message_seconds()
+                if handler.get_last_message_seconds()
+                else None
+            ),
+        }
+
     @blueprint.route("/available-handlers")
     def get_available_handlers():
         return [
@@ -31,66 +58,21 @@ def handlers_blueprint(_context: Context):
     @blueprint.route("/")
     @orm.db_session
     def handlers():
-        return [
-            {
-                "id": handler_id,
-                "type": handler.type,
-                "name": handler.get_name(),
-                "icon": handler.icon,
-                "description": handler.get_description(),
-                "status": get_status(handler),
-                "attributes": [
-                    attribute.id
-                    for attribute in handler.get_db_instance().attributes.order_by(attribute_model.Attribute.order)
-                ],
-                "last_message": (
-                    get_current_seconds() - handler.get_last_message_seconds()
-                    if handler.get_last_message_seconds()
-                    else None
-                ),
-                "availableAttributes": [
-                    {
-                        "name": attribute_name,
-                        "value": attribute_value,
-                    }
-                    for attribute_name, attribute_value in _context.manager.last_messages.get(handler_id, {}).items()
-                ],
-            }
-            for handler_id, handler in _context.manager.registered_handlers.items()
-        ], StatusCode.OK
+        return [handler.get_id() for handler in _context.manager.registered_handlers.values()], StatusCode.OK
 
     @blueprint.route("/<int:handler_id>")
     @orm.db_session
     def handler_info(handler_id):
         handler = _context.manager.registered_handlers.get(handler_id, None)
         if handler:
-            return {
-                "id": handler.get_id(),
-                "type": handler.type,
-                "name": handler.get_name(),
-                "icon": handler.icon,
-                "description": handler.get_description(),
-                "status": 1 if handler.is_connected() else 0,
-                "attributes": [
-                    attribute.id
-                    for attribute in handler.get_db_instance().attributes.order_by(attribute_model.Attribute.order)
-                ],
-                "options": handler.get_options(),
-                "availableAttributes": [
-                    {
-                        "name": attribute_name,
-                        "value": attribute_value,
-                    }
-                    for attribute_name, attribute_value in _context.manager.last_messages.get(handler_id, {}).items()
-                ],
-            }, StatusCode.OK
+            return handler_serializer(handler), StatusCode.OK
         return {"status": "not found"}, StatusCode.NOT_FOUND
 
     @blueprint.route("/<int:handler_id>/last")
     def handler_last_message(handler_id):
-        handler = _context.manager.last_messages.get(handler_id, None)
-        if handler:
-            return _context.manager.last_messages.get(handler_id), StatusCode.OK
+        last_message = _context.manager.last_messages.get(handler_id, None)
+        if last_message:
+            return last_message, StatusCode.OK
         return {"status": "not found"}, StatusCode.NOT_FOUND
 
     @blueprint.route("/add-handler", methods=["POST"])

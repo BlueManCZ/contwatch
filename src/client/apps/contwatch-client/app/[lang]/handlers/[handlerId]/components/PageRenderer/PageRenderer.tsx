@@ -22,7 +22,7 @@ export const PageRenderer: FC<PageRendererProps> = ({ handlerId }) => {
             <Text size={"medium"} weight={"bold"}>
                 <Link href={"/handlers"}>{t("Handlers")}</Link> · {handler?.name}
             </Text>
-            <HandlersWrapper>{handler && <HandlerWidget handler={handler} editMode />}</HandlersWrapper>
+            <HandlersWrapper>{handler && <HandlerWidget handlerId={handler.id} editMode />}</HandlersWrapper>
         </>
     );
 };

@@ -7,8 +7,8 @@ import { Endpoint } from "@repo/utils/endpoints";
 import { getApiEndpoint } from "@repo/utils/getApiEndpoint";
 import useSWR from "swr";
 
-export const useHandlers = () => {
-    return useSWR<HandlerModel[]>(getApiEndpoint(Endpoint.handlers), getJson);
+export const useHandlerIds = () => {
+    return useSWR<number[]>(getApiEndpoint(Endpoint.handlers), getJson);
 };
 
 export const useHandler = (id: number) => {

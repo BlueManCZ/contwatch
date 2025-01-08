@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "exports": {
-    "./useUser": "./src/hooks/useUser.ts",
+    "./useActivePathname": "./src/hooks/useActivePathname.ts",
 
     "./ssrTranslation": "./src/i18n/index.ts",
     "./useTranslation": "./src/i18n/client.ts",

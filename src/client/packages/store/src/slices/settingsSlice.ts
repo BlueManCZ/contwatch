@@ -5,7 +5,6 @@ import type { AppState } from "../store";
 
 export enum LOCALES {
     cs = "cs",
-    sk = "sk",
     en = "en",
 }
 

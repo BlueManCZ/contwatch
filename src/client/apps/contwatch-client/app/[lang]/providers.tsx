@@ -1,10 +1,8 @@
-"use client";
-
 import { StoreProvider } from "@repo/store/StoreProvider";
 // import { ThemeProvider } from "next-themes";
 import type { PropsWithChildren } from "react";
 
-export function Providers({ children }: PropsWithChildren) {
+export function Providers({ children, lang }: PropsWithChildren<{ lang: string }>) {
     return (
         // <ThemeProvider
         //     defaultTheme="system"
@@ -14,7 +12,7 @@ export function Providers({ children }: PropsWithChildren) {
         //     }}
         //     enableSystem
         // >
-        <StoreProvider>{children}</StoreProvider>
+        <StoreProvider lang={lang}>{children}</StoreProvider>
         // </ThemeProvider>
     );
 }

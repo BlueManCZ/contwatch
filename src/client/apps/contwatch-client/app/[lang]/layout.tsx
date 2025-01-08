@@ -1,5 +1,6 @@
 import "./globals.scss";
 
+import type { PageProps } from "@repo/types/PageProps";
 import { openSans } from "@repo/ui/fonts";
 import { NavbarLayout } from "@repo/ui/NavbarLayout";
 import type { Metadata } from "next";
@@ -12,11 +13,16 @@ export const metadata: Metadata = {
     description: "Scalable system for IoT automation.",
 };
 
-export default function RootLayout({ children }: PropsWithChildren) {
+export async function generateStaticParams() {
+    return [{ lang: "cs" }, { lang: "en" }];
+}
+
+export default async function RootLayout({ children, params }: PropsWithChildren<PageProps>) {
+    const lang = (await params).lang;
     return (
-        <html lang="en">
+        <html lang={lang}>
             <body className={openSans.className}>
-                <Providers>
+                <Providers lang={lang}>
                     <NavbarLayout>
                         <Suspense>{children}</Suspense>
                     </NavbarLayout>

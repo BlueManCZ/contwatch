@@ -1,13 +1,12 @@
-"use client";
-
+import type { PageProps } from "@repo/types/PageProps";
 import { Button } from "@repo/ui/Button";
 import { Flex } from "@repo/ui/Flex";
 import { Text } from "@repo/ui/Text";
-import { useTranslation } from "@repo/utils/useTranslation";
+import { ssrTranslation } from "@repo/utils/ssrTranslation";
 
-export default function Overview() {
-    // TODO: Use SSR translation and remove "use client"
-    const { t } = useTranslation();
+export default async function Overview({ params }: PageProps) {
+    const lang = (await params).lang;
+    const { t } = await ssrTranslation(lang);
 
     return (
         <>

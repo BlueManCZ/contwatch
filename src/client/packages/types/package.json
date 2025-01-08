@@ -7,6 +7,8 @@
     "./AttributeModel": "./src/models/AttributeModel.ts",
     "./AttributeChartModel": "./src/models/AttributeChartModel.ts",
     "./DataStatModel": "./src/models/DataStatModel.ts",
-    "./HandlerModel": "./src/models/HandlerModel.ts"
+    "./HandlerModel": "./src/models/HandlerModel.ts",
+
+    "./PageProps": "./src/PageProps.ts"
   }
 }
