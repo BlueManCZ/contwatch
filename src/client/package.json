@@ -12,6 +12,7 @@
     "ci": "turbo build lint stylelint test"
   },
   "dependencies": {
+    "lodash.debounce": "4.0.8",
     "next": "15.1.4",
     "sass": "1.83.0",
     "turbo": "2.3.3",
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
+    "@types/lodash.debounce": "4.0.9",
     "eslint-plugin-simple-import-sort": "12.1.1",
     "prettier": "3.4.2",
     "stylelint": "16.10.0",

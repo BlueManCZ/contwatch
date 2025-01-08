@@ -11,12 +11,12 @@ import { useTranslation } from "@repo/utils/useTranslation";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-import { useAttributes } from "../swrEndpoints";
+import { Attributes } from "../APIModels";
 import { InspectorChart } from "./components/InspectorChart/InspectorChart";
 
 export default function Inspector() {
     const { t } = useTranslation();
-    const { data: attributes } = useAttributes();
+    const { data: attributes } = Attributes.useAll();
 
     const { localizeDate } = useLocalization();
 

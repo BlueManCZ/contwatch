@@ -18,5 +18,10 @@
     "stylelint": {
       "dependsOn": ["^stylelint"]
     }
-  }
+  },
+  "globalEnv": [
+    "NEXT_PUBLIC_API_SERVER_HOST",
+    "NEXT_PUBLIC_API_SERVER_PORT",
+    "NEXT_PUBLIC_API_SERVER_PROTOCOL"
+  ]
 }

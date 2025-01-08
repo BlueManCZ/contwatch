@@ -16,10 +16,10 @@ import { Endpoint } from "@repo/utils/endpoints";
 import { getApiEndpoint } from "@repo/utils/getApiEndpoint";
 import { useTranslation } from "@repo/utils/useTranslation";
 import { useRouter } from "next/navigation";
-import { type FC, useEffect, useState } from "react";
+import { type FC, useState } from "react";
 import { useSWRConfig } from "swr";
 
-import { useAttribute, useDataStats } from "../../../swrEndpoints";
+import { Attributes, DataStats, Handlers } from "../../../APIModels";
 import styles from "./AttributeWidget.module.scss";
 
 type AttributeWidgetProps = {
@@ -39,21 +39,13 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
 }) => {
     const { t } = useTranslation();
     const { mutate } = useSWRConfig();
-    const { data: attribute } = useAttribute(attributeId);
-    const { data: dataStats } = useDataStats();
+    const { data: attribute } = Attributes.useOne(attributeId);
+    const { data: dataStats } = DataStats.useAll();
     const [editPopupOpen, setEditPopupOpen] = useState(false);
 
-    const [customLabel, setCustomLabel] = useState<string | undefined>();
-    const [unit, setUnit] = useState<string | undefined>();
-    const [icon, setIcon] = useState<IconProps["icon"] | undefined>();
-
-    useEffect(() => {
-        if (attribute) {
-            setCustomLabel(attribute.label);
-            setUnit(attribute.unit);
-            setIcon(attribute.icon);
-        }
-    }, [attribute]);
+    const [customLabel, setCustomLabel] = useState<string | undefined>(attribute?.label);
+    const [unit, setUnit] = useState<string | undefined>(attribute?.unit);
+    const [icon, setIcon] = useState<IconProps["icon"] | undefined>(attribute?.icon);
 
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id: attribute?.id ?? 0,
@@ -204,8 +196,7 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
                                                 "POST",
                                                 { attribute_id: attribute.id },
                                                 () => {
-                                                    const key = `${getApiEndpoint(Endpoint.handlers)}/${handlerId}`;
-                                                    mutate(key).then(() => {
+                                                    mutate(Handlers.endpoint(handlerId)).then(() => {
                                                         setEditPopupOpen(false);
                                                     });
                                                 },

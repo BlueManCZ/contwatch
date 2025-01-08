@@ -1,3 +1,5 @@
+"use client";
+
 import {
     closestCenter,
     DndContext,
@@ -15,6 +17,7 @@ import {
     sortableKeyboardCoordinates,
     verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import type { HandlerModel } from "@repo/types/HandlerModel";
 import { Flex } from "@repo/ui/Flex";
 import { Column } from "@repo/ui/FlexPartials";
 import { Icon } from "@repo/ui/Icon";
@@ -24,12 +27,13 @@ import { executeRequest } from "@repo/utils/communication";
 import { Endpoint } from "@repo/utils/endpoints";
 import { getApiEndpoint } from "@repo/utils/getApiEndpoint";
 import { useTranslation } from "@repo/utils/useTranslation";
+import debounce from "lodash.debounce";
 import { DateTime } from "luxon";
 import Link from "next/link";
-import { type FC, useEffect, useState } from "react";
+import { type FC, useState } from "react";
 import { useSWRConfig } from "swr";
 
-import { useHandler, useHandlerAttributes } from "../../../swrEndpoints";
+import { Handlers } from "../../../APIModels";
 import { AttributeWidget } from "../AttributeWidget/AttributeWidget";
 import styles from "./HandlerWidget.module.scss";
 
@@ -40,20 +44,21 @@ type HandlerWidgetProps = {
 
 const bem = bemClassNames(styles);
 
+const debouncedPostOrder = debounce((newItems: number[]) => {
+    executeRequest(getApiEndpoint(Endpoint.attributesSetOrder), "POST", newItems);
+    // TODO: Fetching cache with revalidations
+    // executeRequest("/server/revalidate", "POST", {
+    //     tag: "api",
+    // });
+});
+
 export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode }) => {
     const { t } = useTranslation();
     const { mutate } = useSWRConfig();
 
-    const { data: handler } = useHandler(handlerId);
-    const { data: attributes } = useHandlerAttributes(handler?.id ?? 0);
+    const { data: handler } = Handlers.useOne(handlerId);
 
-    const [attributeIds, setAttributeIds] = useState<number[]>([]);
-
-    useEffect(() => {
-        if (handler?.attributes) {
-            setAttributeIds(handler.attributes);
-        }
-    }, [handler?.attributes]);
+    const [attributeIds, setAttributeIds] = useState<number[]>(handler?.attributes ?? []);
 
     const sensors = useSensors(
         useSensor(MouseSensor, {
@@ -82,7 +87,17 @@ export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode }) =
 
                 const newItems = arrayMove(items, oldIndex, newIndex);
 
-                executeRequest(getApiEndpoint(Endpoint.attributesSetOrder), "POST", newItems);
+                debouncedPostOrder(newItems);
+                mutate(
+                    Handlers.endpoint(handlerId),
+                    (data: HandlerModel | undefined) => {
+                        if (data) {
+                            data.attributes = newItems;
+                        }
+                        return data;
+                    },
+                    { revalidate: false },
+                );
 
                 return newItems;
             });
@@ -120,12 +135,9 @@ export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode }) =
                         </Text>
                     </Column>
                 </Link>
-                {(attributeIds.length > 0 ||
-                    (editMode &&
-                        handler.availableAttributes.filter((attribute) =>
-                            attributes?.every((a) => a.name !== attribute.name),
-                        ).length > 0)) && (
+                {(attributeIds.length > 0 || (editMode && handler.availableAttributes.length > 0)) && (
                     <DndContext
+                        id={handler.id.toString()}
                         sensors={sensors}
                         collisionDetection={closestCenter}
                         onDragEnd={handleDragEnd}
@@ -153,70 +165,55 @@ export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode }) =
                                         />
                                     );
                                 })}
-                                {editMode &&
-                                    handler.availableAttributes.filter((attribute) =>
-                                        attributes?.every((a) => a.name !== attribute.name),
-                                    ).length > 0 && (
-                                        <Flex padding={"half-rem"} margin={"horizontal-half-rem"}>
-                                            <Text size={"tiny"} weight={"medium"} color={"silver"} uppercase>
-                                                {t("Available attributes")}
-                                            </Text>
-                                        </Flex>
-                                    )}
+                                {editMode && handler.availableAttributes.length > 0 && (
+                                    <Flex padding={"half-rem"} margin={"horizontal-half-rem"}>
+                                        <Text size={"tiny"} weight={"medium"} color={"silver"} uppercase>
+                                            {t("Available attributes")}
+                                        </Text>
+                                    </Flex>
+                                )}
                                 <Column gap={".1rem"}>
                                     {editMode &&
-                                        handler.availableAttributes
-                                            .filter((attribute) =>
-                                                attributes?.every((a) => a.name !== attribute.name),
-                                            )
-                                            ?.map((attribute) => {
-                                                return (
-                                                    <Flex
-                                                        key={attribute.name}
-                                                        padding={"half-rem"}
-                                                        margin={"horizontal-half-rem"}
-                                                        alignItems={"center"}
-                                                        gap={".5rem"}
-                                                    >
-                                                        <Icon icon={"circle"} variant={"circle"} />
-                                                        <Column grow>
-                                                            <Text size={"small"} weight={"bold"} nowrap>
-                                                                {attribute.name}
-                                                            </Text>
-                                                            <Text size={"tiny"} nowrap>
-                                                                {t("Latest value")}: <b>{attribute.value}</b>
-                                                            </Text>
-                                                        </Column>
-                                                        <Icon
-                                                            icon={"plus"}
-                                                            variant={"circle"}
-                                                            onClick={() => {
-                                                                executeRequest(
-                                                                    getApiEndpoint(
-                                                                        Endpoint.addHandlerAttribute,
-                                                                    ),
-                                                                    "POST",
-                                                                    {
-                                                                        handler_id: handler.id,
-                                                                        attribute: attribute.name,
-                                                                    },
-                                                                    async () => {
-                                                                        await mutate(
-                                                                            `${getApiEndpoint(Endpoint.handlers)}/${handler.id}`,
-                                                                        );
-                                                                        await mutate(
-                                                                            getApiEndpoint(
-                                                                                Endpoint.attributes,
-                                                                                `?handler=${handler.id}`,
-                                                                            ),
-                                                                        );
-                                                                    },
-                                                                );
-                                                            }}
-                                                        />
-                                                    </Flex>
-                                                );
-                                            })}
+                                        handler.availableAttributes?.map((attribute) => {
+                                            return (
+                                                <Flex
+                                                    key={attribute.name}
+                                                    padding={"half-rem"}
+                                                    margin={"horizontal-half-rem"}
+                                                    alignItems={"center"}
+                                                    gap={".5rem"}
+                                                >
+                                                    <Icon icon={"circle"} variant={"circle"} />
+                                                    <Column grow>
+                                                        <Text size={"small"} weight={"bold"} nowrap>
+                                                            {attribute.name}
+                                                        </Text>
+                                                        <Text size={"tiny"} nowrap>
+                                                            {t("Latest value")}: <b>{attribute.value}</b>
+                                                        </Text>
+                                                    </Column>
+                                                    <Icon
+                                                        icon={"plus"}
+                                                        variant={"circle"}
+                                                        onClick={() => {
+                                                            executeRequest(
+                                                                getApiEndpoint(Endpoint.addHandlerAttribute),
+                                                                "POST",
+                                                                {
+                                                                    handler_id: handler.id,
+                                                                    attribute: attribute.name,
+                                                                },
+                                                                async () => {
+                                                                    await mutate(
+                                                                        Handlers.endpoint(handlerId),
+                                                                    );
+                                                                },
+                                                            );
+                                                        }}
+                                                    />
+                                                </Flex>
+                                            );
+                                        })}
                                 </Column>
                             </div>
                         </SortableContext>

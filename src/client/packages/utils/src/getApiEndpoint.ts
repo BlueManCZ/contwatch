@@ -1,2 +1,2 @@
-export const getApiEndpoint = (endpoint: string, suffix = "", prefix = "/api") =>
-    `${prefix}/${endpoint}${suffix}`;
+export const getApiEndpoint = (endpoint: string, suffix?: string | number, prefix = "/api") =>
+    `${prefix}/${endpoint}${suffix ? `/${suffix}` : ""}`;

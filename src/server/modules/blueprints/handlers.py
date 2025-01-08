@@ -34,7 +34,11 @@ def handlers_blueprint(_context: Context):
                     "name": attribute_name,
                     "value": attribute_value,
                 }
-                for attribute_name, attribute_value in _context.manager.last_messages.get(handler.get_id(), {}).items()
+                for attribute_name, attribute_value in {
+                    k: v
+                    for k, v in _context.manager.last_messages.get(handler.get_id(), {}).items()
+                    if k not in _context.manager.registered_attributes.get(handler.get_id(), {}).keys()
+                }.items()
             ],
             "last_message": (
                 get_current_seconds() - handler.get_last_message_seconds()

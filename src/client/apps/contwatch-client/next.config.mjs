@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
-
-const HOST = process.env.NEXT_PUBLIC_API_SERVER_HOST ?? "localhost";
-const PORT = process.env.NEXT_PUBLIC_API_SERVER_PORT ?? "5000";
-const PROTOCOL = process.env.NEXT_PUBLIC_API_SERVER_PROTOCOL ?? "http";
+import { HOST, PORT, PROTOCOL } from "./src/settings.mjs";
 
 const nextConfig = {
     // output: "standalone",
