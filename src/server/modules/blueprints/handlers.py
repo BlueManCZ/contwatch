@@ -107,6 +107,8 @@ def handlers_blueprint(_context: Context):
                     db_attribute.delete()
                     db_attribute.flush()
 
+            _context.socketio.emit("mutate", f"core/handlers/{handler_id}")
+
             return {"status": "ok"}, StatusCode.OK
         return {"status": "not found"}, StatusCode.NOT_FOUND
 

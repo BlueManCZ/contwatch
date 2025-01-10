@@ -47,6 +47,8 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
         setModel: setAttribute,
         resetModel: resetAttribute,
         originalValue: originalAttribute,
+        lock: lockAttribute,
+        unlock: unlockAttribute,
     } = useModel(Attributes.use<AttributeModel>(bareAttribute.id));
 
     const { data: dataStats } = DataStats.use<DataStatModel>();
@@ -71,6 +73,14 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
 
     const minStat = dataStats?.find((stat) => stat.type === "min" && stat.attribute === attribute?.id);
     const maxStat = dataStats?.find((stat) => stat.type === "max" && stat.attribute === attribute?.id);
+
+    const onPopupSave = () => {
+        if (attribute) {
+            Attributes.update(attribute).then(() => {
+                setEditPopupOpen(false);
+            });
+        }
+    }
 
     return (
         <>
@@ -163,10 +173,15 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
             {editMode && editPopupOpen && (
                 <Popup
                     visible={editPopupOpen}
+                    onOpen={() => {
+                        lockAttribute();
+                    }}
                     onClose={() => {
                         resetAttribute();
+                        unlockAttribute();
                         setEditPopupOpen(false);
                     }}
+                    onEnter={onPopupSave}
                     title={originalAttribute.label ?? originalAttribute.name}
                 >
                     <Column padding={"block"} gap={"1rem"}>
@@ -181,6 +196,7 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
                                     };
                                 })
                             }
+                            focus
                         />
                         <Input
                             title={t("Unit")}

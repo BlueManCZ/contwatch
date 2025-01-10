@@ -29,7 +29,8 @@ class HandlerManager:
             sleep(0.01)
 
     @orm.db_session
-    def __init__(self):
+    def __init__(self, socketio):
+        self.socketio = socketio
         self.active = True
         self.log = Logger("HandlerManager")
 
@@ -90,15 +91,28 @@ class HandlerManager:
         print(linearized_json)
 
         stored_attributes = self.registered_attributes.get(handler_id, {}).copy()
+
+        emit_handler_mutation = False
+
         for attribute in stored_attributes:
+            emit_attribute_mutation = False
+
             if attribute in linearized_json:
                 attribute_instance: AttributeManager = stored_attributes.get(attribute)
 
                 if attribute_instance.add_data_unit(linearized_json.get(attribute)):
                     # If value has changed, execute listeners
                     self.execute_attribute_listeners(attribute_instance.get_id())
+                    emit_attribute_mutation = True
+                    emit_handler_mutation = True
+
+                if emit_attribute_mutation:
+                    self.socketio.emit("mutate", f"core/attributes/{attribute_instance.get_id()}")
 
         self.execute_handler_listeners(handler_id)
+
+        if emit_handler_mutation:
+            self.socketio.emit("mutate", f"core/handlers/{handler_id}")
 
     def execute_handler_listeners(self, handler_id):
         """Find listeners for this handler and execute them."""

@@ -48,14 +48,6 @@ def attributes_blueprint(_context: Context):
         except orm.ObjectNotFound:
             return {"message": "Attribute not found."}, StatusCode.NOT_FOUND
 
-    @blueprint.route("/set-order", methods=["POST"])
-    @orm.db_session
-    def set_order():
-        order = request.json
-        for index, attribute_id in enumerate(order):
-            Attribute[attribute_id].order = index
-        return {"message": "Order set successfully."}, StatusCode.OK
-
     @blueprint.route("/<int:attribute_id>", methods=["PUT"])
     @orm.db_session
     def put_attribute(attribute_id):
@@ -69,6 +61,8 @@ def attributes_blueprint(_context: Context):
 
         icon = request.json.get("icon")
         attribute.icon = icon if icon else None
+
+        _context.socketio.emit("mutate", f"core/attributes/{attribute_id}")
 
         return {"message": "Attribute updated successfully."}, StatusCode.OK
 

@@ -1,6 +1,6 @@
 import { bemClassNames } from "@repo/utils/bemClassNames";
 import Link from "next/link";
-import type { FC, PropsWithChildren } from "react";
+import {type FC, type PropsWithChildren, useEffect} from "react";
 
 import { Column } from "../../partials/FlexPartials/FlexPartials";
 import { Flex } from "../Flex/Flex";
@@ -14,8 +14,11 @@ export type PopupProps = {
     visible?: boolean;
     title?: string;
     titleHref?: string;
-    titleOnClick?: () => void;
-    onClose?: () => void;
+
+    titleOnClick?(): void;
+    onOpen?(): void;
+    onClose?(): void;
+    onEnter?(): void;
 };
 
 export const Popup: FC<PropsWithChildren<PopupProps>> = ({
@@ -23,9 +26,38 @@ export const Popup: FC<PropsWithChildren<PopupProps>> = ({
     title,
     titleHref,
     titleOnClick,
+    onOpen,
     onClose,
+    onEnter,
     children,
 }) => {
+    useEffect(() => {
+        if (visible) {
+            onOpen?.();
+        }
+    }, [onOpen, visible]);
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                onClose?.();
+            }
+        };
+
+        const handleEnter = (event: KeyboardEvent) => {
+            if (event.key === "Enter") {
+                onEnter?.();
+            }
+        }
+
+        document.addEventListener("keydown", handleKeyDown);
+        document.addEventListener("keydown", handleEnter);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+            document.removeEventListener("keydown", handleEnter);
+        };
+    });
+
     return (
         visible && (
             <div className={bem({ visible })}>

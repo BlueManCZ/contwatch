@@ -17,16 +17,27 @@ export const customMutate = mutate;
 export const useModel = <T>(attr: { data: T }) => {
     const originalValue = attr.data;
     const [model, setModel] = useState<T>(originalValue);
+    const [innerLock, setInnerLock] = useState(false);
 
     useEffect(() => {
-        setModel(originalValue);
-    }, [originalValue]);
+        if (!innerLock) {
+            setModel(originalValue);
+        }
+    }, [innerLock, originalValue]);
 
     const resetModel = () => {
         setModel(originalValue);
     };
 
-    return { model, setModel, resetModel, originalValue };
+    const lock = () => {
+        setInnerLock(true);
+    }
+
+    const unlock = () => {
+        setInnerLock(false);
+    }
+
+    return { model, setModel, resetModel, originalValue, lock, unlock };
 };
 
 export const useAttributeChart = (attributeIds: number[], date?: string) => {

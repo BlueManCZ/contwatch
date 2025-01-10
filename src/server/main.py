@@ -4,6 +4,7 @@ from signal import signal, SIGINT
 
 from flask import Flask
 from flask_cors import CORS
+from flask_socketio import SocketIO
 
 from config import ApplicationConfig
 from modules.blueprints import blueprints
@@ -29,6 +30,7 @@ if __name__ == "__main__":
     signal(SIGINT, _quit_handler)
 
     app = Flask(__name__)
+    socketio = SocketIO(app, cors_allowed_origins="*")
     app.config.from_object(ApplicationConfig)
     app.url_map.converters["int_list"] = IntListConverter
     app.url_map.strict_slashes = False
@@ -45,10 +47,10 @@ if __name__ == "__main__":
     # Database initialization
     init_database(config.get("database", {}))
     # HandlerManager initialization
-    manager = HandlerManager()
+    manager = HandlerManager(socketio)
     registered_modules.add(manager)
 
     # Blueprints registration
     for name, blueprint in blueprints.items():
-        app.register_blueprint(blueprint(Context(manager)), url_prefix=f"/api/core/{name}")
-    app.run(host="0.0.0.0", debug=True, use_reloader=False)
+        app.register_blueprint(blueprint(Context(manager, socketio)), url_prefix=f"/api/core/{name}")
+    socketio.run(app, host="0.0.0.0", debug=True, use_reloader=False, allow_unsafe_werkzeug=True)

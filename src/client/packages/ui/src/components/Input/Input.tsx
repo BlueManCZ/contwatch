@@ -29,9 +29,11 @@ export type InputProps = {
     grow?: boolean;
     growMobile?: boolean;
     postponedChanged?: boolean;
-    onValueChange?: (value: string) => void;
-    onNumberChange?: (value: number) => void;
     options?: { name: string; value: string }[];
+    focus?: boolean;
+
+    onValueChange?(value: string): void;
+    onNumberChange?(value: number): void;
 };
 
 export const Input: FC<InputProps> = ({
@@ -50,9 +52,10 @@ export const Input: FC<InputProps> = ({
     grow,
     growMobile,
     postponedChanged,
-    onValueChange,
-    onNumberChange,
-    options,
+                                          options,
+    focus,
+                                          onValueChange,
+                                          onNumberChange,
 }) => {
     const offsetValue = (offset: number) => {
         return processValue(
@@ -163,6 +166,7 @@ export const Input: FC<InputProps> = ({
                     {...{ value: valueState, placeholder, required }}
                     className={bem("input")}
                     type={type === "number" ? "text" : type}
+                    autoFocus={focus}
                     onChange={(e) => {
                         if (type !== "number") {
                             setValueState(e.target.value);

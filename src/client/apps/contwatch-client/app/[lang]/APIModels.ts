@@ -2,6 +2,7 @@ import type { APIModel } from "@repo/types/APIModel";
 import { jsonFetcher } from "@repo/utils/communication";
 import { Endpoint } from "@repo/utils/endpoints";
 import { getApiEndpoint } from "@repo/utils/getApiEndpoint";
+import { io } from "socket.io-client";
 import type { MutatorCallback } from "swr";
 import type { MutatorOptions } from "swr/_internal";
 
@@ -70,3 +71,10 @@ export class Attributes extends API {
 export class DataStats extends API {
     static override endpoint = () => getApiEndpoint(Endpoint.dataStats);
 }
+
+export const socket = io();
+
+socket.on("mutate", (endpoint: string) => {
+    console.log("Mutating", endpoint);
+    customMutate(getApiEndpoint(endpoint));
+});

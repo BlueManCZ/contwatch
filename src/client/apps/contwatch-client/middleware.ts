@@ -30,6 +30,6 @@ export function middleware(request: NextRequest) {
 export const config = {
     matcher: [
         // Skip all internal paths
-        "/((?!_next|api|server|.*\\.).*)",
+        "/((?!_next|api|server|socket.io|.*\\.).*)",
     ],
 };

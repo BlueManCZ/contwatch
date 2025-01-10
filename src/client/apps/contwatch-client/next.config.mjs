@@ -15,8 +15,8 @@ const nextConfig = {
         return {
             afterFiles: [
                 {
-                    source: "/media/:path*",
-                    destination: `${PROTOCOL}://${HOST}:${PORT}/media/:path*/`,
+                    source: "/socket.io/:path*",
+                    destination: `${PROTOCOL}://${HOST}:${PORT}/socket.io/:path*/`,
                 },
                 {
                     source: "/api/:path*",
