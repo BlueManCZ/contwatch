@@ -1,6 +1,6 @@
 export const fetchJsonFactory =
     (host: string, port: string, protocol: string) =>
-    async (endpoint: string): Promise<object> => {
+    async <T>(endpoint: string): Promise<T | T[]> => {
         const url = `${protocol}://${host}:${port}/${endpoint}`;
         const response = await fetch(url, {
             cache: "no-cache", // TODO: Fetching cache with revalidations

@@ -26,7 +26,7 @@ def handlers_blueprint(_context: Context):
             "status": get_status(handler),
             "options": handler.get_options(),
             "attributes": [
-                attribute.id
+                {"id": attribute.id, "name": attribute.name}
                 for attribute in handler.get_db_instance().attributes.order_by(attribute_model.Attribute.order)
             ],
             "availableAttributes": [
@@ -72,6 +72,44 @@ def handlers_blueprint(_context: Context):
             return handler_serializer(handler), StatusCode.OK
         return {"status": "not found"}, StatusCode.NOT_FOUND
 
+    @blueprint.route("/<int:handler_id>", methods=["PUT"])
+    @orm.db_session
+    def update_handler(handler_id):
+        handler_db = handler_model.get_by_id(handler_id)
+        if handler_db:
+            attributes = request.json["attributes"]
+
+            # Set attributes order
+            for index, attribute in enumerate(attributes):
+                if attribute["id"] in [a.id for a in handler_db.attributes]:
+                    print("Setting order")
+                    db_attribute = attribute_model.Attribute[attribute["id"]]
+                    db_attribute.order = index
+                    db_attribute.flush()
+
+            # TODO: This should be probably moved to post_attribute
+            # If attribute list contains attributes that are not in the handler, add them
+            for attribute in attributes:
+                if attribute["id"] not in [a.id for a in handler_db.attributes]:
+                    db_attribute = attribute_model.modify(handler_db, attribute["name"])
+                    db_attribute.flush()
+                    handler_db.attributes.add(db_attribute)
+                    _context.manager.register_attribute(db_attribute)
+
+            # TODO: This should be probably moved to delete_attribute
+            # If attribute list does not contain attributes that are in the handler, remove them
+            for attribute in [{"id": a.id, "name": a.name} for a in handler_db.attributes]:
+                if attribute["name"] not in [a["name"] for a in attributes]:
+                    _context.manager.registered_attributes[handler_id].pop(attribute["name"])
+                    db_attribute = attribute_model.get_by_id(attribute["id"])
+                    DataUnit.select(lambda d: d.attribute == db_attribute).delete()
+                    DataStat.select(lambda d: d.attribute == db_attribute).delete()
+                    db_attribute.delete()
+                    db_attribute.flush()
+
+            return {"status": "ok"}, StatusCode.OK
+        return {"status": "not found"}, StatusCode.NOT_FOUND
+
     @blueprint.route("/<int:handler_id>/last")
     def handler_last_message(handler_id):
         last_message = _context.manager.last_messages.get(handler_id, None)
@@ -91,34 +129,5 @@ def handlers_blueprint(_context: Context):
         handler.set_db_instance(handler_db)
         _context.manager.register_handler(handler)
         return {"status": "ok"}, StatusCode.CREATED
-
-    @blueprint.route("/add-attribute", methods=["POST"])
-    @orm.db_session
-    def add_handler_attribute():
-        handler_id = request.json["handler_id"]
-        handler = handler_model.get_by_id(handler_id)
-        if handler:
-            attribute = request.json["attribute"]
-            db_attribute = attribute_model.modify(handler, attribute)
-            db_attribute.flush()
-            handler.attributes.add(db_attribute)
-            _context.manager.register_attribute(db_attribute)
-            return {"status": "ok"}, StatusCode.CREATED
-        return {"status": "not found"}, StatusCode.NOT_FOUND
-
-    @blueprint.route("/delete-attribute", methods=["POST"])
-    @orm.db_session
-    def remove_handler_attribute():
-        attribute_id = request.json["attribute_id"]
-        db_attribute = attribute_model.get_by_id(attribute_id)
-
-        if db_attribute:
-            _context.manager.registered_attributes[db_attribute.handler.id].pop(db_attribute.name)
-            db_attribute.delete()
-            DataUnit.select(lambda d: d.attribute == db_attribute).delete()
-            DataStat.select(lambda d: d.attribute == db_attribute).delete()
-            return {"status": "ok"}, StatusCode.OK
-
-        return {"status": "not found"}, StatusCode.NOT_FOUND
 
     return blueprint

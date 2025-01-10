@@ -8,7 +8,7 @@ from modules.utils import Context, this_name, StatusCode
 def attributes_blueprint(_context: Context):
     blueprint = Blueprint(this_name(), __name__)
 
-    def get_attribute(attribute):
+    def registered_attribute(attribute):
         return _context.manager.registered_attributes.get(attribute.handler.id, {}).get(attribute.name)
 
     def attribute_serializer(attribute):
@@ -22,8 +22,8 @@ def attributes_blueprint(_context: Context):
             "icon": attribute.icon,
             "order": attribute.order,
             "data": {
-                "value": get_attribute(attribute).get_current_value(),
-                "trend": get_attribute(attribute).get_trend(),
+                "value": registered_attribute(attribute).get_current_value(),
+                "trend": registered_attribute(attribute).get_trend(),
             },
         }
 
@@ -38,10 +38,13 @@ def attributes_blueprint(_context: Context):
 
     @blueprint.route("/<int:attribute_id>")
     @orm.db_session
-    def attribute(attribute_id):
+    def get_attribute(attribute_id):
         try:
             attribute = Attribute[attribute_id]
-            return attribute_serializer(attribute), StatusCode.OK
+            if attribute:
+                return attribute_serializer(attribute), StatusCode.OK
+            else:
+                return {"message": "Attribute not found."}, StatusCode.NOT_FOUND
         except orm.ObjectNotFound:
             return {"message": "Attribute not found."}, StatusCode.NOT_FOUND
 
@@ -53,10 +56,9 @@ def attributes_blueprint(_context: Context):
             Attribute[attribute_id].order = index
         return {"message": "Order set successfully."}, StatusCode.OK
 
-    @blueprint.route("/update", methods=["POST"])
+    @blueprint.route("/<int:attribute_id>", methods=["PUT"])
     @orm.db_session
-    def update():
-        attribute_id = request.json.get("id")
+    def put_attribute(attribute_id):
         attribute = Attribute[attribute_id]
 
         label = request.json.get("label")

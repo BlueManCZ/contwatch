@@ -1,10 +1,10 @@
-import type { PageProps } from "@repo/types/PageProps";
+import type { PageParams } from "@repo/types/PageProps";
 import { Button } from "@repo/ui/Button";
 import { Flex } from "@repo/ui/Flex";
 import { Text } from "@repo/ui/Text";
 import { ssrTranslation } from "@repo/utils/ssrTranslation";
 
-export default async function Overview({ params }: PageProps) {
+export default async function Overview({ params }: PageParams) {
     const lang = (await params).lang;
     const { t } = await ssrTranslation(lang);
 

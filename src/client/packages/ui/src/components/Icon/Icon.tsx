@@ -1,7 +1,5 @@
 "use client";
-
-// import { useSelector } from "react-redux";
-// import { selectIconThemeState } from "../../store/settingsSlice";
+import type { IconType } from "@repo/types/IconType";
 import { bemClassNames } from "@repo/utils/bemClassNames";
 import Image from "next/image";
 import type { EventHandler, FC, KeyboardEvent, MouseEvent } from "react";
@@ -18,27 +16,7 @@ export const getIcon = (icon: string) => {
 export const CustomIcons = ["battery", "http", "inverter", "serial"];
 
 export type IconProps = {
-    icon:
-        | "arrow-down-square"
-        | "arrow-maximize"
-        | "arrow-minimize"
-        | "arrow-right-down"
-        | "arrow-right-up"
-        | "arrow-up-square"
-        | "branch-horizontal"
-        | "circle"
-        | "chart-square"
-        | "cross-small"
-        | "edit-square"
-        | "grid-mixed"
-        | "menu"
-        | "minus"
-        | "plus"
-        | "processor"
-        | "search-trending-up"
-        | "trash"
-        | "wrench"
-        | "zoom-out";
+    icon: IconType;
     variant?: "circle" | "small-circle" | "primary" | "card" | "button";
     background?: "primary" | "green" | "red" | "purple" | "silver";
     size?: number;

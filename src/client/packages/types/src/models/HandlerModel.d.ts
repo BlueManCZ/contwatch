@@ -1,4 +1,4 @@
-import type { IconProps } from "@repo/ui/Icon";
+import type { IconType } from "../IconType";
 
 export enum HandlerStatus {
     DISCONNECTED = 0,
@@ -16,7 +16,7 @@ export interface HandlerOptions {
 export interface HandlerTypeModel {
     type: string;
     name: string;
-    icon: IconProps["icon"];
+    icon: IconType;
     configFields?: Record<string, string[]>;
 }
 
@@ -25,7 +25,10 @@ export interface HandlerModel extends HandlerTypeModel {
     description: string;
     status?: HandlerStatus;
     last_message?: number;
-    attributes: number[];
+    attributes: {
+        id: number;
+        name: string;
+    }[];
     options?: HandlerOptions;
     availableAttributes: { name: string; value: string | number }[];
 }

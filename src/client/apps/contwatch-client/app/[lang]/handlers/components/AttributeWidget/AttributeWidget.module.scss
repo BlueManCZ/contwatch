@@ -17,6 +17,10 @@
         background: var(--color-mono-light) !important;
     }
 
+    &--unloaded {
+        opacity: .5;
+    }
+
     &:hover {
         border-color: var(--color-mono-light);
         background: var(--color-mono-light);

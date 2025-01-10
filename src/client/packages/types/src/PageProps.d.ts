@@ -1,3 +1,3 @@
-export type PageProps = {
+export type PageParams = {
     params: Promise<{ lang: string }>;
 };

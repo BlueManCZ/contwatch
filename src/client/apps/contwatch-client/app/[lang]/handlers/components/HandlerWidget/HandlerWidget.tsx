@@ -23,17 +23,14 @@ import { Column } from "@repo/ui/FlexPartials";
 import { Icon } from "@repo/ui/Icon";
 import { Text } from "@repo/ui/Text";
 import { bemClassNames } from "@repo/utils/bemClassNames";
-import { executeRequest } from "@repo/utils/communication";
-import { Endpoint } from "@repo/utils/endpoints";
-import { getApiEndpoint } from "@repo/utils/getApiEndpoint";
 import { useTranslation } from "@repo/utils/useTranslation";
 import debounce from "lodash.debounce";
 import { DateTime } from "luxon";
 import Link from "next/link";
-import { type FC, useState } from "react";
-import { useSWRConfig } from "swr";
+import type { FC } from "react";
 
 import { Handlers } from "../../../APIModels";
+import { useModel } from "../../../swrUtils";
 import { AttributeWidget } from "../AttributeWidget/AttributeWidget";
 import styles from "./HandlerWidget.module.scss";
 
@@ -44,21 +41,15 @@ type HandlerWidgetProps = {
 
 const bem = bemClassNames(styles);
 
-const debouncedPostOrder = debounce((newItems: number[]) => {
-    executeRequest(getApiEndpoint(Endpoint.attributesSetOrder), "POST", newItems);
-    // TODO: Fetching cache with revalidations
-    // executeRequest("/server/revalidate", "POST", {
-    //     tag: "api",
-    // });
-});
+const debouncedHandlerUpdate = debounce((handler: HandlerModel) => {
+    Handlers.update(handler);
+}, 100);
 
 export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode }) => {
     const { t } = useTranslation();
-    const { mutate } = useSWRConfig();
 
-    const { data: handler } = Handlers.useOne(handlerId);
-
-    const [attributeIds, setAttributeIds] = useState<number[]>(handler?.attributes ?? []);
+    const { model: handler, setModel: setHandlerState } = useModel(Handlers.use<HandlerModel>(handlerId));
+    const attributeIds = handler?.attributes.map((a) => a.id) ?? [];
 
     const sensors = useSensors(
         useSensor(MouseSensor, {
@@ -81,25 +72,18 @@ export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode }) =
         const { active, over } = event;
 
         if (active.id !== over?.id) {
-            setAttributeIds((items) => {
-                const oldIndex = items.indexOf(active.id as number);
-                const newIndex = items.indexOf(over?.id as number);
+            setHandlerState((handler) => {
+                const oldIndex = handler.attributes.findIndex((attribute) => attribute.id === active.id);
+                const newIndex = handler.attributes.findIndex((attribute) => attribute.id === over?.id);
 
-                const newItems = arrayMove(items, oldIndex, newIndex);
+                const newHandler = {
+                    ...handler,
+                    attributes: arrayMove(handler.attributes, oldIndex, newIndex),
+                };
 
-                debouncedPostOrder(newItems);
-                mutate(
-                    Handlers.endpoint(handlerId),
-                    (data: HandlerModel | undefined) => {
-                        if (data) {
-                            data.attributes = newItems;
-                        }
-                        return data;
-                    },
-                    { revalidate: false },
-                );
+                debouncedHandlerUpdate(newHandler);
 
-                return newItems;
+                return newHandler;
             });
         }
     };
@@ -155,13 +139,35 @@ export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode }) =
                                         </Text>
                                     </Flex>
                                 )}
-                                {attributeIds?.map((attributeId) => {
+                                {handler.attributes.map((bareAttribute) => {
                                     return (
                                         <AttributeWidget
                                             draggable
-                                            key={attributeId}
-                                            handlerId={handler.id}
-                                            {...{ attributeId, editMode }}
+                                            key={bareAttribute.id}
+                                            onAttributeDelete={() => {
+                                                setHandlerState((handler) => {
+                                                    const removedAttribute = handler.attributes.find(
+                                                        (attribute) => attribute.id === bareAttribute.id,
+                                                    );
+                                                    const newAttributes = handler.attributes.filter(
+                                                        (attribute) => attribute.id !== bareAttribute.id,
+                                                    );
+                                                    const newHandler = {
+                                                        ...handler,
+                                                        attributes: newAttributes,
+                                                        availableAttributes: [
+                                                            {
+                                                                name: removedAttribute?.name ?? "",
+                                                                value: "",
+                                                            },
+                                                            ...handler.availableAttributes,
+                                                        ],
+                                                    };
+                                                    debouncedHandlerUpdate(newHandler);
+                                                    return newHandler;
+                                                });
+                                            }}
+                                            {...{ bareAttribute, editMode }}
                                         />
                                     );
                                 })}
@@ -196,19 +202,25 @@ export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode }) =
                                                         icon={"plus"}
                                                         variant={"circle"}
                                                         onClick={() => {
-                                                            executeRequest(
-                                                                getApiEndpoint(Endpoint.addHandlerAttribute),
-                                                                "POST",
-                                                                {
-                                                                    handler_id: handler.id,
-                                                                    attribute: attribute.name,
-                                                                },
-                                                                async () => {
-                                                                    await mutate(
-                                                                        Handlers.endpoint(handlerId),
-                                                                    );
-                                                                },
-                                                            );
+                                                            setHandlerState((handler) => {
+                                                                const newAttributes = [
+                                                                    ...handler.attributes,
+                                                                    {
+                                                                        id: -1,
+                                                                        name: attribute.name,
+                                                                    },
+                                                                ];
+                                                                const newHandler = {
+                                                                    ...handler,
+                                                                    attributes: newAttributes,
+                                                                    availableAttributes:
+                                                                        handler.availableAttributes.filter(
+                                                                            (a) => a.name !== attribute.name,
+                                                                        ),
+                                                                };
+                                                                debouncedHandlerUpdate(newHandler);
+                                                                return newHandler;
+                                                            });
                                                         }}
                                                     />
                                                 </Flex>

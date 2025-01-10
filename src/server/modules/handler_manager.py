@@ -89,7 +89,7 @@ class HandlerManager:
         self.last_messages[handler_id] = linearized_json
         print(linearized_json)
 
-        stored_attributes = self.registered_attributes.get(handler_id, {})
+        stored_attributes = self.registered_attributes.get(handler_id, {}).copy()
         for attribute in stored_attributes:
             if attribute in linearized_json:
                 attribute_instance: AttributeManager = stored_attributes.get(attribute)

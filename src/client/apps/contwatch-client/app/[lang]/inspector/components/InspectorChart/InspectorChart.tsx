@@ -20,7 +20,7 @@ import {
 import { type FC, useCallback, useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
 
-import { useAttributeChart } from "../../../swrEndpoints";
+import { useAttributeChart } from "../../../swrUtils";
 import { options } from "./chartOptions";
 import styles from "./InspectorChart.module.scss";
 

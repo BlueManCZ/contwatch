@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocalization } from "@repo/store/hooks/useLocalization";
+import type { AttributeModel } from "@repo/types/AttributeModel";
 import { Button } from "@repo/ui/Button";
 import { Flex } from "@repo/ui/Flex";
 import { Column } from "@repo/ui/FlexPartials";
@@ -16,7 +17,7 @@ import { InspectorChart } from "./components/InspectorChart/InspectorChart";
 
 export default function Inspector() {
     const { t } = useTranslation();
-    const { data: attributes } = Attributes.useAll();
+    const { data: attributes } = Attributes.use<AttributeModel>();
 
     const { localizeDate } = useLocalization();
 

@@ -1,6 +1,10 @@
 export const getJson = (key: string) => jsonFetcher(key).then((response) => response.json());
 
-export const jsonFetcher = (key: string, method: "GET" | "POST" | "DELETE" = "GET", payload?: object) =>
+export const jsonFetcher = (
+    key: string,
+    method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
+    payload?: object,
+) =>
     fetch(key, {
         method,
         credentials: "include",
@@ -13,24 +17,3 @@ export const jsonFetcher = (key: string, method: "GET" | "POST" | "DELETE" = "GE
         },
         body: JSON.stringify(payload),
     });
-
-export const executeRequest = (
-    key: string,
-    method: "POST" | "DELETE" = "POST",
-    payload?: object,
-    onSuccess?: (response: Response) => void,
-    onError?: (error: unknown) => void,
-) => {
-    jsonFetcher(key, method, payload)
-        .then((response) => {
-            if (response.ok) {
-                onSuccess?.(response);
-            } else {
-                onError?.(response);
-            }
-        })
-        .catch((error) => {
-            onError?.(error);
-            console.error("Error");
-        });
-};

@@ -1,15 +1,15 @@
-import type { IconProps } from "@repo/ui/Icon";
+import type { IconType } from "../IconType";
 
 export interface AttributeModel {
     id: number;
     name: string;
-    handler: number;
-    enabled: boolean;
+    handler?: number;
+    enabled?: boolean;
     unit?: string;
     label?: string;
-    icon?: IconProps["icon"];
-    order: number;
-    data: {
+    icon?: IconType;
+    order?: number;
+    data?: {
         value?: string | number;
         trend: -1 | 0 | 1;
     };

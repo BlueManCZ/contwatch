@@ -1,6 +1,6 @@
 import "./globals.scss";
 
-import type { PageProps } from "@repo/types/PageProps";
+import type { PageParams } from "@repo/types/PageProps";
 import { openSans } from "@repo/ui/fonts";
 import { NavbarLayout } from "@repo/ui/NavbarLayout";
 import type { Metadata } from "next";
@@ -17,7 +17,7 @@ export async function generateStaticParams() {
     return [{ lang: "cs" }, { lang: "en" }];
 }
 
-export default async function RootLayout({ children, params }: PropsWithChildren<PageProps>) {
+export default async function RootLayout({ children, params }: PropsWithChildren<PageParams>) {
     const lang = (await params).lang;
     return (
         <html lang={lang}>
