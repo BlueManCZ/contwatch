@@ -12,7 +12,7 @@ import type { APIModelEndpoint, APIModelEndpointConfigOverride } from "./APIMode
 
 export const customSWR = <T>(endpoint: string) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    return useSWR<T>(endpoint, getJson, { revalidateIfStale: false, revalidateOnFocus: false });
+    return useSWR<T>(endpoint, getJson, { revalidateOnFocus: false });
 };
 
 export const customMutate = mutate;

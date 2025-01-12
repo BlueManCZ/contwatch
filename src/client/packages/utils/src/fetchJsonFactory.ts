@@ -3,8 +3,8 @@ export const fetchJsonFactory =
     async <T>(endpoint: string): Promise<T> => {
         const url = `${protocol}://${host}:${port}/${endpoint}`;
         const response = await fetch(url, {
-            cache: "no-cache", // TODO: Fetching cache with revalidations
-            next: { revalidate: 3600, tags: ["api"] },
+            cache: "force-cache",
+            next: { revalidate: 600, tags: ["api"] },
         });
         if (!response.ok) {
             throw new Error(`Failed to fetch ${url}`);
