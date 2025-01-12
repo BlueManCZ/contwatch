@@ -9,7 +9,8 @@
     "stylelint": "turbo stylelint",
     "biome": "biome check",
     "test": "turbo test",
-    "ci": "turbo build lint stylelint test"
+    "ci": "turbo build lint stylelint test",
+    "screen": "cd apps/contwatch-client && npm run build && screen -m npm run start"
   },
   "dependencies": {
     "lodash.debounce": "4.0.8",
