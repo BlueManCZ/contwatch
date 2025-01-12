@@ -8,7 +8,7 @@ import { getApiEndpoint } from "@repo/utils/getApiEndpoint";
 import { useEffect, useState } from "react";
 import useSWR, { mutate } from "swr";
 
-import type { APIModelEndpoint,APIModelEndpointConfigOverride } from "./APIModels";
+import type { APIModelEndpoint, APIModelEndpointConfigOverride } from "./APIModels";
 
 export const customSWR = <T>(endpoint: string) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -17,7 +17,10 @@ export const customSWR = <T>(endpoint: string) => {
 
 export const customMutate = mutate;
 
-export const useModel = <T extends APIModel | APIModel[]>(modelInstance: APIModelEndpoint, config?: APIModelEndpointConfigOverride) => {
+export const useModel = <T extends APIModel | APIModel[]>(
+    modelInstance: APIModelEndpoint,
+    config?: APIModelEndpointConfigOverride,
+) => {
     const { data: original } = modelInstance.use<T>(config);
     const [model, set] = useState<T | undefined>(original);
     const [refreshLock, setRefreshLock] = useState(false);
