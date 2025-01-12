@@ -19,9 +19,13 @@ class Evaluator(AbstractNode):
     def evaluate(self):
         condition = self.get_input("Condition")
         try:
-            first_value = float(self.get_input("FirstValue"))
-            second_value = float(self.get_input("SecondValue"))
-            return RELATIONAL_OPERATIONS[condition](first_value, second_value)
+            first_value = float(self.get_input("FirstValue")) if self.get_input("FirstValue") else None
+            second_value = float(self.get_input("SecondValue")) if self.get_input("SecondValue") else None
+            return (
+                RELATIONAL_OPERATIONS[condition](first_value, second_value)
+                if first_value is not None and second_value is not None
+                else None
+            )
         except ValueError as error:
             print(error)
             return False

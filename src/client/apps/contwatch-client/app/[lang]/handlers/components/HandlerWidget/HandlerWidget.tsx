@@ -24,12 +24,11 @@ import { Icon } from "@repo/ui/Icon";
 import { Text } from "@repo/ui/Text";
 import { bemClassNames } from "@repo/utils/bemClassNames";
 import { useTranslation } from "@repo/utils/useTranslation";
-import debounce from "lodash.debounce";
 import { DateTime } from "luxon";
 import Link from "next/link";
 import type { FC } from "react";
 
-import { Handlers } from "../../../APIModels";
+import { Handlers } from "../../../APIModelsDefinitions";
 import { useModel } from "../../../swrUtils";
 import { AttributeWidget } from "../AttributeWidget/AttributeWidget";
 import styles from "./HandlerWidget.module.scss";
@@ -41,14 +40,14 @@ type HandlerWidgetProps = {
 
 const bem = bemClassNames(styles);
 
-const debouncedHandlerUpdate = debounce((handler: HandlerModel) => {
-    Handlers.update(handler);
-}, 100);
-
 export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode }) => {
     const { t } = useTranslation();
 
-    const { model: handler, setModel: setHandlerState } = useModel(Handlers.use<HandlerModel>(handlerId));
+    const {
+        model: handler,
+        set: setHandlerState,
+        commit: commitHandler,
+    } = useModel<HandlerModel>(Handlers, { id: handlerId });
     const attributeIds = handler?.attributes.map((a) => a.id) ?? [];
 
     const sensors = useSensors(
@@ -73,18 +72,17 @@ export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode }) =
 
         if (active.id !== over?.id) {
             setHandlerState((handler) => {
+                if (!handler) return handler;
+
                 const oldIndex = handler.attributes.findIndex((attribute) => attribute.id === active.id);
                 const newIndex = handler.attributes.findIndex((attribute) => attribute.id === over?.id);
 
-                const newHandler = {
+                return {
                     ...handler,
                     attributes: arrayMove(handler.attributes, oldIndex, newIndex),
                 };
-
-                debouncedHandlerUpdate(newHandler);
-
-                return newHandler;
             });
+            commitHandler();
         }
     };
 
@@ -146,13 +144,15 @@ export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode }) =
                                             key={bareAttribute.id}
                                             onAttributeDelete={() => {
                                                 setHandlerState((handler) => {
+                                                    if (!handler) return handler;
+
                                                     const removedAttribute = handler.attributes.find(
                                                         (attribute) => attribute.id === bareAttribute.id,
                                                     );
                                                     const newAttributes = handler.attributes.filter(
                                                         (attribute) => attribute.id !== bareAttribute.id,
                                                     );
-                                                    const newHandler = {
+                                                    return {
                                                         ...handler,
                                                         attributes: newAttributes,
                                                         availableAttributes: [
@@ -163,9 +163,8 @@ export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode }) =
                                                             ...handler.availableAttributes,
                                                         ],
                                                     };
-                                                    debouncedHandlerUpdate(newHandler);
-                                                    return newHandler;
                                                 });
+                                                commitHandler();
                                             }}
                                             {...{ bareAttribute, editMode }}
                                         />
@@ -203,6 +202,8 @@ export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode }) =
                                                         variant={"circle"}
                                                         onClick={() => {
                                                             setHandlerState((handler) => {
+                                                                if (!handler) return handler;
+
                                                                 const newAttributes = [
                                                                     ...handler.attributes,
                                                                     {
@@ -210,7 +211,7 @@ export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode }) =
                                                                         name: attribute.name,
                                                                     },
                                                                 ];
-                                                                const newHandler = {
+                                                                return {
                                                                     ...handler,
                                                                     attributes: newAttributes,
                                                                     availableAttributes:
@@ -218,9 +219,8 @@ export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode }) =
                                                                             (a) => a.name !== attribute.name,
                                                                         ),
                                                                 };
-                                                                debouncedHandlerUpdate(newHandler);
-                                                                return newHandler;
                                                             });
+                                                            commitHandler();
                                                         }}
                                                     />
                                                 </Flex>

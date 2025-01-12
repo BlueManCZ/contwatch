@@ -18,7 +18,7 @@ import { useTranslation } from "@repo/utils/useTranslation";
 import { useRouter } from "next/navigation";
 import { type FC, useState } from "react";
 
-import { Attributes, DataStats } from "../../../APIModels";
+import { Attributes, DataStats } from "../../../APIModelsDefinitions";
 import { useModel } from "../../../swrUtils";
 import styles from "./AttributeWidget.module.scss";
 
@@ -44,14 +44,19 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
 
     const {
         model: attribute = bareAttribute,
-        setModel: setAttribute,
-        resetModel: resetAttribute,
-        originalValue: originalAttribute,
+        set: setAttribute,
+        reset: resetAttribute,
+        original: originalAttribute,
         lock: lockAttribute,
         unlock: unlockAttribute,
-    } = useModel(Attributes.use<AttributeModel>(bareAttribute.id));
+        commit: commitAttribute,
+    } = useModel<AttributeModel>(Attributes, { id: bareAttribute.id });
 
-    const { data: dataStats } = DataStats.use<DataStatModel>();
+    const { model: dataStats } = useModel<DataStatModel[]>(DataStats, {
+        params: {
+            attribute: bareAttribute.id.toString(),
+        },
+    });
 
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id: bareAttribute.id,
@@ -71,16 +76,13 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
         return attribute.name;
     };
 
-    const minStat = dataStats?.find((stat) => stat.type === "min" && stat.attribute === attribute?.id);
-    const maxStat = dataStats?.find((stat) => stat.type === "max" && stat.attribute === attribute?.id);
+    const minStat = dataStats?.find((stat) => stat.type === "min");
+    const maxStat = dataStats?.find((stat) => stat.type === "max");
 
     const onPopupSave = () => {
-        if (attribute) {
-            Attributes.update(attribute).then(() => {
-                setEditPopupOpen(false);
-            });
-        }
-    }
+        commitAttribute();
+        setEditPopupOpen(false);
+    };
 
     return (
         <>
@@ -182,7 +184,7 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
                         setEditPopupOpen(false);
                     }}
                     onEnter={onPopupSave}
-                    title={originalAttribute.label ?? originalAttribute.name}
+                    title={originalAttribute?.label ?? originalAttribute?.name}
                 >
                     <Column padding={"block"} gap={"1rem"}>
                         <Input
@@ -190,6 +192,7 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
                             value={attribute.label}
                             onValueChange={(value) =>
                                 setAttribute((a) => {
+                                    if (!a) return a;
                                     return {
                                         ...a,
                                         label: value,
@@ -203,6 +206,7 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
                             value={attribute.unit}
                             onValueChange={(value) =>
                                 setAttribute((a) => {
+                                    if (!a) return a;
                                     return {
                                         ...a,
                                         unit: value,
@@ -215,6 +219,7 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
                             value={attribute.icon}
                             onValueChange={(value) =>
                                 setAttribute((a) => {
+                                    if (!a) return a;
                                     return {
                                         ...a,
                                         icon: value as IconType,
@@ -240,15 +245,7 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
                                 variant={"red"}
                             />
 
-                            <Button
-                                grow
-                                onClick={() => {
-                                    if (attribute)
-                                        Attributes.update(attribute).then(() => {
-                                            setEditPopupOpen(false);
-                                        });
-                                }}
-                            >
+                            <Button grow onClick={onPopupSave}>
                                 {t("Save")}
                             </Button>
                         </Flex>

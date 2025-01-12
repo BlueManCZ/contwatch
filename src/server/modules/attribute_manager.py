@@ -12,11 +12,13 @@ from modules.models import data_unit as data_unit_model
 class AttributeManager:
     """Handles work with attributes and data"""
 
-    def __init__(self, db_instance):
+    def __init__(self, db_instance, socketio):
         self.id = db_instance.id
         self.handler_id = db_instance.handler.id
         self.name = db_instance.name
         self.label = db_instance.label
+        self.socketio = socketio
+        self.value = None
         self.last_value_save_skipped = False
         self.last_date = datetime.now().date()
 
@@ -37,14 +39,8 @@ class AttributeManager:
             if last_added != value:
                 self.trend_queue.append(value)
                 last_added = value
+            self.value = value
 
-        value = None
-        if db_instance.data_units:
-            last_unit = list(db_instance.data_units.select().order_by(lambda u: desc(u.id)).limit(1))
-            if last_unit:
-                value = last_unit[-1].value
-
-        self.value = value
         self.last_datetime = None
 
         self.stats = {}
@@ -123,6 +119,8 @@ class AttributeManager:
                 self.stats[predicate_name] = db_stat.value if db_stat else None
                 db_stat.time = now.time()
                 db_stat.value = value
+                self.socketio.emit("mutate", f"core/data-stats?attribute={self.id}")
             elif self.stats[predicate_name] is None:
                 # If stat is still not in db, add it.
                 data_stat_model.add(self.handler_id, self.id, predicate_name, value)
+                self.socketio.emit("mutate", f"core/data-stats?attribute={self.id}")

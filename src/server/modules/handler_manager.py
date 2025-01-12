@@ -83,7 +83,7 @@ class HandlerManager:
         handler_id = db_attribute.handler.id
         if handler_id not in self.registered_attributes:
             self.registered_attributes[handler_id] = {}
-        self.registered_attributes[handler_id][db_attribute.name] = AttributeManager(db_attribute)
+        self.registered_attributes[handler_id][db_attribute.name] = AttributeManager(db_attribute, self.socketio)
 
     def process_message(self, handler_id: AbstractHandler, message):
         linearized_json = linearize(message)

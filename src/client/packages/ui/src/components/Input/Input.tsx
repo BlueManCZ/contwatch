@@ -52,10 +52,10 @@ export const Input: FC<InputProps> = ({
     grow,
     growMobile,
     postponedChanged,
-                                          options,
+    options,
     focus,
-                                          onValueChange,
-                                          onNumberChange,
+    onValueChange,
+    onNumberChange,
 }) => {
     const offsetValue = (offset: number) => {
         return processValue(

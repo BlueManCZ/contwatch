@@ -1,11 +1,14 @@
 "use client";
 
+import type { APIModel } from "@repo/types/APIModel";
 import type { AttributeChartModel } from "@repo/types/AttributeChartModel";
 import { getJson } from "@repo/utils/communication";
 import { Endpoint } from "@repo/utils/endpoints";
 import { getApiEndpoint } from "@repo/utils/getApiEndpoint";
 import { useEffect, useState } from "react";
 import useSWR, { mutate } from "swr";
+
+import type { APIModelEndpoint,APIModelEndpointConfigOverride } from "./APIModels";
 
 export const customSWR = <T>(endpoint: string) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -14,30 +17,42 @@ export const customSWR = <T>(endpoint: string) => {
 
 export const customMutate = mutate;
 
-export const useModel = <T>(attr: { data: T }) => {
-    const originalValue = attr.data;
-    const [model, setModel] = useState<T>(originalValue);
-    const [innerLock, setInnerLock] = useState(false);
+export const useModel = <T extends APIModel | APIModel[]>(modelInstance: APIModelEndpoint, config?: APIModelEndpointConfigOverride) => {
+    const { data: original } = modelInstance.use<T>(config);
+    const [model, set] = useState<T | undefined>(original);
+    const [refreshLock, setRefreshLock] = useState(false);
+    const [commitLock, setCommitLock] = useState(true);
 
     useEffect(() => {
-        if (!innerLock) {
-            setModel(originalValue);
+        if (!refreshLock) {
+            set(original);
         }
-    }, [innerLock, originalValue]);
+    }, [refreshLock, original]);
 
-    const resetModel = () => {
-        setModel(originalValue);
+    useEffect(() => {
+        if (!commitLock && model) {
+            modelInstance.update(model, undefined, config);
+            setCommitLock(true);
+        }
+    }, [commitLock, config, model, modelInstance]);
+
+    const reset = () => {
+        set(original);
+    };
+
+    const commit = () => {
+        setCommitLock(false);
     };
 
     const lock = () => {
-        setInnerLock(true);
-    }
+        setRefreshLock(true);
+    };
 
     const unlock = () => {
-        setInnerLock(false);
-    }
+        setRefreshLock(false);
+    };
 
-    return { model, setModel, resetModel, originalValue, lock, unlock };
+    return { original, model, set, reset, commit, lock, unlock };
 };
 
 export const useAttributeChart = (attributeIds: number[], date?: string) => {

@@ -1,11 +1,12 @@
 import type { AttributeModel } from "@repo/types/AttributeModel";
+import type { DataStatModel } from "@repo/types/DataStatModel";
 import type { HandlerModel } from "@repo/types/HandlerModel";
 import type { PageParams } from "@repo/types/PageProps";
 import { Text } from "@repo/ui/Text";
 import { ssrTranslation } from "@repo/utils/ssrTranslation";
 import { SWRConfig } from "swr";
 
-import { Attributes, DataStats, Handlers } from "../APIModels";
+import { Attributes, DataStats, Handlers } from "../APIModelsDefinitions";
 import { HandlersWrapper } from "./components/HandlersWrapper/HandlersWrapper";
 import { HandlerWidget } from "./components/HandlerWidget/HandlerWidget";
 
@@ -19,13 +20,20 @@ export default async function PageHandlers({ params }: PageParams) {
     // Fetch all handler objects for fallback
     const handlersFallback: Record<string, HandlerModel> = {};
     for (const handlerId of handlerIds) {
-        handlersFallback[Handlers.endpoint(handlerId)] = await Handlers.fetch(handlerId);
+        handlersFallback[Handlers.endpoint({ id: handlerId })] = await Handlers.fetch({ id: handlerId });
     }
 
     // Fetch all attribute objects for fallback
     const attributesFallback: Record<string, AttributeModel> = {};
-    for (const attribute of await Attributes.fetch<AttributeModel>()) {
-        attributesFallback[Attributes.endpoint(attribute.id)] = attribute;
+    for (const attribute of await Attributes.fetch<AttributeModel[]>()) {
+        attributesFallback[Attributes.endpoint({ id: attribute.id })] = attribute;
+    }
+
+    // Fetch data stats for fallback
+    const dataStatsFallback: Record<string, DataStatModel[]> = {};
+    for (const attributeId of Object.values(attributesFallback).map((a) => a.id)) {
+        dataStatsFallback[DataStats.endpoint({ params: { attribute: attributeId.toString() } })] =
+            await DataStats.fetch<DataStatModel[]>({ params: { attribute: attributeId.toString() } });
     }
 
     return (
@@ -34,7 +42,7 @@ export default async function PageHandlers({ params }: PageParams) {
                 fallback: {
                     ...handlersFallback,
                     ...attributesFallback,
-                    [DataStats.endpoint()]: await DataStats.fetch(),
+                    ...dataStatsFallback,
                 },
             }}
         >

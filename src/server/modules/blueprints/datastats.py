@@ -1,7 +1,7 @@
 import datetime
 from datetime import datetime
 
-from flask import Blueprint
+from flask import Blueprint, request
 from pony import orm
 
 from modules.models.data_stat import DataStat
@@ -23,20 +23,18 @@ def datastats_blueprint(_context: Context):
 
     @blueprint.route("/")
     @orm.db_session
-    def all_datastats():
+    def get_datastats():
+        attribute_id = int(request.args.get("attribute"))
+        if attribute_id:
+            return [
+                data_stat_serializer(data_stat)
+                for data_stat in (
+                    DataStat.select(lambda d: d.attribute.id == attribute_id and d.date == datetime.now().date())
+                )
+            ], StatusCode.OK
         return [
             data_stat_serializer(data_stat)
             for data_stat in (DataStat.select(lambda d: d.date == datetime.now().date()))
-        ], StatusCode.OK
-
-    @blueprint.route("/<int:data_stat_id>")
-    @orm.db_session
-    def datastats(data_stat_id):
-        return [
-            data_stat_serializer(data_stat)
-            for data_stat in (
-                DataStat.select(lambda d: d.attribute.id == data_stat_id and d.date == datetime.now().date())
-            )
         ], StatusCode.OK
 
     return blueprint

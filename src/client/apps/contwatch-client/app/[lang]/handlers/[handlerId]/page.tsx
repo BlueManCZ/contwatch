@@ -6,7 +6,7 @@ import { ssrTranslation } from "@repo/utils/ssrTranslation";
 import Link from "next/link";
 import { SWRConfig } from "swr";
 
-import { Attributes, Handlers } from "../../APIModels";
+import { Attributes, Handlers } from "../../APIModelsDefinitions";
 import { HandlersWrapper } from "../components/HandlersWrapper/HandlersWrapper";
 import { HandlerWidget } from "../components/HandlerWidget/HandlerWidget";
 
@@ -23,19 +23,19 @@ export default async function HandlersPage({ params }: HandlersPageParams) {
     const handlerId = Number.parseInt((await params).handlerId);
 
     // Fetch one handler object for fallback
-    const fallbackHandler = await Handlers.fetch<HandlerModel>(handlerId);
+    const fallbackHandler = await Handlers.fetch<HandlerModel>({ id: handlerId });
 
     // Fetch all attribute objects for fallback
     const attributesFallback: Record<string, AttributeModel> = {};
-    for (const attribute of await Attributes.fetch<AttributeModel>()) {
-        attributesFallback[Attributes.endpoint(attribute.id)] = attribute;
+    for (const attribute of await Attributes.fetch<AttributeModel[]>()) {
+        attributesFallback[Attributes.endpoint({ id: attribute.id })] = attribute;
     }
 
     return (
         <SWRConfig
             value={{
                 fallback: {
-                    [Handlers.endpoint(handlerId)]: fallbackHandler,
+                    [Handlers.endpoint({ id: handlerId })]: fallbackHandler,
                     ...attributesFallback,
                 },
             }}

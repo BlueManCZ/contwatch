@@ -1,6 +1,6 @@
 import { bemClassNames } from "@repo/utils/bemClassNames";
 import Link from "next/link";
-import {type FC, type PropsWithChildren, useEffect} from "react";
+import { type FC, type PropsWithChildren, useEffect } from "react";
 
 import { Column } from "../../partials/FlexPartials/FlexPartials";
 import { Flex } from "../Flex/Flex";
@@ -48,7 +48,7 @@ export const Popup: FC<PropsWithChildren<PopupProps>> = ({
             if (event.key === "Enter") {
                 onEnter?.();
             }
-        }
+        };
 
         document.addEventListener("keydown", handleKeyDown);
         document.addEventListener("keydown", handleEnter);

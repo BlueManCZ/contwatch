@@ -1,6 +1,5 @@
 import type { APIModel } from "@repo/types/APIModel";
 import { jsonFetcher } from "@repo/utils/communication";
-import { Endpoint } from "@repo/utils/endpoints";
 import { getApiEndpoint } from "@repo/utils/getApiEndpoint";
 import { io } from "socket.io-client";
 import type { MutatorCallback } from "swr";
@@ -9,72 +8,64 @@ import type { MutatorOptions } from "swr/_internal";
 import { fetchJson } from "../../src/utils";
 import { customMutate, customSWR } from "./swrUtils";
 
-// TODO: Replace biome-ignore with biome-ignore-start when biome 2.0 is released
-// https://github.com/biomejs/biome/pull/4649
+export type APIModelEndpointConfig = { key: string; id?: number | string; params?: Record<string, string> };
+export type APIModelEndpointConfigOverride = Omit<APIModelEndpointConfig, "key">;
 
-// biome-ignore lint/complexity/noStaticOnlyClass: We use this static class as a base class for other API classes to abstract away the endpoints
-export class API {
-    static endpoint(id?: number) {
-        return getApiEndpoint("/override-this", id);
+export class APIModelEndpoint {
+    private readonly config: APIModelEndpointConfig;
+
+    constructor(config: APIModelEndpointConfig) {
+        this.config = config;
     }
 
-    static fetch<T extends APIModel | number>(): Promise<T[]>;
-    static fetch<T extends APIModel | number>(id: number): Promise<T>;
-    static fetch<T extends APIModel | number>(id?: number) {
-        // biome-ignore lint/complexity/noThisInStatic: We are overriding endpoint in subclasses
-        return fetchJson<T>(this.endpoint(id));
+    private _configMerge(config?: APIModelEndpointConfigOverride) {
+        return {
+            ...this.config,
+            ...config,
+        };
     }
 
-    static mutate<Data = unknown, T = Data>(
-        id?: number,
+    public endpoint(config?: APIModelEndpointConfigOverride): string {
+        const c = this._configMerge(config);
+        return `${c.key}${c.id ? `/${c.id}` : ""}${c.params ? `?${new URLSearchParams(c.params).toString()}` : ""}`;
+    }
+
+    public fetch<T>(config?: APIModelEndpointConfigOverride) {
+        return fetchJson<T>(this.endpoint(config));
+    }
+
+    public mutate<Data = unknown, T = Data>(
+        config?: APIModelEndpointConfigOverride,
         data?: T | Promise<T> | MutatorCallback<T>,
         opts?: boolean | MutatorOptions<Data, T>,
     ) {
-        // biome-ignore lint/complexity/noThisInStatic: We are overriding endpoint in subclasses
-        return customMutate(this.endpoint(id), data, opts);
+        return customMutate(this.endpoint(config), data, opts);
     }
 
-    static async update<T extends APIModel>(data: T, onSuccess?: (response: Response) => void) {
-        // biome-ignore lint/complexity/noThisInStatic: We are overriding endpoint in subclasses
-        return this.mutate(data.id, data, {
-            optimisticData: data,
+    public async update<T extends APIModel | APIModel[]>(
+        data: T | Promise<T> | MutatorCallback<T>,
+        onSuccess?: (response: Response) => void,
+        config?: APIModelEndpointConfigOverride,
+    ) {
+        return this.mutate(config, data, {
+            optimisticData: data instanceof Function ? undefined : data,
             revalidate: false,
             populateCache: true,
             rollbackOnError: false,
         }).then(() =>
-            // biome-ignore lint/complexity/noThisInStatic: We are overriding endpoint in subclasses
-            jsonFetcher(this.endpoint(data.id), "PUT", data).then((r) => {
-                // biome-ignore lint/complexity/noThisInStatic: We are overriding endpoint in subclasses
-                this.mutate(data.id, data).then(() => {
+            jsonFetcher(this.endpoint(config), "PUT", data).then((r) => {
+                this.mutate(config, data).then(() => {
                     onSuccess?.(r);
                 });
             }),
         );
     }
 
-    public static use<T>(): { data: T[] }; // TODO: Can return undefined
-    public static use<T>(id: number): { data: T }; // TODO: Can return undefined
-    public static use<T>(id?: number) {
-        // biome-ignore lint/complexity/noThisInStatic: We are overriding endpoint in subclasses
-        return customSWR<T>(this.endpoint(id));
+    public use<T>(config?: APIModelEndpointConfigOverride) {
+        return customSWR<T>(this.endpoint(config));
     }
-}
-
-export class Handlers extends API {
-    static override endpoint = (id?: number) => getApiEndpoint(Endpoint.handlers, id);
-}
-
-export class Attributes extends API {
-    static override endpoint = (id?: number) => getApiEndpoint(Endpoint.attributes, id);
-}
-
-export class DataStats extends API {
-    static override endpoint = () => getApiEndpoint(Endpoint.dataStats);
 }
 
 export const socket = io();
 
-socket.on("mutate", (endpoint: string) => {
-    console.log("Mutating", endpoint);
-    customMutate(getApiEndpoint(endpoint));
-});
+socket.on("mutate", (endpoint: string) => customMutate(getApiEndpoint(endpoint)));

@@ -29,7 +29,7 @@ def attributes_blueprint(_context: Context):
 
     @blueprint.route("/")
     @orm.db_session
-    def attributes():
+    def get_attributes():
         handler = request.args.get("handler", None)
         return [
             attribute_serializer(attribute)

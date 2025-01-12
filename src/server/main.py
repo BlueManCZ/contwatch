@@ -30,11 +30,11 @@ if __name__ == "__main__":
     signal(SIGINT, _quit_handler)
 
     app = Flask(__name__)
-    socketio = SocketIO(app, cors_allowed_origins="*")
     app.config.from_object(ApplicationConfig)
     app.url_map.converters["int_list"] = IntListConverter
     app.url_map.strict_slashes = False
     cors = CORS(app, supports_credentials=True)
+    socketio = SocketIO(app, cors_allowed_origins="*")
 
     config = {}
     # Try to load the configuration from the file
