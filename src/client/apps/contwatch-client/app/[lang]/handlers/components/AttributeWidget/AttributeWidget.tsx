@@ -17,9 +17,9 @@ import { bemClassNames } from "@repo/utils/bemClassNames";
 import { useTranslation } from "@repo/utils/useTranslation";
 import { useRouter } from "next/navigation";
 import { type FC, useState } from "react";
+import { useModel } from "swr-models";
 
 import { Attributes, DataStats } from "../../../APIModelsDefinitions";
-import { useModel } from "../../../swrUtils";
 import styles from "./AttributeWidget.module.scss";
 
 type AttributeWidgetProps = {

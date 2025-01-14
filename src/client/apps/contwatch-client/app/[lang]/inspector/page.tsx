@@ -11,9 +11,9 @@ import { Text } from "@repo/ui/Text";
 import { useTranslation } from "@repo/utils/useTranslation";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { useModel } from "swr-models";
 
 import { Attributes } from "../APIModelsDefinitions";
-import { useModel } from "../swrUtils";
 import { InspectorChart } from "./components/InspectorChart/InspectorChart";
 
 export default function Inspector() {

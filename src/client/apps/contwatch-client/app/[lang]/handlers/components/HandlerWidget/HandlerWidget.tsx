@@ -27,9 +27,9 @@ import { useTranslation } from "@repo/utils/useTranslation";
 import { DateTime } from "luxon";
 import Link from "next/link";
 import type { FC } from "react";
+import { useModel } from "swr-models";
 
 import { Handlers } from "../../../APIModelsDefinitions";
-import { useModel } from "../../../swrUtils";
 import { AttributeWidget } from "../AttributeWidget/AttributeWidget";
 import styles from "./HandlerWidget.module.scss";
 

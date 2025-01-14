@@ -1,10 +1,9 @@
 import type { AttributeModel } from "@repo/types/AttributeModel";
 import type { DataStatModel } from "@repo/types/DataStatModel";
-import type { HandlerModel } from "@repo/types/HandlerModel";
 import type { PageParams } from "@repo/types/PageProps";
 import { Text } from "@repo/ui/Text";
 import { ssrTranslation } from "@repo/utils/ssrTranslation";
-import { SWRConfig } from "swr";
+import { CustomSWRConfig } from "swr-models";
 
 import { Attributes, DataStats, Handlers } from "../APIModelsDefinitions";
 import { HandlersWrapper } from "./components/HandlersWrapper/HandlersWrapper";
@@ -16,12 +15,6 @@ export default async function PageHandlers({ params }: PageParams) {
 
     // Fetch all handler ids
     const handlerIds: number[] = await Handlers.fetch();
-
-    // Fetch all handler objects for fallback
-    const handlersFallback: Record<string, HandlerModel> = {};
-    for (const handlerId of handlerIds) {
-        handlersFallback[Handlers.endpoint({ id: handlerId })] = await Handlers.fetch({ id: handlerId });
-    }
 
     // Fetch all attribute objects for fallback
     const attributesFallback: Record<string, AttributeModel> = {};
@@ -37,10 +30,10 @@ export default async function PageHandlers({ params }: PageParams) {
     }
 
     return (
-        <SWRConfig
+        <CustomSWRConfig
             value={{
                 fallback: {
-                    ...handlersFallback,
+                    ...(await Handlers.fetchFallback({ id: handlerIds })),
                     ...attributesFallback,
                     ...dataStatsFallback,
                 },
@@ -54,6 +47,6 @@ export default async function PageHandlers({ params }: PageParams) {
                     <HandlerWidget key={handlerId} {...{ handlerId }} />
                 ))}
             </HandlersWrapper>
-        </SWRConfig>
+        </CustomSWRConfig>
     );
 }

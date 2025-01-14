@@ -1,5 +1,5 @@
-import { fetchJsonFactory } from "@repo/utils/fetchJsonFactory";
+import { jsonFetcherFactory } from "swr-models";
 
 import { HOST, PORT, PROTOCOL } from "./settings.mjs";
 
-export const fetchJson = fetchJsonFactory(HOST, PORT, PROTOCOL);
+export const fetchJson = jsonFetcherFactory(PROTOCOL, HOST, PORT, "force-cache", 600);
