@@ -4,7 +4,7 @@ import type { PageParams } from "@repo/types/PageProps";
 import { Text } from "@repo/ui/Text";
 import { ssrTranslation } from "@repo/utils/ssrTranslation";
 import Link from "next/link";
-import { SWRConfig } from "swr";
+import { CustomSWRConfig } from "swr-models";
 
 import { Attributes, Handlers } from "../../APIModelsDefinitions";
 import { HandlersWrapper } from "../components/HandlersWrapper/HandlersWrapper";
@@ -32,7 +32,7 @@ export default async function HandlersPage({ params }: HandlersPageParams) {
     }
 
     return (
-        <SWRConfig
+        <CustomSWRConfig
             value={{
                 fallback: {
                     [Handlers.endpoint({ id: handlerId })]: fallbackHandler,
@@ -46,6 +46,6 @@ export default async function HandlersPage({ params }: HandlersPageParams) {
             <HandlersWrapper>
                 <HandlerWidget editMode {...{ handlerId }} />
             </HandlersWrapper>
-        </SWRConfig>
+        </CustomSWRConfig>
     );
 }
