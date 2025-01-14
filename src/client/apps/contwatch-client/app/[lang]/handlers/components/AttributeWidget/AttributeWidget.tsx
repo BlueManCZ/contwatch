@@ -215,6 +215,21 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
                             }
                         />
                         <Input
+                            title={t("Decimal places rounding")}
+                            value={attribute.rounding ?? 2}
+                            type={"number"}
+                            controls
+                            onNumberChange={(value) =>
+                                setAttribute((a) => {
+                                    if (!a) return a;
+                                    return {
+                                        ...a,
+                                        rounding: value,
+                                    };
+                                })
+                            }
+                        />
+                        <Input
                             title={t("Icon")}
                             value={attribute.icon}
                             onValueChange={(value) =>

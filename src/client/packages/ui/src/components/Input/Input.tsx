@@ -91,13 +91,12 @@ export const Input: FC<InputProps> = ({
 
     const commitEmptyValue = (triggerChangeEvent = false) => {
         setValueState("");
-        // onNumberChange?.(0);
         if (triggerChangeEvent) {
             onValueChange?.("");
         }
     };
 
-    const [valueState, setValueState] = useState<string>("");
+    const [valueState, setValueState] = useState<string>(value?.toString() ?? "");
 
     const currentLocale = useSelector(selectLocaleState);
 

@@ -17,6 +17,7 @@ class Attribute(db.Entity):
     label = orm.Optional(str, nullable=True)
     icon = orm.Optional(str, nullable=True)
     order = orm.Optional(int, nullable=True)
+    rounding = orm.Optional(int, nullable=True)
 
     # def to_json(self):
     #     return {}

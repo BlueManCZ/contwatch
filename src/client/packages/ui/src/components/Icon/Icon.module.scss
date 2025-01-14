@@ -37,7 +37,6 @@
 
         &:hover {
             --icon-transform: scale(1.11);
-            --icon-filter: brightness(1.2);
             --icon-opacity: 0.9;
         }
 
@@ -49,6 +48,7 @@
 
     &--variant {
         &-circle {
+            display: block;
             padding: .6rem;
             border-radius: 100%;
             background: var(--color-mono-light);
@@ -57,6 +57,7 @@
         &-small-circle {
             --icon-filter: invert(1);
 
+            display: block;
             padding: 5px;
             border-radius: 100%;
             background: var(--color-primary);

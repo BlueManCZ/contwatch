@@ -17,6 +17,7 @@ class AttributeManager:
         self.handler_id = db_instance.handler.id
         self.name = db_instance.name
         self.label = db_instance.label
+        self.rounding = db_instance.rounding
         self.socketio = socketio
         self.value = None
         self.last_value_save_skipped = False
@@ -57,6 +58,10 @@ class AttributeManager:
             "min": None,
         }
 
+    def refresh_config(self, db_instance):
+        self.label = db_instance.label
+        self.rounding = db_instance.rounding
+
     def get_id(self):
         return self.id
 
@@ -85,6 +90,8 @@ class AttributeManager:
     def add_data_unit(self, value):
         value_changed = False
         # TODO: We need to create two new data units when the day changes.
+        value = round(value, self.rounding if self.rounding is not None else 2)
+
         if self.check_value_change(value):
             # Value has changed
             if self.value is not None and self.last_datetime is not None and self.last_value_save_skipped:
@@ -116,11 +123,12 @@ class AttributeManager:
             if self.stats[predicate_name] is not None and stat_predicate(value):
                 # If stat is found in db and predicate is true, update stat in db.
                 db_stat = data_stat_model.get_by_type_and_date(self.id, predicate_name, now.date())
-                self.stats[predicate_name] = db_stat.value if db_stat else None
                 db_stat.time = now.time()
                 db_stat.value = value
+                self.stats[predicate_name] = value
                 self.socketio.emit("mutate", f"core/data-stats?attribute={self.id}")
             elif self.stats[predicate_name] is None:
                 # If stat is still not in db, add it.
                 data_stat_model.add(self.handler_id, self.id, predicate_name, value)
+                self.stats[predicate_name] = value
                 self.socketio.emit("mutate", f"core/data-stats?attribute={self.id}")

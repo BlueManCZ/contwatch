@@ -21,6 +21,7 @@ def attributes_blueprint(_context: Context):
             "label": attribute.label,
             "icon": attribute.icon,
             "order": attribute.order,
+            "rounding": attribute.rounding,
             "data": {
                 "value": registered_attribute(attribute).get_current_value(),
                 "trend": registered_attribute(attribute).get_trend(),
@@ -51,16 +52,22 @@ def attributes_blueprint(_context: Context):
     @blueprint.route("/<int:attribute_id>", methods=["PUT"])
     @orm.db_session
     def put_attribute(attribute_id):
-        attribute = Attribute[attribute_id]
+        db_attribute = Attribute[attribute_id]
 
         label = request.json.get("label")
-        attribute.label = label if label else None
+        db_attribute.label = label if label else None
 
         unit = request.json.get("unit")
-        attribute.unit = unit if unit else None
+        db_attribute.unit = unit if unit else None
+
+        rounding = request.json.get("rounding")
+        db_attribute.rounding = rounding if rounding is not None else 2
 
         icon = request.json.get("icon")
-        attribute.icon = icon if icon else None
+        db_attribute.icon = icon if icon else None
+
+        attribute = registered_attribute(db_attribute)
+        attribute.refresh_config(db_attribute)
 
         _context.socketio.emit("mutate", f"core/attributes/{attribute_id}")
 

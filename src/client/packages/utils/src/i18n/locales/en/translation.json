@@ -19,5 +19,6 @@
   "Save": "Save",
   "Stored attributes": "Stored attributes",
   "Available attributes": "Available attributes",
-  "Do you want to delete attribute": "Do you want to delete attribute"
+  "Do you want to delete attribute": "Do you want to delete attribute",
+  "Decimal places rounding": "Decimal places rounding"
 }

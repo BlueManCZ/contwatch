@@ -19,5 +19,6 @@
   "Save": "Uložit",
   "Stored attributes": "Uložené atributy",
   "Available attributes": "Dostupné atributy",
-  "Do you want to delete attribute": "Opravdu chcete smazat atribut"
+  "Do you want to delete attribute": "Opravdu chcete smazat atribut",
+  "Decimal places rounding": "Zaokrouhlení desetinných míst"
 }

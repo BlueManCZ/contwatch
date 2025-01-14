@@ -9,6 +9,7 @@ export interface AttributeModel {
     label?: string;
     icon?: IconType;
     order?: number;
+    rounding?: number;
     data?: {
         value?: string | number;
         trend: -1 | 0 | 1;
