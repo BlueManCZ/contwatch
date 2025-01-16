@@ -6,5 +6,6 @@ type ChartPoint = {
 export interface AttributeChartModel {
     id: number;
     label: string;
+    color?: string;
     data: ChartPoint[];
 }

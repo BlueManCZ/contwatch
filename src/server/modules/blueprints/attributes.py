@@ -22,6 +22,7 @@ def attributes_blueprint(_context: Context):
             "icon": attribute.icon,
             "order": attribute.order,
             "rounding": attribute.rounding,
+            "color": attribute.color,
             "data": {
                 "value": registered_attribute(attribute).get_current_value(),
                 "trend": registered_attribute(attribute).get_trend(),
@@ -65,6 +66,9 @@ def attributes_blueprint(_context: Context):
 
         icon = request.json.get("icon")
         db_attribute.icon = icon if icon else None
+
+        color = request.json.get("color")
+        db_attribute.color = color if color else None
 
         attribute = registered_attribute(db_attribute)
         attribute.refresh_config(db_attribute)

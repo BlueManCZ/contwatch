@@ -1,5 +1,6 @@
 import "chartjs-adapter-date-fns";
 
+import { selectLocaleState } from "@repo/store/slices/settingsSlice";
 import { Button } from "@repo/ui/Button";
 import { Flex } from "@repo/ui/Flex";
 import { Column } from "@repo/ui/FlexPartials";
@@ -19,6 +20,7 @@ import {
 } from "chart.js";
 import { type FC, useCallback, useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
+import { useSelector } from "react-redux";
 
 import { useAttributeChart } from "../../../swrUtils";
 import { options } from "./chartOptions";
@@ -36,6 +38,7 @@ type InspectorChartProps = {
 
 export const InspectorChart: FC<InspectorChartProps> = ({ attributes = [], date, onSettingsClick }) => {
     const { t } = useTranslation();
+    const lng = useSelector(selectLocaleState);
 
     // const ref = useRef<Chart>(null);
     const [ref, setRef] = useState<Chart | undefined>(undefined);
@@ -87,7 +90,7 @@ export const InspectorChart: FC<InspectorChartProps> = ({ attributes = [], date,
                     x: data.x * 1000,
                     y: data.y,
                 })),
-                borderColor: "#5278FF",
+                borderColor: attributeChart.color ?? "#5278FF",
             })) ?? [],
     };
 
@@ -126,7 +129,22 @@ export const InspectorChart: FC<InspectorChartProps> = ({ attributes = [], date,
             </Flex>
             <div className={bem("chart")}>
                 <Line
-                    {...{ options: options as ChartOptions<"line">, data }}
+                    {...{
+                        options: {
+                            ...options,
+                            scales: {
+                                ...options.scales,
+                                x: {
+                                    ...options.scales.x,
+                                    time: {
+                                        ...options.scales.x.time,
+                                        tooltipFormat: lng === "cs" ? "d.MM.yyyy HH:mm:ss" : undefined,
+                                    },
+                                },
+                            },
+                        } as ChartOptions<"line">,
+                        data,
+                    }}
                     ref={(ref) => setRef(ref as unknown as Chart)}
                     onWheel={() => setZoomLevel(ref?.getZoomLevel?.() ?? 1)}
                     onTouchEnd={() => setZoomLevel(ref?.getZoomLevel?.() ?? 1)}

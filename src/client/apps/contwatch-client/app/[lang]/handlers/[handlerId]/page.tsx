@@ -1,5 +1,8 @@
+import fs from "node:fs";
+
 import type { AttributeModel } from "@repo/types/AttributeModel";
 import type { HandlerModel } from "@repo/types/HandlerModel";
+import type { IconType } from "@repo/types/IconType";
 import type { PageParams } from "@repo/types/PageProps";
 import { Text } from "@repo/ui/Text";
 import { ssrTranslation } from "@repo/utils/ssrTranslation";
@@ -31,6 +34,11 @@ export default async function HandlersPage({ params }: HandlersPageParams) {
         attributesFallback[Attributes.endpoint({ id: attribute.id })] = attribute;
     }
 
+    const attributeIcons: IconType[] = [];
+    for (const file of fs.readdirSync("public/icons").filter((file) => file.endsWith(".svg"))) {
+        attributeIcons.push(file.replace(".svg", "") as IconType);
+    }
+
     return (
         <CustomSWRConfig
             value={{
@@ -44,7 +52,7 @@ export default async function HandlersPage({ params }: HandlersPageParams) {
                 <Link href={"/handlers"}>{t("Handlers")}</Link> · {fallbackHandler.name}
             </Text>
             <HandlersWrapper>
-                <HandlerWidget editMode {...{ handlerId }} />
+                <HandlerWidget editMode {...{ handlerId, attributeIcons }} />
             </HandlersWrapper>
         </CustomSWRConfig>
     );

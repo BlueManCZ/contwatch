@@ -10,6 +10,7 @@ export interface AttributeModel {
     icon?: IconType;
     order?: number;
     rounding?: number;
+    color?: string;
     data?: {
         value?: string | number;
         trend: -1 | 0 | 1;

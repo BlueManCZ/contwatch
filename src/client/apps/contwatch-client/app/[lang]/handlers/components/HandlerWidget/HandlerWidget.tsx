@@ -18,6 +18,7 @@ import {
     verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import type { HandlerModel } from "@repo/types/HandlerModel";
+import type { IconType } from "@repo/types/IconType";
 import { Flex } from "@repo/ui/Flex";
 import { Column } from "@repo/ui/FlexPartials";
 import { Icon } from "@repo/ui/Icon";
@@ -36,11 +37,12 @@ import styles from "./HandlerWidget.module.scss";
 type HandlerWidgetProps = {
     handlerId: number;
     editMode?: boolean;
+    attributeIcons?: IconType[];
 };
 
 const bem = bemClassNames(styles);
 
-export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode }) => {
+export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode, attributeIcons }) => {
     const { t } = useTranslation();
 
     const {
@@ -166,7 +168,7 @@ export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode }) =
                                                 });
                                                 commitHandler();
                                             }}
-                                            {...{ bareAttribute, editMode }}
+                                            {...{ bareAttribute, editMode, attributeIcons }}
                                         />
                                     );
                                 })}

@@ -26,6 +26,8 @@ type AttributeWidgetProps = {
     bareAttribute: AttributeModel;
     draggable?: boolean;
     editMode?: boolean;
+    attributeIcons?: IconType[];
+
     onAttributeDelete(attributeId: number): void;
 };
 
@@ -36,11 +38,13 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
     draggable,
     editMode,
     onAttributeDelete,
+    attributeIcons,
 }) => {
     const { t } = useTranslation();
     const router = useRouter();
 
     const [editPopupOpen, setEditPopupOpen] = useState(false);
+    const [iconSelectOpen, setIconSelectOpen] = useState(false);
 
     const {
         model: attribute = bareAttribute,
@@ -230,18 +234,74 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
                             }
                         />
                         <Input
-                            title={t("Icon")}
-                            value={attribute.icon}
+                            title={t("Chart color")}
+                            type={"color"}
+                            value={attribute.color ?? "#5278FF"}
                             onValueChange={(value) =>
                                 setAttribute((a) => {
                                     if (!a) return a;
                                     return {
                                         ...a,
-                                        icon: value as IconType,
+                                        color: value,
                                     };
                                 })
                             }
                         />
+                        <Column gap={"5px"}>
+                            <Text size={"tiny"}>{t("Icon")}</Text>
+                            <Flex gap={"1rem"}>
+                                <Input
+                                    grow
+                                    value={attribute.icon}
+                                    onValueChange={(value) =>
+                                        setAttribute((a) => {
+                                            if (!a) return a;
+                                            return {
+                                                ...a,
+                                                icon: value as IconType,
+                                            };
+                                        })
+                                    }
+                                />
+                                <Button
+                                    icon={attribute.icon ?? "circle"}
+                                    slim
+                                    variant={"default"}
+                                    onClick={() => setIconSelectOpen(true)}
+                                />
+                                <Popup
+                                    visible={iconSelectOpen}
+                                    onClose={() => setIconSelectOpen(false)}
+                                    title={t("Select icon")}
+                                >
+                                    <Flex wrap={"wrap"} gap={"10px"} padding={"block"}>
+                                        {attributeIcons?.map((icon) => (
+                                            <Button
+                                                key={icon}
+                                                icon={icon}
+                                                slim
+                                                variant={
+                                                    icon === attribute.icon ||
+                                                    (icon === "circle" && !attribute.icon)
+                                                        ? "default"
+                                                        : "outline"
+                                                }
+                                                onClick={() => {
+                                                    setAttribute((a) => {
+                                                        if (!a) return a;
+                                                        return {
+                                                            ...a,
+                                                            icon,
+                                                        };
+                                                    });
+                                                    setIconSelectOpen(false);
+                                                }}
+                                            />
+                                        ))}
+                                    </Flex>
+                                </Popup>
+                            </Flex>
+                        </Column>
                         <Separator />
                         <Flex gap={"1rem"}>
                             <Button

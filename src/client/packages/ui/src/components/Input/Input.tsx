@@ -157,7 +157,7 @@ export const Input: FC<InputProps> = ({
                                 e.preventDefault();
                                 commitNumberValue(offsetValue(-step), true);
                             }}
-                            size={20}
+                            size={16}
                         />
                     </div>
                 )}
@@ -251,7 +251,7 @@ export const Input: FC<InputProps> = ({
                                 e.preventDefault();
                                 commitNumberValue(offsetValue(step), true);
                             }}
-                            size={20}
+                            size={16}
                         />
                     </div>
                 )}

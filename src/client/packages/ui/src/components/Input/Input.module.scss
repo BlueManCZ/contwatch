@@ -61,14 +61,17 @@
             --icon-filter: none;
 
             #{$this}__input {
+                height: unset;
                 padding: 0;
             }
         }
     }
 
     &__input {
+        box-sizing: border-box;
         flex-grow: 1;
         width: 100%;
+        height: 46px;
         padding: 12px 15px;
         border: none;
         outline: transparent;
