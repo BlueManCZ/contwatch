@@ -57,6 +57,10 @@ export const Input: FC<InputProps> = ({
     onValueChange,
     onNumberChange,
 }) => {
+    if (type === "pick" && !icon) {
+        icon = "chevron-down";
+    }
+
     const offsetValue = (offset: number) => {
         return processValue(
             parseLocalizedFloat(valueState !== "" ? valueState : "0", currentLocale) + offset,

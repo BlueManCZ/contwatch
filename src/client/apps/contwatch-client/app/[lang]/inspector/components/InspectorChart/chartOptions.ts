@@ -14,6 +14,7 @@ export const options = {
             type: "time",
             time: {
                 unit: "hour",
+                tooltipFormat: "",
             },
             beginAtZero: true,
         },

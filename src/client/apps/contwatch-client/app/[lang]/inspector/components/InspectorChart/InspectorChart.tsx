@@ -82,6 +82,17 @@ export const InspectorChart: FC<InspectorChartProps> = ({ attributes = [], date,
         };
     }, []);
 
+    options.scales = {
+        ...options.scales,
+        x: {
+            ...options.scales?.x,
+            time: {
+                unit: "hour",
+                tooltipFormat: lng === "cs" ? "d.MM.yyyy HH:mm:ss" : "",
+            },
+        },
+    };
+
     const data = {
         datasets:
             attributeChartData?.map((attributeChart) => ({
@@ -129,22 +140,7 @@ export const InspectorChart: FC<InspectorChartProps> = ({ attributes = [], date,
             </Flex>
             <div className={bem("chart")}>
                 <Line
-                    {...{
-                        options: {
-                            ...options,
-                            scales: {
-                                ...options.scales,
-                                x: {
-                                    ...options.scales.x,
-                                    time: {
-                                        ...options.scales.x.time,
-                                        tooltipFormat: lng === "cs" ? "d.MM.yyyy HH:mm:ss" : undefined,
-                                    },
-                                },
-                            },
-                        } as ChartOptions<"line">,
-                        data,
-                    }}
+                    {...{ options: options as ChartOptions<"line">, data }}
                     ref={(ref) => setRef(ref as unknown as Chart)}
                     onWheel={() => setZoomLevel(ref?.getZoomLevel?.() ?? 1)}
                     onTouchEnd={() => setZoomLevel(ref?.getZoomLevel?.() ?? 1)}
