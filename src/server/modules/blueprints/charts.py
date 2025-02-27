@@ -31,6 +31,7 @@ def charts_blueprint(_context: Context):
                 {
                     "id": attribute_id,
                     "label": data_units.first().attribute.label or data_units.first().attribute.name,
+                    "unit": data_units.first().attribute.unit,
                     "color": data_units.first().attribute.color,
                     "data": [
                         {

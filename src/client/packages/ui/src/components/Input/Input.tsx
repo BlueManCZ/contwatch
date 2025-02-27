@@ -21,6 +21,7 @@ export type InputProps = {
     icon?: IconProps["icon"];
     unit?: string;
     required?: boolean;
+    invalid?: boolean | string;
     min?: number;
     max?: number;
     step?: number;
@@ -31,9 +32,11 @@ export type InputProps = {
     postponedChanged?: boolean;
     options?: { name: string; value: string }[];
     focus?: boolean;
+    checked?: boolean;
 
     onValueChange?(value: string): void;
     onNumberChange?(value: number): void;
+    onCheckboxChange?(value: boolean): void;
 };
 
 export const Input: FC<InputProps> = ({
@@ -44,6 +47,7 @@ export const Input: FC<InputProps> = ({
     icon,
     unit,
     required,
+    invalid,
     min,
     max,
     step = 1,
@@ -54,8 +58,10 @@ export const Input: FC<InputProps> = ({
     postponedChanged,
     options,
     focus,
+    checked,
     onValueChange,
     onNumberChange,
+    onCheckboxChange,
 }) => {
     if (type === "pick" && !icon) {
         icon = "chevron-down";
@@ -140,7 +146,7 @@ export const Input: FC<InputProps> = ({
 
     return (
         // biome-ignore lint/a11y/noLabelWithoutControl:
-        <label className={bem({ grow, growMobile, hasIcon: !!icon })} style={{ flexBasis: basis }}>
+        <label className={bem({ grow, growMobile, hasIcon: !!icon, type })} style={{ flexBasis: basis }}>
             {title && <Text size="tiny">{title}</Text>}
             <div className={`${bem("wrapper", { controls })} ${openSans.variable}`}>
                 {controls && type === "number" && (
@@ -167,12 +173,21 @@ export const Input: FC<InputProps> = ({
                 )}
                 <Component
                     {...{ value: valueState, placeholder, required }}
+                    checked={checked}
                     className={bem("input")}
                     type={type === "number" ? "text" : type}
                     autoFocus={focus}
                     onChange={(e) => {
                         if (type !== "number") {
-                            setValueState(e.target.value);
+                            if (type === "checkbox" && e.target instanceof HTMLInputElement) {
+                                onCheckboxChange?.(e.target.checked);
+                                return;
+                            }
+
+                            if (type !== "radio") {
+                                setValueState(e.target.value);
+                            }
+
                             if (!postponedChanged) {
                                 onValueChange?.(e.target.value);
                             }
@@ -258,6 +273,16 @@ export const Input: FC<InputProps> = ({
                             size={16}
                         />
                     </div>
+                )}
+                {placeholder && (type === "checkbox" || type === "radio") && (
+                    <Text
+                        className={bem("checkbox-placeholder")}
+                        size="small"
+                        color={invalid || required ? "red" : undefined}
+                        weight={invalid || required ? "medium" : undefined}
+                    >
+                        {placeholder}
+                    </Text>
                 )}
             </div>
         </label>

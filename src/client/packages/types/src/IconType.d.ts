@@ -1,7 +1,9 @@
 export type IconType =
     | "arrow-down-square"
+    | "arrow-left"
     | "arrow-maximize"
     | "arrow-minimize"
+    | "arrow-right"
     | "arrow-right-down"
     | "arrow-right-up"
     | "arrow-up-square"
@@ -9,6 +11,7 @@ export type IconType =
     | "chart-square"
     | "chevron-down"
     | "circle"
+    | "cross"
     | "cross-small"
     | "edit-square"
     | "grid-mixed"

@@ -1,4 +1,5 @@
 .inspector-chart {
+    box-sizing: border-box;
     flex-grow: 1;
     padding: 1rem;
     border-radius: 2rem;
@@ -7,14 +8,10 @@
     &--fullScreen {
         position: fixed;
         top: 0;
+        bottom: 0;
         left: 0;
         width: 100%;
-        height: 100%;
+        height: 100vh;
         border-radius: unset;
-    }
-
-    &__chart {
-        flex-grow: 1;
-        height: 0;
     }
 }

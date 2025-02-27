@@ -21,6 +21,7 @@ export const options = {
         y: {
             beginAtZero: true,
             stack: "main",
+            stacked: false,
         },
     },
     plugins: {
@@ -45,5 +46,6 @@ export const options = {
                 },
             },
         },
+        tooltip: {},
     },
 };

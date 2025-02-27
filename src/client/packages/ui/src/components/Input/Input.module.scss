@@ -6,15 +6,16 @@
     $this: &;
 
     display: flex;
+    position: relative;
     flex-direction: column;
-    gap: 5px;
+    justify-content: space-between;
     min-width: 200px;
+    gap: 5px;
 
     --icon-filter: var(--themed-filter);
 
     &--grow {
         flex-grow: 1;
-        width: 0;
 
         &Mobile {
             @media (width <= 768px) {
@@ -102,6 +103,56 @@
     &--hasIcon {
         #{$this}__input {
             padding-right: 50px;
+        }
+    }
+
+    &--type {
+        &-checkbox, &-radio {
+            min-width: unset;
+
+            #{$this}__input {
+                display: flex;
+                flex-grow: 0;
+                flex-shrink: 0;
+                align-items: center;
+                width: clamp(25px, 2.1vw, 30px);
+                height: clamp(25px, 2.1vw, 30px);
+                margin: 0;
+                padding: 10px;
+                transition: var(--transition-default);
+                border-radius: 100%;
+                background: color-mix(in srgb, var(--color-silver), #fff0 70%);
+                cursor: pointer;
+                appearance: none;
+
+                &::after {
+                    content: "";
+                    display: block;
+                    position: relative;
+                    top: -1px;
+                    width: 3px;
+                    height: 10px;
+                    margin: 0 auto;
+                    transform: rotate(45deg);
+                    transition: border 0.1s ease-in-out;
+                }
+
+                &:checked {
+                    background: var(--color-primary);
+
+                    &::after {
+                        border: solid 3px var(--color-mono-light);
+                        border-top: unset;
+                        border-left: unset;
+                    }
+                }
+            }
+
+            #{$this}__wrapper {
+                padding: 10px 12px;
+                padding-right: 20px;
+                cursor: pointer;
+            }
         }
     }
 }

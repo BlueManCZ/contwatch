@@ -1,26 +1,20 @@
 "use client";
 
-import { useLocalization } from "@repo/store/hooks/useLocalization";
-import type { AttributeModel } from "@repo/types/AttributeModel";
 import { Button } from "@repo/ui/Button";
-import { Flex } from "@repo/ui/Flex";
 import { Column } from "@repo/ui/FlexPartials";
-import { Input } from "@repo/ui/Input";
 import { Popup } from "@repo/ui/Popup";
 import { Text } from "@repo/ui/Text";
 import { useTranslation } from "@repo/utils/useTranslation";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { useModel } from "swr-models";
 
-import { Attributes } from "../APIModelsDefinitions";
+import { Handlers } from "../APIModelsDefinitions";
+import { HandlerAttributes } from "./components/HandlerAttributes/HandlerAttributes";
 import { InspectorChart } from "./components/InspectorChart/InspectorChart";
 
 export default function Inspector() {
     const { t } = useTranslation();
-    const { model: attributes } = useModel<AttributeModel[]>(Attributes);
-
-    const { localizeDate } = useLocalization();
+    const { data: handlers } = Handlers.use<number[]>();
 
     const searchParams = useSearchParams();
     const paramAttribute = searchParams.get("attribute");
@@ -30,9 +24,7 @@ export default function Inspector() {
     const [selectedAttributes, setSelectedAttributes] = useState<number[]>(
         paramAttributeInt ? [paramAttributeInt] : [],
     );
-    const [selectedDate, setSelectedDate] = useState<string | undefined>(
-        new Date().toISOString().split("T")[0],
-    );
+    const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split("T")[0] ?? "");
     const [showSettings, setShowSettings] = useState(false);
 
     const onAttributeClick = (id: number) => {
@@ -47,40 +39,33 @@ export default function Inspector() {
     return (
         <>
             <Text size={"medium"} weight={"bold"}>
-                {t("Inspector")} {selectedDate ? `(${localizeDate(new Date(selectedDate))})` : ""}
+                {t("Inspector")}
             </Text>
-            <Popup visible={showSettings} onClose={() => setShowSettings(false)} title={t("Settings")}>
-                <Column padding={"block"} gap={"2rem"}>
-                    <Column gap={"1rem"}>
-                        <Text weight={"bold"}>{t("Show data for date")}</Text>
-                        <Flex>
-                            <Input
-                                type={"date"}
-                                growMobile
-                                value={selectedDate}
-                                onValueChange={(value) => setSelectedDate(value)}
+            <Popup
+                visible={showSettings}
+                onClose={() => setShowSettings(false)}
+                title={t("Displayed attributes")}
+            >
+                <Column padding={"block"} gap={"1.5rem"}>
+                    <Column wrap={"wrap"} gap={".3rem"} grow>
+                        {handlers?.map((handler) => (
+                            <HandlerAttributes
+                                handlerId={handler}
+                                key={handler}
+                                {...{ selectedAttributes, onAttributeClick }}
                             />
-                        </Flex>
+                        ))}
                     </Column>
-
                     <Column gap={"1rem"}>
-                        <Text weight={"bold"}>{t("Displayed attributes")}</Text>
-                        <Flex>
-                            <Flex wrap={"wrap"} gap={".7rem"}>
-                                {attributes?.map((attribute) => (
-                                    <Button
-                                        key={attribute.id}
-                                        onClick={() => onAttributeClick(attribute.id)}
-                                        growMobile
-                                        variant={
-                                            selectedAttributes.includes(attribute.id) ? "default" : "outline"
-                                        }
-                                    >
-                                        {attribute.label ?? attribute.name}
-                                    </Button>
-                                ))}
-                            </Flex>
-                        </Flex>
+                        <Button
+                            variant={"outline"}
+                            icon={"cross"}
+                            onClick={() => setSelectedAttributes([])}
+                            disabled={!selectedAttributes.length}
+                        >
+                            {t("Reset")}
+                        </Button>
+                        <Button onClick={() => setShowSettings(false)}>{t("Confirm")}</Button>
                     </Column>
                 </Column>
             </Popup>
@@ -88,6 +73,7 @@ export default function Inspector() {
                 attributes={selectedAttributes}
                 date={selectedDate}
                 onSettingsClick={() => setShowSettings(true)}
+                onDateChange={setSelectedDate}
             />
         </>
     );

@@ -1,5 +1,6 @@
 "use client";
 
+import type { IconType } from "@repo/types/IconType";
 import { bemClassNames } from "@repo/utils/bemClassNames";
 import Link from "next/link";
 import { type FC, type PropsWithChildren, useState } from "react";
@@ -16,7 +17,7 @@ export type ButtonProps = {
     growMobile?: boolean;
     center?: boolean;
     active?: boolean;
-    icon?: IconProps["icon"];
+    icon?: IconType;
     iconBackground?: IconProps["background"];
     iconInvert?: boolean;
     navbar?: boolean;
