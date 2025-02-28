@@ -23,14 +23,14 @@ def charts_blueprint(_context: Context):
         for attribute_id in attribute_ids:
             data_units = DataUnit.select(
                 lambda data_unit: data_unit.attribute.id == attribute_id and data_unit.date == date
-            )
+            )[:]
 
             print("Time of query:\t\t", datetime.now().time())
 
-            if not data_units:
+            if not data_units or len(data_units) == 0:
                 continue
 
-            first_data_unit = data_units.first()
+            first_data_unit = data_units[0]
             attr = first_data_unit.attribute
 
             charts_data.append(
