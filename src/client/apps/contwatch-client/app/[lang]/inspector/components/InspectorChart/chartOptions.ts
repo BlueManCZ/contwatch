@@ -4,6 +4,7 @@ export const options = {
     responsive: true,
     animation: false,
     maintainAspectRatio: false,
+    parsing: false,
     interaction: {
         mode: "nearest",
         intersect: false,

@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import datetime
 
 from flask import Blueprint
 from pony import orm
@@ -15,6 +15,7 @@ def charts_blueprint(_context: Context):
     @blueprint.route("/attribute/<int_list:attribute_ids>/<string:date>")
     @orm.db_session
     def attribute(attribute_ids, date):
+        print("Time of request:\t", datetime.now().time())
         charts_data = []
 
         date = datetime.fromisoformat(date).date() if date else datetime.now().date()
@@ -24,26 +25,31 @@ def charts_blueprint(_context: Context):
                 lambda data_unit: data_unit.attribute.id == attribute_id and data_unit.date == date
             )
 
+            print("Time of query:\t\t", datetime.now().time())
+
             if not data_units:
                 continue
+
+            first_data_unit = data_units.first()
+            attr = first_data_unit.attribute
 
             charts_data.append(
                 {
                     "id": attribute_id,
-                    "label": data_units.first().attribute.label or data_units.first().attribute.name,
-                    "unit": data_units.first().attribute.unit,
-                    "color": data_units.first().attribute.color,
+                    "label": attr.label or attr.name,
+                    "unit": attr.unit,
+                    "color": attr.color,
                     "data": [
                         {
-                            "x": int(
-                                datetime.combine(data_unit.date, time.fromisoformat(str(data_unit.time))).timestamp()
-                            ),
+                            "x": datetime.fromisoformat(f"{data_unit.date} {data_unit.time[:-7]}").timestamp(),
                             "y": data_unit.value,
                         }
                         for data_unit in data_units
                     ],
                 }
             )
+
+            print("Time of processing:\t", datetime.now().time())
 
         # Return charts data for Chart.js
         return charts_data
