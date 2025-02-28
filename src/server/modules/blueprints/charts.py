@@ -41,7 +41,7 @@ def charts_blueprint(_context: Context):
                     "color": attr.color,
                     "data": [
                         {
-                            "x": datetime.fromisoformat(f"{data_unit.date} {data_unit.time[:-7]}").timestamp(),
+                            "x": datetime.fromisoformat(f"{data_unit.date} {data_unit.time[:8]}").timestamp(),
                             "y": data_unit.value,
                         }
                         for data_unit in data_units
