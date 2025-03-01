@@ -17,14 +17,15 @@ def attributes_blueprint(_context: Context):
             "name": attribute.name,
             "handler": attribute.handler.id,
             "enabled": attribute.enabled,
-            "unit": attribute.unit,
+            "base_unit": attribute.unit,
             "label": attribute.label,
             "icon": attribute.icon,
             "order": attribute.order,
             "rounding": attribute.rounding,
             "color": attribute.color,
             "data": {
-                "value": registered_attribute(attribute).get_current_value(),
+                "value": registered_attribute(attribute).get_display_value(),
+                "unit": registered_attribute(attribute).get_display_unit(),
                 "trend": registered_attribute(attribute).get_trend(),
             },
         }

@@ -5,7 +5,7 @@ export interface AttributeModel {
     name: string;
     handler?: number;
     enabled?: boolean;
-    unit?: string;
+    base_unit?: string;
     label?: string;
     icon?: IconType;
     order?: number;
@@ -13,6 +13,7 @@ export interface AttributeModel {
     color?: string;
     data?: {
         value?: string | number;
+        unit?: string;
         trend: -1 | 0 | 1;
     };
 }

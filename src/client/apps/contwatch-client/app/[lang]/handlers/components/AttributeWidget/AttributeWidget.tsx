@@ -112,7 +112,7 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
                         <Text size={"small"} weight={"bold"} nowrap>
                             {getAttributeName()}
                             {editMode ? (
-                                attribute.unit && ` (${attribute.unit})`
+                                attribute.data?.unit && ` (${attribute.data.unit})`
                             ) : (
                                 <>
                                     {minStat?.value === attribute.data?.value &&
@@ -149,7 +149,7 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
                                         <Flex gap={"0.2rem"} alignItems={"center"}>
                                             <Icon icon={"arrow-down-square"} size={15} />
                                             <Text size={"tiny"}>
-                                                {minStat.value} {attribute.unit}
+                                                {minStat.value} {attribute.data?.unit}
                                             </Text>
                                         </Flex>
                                     )}
@@ -157,7 +157,7 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
                                         <Flex gap={"0.2rem"} alignItems={"center"}>
                                             <Icon icon={"arrow-up-square"} size={15} />
                                             <Text size={"tiny"}>
-                                                {maxStat.value} {attribute.unit}
+                                                {maxStat.value} {attribute.data?.unit}
                                             </Text>
                                         </Flex>
                                     )}
@@ -172,7 +172,7 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
                     <Icon icon={"edit-square"} variant={"circle"} />
                 ) : (
                     <Text className={bem("value")} nowrap>
-                        <b>{attribute.data?.value}</b> {attribute.unit}
+                        <b>{attribute.data?.value}</b> {attribute.data?.unit}
                     </Text>
                 )}
             </div>
@@ -207,7 +207,7 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
                         />
                         <Input
                             title={t("Unit")}
-                            value={attribute.unit}
+                            value={attribute.data?.unit}
                             onValueChange={(value) =>
                                 setAttribute((a) => {
                                     if (!a) return a;

@@ -7,6 +7,7 @@ from pony.orm import desc
 from modules.models import attribute as attribute_model
 from modules.models import data_stat as data_stat_model
 from modules.models import data_unit as data_unit_model
+from modules.models import unit as unit_model
 
 
 class AttributeManager:
@@ -20,6 +21,9 @@ class AttributeManager:
         self.rounding = db_instance.rounding
         self.socketio = socketio
         self.value = None
+        self.display_value = None
+        self.base_unit = db_instance.unit
+        self.display_unit = None
         self.last_value_save_skipped = False
         self.last_date = datetime.now().date()
 
@@ -37,7 +41,7 @@ class AttributeManager:
 
         last_added = None
         for value in last_values:
-            if last_added != value:
+            if last_added != value and value is not None:
                 self.trend_queue.append(value)
                 last_added = value
             self.value = value
@@ -71,6 +75,12 @@ class AttributeManager:
     def get_current_value(self):
         return self.value
 
+    def get_display_value(self):
+        return self.display_value or self.value
+
+    def get_display_unit(self):
+        return self.display_unit or self.base_unit
+
     def get_instance(self):
         return attribute_model.get_by_id(self.id)
 
@@ -100,6 +110,20 @@ class AttributeManager:
             self.value = value
             data_unit_model.add(self.handler_id, self.id, value, datetime.now())
             self.trend_queue.append(self.value)
+
+            # TODO: Make this more dynamic
+            if len(str(int(value))) > 3:
+                unit = unit_model.Unit.select(lambda u: u.base_unit == self.base_unit and u.base_ratio == 0.001).first()
+                if unit:
+                    self.display_value = round(value * unit_model.Unit.select(lambda u: u.base_unit == self.base_unit and u.base_ratio == 0.001).first().base_ratio, 2)
+                    self.display_unit = unit_model.Unit.select(lambda u: u.base_unit == self.base_unit and u.base_ratio == 0.001).first().name
+                else:
+                    self.display_value = value
+                    self.display_unit = self.get_instance().unit
+            else:
+                self.display_value = value
+                self.display_unit = self.get_instance().unit
+
             self.check_and_add_stat_units(value)
             value_changed = True
         else:
