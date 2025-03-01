@@ -149,7 +149,7 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
                                         <Flex gap={"0.2rem"} alignItems={"center"}>
                                             <Icon icon={"arrow-down-square"} size={15} />
                                             <Text size={"tiny"}>
-                                                {minStat.value} {attribute.data?.unit}
+                                                {minStat.value} {minStat.unit}
                                             </Text>
                                         </Flex>
                                     )}
@@ -157,7 +157,7 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
                                         <Flex gap={"0.2rem"} alignItems={"center"}>
                                             <Icon icon={"arrow-up-square"} size={15} />
                                             <Text size={"tiny"}>
-                                                {maxStat.value} {attribute.data?.unit}
+                                                {maxStat.value} {maxStat.unit}
                                             </Text>
                                         </Flex>
                                     )}

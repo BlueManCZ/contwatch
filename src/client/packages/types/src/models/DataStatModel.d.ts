@@ -3,6 +3,7 @@ export interface DataStatModel {
     attribute: number;
     type: string;
     value: number;
+    unit: string;
     date: string;
     time: string;
 }
