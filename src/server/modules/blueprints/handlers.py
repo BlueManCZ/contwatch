@@ -63,7 +63,7 @@ def handlers_blueprint(_context: Context):
     @blueprint.route("/")
     @orm.db_session
     def handlers():
-        return [handler.get_id() for handler in _context.manager.registered_handlers.values()], StatusCode.OK
+        return sorted([handler.get_id() for handler in _context.manager.registered_handlers.values()]), StatusCode.OK
 
     @blueprint.route("/<int:handler_id>")
     @orm.db_session
