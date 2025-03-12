@@ -1,5 +1,7 @@
 from time import sleep
 
+from pony.utils import throw
+
 from modules.utils import get_current_seconds
 
 
@@ -20,6 +22,9 @@ class AbstractHandler:
     config_fields = {}
     """Configuration form definition for initialization from GUI"""
 
+    handler_actions = {}
+    """Dict of actions available for the handler"""
+
     # Each handler class can and should implement the following methods:
 
     def get_name(self):
@@ -30,9 +35,9 @@ class AbstractHandler:
         """Returns description of the handler displayed in GUI."""
         return f"{self.type} handler"
 
-    def send_message(self, message):
-        """Send a message to the target."""
-        pass
+    def execute_action(self, destination, params):
+        """Execute handler action."""
+        throw(NotImplementedError)
 
     def is_connected(self):
         """Returns True if the target is connected and ready to use."""
@@ -100,6 +105,10 @@ class AbstractHandler:
     def set_last_message_seconds(self, seconds):
         """Sets the time in seconds when the last message was received."""
         self._last_message_seconds = seconds
+
+    def get_actions(self):
+        """Returns list of actions available for the handler."""
+        return self.handler_actions
 
     # def add_changed(self, value):
     #     """

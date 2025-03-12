@@ -20,6 +20,24 @@ class JiabaidaBmsSerialHandler(SerialHandler):
         "auto-reconnect": ["bool", "Auto reconnect", True],
         "trim-echo": ["bool", "Trim echoed messages", False],
     }
+    handler_actions = {
+        "00": {
+            "description": "00",
+            "params": {"mos_state": "00"},
+        },
+        "01": {
+            "description": "01",
+            "params": {"mos_state": "01"},
+        },
+        "10": {
+            "description": "10",
+            "params": {"mos_state": "10"},
+        },
+        "11": {
+            "description": "11",
+            "params": {"mos_state": "11"},
+        },
+    }
 
     def _read_block(self, query):
         self.connection.flushInput()
@@ -89,13 +107,12 @@ class JiabaidaBmsSerialHandler(SerialHandler):
 
         return json
 
-    def send_message(self, message):
+    def execute_action(self, destination, params):
         if self.is_connected():
             try:
                 mos_template = "DD 5A E1 02 00 ## ?? ?? 77"
-                label = message.get_label()
-                if "mos-state" in label:
-                    bits = label.split("-")[2]
+                if "mos_state" in params:
+                    bits = params["mos_state"]
                     text = mos_template
                     if bits not in ["00", "01", "10", "11"]:
                         return False

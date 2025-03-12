@@ -31,4 +31,11 @@ export interface HandlerModel extends HandlerTypeModel {
     }[];
     options?: HandlerOptions;
     availableAttributes: { name: string; value: string | number }[];
+    actions: {
+        [key: string]: {
+            description: string;
+            destination: string;
+            params: Record<string, string>;
+        };
+    };
 }

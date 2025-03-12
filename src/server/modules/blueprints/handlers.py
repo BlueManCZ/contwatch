@@ -45,6 +45,7 @@ def handlers_blueprint(_context: Context):
                 if handler.get_last_message_seconds()
                 else None
             ),
+            "actions": handler.get_actions(),
         }
 
     @blueprint.route("/available-handlers")
@@ -117,6 +118,17 @@ def handlers_blueprint(_context: Context):
         last_message = _context.manager.last_messages.get(handler_id, None)
         if last_message:
             return last_message, StatusCode.OK
+        return {"status": "not found"}, StatusCode.NOT_FOUND
+
+    @blueprint.route("/<int:handler_id>/action/<string:action_name>", methods=["PUT"])
+    def handler_action(handler_id, action_name):
+        handler = _context.manager.registered_handlers.get(handler_id, None)
+        if handler:
+            if handler.get_actions and action_name in handler.get_actions():
+                action = handler.get_actions()[action_name]
+                handler.execute_action(action.get("destination"), action.get("params"))
+
+                return {"status": "ok"}, StatusCode.OK
         return {"status": "not found"}, StatusCode.NOT_FOUND
 
     @blueprint.route("/add-handler", methods=["POST"])

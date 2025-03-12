@@ -19,11 +19,13 @@ import {
 } from "@dnd-kit/sortable";
 import type { HandlerModel } from "@repo/types/HandlerModel";
 import type { IconType } from "@repo/types/IconType";
+import { Button } from "@repo/ui/Button";
 import { Flex } from "@repo/ui/Flex";
 import { Column } from "@repo/ui/FlexPartials";
 import { Icon } from "@repo/ui/Icon";
 import { Text } from "@repo/ui/Text";
 import { bemClassNames } from "@repo/utils/bemClassNames";
+import { jsonFetcher } from "@repo/utils/communication";
 import { useTranslation } from "@repo/utils/useTranslation";
 import { DateTime } from "luxon";
 import Link from "next/link";
@@ -132,6 +134,39 @@ export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode, att
                     >
                         <SortableContext items={attributeIds} strategy={verticalListSortingStrategy}>
                             <div className={bem("body")}>
+                                {editMode && Object.keys(handler.actions).length > 0 && (
+                                    <>
+                                        <Flex padding={"half-rem"} margin={"horizontal-half-rem"}>
+                                            <Text size={"tiny"} weight={"medium"} color={"silver"} uppercase>
+                                                {t("Available actions")}
+                                            </Text>
+                                        </Flex>
+                                        <div style={{ padding: "0 15px 10px" }}>
+                                            <Flex gap={".5rem"}>
+                                                {Object.keys(handler.actions).map((action) => {
+                                                    return (
+                                                        <Button
+                                                            icon={"circle"}
+                                                            key={action}
+                                                            grow
+                                                            onClick={() => {
+                                                                navigator.vibrate?.(40);
+                                                                jsonFetcher(
+                                                                    Handlers.endpoint({
+                                                                        id: `${handler.id}/action/${action}`,
+                                                                    }),
+                                                                    "PUT",
+                                                                );
+                                                            }}
+                                                        >
+                                                            {handler.actions[action]?.description}
+                                                        </Button>
+                                                    );
+                                                })}
+                                            </Flex>
+                                        </div>
+                                    </>
+                                )}
                                 {editMode && attributeIds.length > 0 && (
                                     <Flex padding={"half-rem"} margin={"horizontal-half-rem"}>
                                         <Text size={"tiny"} weight={"medium"} color={"silver"} uppercase>
@@ -196,7 +231,8 @@ export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode, att
                                                             {attribute.name}
                                                         </Text>
                                                         <Text size={"tiny"} nowrap>
-                                                            {t("Latest value")}: <b>{attribute.value}</b>
+                                                            {t("Latest value")}:{" "}
+                                                            <b>{attribute.value.toString()}</b>
                                                         </Text>
                                                     </Column>
                                                     <Icon

@@ -19,7 +19,7 @@ def datastats_blueprint(_context: Context):
         stat_unit = unit
 
         # TODO: Make this more dynamic
-        if len(str(int(value))) > 3:
+        if len(str(abs(int(value)))) > 3:
             unit = Unit.select(lambda u: u.base_unit == data_stat.attribute.unit and u.base_ratio == 0.001).first()
             if unit:
                 stat_value = round(

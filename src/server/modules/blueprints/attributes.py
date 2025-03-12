@@ -59,7 +59,7 @@ def attributes_blueprint(_context: Context):
         label = request.json.get("label")
         db_attribute.label = label if label else None
 
-        unit = request.json.get("unit")
+        unit = request.json.get("base_unit")
         db_attribute.unit = unit if unit else None
 
         rounding = request.json.get("rounding")

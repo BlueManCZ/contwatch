@@ -112,7 +112,7 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
                         <Text size={"small"} weight={"bold"} nowrap>
                             {getAttributeName()}
                             {editMode ? (
-                                attribute.data?.unit && ` (${attribute.data.unit})`
+                                attribute.base_unit && ` (${attribute.base_unit})`
                             ) : (
                                 <>
                                     {minStat?.value === attribute.data?.value &&
@@ -207,13 +207,13 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
                         />
                         <Input
                             title={t("Unit")}
-                            value={attribute.data?.unit}
+                            value={attribute.base_unit}
                             onValueChange={(value) =>
                                 setAttribute((a) => {
                                     if (!a) return a;
                                     return {
                                         ...a,
-                                        unit: value,
+                                        base_unit: value,
                                     };
                                 })
                             }

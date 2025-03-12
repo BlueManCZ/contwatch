@@ -72,7 +72,7 @@ export const InspectorChart: FC<InspectorChartProps> = ({
     // biome-ignore lint/correctness/useExhaustiveDependencies: Reset zoom on attributes change
     useEffect(() => {
         resetZoomLevel();
-    }, [attributes, resetZoomLevel]);
+    }, [attributes, resetZoomLevel, date]);
 
     // TODO: Fetch each attribute data separately, this is bad for caching.
     const { data: attributeChartData } = useAttributeChart(attributes.sort(), date);

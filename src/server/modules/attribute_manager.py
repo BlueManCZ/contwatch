@@ -112,7 +112,7 @@ class AttributeManager:
             self.trend_queue.append(self.value)
 
             # TODO: Make this more dynamic
-            if len(str(int(value))) > 3:
+            if len(str(abs(int(value)))) > 3:
                 unit = unit_model.Unit.select(lambda u: u.base_unit == self.base_unit and u.base_ratio == 0.001).first()
                 if unit:
                     self.display_value = round(value * unit_model.Unit.select(lambda u: u.base_unit == self.base_unit and u.base_ratio == 0.001).first().base_ratio, 2)
