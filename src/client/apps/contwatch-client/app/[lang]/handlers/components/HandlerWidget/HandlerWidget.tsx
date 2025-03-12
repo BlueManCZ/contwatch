@@ -142,7 +142,7 @@ export const HandlerWidget: FC<HandlerWidgetProps> = ({ handlerId, editMode, att
                                             </Text>
                                         </Flex>
                                         <div style={{ padding: "0 15px 10px" }}>
-                                            <Flex gap={".5rem"}>
+                                            <Flex gap={".5rem"} wrap={"wrap"}>
                                                 {Object.keys(handler.actions).map((action) => {
                                                     return (
                                                         <Button
