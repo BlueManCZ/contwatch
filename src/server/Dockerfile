@@ -31,7 +31,7 @@ WORKDIR /api
 COPY --from=builder /api ./
 
 RUN apk update \
-#    && apk add --no-cache binutils libmagic \
+    && apk add --no-cache libpq-dev \
 #    && ln -s "/usr/lib/libcrypto.so.3" "/usr/lib/libcrypto.so" \
     && pip3 install pipenv --no-cache-dir --disable-pip-version-check --root-user-action=ignore
 #    && crontab /api/cron
