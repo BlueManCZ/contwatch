@@ -29,6 +29,8 @@ export default async function PageHandlers({ params }: PageParams) {
             await DataStats.fetch<DataStatModel[]>({ params: { attribute: attributeId.toString() } });
     }
 
+    console.log(Handlers.endpoint());
+
     return (
         <CustomSWRConfig
             value={{
@@ -43,9 +45,7 @@ export default async function PageHandlers({ params }: PageParams) {
                 {t("Handlers")}
             </Text>
             <HandlersWrapper>
-                {handlerIds?.map((handlerId) => (
-                    <HandlerWidget key={handlerId} {...{ handlerId }} />
-                ))}
+                {handlerIds?.map((handlerId) => <HandlerWidget key={handlerId} {...{ handlerId }} />)}
             </HandlersWrapper>
         </CustomSWRConfig>
     );
