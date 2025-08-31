@@ -11,3 +11,4 @@ services:
     restart: always
     working_dir: /api
     network_mode: host
+    privileged: true
