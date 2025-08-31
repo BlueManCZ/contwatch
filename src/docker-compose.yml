@@ -1,0 +1,13 @@
+services:
+  client:
+    build:
+      context: client
+      dockerfile: ./apps/contwatch-client/Dockerfile
+    restart: always
+    network_mode: host
+  api:
+    build:
+      context: server
+    restart: always
+    working_dir: /api
+    network_mode: host

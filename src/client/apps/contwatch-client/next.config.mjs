@@ -2,7 +2,7 @@
 import { HOST, PORT, PROTOCOL } from "./src/settings.mjs";
 
 const nextConfig = {
-    // output: "standalone",
+    output: "standalone",
     experimental: {
         turbo: {
             useSwcCss: true,
