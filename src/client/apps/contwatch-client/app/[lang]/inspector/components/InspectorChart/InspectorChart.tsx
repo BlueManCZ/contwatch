@@ -56,7 +56,7 @@ export const InspectorChart: FC<InspectorChartProps> = ({
 
     const [fullScreen, setFullScreen] = useState(false);
 
-    // Loading the zoom plugin only on client side, because it doesn't support SSR
+    // Loading the zoom plugin only on the client side because it doesn't support SSR
     useEffect(() => {
         if (typeof window !== "undefined")
             import("chartjs-plugin-zoom").then((zoomPlugin) => {
@@ -77,7 +77,7 @@ export const InspectorChart: FC<InspectorChartProps> = ({
     // TODO: Fetch each attribute data separately, this is bad for caching.
     const { data: attributeChartData } = useAttributeChart(attributes.sort(), date);
 
-    // UseEffect to exit fullscreen when browser exits fullscreen
+    // UseEffect to exit fullscreen when the browser exits fullscreen
     useEffect(() => {
         const exitFullscreen = () => {
             if (!document.fullscreenElement) {

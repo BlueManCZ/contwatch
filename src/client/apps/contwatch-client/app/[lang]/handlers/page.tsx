@@ -29,8 +29,6 @@ export default async function PageHandlers({ params }: PageParams) {
             await DataStats.fetch<DataStatModel[]>({ params: { attribute: attributeId.toString() } });
     }
 
-    console.log(Handlers.endpoint());
-
     return (
         <CustomSWRConfig
             value={{

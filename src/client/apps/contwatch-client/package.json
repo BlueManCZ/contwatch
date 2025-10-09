@@ -20,7 +20,7 @@
     "@repo/ui": "*",
     "@repo/utils": "*",
     "@xyflow/react": "12.3.6",
-    "chart.js": "4.4.7",
+    "chart.js": "4.5.0",
     "chartjs-adapter-date-fns": "3.0.0",
     "chartjs-plugin-zoom": "2.2.0",
     "luxon": "3.5.0",

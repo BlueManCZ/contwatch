@@ -64,6 +64,8 @@ export const Icon: FC<IconProps> = ({
                 onKeyDown={(e) => e.key === "Enter" && onClick && onClick(e)}
                 tabIndex={onClick ? 0 : undefined}
                 style={{ width: size, height: size }}
+                loading="eager"
+                unoptimized
             />
         </div>
     );

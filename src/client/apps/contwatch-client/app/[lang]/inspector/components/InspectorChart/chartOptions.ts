@@ -1,3 +1,5 @@
+import type { Chart } from "chart.js";
+
 export const options = {
     pointRadius: 0,
     borderWidth: 1,
@@ -35,10 +37,28 @@ export const options = {
                     enabled: true,
                 },
                 mode: "x",
+                onZoomStart: ({ chart }: { chart: Chart }) => {
+                    // @ts-expect-error Ignore
+                    chart.config.options.plugins.tooltip.enabled = false;
+                },
+                onZoomComplete: ({ chart }: { chart: Chart }) => {
+                    // @ts-expect-error Ignore
+                    chart.config.options.plugins.tooltip.enabled = true;
+                    chart.update();
+                },
             },
             pan: {
                 enabled: true,
                 mode: "x",
+                onPanStart: ({ chart }: { chart: Chart }) => {
+                    // @ts-expect-error Ignore
+                    chart.config.options.plugins.tooltip.enabled = false;
+                },
+                onPanComplete: ({ chart }: { chart: Chart }) => {
+                    // @ts-expect-error Ignore
+                    chart.config.options.plugins.tooltip.enabled = true;
+                    chart.update();
+                },
             },
             limits: {
                 x: {

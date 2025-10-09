@@ -42,6 +42,7 @@ WORKDIR /contwatch-client
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 USER nextjs
+ENV HOSTNAME=0.0.0.0
 
 COPY --from=installer --chown=nextjs:nodejs /contwatch-client/apps/contwatch-client/.next/standalone ./
 COPY --from=installer --chown=nextjs:nodejs /contwatch-client/apps/contwatch-client/.next/static ./apps/contwatch-client/.next/static
