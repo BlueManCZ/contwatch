@@ -1,11 +1,11 @@
 services:
   client:
-    environment:
-      TURBO_TEAM: "$TURBO_TEAM"
-      TURBO_TOKEN: "$TURBO_TOKEN"
     build:
       context: client
       dockerfile: ./apps/contwatch-client/Dockerfile
+      args:
+        TURBO_TEAM: "$TURBO_TEAM"
+        TURBO_TOKEN: "$TURBO_TOKEN"
     restart: always
     network_mode: host
   api:
