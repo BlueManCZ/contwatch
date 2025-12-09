@@ -28,7 +28,7 @@ WORKDIR /api
 COPY --from=builder /api ./
 
 RUN apt update \
-    && apt install -y libpq-dev \
+    && apt install -y libpq-dev
 #    && ln -s "/usr/lib/libcrypto.so.3" "/usr/lib/libcrypto.so" \
 #    && pip3 install pipenv --no-cache-dir --disable-pip-version-check --root-user-action=ignore
 #    && crontab /api/cron
