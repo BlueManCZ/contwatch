@@ -27,6 +27,8 @@ def _quit():
 
 
 if __name__ == "__main__":
+    print("Starting server...")
+
     signal(SIGINT, _quit_handler)
 
     app = Flask(__name__)
