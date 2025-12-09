@@ -38,6 +38,7 @@ COPY . ./
 
 ARG PORT
 ENV PORT=${PORT}
+ENV PYTHONUNBUFFERED=1
 
 # runs the production server
 CMD ["sh", "-c", "./main.py"]
