@@ -61,7 +61,8 @@ export const Popup: FC<PropsWithChildren<PopupProps>> = ({
     return (
         visible && (
             <div className={bem({ visible })}>
-                {/* biome-ignore lint/a11y/useKeyWithClickEvents: */}
+                {/** biome-ignore lint/a11y/noStaticElementInteractions: off */}
+                {/** biome-ignore lint/a11y/useKeyWithClickEvents: off */}
                 <div className={bem("overlay")} onClick={onClose} />
                 <Column maxHeight={"90%"} maxWidth={"90%"}>
                     <Column variant="popup" width="100%">

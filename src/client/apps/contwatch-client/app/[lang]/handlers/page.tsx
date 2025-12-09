@@ -43,7 +43,9 @@ export default async function PageHandlers({ params }: PageParams) {
                 {t("Handlers")}
             </Text>
             <HandlersWrapper>
-                {handlerIds?.map((handlerId) => <HandlerWidget key={handlerId} {...{ handlerId }} />)}
+                {handlerIds?.map((handlerId) => (
+                    <HandlerWidget key={handlerId} {...{ handlerId }} />
+                ))}
             </HandlersWrapper>
         </CustomSWRConfig>
     );

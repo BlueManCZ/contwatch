@@ -90,6 +90,8 @@ export const AttributeWidget: FC<AttributeWidgetProps> = ({
 
     return (
         <>
+            {/** biome-ignore lint/a11y/noStaticElementInteractions: off */}
+            {/** biome-ignore lint/a11y/useKeyWithClickEvents: off */}
             <div
                 ref={setNodeRef}
                 style={style}

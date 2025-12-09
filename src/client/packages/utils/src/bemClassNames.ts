@@ -5,7 +5,6 @@ export const bemClassNames = (classNamesMap: { [key: string]: string }, target?:
     ) => {
         let blockClassName = "";
         if (typeof classNameOrModifiers === "object") {
-            // biome-ignore lint/style/noParameterAssign:
             modifiers = classNameOrModifiers;
         } else if (typeof classNameOrModifiers === "number") {
             blockClassName = classNameOrModifiers.toString();

@@ -90,6 +90,24 @@ export const Input: FC<InputProps> = ({
         [max, min],
     );
 
+    const parseLocalizedFloat = useCallback((input: string, locale: LOCALES) => {
+        const formatter = new Intl.NumberFormat(locale);
+        const parts = formatter.formatToParts(1234.5); // Example number to extract separators
+
+        const decimalSeparator = parts.find((part) => part.type === "decimal")?.value || ".";
+        const groupSeparator = parts.find((part) => part.type === "group")?.value || ",";
+
+        // Replace group separator with nothing and decimal separator with '.'
+        const normalizedInput = input.split(groupSeparator).join("").split(decimalSeparator).join(".");
+
+        // Parse the normalized number
+        return Number.parseFloat(normalizedInput);
+    }, []);
+
+    const formatLocalizedFloat = useCallback((value: number, locale: LOCALES) => {
+        return new Intl.NumberFormat(locale).format(value);
+    }, []);
+
     const commitNumberValue = (value: number, triggerChangeEvent = false) => {
         const formattedValue = formatLocalizedFloat(value, currentLocale);
         setValueState(formattedValue);
@@ -122,35 +140,18 @@ export const Input: FC<InputProps> = ({
         } else {
             setValueState(value?.toString() ?? "");
         }
-    }, [currentLocale, processValue, type, value]);
-
-    function parseLocalizedFloat(input: string, locale: LOCALES) {
-        const formatter = new Intl.NumberFormat(locale);
-        const parts = formatter.formatToParts(1234.5); // Example number to extract separators
-
-        const decimalSeparator = parts.find((part) => part.type === "decimal")?.value || ".";
-        const groupSeparator = parts.find((part) => part.type === "group")?.value || ",";
-
-        // Replace group separator with nothing and decimal separator with '.'
-        const normalizedInput = input.split(groupSeparator).join("").split(decimalSeparator).join(".");
-
-        // Parse the normalized number
-        return Number.parseFloat(normalizedInput);
-    }
-
-    function formatLocalizedFloat(value: number, locale: LOCALES) {
-        return new Intl.NumberFormat(locale).format(value);
-    }
+    }, [currentLocale, processValue, type, value, formatLocalizedFloat, parseLocalizedFloat]);
 
     const Component = type === "long-text" ? "textarea" : type === "pick" ? "select" : "input";
 
     return (
-        // biome-ignore lint/a11y/noLabelWithoutControl:
+        // biome-ignore lint/a11y/noLabelWithoutControl: off
         <label className={bem({ grow, growMobile, hasIcon: !!icon, type })} style={{ flexBasis: basis }}>
             {title && <Text size="tiny">{title}</Text>}
             <div className={`${bem("wrapper", { controls })} ${openSans.variable}`}>
                 {controls && type === "number" && (
-                    // biome-ignore lint/a11y/useKeyWithClickEvents:
+                    // biome-ignore lint/a11y/noStaticElementInteractions: off
+                    // biome-ignore lint/a11y/useKeyWithClickEvents: off
                     <div className={bem("left-control")} onClick={(e) => e.preventDefault()}>
                         <Icon
                             icon="minus"

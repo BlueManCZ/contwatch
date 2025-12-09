@@ -12,7 +12,10 @@ export function Providers({ children, lang }: PropsWithChildren<{ lang: string }
         //     }}
         //     enableSystem
         // >
-        <StoreProvider lang={lang}>{children}</StoreProvider>
+        // TODO: Disable devTools in production
+        <StoreProvider lang={lang} devTools={true}>
+            {children}
+        </StoreProvider>
         // </ThemeProvider>
     );
 }

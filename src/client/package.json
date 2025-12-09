@@ -1,42 +1,42 @@
 {
-  "name": "contwatch-turborepo",
-  "private": true,
-  "scripts": {
-    "build": "turbo build",
-    "dev": "turbo dev",
-    "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "stylelint": "turbo stylelint",
-    "biome": "biome check",
-    "test": "turbo test",
-    "ci": "turbo build lint stylelint test",
-    "screen": "cd apps/contwatch-client && npm run build && screen -S contwatch-client -m npm run start"
-  },
-  "dependencies": {
-    "lodash.debounce": "4.0.8",
-    "next": "15.5.4",
-    "sass": "1.83.0",
-    "swr-models": "1.0.2",
-    "turbo": "2.5.8",
-    "typescript": "5.9.3"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "1.9.4",
-    "@types/lodash.debounce": "4.0.9",
-    "eslint-plugin-simple-import-sort": "12.1.1",
-    "prettier": "3.4.2",
-    "stylelint": "16.10.0",
-    "stylelint-config-prettier-scss": "1.0.0",
-    "stylelint-config-property-sort-order-smacss": "10.0.0",
-    "stylelint-config-standard-scss": "13.1.0",
-    "stylelint-order": "6.0.4"
-  },
-  "engines": {
-    "node": ">=22"
-  },
-  "packageManager": "npm@10.8.1",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ]
+    "name": "contwatch-turborepo",
+    "private": true,
+    "scripts": {
+        "build": "turbo build",
+        "dev": "turbo dev",
+        "lint": "turbo lint",
+        "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+        "stylelint": "turbo stylelint",
+        "biome": "biome check",
+        "test": "turbo test",
+        "ci": "turbo lint stylelint build test && npm run biome",
+        "screen": "cd apps/contwatch-client && npm run build && screen -S contwatch-client -m npm run start"
+    },
+    "dependencies": {
+        "lodash.debounce": "4.0.8",
+        "next": "15.5.7",
+        "sass": "1.83.0",
+        "swr-models": "1.0.2",
+        "turbo": "2.5.8",
+        "typescript": "5.9.3"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "2.3.8",
+        "@types/lodash.debounce": "4.0.9",
+        "eslint-plugin-simple-import-sort": "12.1.1",
+        "prettier": "3.4.2",
+        "stylelint": "16.10.0",
+        "stylelint-config-prettier-scss": "1.0.0",
+        "stylelint-config-property-sort-order-smacss": "10.0.0",
+        "stylelint-config-standard-scss": "13.1.0",
+        "stylelint-order": "6.0.4"
+    },
+    "engines": {
+        "node": ">=22"
+    },
+    "packageManager": "npm@10.8.1",
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ]
 }

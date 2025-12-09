@@ -1,5 +1,5 @@
 {
-    "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+    "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
     "vcs": {
         "enabled": false,
         "clientKind": "git",
@@ -7,7 +7,7 @@
     },
     "files": {
         "ignoreUnknown": false,
-        "ignore": [".next", "*.json"]
+        "includes": ["**/*.ts", "**/*.tsx", "**/*.md", "!**/.next"]
     },
     "formatter": {
         "enabled": true,
@@ -15,16 +15,27 @@
         "indentWidth": 4,
         "lineWidth": 110
     },
-    "organizeImports": {
-        "enabled": false
-    },
     "linter": {
         "enabled": true,
         "rules": {
             "recommended": true,
             "correctness": {
                 "noUnusedImports": {
-                    "level": "error"
+                    "level": "error",
+                    "fix": "safe",
+                    "options": {}
+                },
+                "useParseIntRadix": "off"
+            },
+            "suspicious": {
+                "noConfusingVoidType": "off",
+                "noExplicitAny": "off"
+            },
+            "style": {
+                "useConsistentCurlyBraces": {
+                    "level": "off",
+                    "fix": "safe",
+                    "options": {}
                 }
             }
         }
@@ -32,6 +43,26 @@
     "javascript": {
         "formatter": {
             "quoteStyle": "double"
+        }
+    },
+    "assist": {
+        "actions": {
+            "source": {
+                "organizeImports": {
+                    "level": "off",
+                    "options": {
+                        "groups": [
+                            ":URL",
+                            ":BLANK_LINE:",
+                            ["**", "!@repo/**", "!./**", "!../**"],
+                            ":BLANK_LINE:",
+                            "@repo/**",
+                            ":BLANK_LINE:",
+                            ["./**", "../**"]
+                        ]
+                    }
+                }
+            }
         }
     }
 }

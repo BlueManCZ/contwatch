@@ -43,6 +43,8 @@ export const Icon: FC<IconProps> = ({
     onClick,
 }) => {
     return (
+        // biome-ignore lint/a11y/noStaticElementInteractions: off
+        // biome-ignore lint/a11y/useKeyWithClickEvents: off
         <div
             className={bem({
                 variant,

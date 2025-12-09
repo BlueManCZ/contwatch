@@ -69,7 +69,6 @@ export const InspectorChart: FC<InspectorChartProps> = ({
         ref?.resetZoom?.();
     }, [ref]);
 
-    // biome-ignore lint/correctness/useExhaustiveDependencies: Reset zoom on attributes change
     useEffect(() => {
         resetZoomLevel();
     }, [attributes, resetZoomLevel, date]);

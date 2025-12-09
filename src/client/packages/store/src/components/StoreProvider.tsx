@@ -1,24 +1,32 @@
 "use client";
 
-import { type FC, type PropsWithChildren, useRef } from "react";
+import { type FC, type PropsWithChildren, useState } from "react";
 import { Provider } from "react-redux";
 
 import { setLocaleState } from "../slices/settingsSlice";
-import { type AppStore, makeStore } from "../store";
+import { makeStore } from "../store";
 
 type StoreProviderProps = PropsWithChildren<{
     lang?: string;
+    devTools?: boolean;
 }>;
 
-export const StoreProvider: FC<StoreProviderProps> = ({ lang, children }) => {
-    const storeRef = useRef<AppStore>(null);
+export const StoreProvider: FC<StoreProviderProps> = ({ lang, devTools, children }) => {
+    // const storeRef = useRef<AppStore>(null);
+    //
+    // if (!storeRef.current) {
+    //     // Create the store instance the first time this renders
+    //     storeRef.current = makeStore();
+    // }
+    //
+    // storeRef.current.dispatch(setLocaleState(lang));
 
-    if (!storeRef.current) {
+    const [store] = useState(() => {
         // Create the store instance the first time this renders
-        storeRef.current = makeStore();
-    }
+        const store = makeStore(devTools);
+        store.dispatch(setLocaleState(lang));
+        return store;
+    });
 
-    storeRef.current.dispatch(setLocaleState(lang));
-
-    return <Provider store={storeRef.current}>{children}</Provider>;
+    return <Provider store={store}>{children}</Provider>;
 };
