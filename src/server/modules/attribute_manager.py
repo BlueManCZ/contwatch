@@ -34,8 +34,9 @@ class AttributeManager:
         # Use data_unit_model.DataUnit directly to ensure an efficient SQL query
         query = data_unit_model.DataUnit.select(
             lambda unit: unit.attribute.id == self.id and unit.date == self.last_date
-        ).order_by(lambda u: desc(u.id)).limit(6)
+        ).order_by(lambda u: desc(u.id))[:6]
 
+        print("Query result:", query)
         print("Converting query results to list...")
 
         # Convert to a list of values manually.
