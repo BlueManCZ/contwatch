@@ -85,6 +85,7 @@ class HandlerManager:
 
     def register_attribute(self, db_attribute):
         """Add attribute instance to the dictionary"""
+        print("Registering attribute:", db_attribute.name)
         handler_id = db_attribute.handler.id
         if handler_id not in self.registered_attributes:
             self.registered_attributes[handler_id] = {}

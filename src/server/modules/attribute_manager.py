@@ -14,6 +14,9 @@ class AttributeManager:
     """Handles work with attributes and data"""
 
     def __init__(self, db_instance, socketio):
+        print(f"Initializing AttributeManager {db_instance.name}...")
+        self.id = db_instance.id
+        self.name = db_instance.name
         self.id = db_instance.id
         self.handler_id = db_instance.handler.id
         self.name = db_instance.name
@@ -37,6 +40,7 @@ class AttributeManager:
                 .limit(6)
             )
         ]
+        print(f"Last values for AttributeManager {db_instance.name}: {last_values}")
         self.trend_queue = deque(maxlen=3)
 
         last_added = None
