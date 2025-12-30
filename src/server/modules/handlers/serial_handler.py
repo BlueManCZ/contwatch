@@ -32,6 +32,7 @@ class SerialHandler(AbstractHandler):
         while self.active:
             if path.exists(self.connection.port):
                 try:
+                    self.connection.reset_input_buffer()
                     message = self._read_message()
                     if message:
                         self.add_message(message)

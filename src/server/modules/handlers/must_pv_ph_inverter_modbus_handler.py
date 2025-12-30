@@ -45,6 +45,8 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
 
         result = {"charger": {}, "inverter": {}}
 
+        self.connection.serial.reset_input_buffer()
+
         for section_type in self.registers.keys():
             for key, data in self.registers[section_type].items():
                 result[section_type][key] = self.connection.read_register(data[0], data[1])
