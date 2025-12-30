@@ -30,6 +30,7 @@ class HandlerManager:
 
     @orm.db_session
     def __init__(self, socketio):
+        print("Initializing HandlerManager...")
         self.socketio = socketio
         self.active = True
         self.log = Logger("HandlerManager")
@@ -54,6 +55,7 @@ class HandlerManager:
 
         self.thread = Thread(target=self._handler_watcher)
         self.thread.start()
+        print("Initialized HandlerManager.")
 
     @orm.db_session
     def initialize_handlers(self):
@@ -72,6 +74,7 @@ class HandlerManager:
             self.register_handler(handler)
             for db_attribute in db_handler.attributes:
                 self.register_attribute(db_attribute)
+            print("Finished initializing handler:", handler.get_id(), handler.type)
 
     def register_handler(self, handler):
         """Add handler instance to the dictionary"""

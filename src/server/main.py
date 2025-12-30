@@ -51,7 +51,6 @@ if __name__ == "__main__":
     init_database(config.get("database", {}))
 
     # HandlerManager initialization
-    print("Initializing HandlerManager...")
     manager = HandlerManager(socketio)
     registered_modules.add(manager)
 
