@@ -13,5 +13,7 @@ services:
       context: server
     restart: always
     working_dir: /api
+    volumes:
+      - ./server/app.log:/api/app.log
     network_mode: host
     privileged: true

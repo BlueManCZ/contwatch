@@ -70,8 +70,8 @@ class JiabaidaBmsSerialHandler(SerialHandler):
         if not self.first_tick():
             self.wait_for_interval(self.get_config_option("interval"))
 
-        d1 = self._read_block(b"\xDD\xA5\x03\x00\xFF\xFD\x77")
-        d2 = self._read_block(b"\xDD\xA5\x04\x00\xFF\xFC\x77")
+        d1 = self._read_block(b"\xdd\xa5\x03\x00\xff\xfd\x77")
+        d2 = self._read_block(b"\xdd\xa5\x04\x00\xff\xfc\x77")
 
         if not d1 or not d2:
             raise SerialException("Missing some block of data")

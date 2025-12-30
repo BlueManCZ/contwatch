@@ -88,7 +88,7 @@ class HandlerManager:
     def process_message(self, handler_id: AbstractHandler, message):
         linearized_json = linearize(message)
         self.last_messages[handler_id] = linearized_json
-        print(linearized_json)
+        # print(linearized_json)
 
         stored_attributes = self.registered_attributes.get(handler_id, {}).copy()
 

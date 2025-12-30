@@ -115,8 +115,18 @@ class AttributeManager:
             if len(str(abs(int(value)))) > 3:
                 unit = unit_model.Unit.select(lambda u: u.base_unit == self.base_unit and u.base_ratio == 0.001).first()
                 if unit:
-                    self.display_value = round(value * unit_model.Unit.select(lambda u: u.base_unit == self.base_unit and u.base_ratio == 0.001).first().base_ratio, 2)
-                    self.display_unit = unit_model.Unit.select(lambda u: u.base_unit == self.base_unit and u.base_ratio == 0.001).first().name
+                    self.display_value = round(
+                        value
+                        * unit_model.Unit.select(lambda u: u.base_unit == self.base_unit and u.base_ratio == 0.001)
+                        .first()
+                        .base_ratio,
+                        2,
+                    )
+                    self.display_unit = (
+                        unit_model.Unit.select(lambda u: u.base_unit == self.base_unit and u.base_ratio == 0.001)
+                        .first()
+                        .name
+                    )
                 else:
                     self.display_value = value
                     self.display_unit = self.get_instance().unit
