@@ -65,6 +65,7 @@ class HandlerManager:
         for db_handler in db_handlers:
             handler = get_handler_class(db_handler.type)(db_handler.options)
             handler.set_db_instance(db_handler)
+            print("db_instance set for handler:", handler.get_id(), handler.type)
             last_data_unit_select = data_unit_model.get_by_handler_id(db_handler.id)
             last_data_unit = last_data_unit_select[-1] if last_data_unit_select else None
             if last_data_unit:
@@ -72,6 +73,7 @@ class HandlerManager:
                     datetime.combine(last_data_unit.date, time.fromisoformat(str(last_data_unit.time))).timestamp()
                 )
             self.register_handler(handler)
+            print("register_handler called for handler:", handler.get_id(), handler.type)
             for db_attribute in db_handler.attributes:
                 self.register_attribute(db_attribute)
             print("Finished initializing handler:", handler.get_id(), handler.type)
