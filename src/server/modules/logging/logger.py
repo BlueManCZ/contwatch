@@ -22,7 +22,7 @@ class Logger:
         LoggingLevel.CRITICAL: Color.BOLD + Color.RED,
     }
 
-    def __init__(self, source: str, log_file: str = "app.log"):
+    def __init__(self, source: str, log_file: str = "logs/contwatch.log"):
         self.source = source
         self.log_file = log_file
 
