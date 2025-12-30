@@ -31,16 +31,15 @@ class AttributeManager:
         self.last_date = datetime.now().date()
 
         print("Fetching last values from DB...")
-        last_values = [
-            unit.value
-            for unit in reversed(
-                db_instance.data_units.select(
-                    lambda unit: unit.attribute.id == self.id and unit.date == datetime.now().date()
-                )
-                .order_by(lambda u: desc(u.id))
-                .limit(6)
-            )
-        ]
+        # 1. Fetch the values directly using .values() to avoid creating full Entity objects
+        # 2. Let Pony handle the ordering and limit in SQL
+        query_results = list(db_instance.data_units.select(
+            lambda unit: unit.attribute.id == self.id and unit.date == self.last_date
+        ).order_by(lambda u: desc(u.id)).limit(6).values(lambda u: u.value))
+
+        # 3. Reverse the simple list of values in Python
+        last_values = query_results[::-1]
+
         print(f"Last values for AttributeManager {db_instance.name}: {last_values}")
         self.trend_queue = deque(maxlen=3)
 
