@@ -109,6 +109,7 @@ class HttpHandler(AbstractHandler):
         self.last_response = None
         # self.add_changed("handlers")
         Thread(target=self._fetcher).start()
+        print(f"Initialized {self.name}")
 
     def get_host_url(self):
         host_url = self.get_config_option("host")

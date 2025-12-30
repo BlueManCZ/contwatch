@@ -102,6 +102,7 @@ class SerialHandler(AbstractHandler):
         # self.add_changed("handlers")
 
         Thread(target=self._reconnect_watcher).start()
+        print(f"Initialized {self.name}")
 
     def set_config(self, new_config):
         super().set_config(new_config)
