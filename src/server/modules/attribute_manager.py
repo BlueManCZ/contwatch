@@ -36,9 +36,7 @@ class AttributeManager:
             lambda unit: unit.attribute.id == self.id and unit.date == self.last_date
         ).order_by(lambda u: desc(u.id)).limit(6)
 
-        print("Query length:", len(query))
         print("Converting query results to list...")
-
         # Convert to a list of values manually.
         # This is much faster than reversed() on the query object.
         last_values = [u.value for u in query][::-1]
