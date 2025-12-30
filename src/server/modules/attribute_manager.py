@@ -2,7 +2,6 @@ from collections import deque
 from datetime import datetime
 
 from pony import orm
-from pony.orm import desc
 
 from modules.models import attribute as attribute_model
 from modules.models import data_stat as data_stat_model
@@ -31,17 +30,20 @@ class AttributeManager:
         self.last_date = datetime.now().date()
 
         print("Fetching last values from DB...")
-        # 1. Store values in local variables so the lambda is simple and static
-        attr_id = self.id
-        target_date = self.last_date
-
-        # 2. Use the local variables. This allows Pony to use the SQL index properly.
-        query = data_unit_model.DataUnit.select(
-            lambda unit: unit.attribute.id == attr_id and unit.date == target_date
-        ).order_by(lambda u: desc(u.id)).limit(6)
-
-        # 3. Execute and extract
-        last_values = [u.value for u in query][::-1]
+        # Use raw SQL to bypass all ORM overhead and object mapping
+        # This is the "nuclear option" for performance
+        try:
+            # We select only the 'value' column from the 'DataUnit' table
+            # Filtering by attribute ID and date, ordering by ID descending
+            raw_results = db_instance._database_.select(
+                "value FROM DataUnit WHERE attribute = $attr_id AND date = $target_date "
+                "ORDER BY id DESC LIMIT 6",
+                {"attr_id": self.id, "target_date": self.last_date}
+            )
+            last_values = list(raw_results)[::-1]
+        except Exception as e:
+            print(f"Raw SQL failed: {e}. Falling back to empty list.")
+            last_values = []
 
         print(f"Last values for AttributeManager {db_instance.name}: {last_values}")
         self.trend_queue = deque(maxlen=3)
