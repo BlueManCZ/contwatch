@@ -31,15 +31,13 @@ class AttributeManager:
         self.last_date = datetime.now().date()
 
         print("Fetching last values from DB...")
-        # Use data_unit_model.DataUnit directly to ensure an efficient SQL query
-        query = data_unit_model.DataUnit.select(
-            lambda unit: unit.attribute.id == self.id and unit.date == self.last_date
-        ).order_by(lambda u: desc(u.id)).limit(6)
-
-        print("Converting query results to list...")
-        # Convert to a list of values manually.
-        # This is much faster than reversed() on the query object.
-        last_values = [u.value for u in query][::-1]
+        # Use the model class directly to bypass the collection property on db_instance
+        # This ensures a direct, efficient SQL query
+        last_values = [
+            u.value for u in data_unit_model.DataUnit.select(
+                lambda unit: unit.attribute.id == self.id and unit.date == self.last_date
+            ).order_by(lambda u: desc(u.id)).limit(6)
+        ][::-1]
 
         print(f"Last values for AttributeManager {db_instance.name}: {last_values}")
         self.trend_queue = deque(maxlen=3)
