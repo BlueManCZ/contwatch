@@ -31,13 +31,17 @@ class AttributeManager:
         self.last_date = datetime.now().date()
 
         print("Fetching last values from DB...")
-        # Use the model class directly to bypass the collection property on db_instance
-        # This ensures a direct, efficient SQL query
-        last_values = [
-            u.value for u in data_unit_model.DataUnit.select(
-                lambda unit: unit.attribute.id == self.id and unit.date == self.last_date
-            ).order_by(lambda u: desc(u.id)).limit(6)
-        ][::-1]
+        # 1. Store values in local variables so the lambda is simple and static
+        attr_id = self.id
+        target_date = self.last_date
+
+        # 2. Use the local variables. This allows Pony to use the SQL index properly.
+        query = data_unit_model.DataUnit.select(
+            lambda unit: unit.attribute.id == attr_id and unit.date == target_date
+        ).order_by(lambda u: desc(u.id)).limit(6)
+
+        # 3. Execute and extract
+        last_values = [u.value for u in query][::-1]
 
         print(f"Last values for AttributeManager {db_instance.name}: {last_values}")
         self.trend_queue = deque(maxlen=3)
