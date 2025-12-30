@@ -30,6 +30,7 @@ class AttributeManager:
         self.last_value_save_skipped = False
         self.last_date = datetime.now().date()
 
+        print("Fetching last values from DB...")
         last_values = [
             unit.value
             for unit in reversed(
