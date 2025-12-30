@@ -62,6 +62,7 @@ class AbstractHandler:
     # Use add_changed() to append here."""
 
     def __init__(self, options):
+        print(f"Initializing {self.name} handler")
         self.active = False
         self.options = options or {}
         self.message_queue = []
