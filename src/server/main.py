@@ -27,7 +27,7 @@ def _quit():
 
 
 if __name__ == "__main__":
-    print("Starting server...")
+    print("Starting Contwatch...")
 
     signal(SIGINT, _quit_handler)
 
@@ -47,12 +47,18 @@ if __name__ == "__main__":
         print("Configuration file not found. Using default configuration.")
 
     # Database initialization
+    print("Initializing database...")
     init_database(config.get("database", {}))
+
     # HandlerManager initialization
+    print("Initializing HandlerManager...")
     manager = HandlerManager(socketio)
     registered_modules.add(manager)
 
     # Blueprints registration
+    print("Registering blueprints...")
     for name, blueprint in blueprints.items():
         app.register_blueprint(blueprint(Context(manager, socketio)), url_prefix=f"/api/core/{name}")
+
+    print("Starting Socketio server...")
     socketio.run(app, host="0.0.0.0", debug=True, use_reloader=False, allow_unsafe_werkzeug=True)
