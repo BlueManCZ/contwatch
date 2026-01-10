@@ -24,6 +24,8 @@ jobs:
           cache-dependency-path: './src/client/pnpm-lock.yaml'
       - name: Install dependencies
         run: pnpm install
+      - name: Setup environment
+        run: cp apps/contwatch-client/example.env.prod apps/contwatch-client/.env
       - name: Lint
         run: pnpm run lint
       - name: Biome
