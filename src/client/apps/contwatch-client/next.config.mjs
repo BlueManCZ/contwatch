@@ -3,9 +3,6 @@ import { HOST, PORT, PROTOCOL } from "./src/settings.mjs";
 
 const nextConfig = {
     output: "standalone",
-    turbopack: {
-        useSwcCss: true,
-    },
     eslint: {
         ignoreDuringBuilds: true,
     },

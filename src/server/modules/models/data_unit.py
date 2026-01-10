@@ -1,6 +1,7 @@
 from datetime import date, time
 
 from pony import orm
+from pony.orm import composite_index
 
 from modules.database import db
 
@@ -14,6 +15,7 @@ class DataUnit(db.Entity):
     value = orm.Required(float)
     date = orm.Required(date, index=True)
     time = orm.Required(time)
+    composite_index(attribute, date)
 
     # def to_json(self):
     #     return {}

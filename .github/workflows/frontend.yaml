@@ -1,4 +1,4 @@
-name: Client CI
+name: Frontend CI
 on: [push]
 
 jobs:
@@ -12,20 +12,25 @@ jobs:
         working-directory: ./src/client
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+          cache-dependency-path: './src/client/pnpm-lock.yaml'
       - name: Install dependencies
-        run: npm install
+        run: pnpm install
       - name: Lint
-        run: npm run lint
+        run: pnpm run lint
       - name: Biome
-        run: npm run biome
+        run: pnpm run biome
       - name: Stylelint
-        run: npm run stylelint
+        run: pnpm run stylelint
       - name: Build
-        run: npm run build
+        run: pnpm run build
       - name: Test
-        run: npm test
+        run: pnpm test

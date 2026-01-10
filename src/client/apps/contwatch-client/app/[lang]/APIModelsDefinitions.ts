@@ -1,6 +1,6 @@
 import { Endpoint } from "@repo/utils/endpoints";
 import { getApiEndpoint } from "@repo/utils/getApiEndpoint";
-import { io } from "socket.io-client";
+import { io, type Socket } from "socket.io-client";
 import { customMutate, SWRModelEndpoint } from "swr-models";
 
 import { fetchJson } from "../../src/utils";
@@ -18,6 +18,6 @@ export const DataStats = new SWRModelEndpoint({
     serverFetcher: fetchJson,
 });
 
-export const socket = io();
+export const socket: Socket = io();
 
 socket.on("mutate", (endpoint: string) => customMutate(getApiEndpoint(endpoint)));

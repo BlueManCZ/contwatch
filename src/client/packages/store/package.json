@@ -4,9 +4,10 @@
   "type": "module",
   "private": true,
   "dependencies": {
-    "@repo/types": "*",
-    "@reduxjs/toolkit": "2.5.0",
-    "next-redux-wrapper": "8.1.0"
+    "@repo/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*"
   },
   "exports": {
     "./store": "./src/store.ts",
