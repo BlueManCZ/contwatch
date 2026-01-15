@@ -29,31 +29,31 @@ class AttributeManager:
         self.last_value_save_skipped = False
         self.last_date = datetime.now().date()
 
-        print("Fetching last values from DB...")
-        # Use raw SQL to bypass all ORM overhead and object mapping
-        # This is the "nuclear option" for performance
-        try:
-            # We select only the 'value' column from the 'DataUnit' table
-            # Filtering by attribute ID and date, ordering by ID descending
-            raw_results = db_instance._database_.select(
-                "value FROM DataUnit WHERE attribute = $attr_id AND date = $target_date "
-                "ORDER BY id DESC LIMIT 6",
-                {"attr_id": self.id, "target_date": self.last_date}
-            )
-            last_values = list(raw_results)[::-1]
-        except Exception as e:
-            print(f"Raw SQL failed: {e}. Falling back to empty list.")
-            last_values = []
-
-        print(f"Last values for AttributeManager {db_instance.name}: {last_values}")
+        # print("Fetching last values from DB...")
+        # # Use raw SQL to bypass all ORM overhead and object mapping
+        # # This is the "nuclear option" for performance
+        # try:
+        #     # We select only the 'value' column from the 'DataUnit' table
+        #     # Filtering by attribute ID and date, ordering by ID descending
+        #     raw_results = db_instance._database_.select(
+        #         "value FROM DataUnit WHERE attribute = $attr_id AND date = $target_date "
+        #         "ORDER BY id DESC LIMIT 6",
+        #         {"attr_id": self.id, "target_date": self.last_date}
+        #     )
+        #     last_values = list(raw_results)[::-1]
+        # except Exception as e:
+        #     print(f"Raw SQL failed: {e}. Falling back to empty list.")
+        #     last_values = []
+        #
+        # print(f"Last values for AttributeManager {db_instance.name}: {last_values}")
         self.trend_queue = deque(maxlen=3)
 
-        last_added = None
-        for value in last_values:
-            if last_added != value and value is not None:
-                self.trend_queue.append(value)
-                last_added = value
-            self.value = value
+        # last_added = None
+        # for value in last_values:
+        #     if last_added != value and value is not None:
+        #         self.trend_queue.append(value)
+        #         last_added = value
+        #     self.value = value
 
         self.last_datetime = None
 
