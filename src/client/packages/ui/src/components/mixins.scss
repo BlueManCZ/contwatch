@@ -1,9 +1,0 @@
-@mixin card {
-    box-sizing: border-box;
-    max-width: 100%;
-    overflow: auto;
-    border-radius: var(--border-radius-medium);
-    background: var(--color-mono-white);
-    box-shadow: var(--box-shadow-card);
-    color: var(--color-mono-dark);
-}
