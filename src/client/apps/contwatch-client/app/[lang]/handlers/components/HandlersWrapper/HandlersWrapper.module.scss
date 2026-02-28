@@ -1,0 +1,14 @@
+.handlers-wrapper {
+    content: "";
+    flex-grow: 1;
+    flex-wrap: wrap;
+    align-content: start;
+    height: 0;
+    gap: 1rem;
+
+    @media (width <= 1000px) {
+        flex-wrap: nowrap !important;
+        width: 100%;
+        height: unset;
+    }
+}

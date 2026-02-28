@@ -1,0 +1,102 @@
+@use "../definition" as d;
+@use "sass:math";
+
+.text {
+    font-size: var(--font-size-normal);
+
+    @each $key, $value in d.$predefined-text {
+        &--#{$key} {
+            @each $item, $item-value in $value {
+                &-#{$item} {
+                    #{$key}: var(--#{$key}-#{$item});
+                }
+            }
+        }
+    }
+
+    &--uppercase {
+        text-transform: uppercase;
+    }
+
+    &--ellipsis {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &--nowrap {
+        white-space: nowrap;
+    }
+
+    &--shadow {
+        text-shadow: 0 0 10px gray;
+    }
+
+    &--align {
+        &-center {
+            margin: auto;
+            text-align: center;
+        }
+
+        &-right {
+            text-align: right;
+        }
+
+        &-justify {
+            text-align: justify;
+        }
+    }
+
+    &--glitched {
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+            content: attr(data-text);
+            position: absolute;
+            left: 1px;
+            max-width: 100%;
+            overflow: auto;
+            animation-name: glitch-animation-1;
+            animation-duration: 2s;
+            animation-timing-function: linear;
+            animation-delay: 0s;
+            animation-iteration-count: infinite;
+            text-shadow: -2px 0 red;
+            white-space: nowrap;
+        }
+
+        &::after {
+            content: attr(data-text);
+            position: absolute;
+            left: -1px;
+            max-width: 100%;
+            overflow: auto;
+            animation-name: glitch-animation-2;
+            animation-duration: 2s;
+            animation-timing-function: linear;
+            animation-delay: 0s;
+            animation-iteration-count: infinite;
+            text-shadow: -2px 0 blue;
+            white-space: nowrap;
+        }
+    }
+
+    @keyframes glitch-animation-1 {
+        $steps: 20;
+        @for $i from 0 through $steps {
+            #{math.percentage(calc($i*(1/$steps)))} {
+                clip: rect(math.random(150) + px, 100vw, math.random(150) + px, 0)
+            }
+        }
+    }
+
+    @keyframes glitch-animation-2 {
+        $steps: 20;
+        @for $i from 0 through $steps {
+            #{math.percentage(calc($i*(1/$steps)))} {
+                clip: rect(math.random(150) + px, 100vw, math.random(150) + px, 0)
+            }
+        }
+    }
+}

@@ -1,7 +1,0 @@
-{% macro navbar_item(title, description, id) -%}
-    <li class="navbar-item" id="menu-item-{{ id }}">
-        <img class="navbar-item__icon navbar-item__icon--{{ id }}" src="{{ url_for('static', filename='images/icons/' + id + '.png') }}" alt="{{ id }} icon">
-        <p class="navbar-item__title">{{ title }}</p>
-        <p class="navbar-item__description">{{ description }}</p>
-    </li>
-{%- endmacro %}

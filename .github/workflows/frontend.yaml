@@ -1,0 +1,38 @@
+name: Frontend CI
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 22.x ]
+    defaults:
+      run:
+        working-directory: ./src/client
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+          cache-dependency-path: './src/client/pnpm-lock.yaml'
+      - name: Install dependencies
+        run: pnpm install
+      - name: Setup environment
+        run: cp apps/contwatch-client/example.env.prod apps/contwatch-client/.env
+      - name: Lint
+        run: pnpm run lint
+      - name: Biome
+        run: pnpm run biome
+      - name: Stylelint
+        run: pnpm run stylelint
+      - name: Build
+        run: pnpm run build
+      - name: Test
+        run: pnpm test

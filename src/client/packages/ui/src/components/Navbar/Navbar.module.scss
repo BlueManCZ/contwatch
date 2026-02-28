@@ -1,0 +1,22 @@
+.navbar {
+    box-sizing: border-box;
+    flex-direction: column;
+    align-items: center;
+    min-width: 300px;
+    background: #fff;
+    gap: 5px;
+
+    @media (width <= 1000px) {
+        display: none;
+        position: fixed;
+        z-index: 100;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    &--visible {
+        display: flex;
+    }
+}

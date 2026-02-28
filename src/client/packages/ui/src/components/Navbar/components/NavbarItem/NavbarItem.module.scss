@@ -1,0 +1,22 @@
+.navbar-item {
+    display: flex;
+    box-sizing: border-box;
+    align-items: center;
+    width: 80%;
+    padding: 13px 15px;
+    border-radius: 10px;
+    background: transparent;
+    color: inherit;
+    text-decoration: none;
+    gap: 15px;
+
+    &--active {
+        background: var(--color-primary) !important;
+        box-shadow: var(--box-shadow-card);
+        color: var(--color-mono-light);
+    }
+
+    &:hover {
+        background: var(--color-mono-light);
+    }
+}

@@ -1,0 +1,68 @@
+{
+    "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
+    "vcs": {
+        "enabled": false,
+        "clientKind": "git",
+        "useIgnoreFile": false
+    },
+    "files": {
+        "ignoreUnknown": false,
+        "includes": ["**/*.ts", "**/*.tsx", "**/*.md", "!**/.next"]
+    },
+    "formatter": {
+        "enabled": true,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 110
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "recommended": true,
+            "correctness": {
+                "noUnusedImports": {
+                    "level": "error",
+                    "fix": "safe",
+                    "options": {}
+                },
+                "useParseIntRadix": "off"
+            },
+            "suspicious": {
+                "noConfusingVoidType": "off",
+                "noExplicitAny": "off"
+            },
+            "style": {
+                "useConsistentCurlyBraces": {
+                    "level": "off",
+                    "fix": "safe",
+                    "options": {}
+                }
+            }
+        }
+    },
+    "javascript": {
+        "formatter": {
+            "quoteStyle": "double"
+        }
+    },
+    "assist": {
+        "actions": {
+            "source": {
+                "organizeImports": {
+                    "level": "off",
+                    "options": {
+                        "groups": [
+                            ":URL",
+                            ":BLANK_LINE:",
+                            ["**", "!@repo/**", "!./**", "!../**"],
+                            ":BLANK_LINE:",
+                            "@repo/**",
+                            ":BLANK_LINE:",
+                            ["./**", "../**"]
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}

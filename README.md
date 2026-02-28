@@ -1,26 +1,40 @@
 # ContWatch
 
-System for controlling single-board microcontrollers powered by Python.
+Scalable system for IoT automation. Offers an intuitive web interface for controlling and monitoring devices.
 
-## Python dependencies
-
-If you use [`apt`](https://en.wikipedia.org/wiki/APT_(software)) as your package manager, you can run:
+## Run server
+Make sure you have [pipenv](https://pipenv.pypa.io/en/latest/) installed.
 
 ```shell
-xargs -a dependencies.txt sudo apt-get install
+cd src/server
+pipenv install
+pipenv run server
 ```
 
-As an alternative you can use [`pip`](https://en.wikipedia.org/wiki/Pip_(package_manager)):
+## Run client
+Make sure you have [node.js](https://nodejs.org/en) installed.
 
 ```shell
-pip3 install -r requirements.txt --user
-```
-
-## Usage
-
-```shell
+cd src/client
 npm install
+npm run build
 npm start
 ```
 
-Python codebase is formatted with [black](https://github.com/psf/black#readme) and TypeScript codebase with [typescript-eslint](https://github.com/typescript-eslint/typescript-eslint#readme).
+## Credits
+This project is available thanks to following technologies and their communities:
+
+| Name                                                       | Used for                 |
+|------------------------------------------------------------|--------------------------|
+| [Python](https://www.python.org/)                          | Server language          |
+| [Flask](https://flask.palletsprojects.com/)                | Server framework         |
+| [PonyORM](https://ponyorm.org/)                            | Server database          |
+| [Black](https://black.readthedocs.io/en/stable/index.html) | Server code formatting   |
+| [Node.js](https://nodejs.org/en)                           | Client codebase          |
+| [TypeScript](https://www.typescriptlang.org/)              | Client language          |
+| [Next.js](https://nextjs.org/)                             | Client backend           |
+| [React](https://reactjs.org/)                              | Client framework         |
+| [Redux](https://redux.js.org/)                             | Client state management  |
+| [ESLint](https://eslint.org/)                              | Client code linting      |
+| [Prettier](https://prettier.io/)                           | Client code formatting   |
+| [Stylelint](https://stylelint.io/)                         | Client styles linting    |

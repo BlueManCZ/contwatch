@@ -1,0 +1,16 @@
+{
+  "name": "@repo/types",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./APIModel": "./src/models/APIModel.d.ts",
+    "./AttributeModel": "./src/models/AttributeModel.d.ts",
+    "./AttributeChartModel": "./src/models/AttributeChartModel.d.ts",
+    "./DataStatModel": "./src/models/DataStatModel.d.ts",
+    "./HandlerModel": "./src/models/HandlerModel.d.ts",
+
+    "./IconType": "./src/IconType.d.ts",
+    "./PageProps": "./src/PageProps.d.ts"
+  }
+}

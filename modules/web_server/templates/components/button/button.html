@@ -1,8 +1,0 @@
-{% macro button(text, onclick="", icon="", modifiers=[]) -%}
-    <div class="button {% for modifier in modifiers %}button--{{ modifier }} {% endfor %}" onclick="{{ onclick }}">
-        {%- if icon -%}
-            <img class="button__icon" src="{{ url_for('static', filename='images/icons/' + icon) }}" alt="{{ icon }} icon">
-        {%- endif -%}
-        <span class="button__text">{{ text }}</span>
-    </div>
-{%- endmacro %}

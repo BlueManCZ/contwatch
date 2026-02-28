@@ -1,0 +1,19 @@
+services:
+  client:
+    build:
+      context: client
+      dockerfile: ./apps/contwatch-client/Dockerfile
+      args:
+        TURBO_TEAM: "$TURBO_TEAM"
+        TURBO_TOKEN: "$TURBO_TOKEN"
+    restart: always
+    network_mode: host
+  api:
+    build:
+      context: server
+    restart: always
+    working_dir: /api
+    volumes:
+      - ./server/logs:/api/logs
+    network_mode: host
+    privileged: true

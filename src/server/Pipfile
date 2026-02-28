@@ -1,0 +1,28 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+flask = "*"
+flask-cors = "*"
+flask-socketio = "*"
+minimalmodbus = "*"
+pipdeptree = "*"
+pony = "*"
+pyserial = "*"
+requests = "*"
+simplejson = "*"
+psycopg2 = "*"
+
+[dev-packages]
+black = "*"
+
+[requires]
+python_version = "3.12"
+
+[scripts]
+black = "black --check --line-length 120 ."
+black_fix = "black --line-length 120 ."
+server = "./main.py"
+screen = "screen -S contwatch-server -m python main.py"
