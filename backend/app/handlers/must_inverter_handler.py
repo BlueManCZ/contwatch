@@ -6,7 +6,7 @@ from typing import ClassVar
 
 import minimalmodbus
 
-from app.handlers.base import AbstractHandler
+from app.handlers.base import AbstractHandler, KnownAttribute
 from app.handlers.registry import register_handler_type
 
 logger = logging.getLogger(__name__)
@@ -52,26 +52,59 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
 
     handler_type = "must_pv_ph_modbus"
     handler_name = "MUST PV/PH solar inverter"
-    handler_icon = "inverter"
+    handler_icon = "solar-panel"
+    handler_category = "serial"
+    probe_priority: ClassVar[int] = 10
     config_fields: ClassVar[list[dict]] = [
         {"key": "port", "type": "string", "label": "Device port (e.g. /dev/ttyUSB0)", "default": ""},
         {"key": "slave_address", "type": "int", "label": "Slave address", "default": 4},
         {"key": "interval", "type": "int", "label": "Polling interval (s)", "default": 10},
-        {"key": "timeout", "type": "float", "label": "Read timeout (s)", "default": 0.1},
         {"key": "auto_reconnect", "type": "bool", "label": "Auto reconnect", "default": True},
     ]
+
+    @classmethod
+    def describe(cls, options: dict) -> str:
+        port = options.get("config", {}).get("port", "")
+        return port or cls.handler_name
+
+    known_attributes: ClassVar[list[KnownAttribute]] = [
+        KnownAttribute(name="charger/pv_voltage", label="PV voltage", unit="V", rounding=1),
+        KnownAttribute(name="charger/battery_voltage", label="Charger battery voltage", unit="V", rounding=1),
+        KnownAttribute(name="charger/current", label="Charge current", unit="A", rounding=1),
+        KnownAttribute(name="charger/power", label="Charge power", unit="W", rounding=0),
+        KnownAttribute(name="inverter/battery_voltage", label="Inverter battery voltage", unit="V", rounding=1),
+        KnownAttribute(name="inverter/power", label="Inverter power", unit="W", rounding=0),
+        KnownAttribute(name="inverter/power_grid", label="Grid power", unit="W", rounding=0),
+        KnownAttribute(name="inverter/power_load", label="Load power", unit="W", rounding=0),
+    ]
+
+    @classmethod
+    async def probe(cls, config: dict) -> bool:
+        port = config.get("port", "")
+        slave_address = int(config.get("slave_address", 4))
+        if not port:
+            return False
+        try:
+            instrument = await asyncio.to_thread(_open_instrument, port, slave_address, 0.5)
+            try:
+                await asyncio.to_thread(instrument.read_register, 15205, 1)
+                return True
+            finally:
+                with contextlib.suppress(Exception):
+                    instrument.serial.close()
+        except Exception:
+            return False
 
     async def run(self) -> None:
         port = self.get_config_option("port", "")
         slave_address = int(self.get_config_option("slave_address", 4))
         interval = int(self.get_config_option("interval", 10))
-        timeout = float(self.get_config_option("timeout", 0.1))
         auto_reconnect = self.get_config_option("auto_reconnect", True)
 
         while self.is_active:
             instrument: minimalmodbus.Instrument | None = None
             try:
-                instrument = await asyncio.to_thread(_open_instrument, port, slave_address, timeout)
+                instrument = await asyncio.to_thread(_open_instrument, port, slave_address, 0.1)
                 self._connected = True
                 logger.info("Handler %s: connected to %s (addr=%s)", self.handler_id, port, slave_address)
 

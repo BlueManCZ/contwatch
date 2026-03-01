@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { useUpdateAttributeApiAttributesAttributeIdPatch } from "@/api/generated/attributes/attributes";
+import {
+    useDeleteAttributeApiAttributesAttributeIdDelete,
+    useUpdateAttributeApiAttributesAttributeIdPatch,
+} from "@/api/generated/attributes/attributes";
 import type { AttributeRead, AttributeUpdate } from "@/api/generated/contWatchAPI.schemas";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -21,6 +24,7 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
     const [rounding, setRounding] = useState("");
     const [color, setColor] = useState("");
     const updateAttribute = useUpdateAttributeApiAttributesAttributeIdPatch();
+    const deleteAttribute = useDeleteAttributeApiAttributesAttributeIdDelete();
 
     const open = attribute !== null;
 
@@ -99,7 +103,26 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
                             <Input value={color} onChange={(e) => setColor(e.target.value)} />
                         </div>
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className="flex-row justify-between sm:justify-between">
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            disabled={deleteAttribute.isPending}
+                            onClick={() => {
+                                if (!attribute) return;
+                                deleteAttribute.mutate(
+                                    { attributeId: attribute.id },
+                                    {
+                                        onSuccess: () => {
+                                            onClose();
+                                            toast.success(t("toast.attributeDeleted"));
+                                        },
+                                    },
+                                );
+                            }}
+                        >
+                            {t("common.delete")}
+                        </Button>
                         <Button type="submit" disabled={updateAttribute.isPending}>
                             {t("common.save")}
                         </Button>

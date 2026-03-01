@@ -1,6 +1,7 @@
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Toaster } from "sonner";
+import { useSettingsStore } from "@/stores/settings";
 
 interface RouterContext {
     auth: {
@@ -10,12 +11,17 @@ interface RouterContext {
     };
 }
 
-export const Route = createRootRouteWithContext<RouterContext>()({
-    component: () => (
+function RootComponent() {
+    const theme = useSettingsStore((s) => s.theme);
+    return (
         <>
             <Outlet />
-            <Toaster position="bottom-right" richColors />
+            <Toaster position="bottom-right" richColors theme={theme} />
             <TanStackRouterDevtools position="bottom-right" />
         </>
-    ),
+    );
+}
+
+export const Route = createRootRouteWithContext<RouterContext>()({
+    component: RootComponent,
 });

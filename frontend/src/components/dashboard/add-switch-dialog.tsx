@@ -19,9 +19,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-export function AddSwitchDialog() {
+interface AddSwitchDialogProps {
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+}
+
+export function AddSwitchDialog({ open: controlledOpen, onOpenChange }: AddSwitchDialogProps = {}) {
     const { t } = useTranslation();
-    const [open, setOpen] = useState(false);
+    const [internalOpen, setInternalOpen] = useState(false);
+    const open = controlledOpen ?? internalOpen;
+    const setOpen = onOpenChange ?? setInternalOpen;
     const [name, setName] = useState("");
     const [selectedAttrId, setSelectedAttrId] = useState<string>("");
     const [attributeCompare, setAttributeCompare] = useState("");
@@ -70,14 +77,16 @@ export function AddSwitchDialog() {
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger
-                render={
-                    <Button variant="outline">
-                        <Plus className="mr-2 h-4 w-4" />
-                        {t("dashboard.addSwitch")}
-                    </Button>
-                }
-            />
+            {controlledOpen === undefined && (
+                <DialogTrigger
+                    render={
+                        <Button variant="outline" size="sm">
+                            <Plus className="mr-1.5 h-3.5 w-3.5" />
+                            {t("dashboard.addSwitch")}
+                        </Button>
+                    }
+                />
+            )}
             <DialogContent>
                 <form onSubmit={handleSubmit}>
                     <DialogHeader>
@@ -122,44 +131,46 @@ export function AddSwitchDialog() {
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <Label>{t("dashboard.actionOn")}</Label>
-                            <Select value={actionOnId} onValueChange={(v) => setActionOnId(v ?? "")}>
-                                <SelectTrigger>
-                                    <SelectValue>
-                                        {actionOnId
-                                            ? actions.find((a) => String(a.id) === actionOnId)?.name
-                                            : t("dashboard.selectAction")}
-                                    </SelectValue>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {actions.map((action) => (
-                                        <SelectItem key={action.id} value={String(action.id)}>
-                                            {action.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <Label>{t("dashboard.actionOn")}</Label>
+                                <Select value={actionOnId} onValueChange={(v) => setActionOnId(v ?? "")}>
+                                    <SelectTrigger>
+                                        <SelectValue>
+                                            {actionOnId
+                                                ? actions.find((a) => String(a.id) === actionOnId)?.name
+                                                : t("dashboard.selectAction")}
+                                        </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {actions.map((action) => (
+                                            <SelectItem key={action.id} value={String(action.id)}>
+                                                {action.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
 
-                        <div className="space-y-2">
-                            <Label>{t("dashboard.actionOff")}</Label>
-                            <Select value={actionOffId} onValueChange={(v) => setActionOffId(v ?? "")}>
-                                <SelectTrigger>
-                                    <SelectValue>
-                                        {actionOffId
-                                            ? actions.find((a) => String(a.id) === actionOffId)?.name
-                                            : t("dashboard.selectAction")}
-                                    </SelectValue>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {actions.map((action) => (
-                                        <SelectItem key={action.id} value={String(action.id)}>
-                                            {action.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <div className="space-y-2">
+                                <Label>{t("dashboard.actionOff")}</Label>
+                                <Select value={actionOffId} onValueChange={(v) => setActionOffId(v ?? "")}>
+                                    <SelectTrigger>
+                                        <SelectValue>
+                                            {actionOffId
+                                                ? actions.find((a) => String(a.id) === actionOffId)?.name
+                                                : t("dashboard.selectAction")}
+                                        </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {actions.map((action) => (
+                                            <SelectItem key={action.id} value={String(action.id)}>
+                                                {action.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                     </div>
                     <DialogFooter>

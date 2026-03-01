@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { HandlerConfigField } from "@/api/generated/contWatchAPI.schemas";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,15 +12,36 @@ export function ConfigFieldInput({
     value: string;
     onChange: (v: string) => void;
 }) {
+    const { t } = useTranslation();
+
+    if (field.choices && field.choices.length > 0) {
+        return (
+            <Select value={value} onValueChange={(v) => onChange(v ?? "")}>
+                <SelectTrigger>
+                    <SelectValue>{field.choices.find((c) => c.value === value)?.label ?? value}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                    {field.choices.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>
+                            {c.label}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        );
+    }
+
     if (field.type === "bool") {
         return (
             <Select value={value} onValueChange={(v) => onChange(v ?? "false")}>
                 <SelectTrigger>
-                    <SelectValue>{value === "true" ? "Yes" : "No"}</SelectValue>
+                    <SelectValue>
+                        {value === "true" ? t("common.yes", "Yes") : t("common.no", "No")}
+                    </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="true">Yes</SelectItem>
-                    <SelectItem value="false">No</SelectItem>
+                    <SelectItem value="true">{t("common.yes", "Yes")}</SelectItem>
+                    <SelectItem value="false">{t("common.no", "No")}</SelectItem>
                 </SelectContent>
             </Select>
         );

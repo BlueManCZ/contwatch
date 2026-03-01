@@ -12,11 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedWorkflowRouteImport } from './routes/_authenticated/workflow'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedLogsRouteImport } from './routes/_authenticated/logs'
-import { Route as AuthenticatedInspectorRouteImport } from './routes/_authenticated/inspector'
-import { Route as AuthenticatedHandlersRouteImport } from './routes/_authenticated/handlers'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as AuthenticatedActionsRouteImport } from './routes/_authenticated/actions'
+import { Route as AuthenticatedDevicesRouteImport } from './routes/_authenticated/devices'
+import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -32,59 +32,59 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedWorkflowRoute = AuthenticatedWorkflowRouteImport.update({
+  id: '/workflow',
+  path: '/workflow',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedLogsRoute = AuthenticatedLogsRouteImport.update({
   id: '/logs',
   path: '/logs',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedInspectorRoute = AuthenticatedInspectorRouteImport.update({
-  id: '/inspector',
-  path: '/inspector',
+const AuthenticatedDevicesRoute = AuthenticatedDevicesRouteImport.update({
+  id: '/devices',
+  path: '/devices',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedHandlersRoute = AuthenticatedHandlersRouteImport.update({
-  id: '/handlers',
-  path: '/handlers',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedActionsRoute = AuthenticatedActionsRouteImport.update({
-  id: '/actions',
-  path: '/actions',
+const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
-  '/actions': typeof AuthenticatedActionsRoute
-  '/admin': typeof AuthenticatedAdminRoute
-  '/handlers': typeof AuthenticatedHandlersRoute
-  '/inspector': typeof AuthenticatedInspectorRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/devices': typeof AuthenticatedDevicesRoute
   '/logs': typeof AuthenticatedLogsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/workflow': typeof AuthenticatedWorkflowRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
-  '/actions': typeof AuthenticatedActionsRoute
-  '/admin': typeof AuthenticatedAdminRoute
-  '/handlers': typeof AuthenticatedHandlersRoute
-  '/inspector': typeof AuthenticatedInspectorRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/devices': typeof AuthenticatedDevicesRoute
   '/logs': typeof AuthenticatedLogsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/workflow': typeof AuthenticatedWorkflowRoute
   '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
-  '/_authenticated/actions': typeof AuthenticatedActionsRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
-  '/_authenticated/handlers': typeof AuthenticatedHandlersRoute
-  '/_authenticated/inspector': typeof AuthenticatedInspectorRoute
+  '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
+  '/_authenticated/devices': typeof AuthenticatedDevicesRoute
   '/_authenticated/logs': typeof AuthenticatedLogsRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/workflow': typeof AuthenticatedWorkflowRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
@@ -92,29 +92,29 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
-    | '/actions'
-    | '/admin'
-    | '/handlers'
-    | '/inspector'
+    | '/analytics'
+    | '/devices'
     | '/logs'
+    | '/settings'
+    | '/workflow'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
-    | '/actions'
-    | '/admin'
-    | '/handlers'
-    | '/inspector'
+    | '/analytics'
+    | '/devices'
     | '/logs'
+    | '/settings'
+    | '/workflow'
     | '/'
   id:
     | '__root__'
     | '/_authenticated'
     | '/login'
-    | '/_authenticated/actions'
-    | '/_authenticated/admin'
-    | '/_authenticated/handlers'
-    | '/_authenticated/inspector'
+    | '/_authenticated/analytics'
+    | '/_authenticated/devices'
     | '/_authenticated/logs'
+    | '/_authenticated/settings'
+    | '/_authenticated/workflow'
     | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
@@ -146,6 +146,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/workflow': {
+      id: '/_authenticated/workflow'
+      path: '/workflow'
+      fullPath: '/workflow'
+      preLoaderRoute: typeof AuthenticatedWorkflowRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/logs': {
       id: '/_authenticated/logs'
       path: '/logs'
@@ -153,52 +167,38 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLogsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/inspector': {
-      id: '/_authenticated/inspector'
-      path: '/inspector'
-      fullPath: '/inspector'
-      preLoaderRoute: typeof AuthenticatedInspectorRouteImport
+    '/_authenticated/devices': {
+      id: '/_authenticated/devices'
+      path: '/devices'
+      fullPath: '/devices'
+      preLoaderRoute: typeof AuthenticatedDevicesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/handlers': {
-      id: '/_authenticated/handlers'
-      path: '/handlers'
-      fullPath: '/handlers'
-      preLoaderRoute: typeof AuthenticatedHandlersRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/actions': {
-      id: '/_authenticated/actions'
-      path: '/actions'
-      fullPath: '/actions'
-      preLoaderRoute: typeof AuthenticatedActionsRouteImport
+    '/_authenticated/analytics': {
+      id: '/_authenticated/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
   }
 }
 
 interface AuthenticatedRouteChildren {
-  AuthenticatedActionsRoute: typeof AuthenticatedActionsRoute
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
-  AuthenticatedHandlersRoute: typeof AuthenticatedHandlersRoute
-  AuthenticatedInspectorRoute: typeof AuthenticatedInspectorRoute
+  AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
+  AuthenticatedDevicesRoute: typeof AuthenticatedDevicesRoute
   AuthenticatedLogsRoute: typeof AuthenticatedLogsRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedWorkflowRoute: typeof AuthenticatedWorkflowRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedActionsRoute: AuthenticatedActionsRoute,
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
-  AuthenticatedHandlersRoute: AuthenticatedHandlersRoute,
-  AuthenticatedInspectorRoute: AuthenticatedInspectorRoute,
+  AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
+  AuthenticatedDevicesRoute: AuthenticatedDevicesRoute,
   AuthenticatedLogsRoute: AuthenticatedLogsRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedWorkflowRoute: AuthenticatedWorkflowRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 

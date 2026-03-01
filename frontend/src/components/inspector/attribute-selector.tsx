@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useListHandlersApiHandlersGet } from "@/api/generated/handlers/handlers";
@@ -18,9 +18,10 @@ import {
 interface AttributeSelectorProps {
     selectedIds: number[];
     onSelectionChange: (ids: number[]) => void;
+    showLabel?: boolean;
 }
 
-export function AttributeSelector({ selectedIds, onSelectionChange }: AttributeSelectorProps) {
+export function AttributeSelector({ selectedIds, onSelectionChange, showLabel }: AttributeSelectorProps) {
     const { t } = useTranslation();
     const { data: response } = useListHandlersApiHandlersGet();
     const handlers = response?.data ?? [];
@@ -50,16 +51,21 @@ export function AttributeSelector({ selectedIds, onSelectionChange }: AttributeS
 
     return (
         <Dialog open={open} onOpenChange={handleOpen}>
-            <DialogTrigger render={<Button variant="outline" size="sm" />}>
-                <Search className="mr-2 h-4 w-4" />
-                {t("inspector.selectAttributes")}
+            <DialogTrigger
+                render={<Button variant="outline" size="sm" className={showLabel ? "" : "max-sm:px-2"} />}
+            >
+                <SlidersHorizontal className={showLabel ? "mr-1.5 h-3.5 w-3.5" : "h-3.5 w-3.5 sm:mr-1.5"} />
+                <span className={showLabel ? "" : "hidden sm:inline"}>{t("inspector.selectAttributes")}</span>
                 {selectedIds.length > 0 && (
-                    <Badge variant="secondary" className="ml-2">
+                    <Badge
+                        variant="secondary"
+                        className={`text-[10px] px-1.5 py-0 ${showLabel ? "ml-2" : "sm:ml-2"}`}
+                    >
                         {selectedIds.length}
                     </Badge>
                 )}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="max-h-[85dvh] sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle>{t("inspector.attributeSelector")}</DialogTitle>
                 </DialogHeader>
@@ -68,18 +74,21 @@ export function AttributeSelector({ selectedIds, onSelectionChange }: AttributeS
                     {handlers.map((handler) => {
                         const attributes = handler.attributes ?? [];
                         if (attributes.length === 0) return null;
+                        const handlerLabel = (handler.options as { label?: string })?.label || handler.type;
                         return (
                             <div key={handler.id}>
-                                <h4 className="mb-2 text-sm font-semibold text-muted-foreground">
-                                    {handler.type}
-                                    <span className="ml-1 text-xs font-normal">#{handler.id}</span>
+                                <h4 className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-widest">
+                                    {handlerLabel}
+                                    <span className="ml-1.5 text-[10px] font-normal opacity-60">
+                                        #{handler.id}
+                                    </span>
                                 </h4>
-                                <div className="space-y-2 pl-2">
+                                <div className="space-y-1.5 pl-1">
                                     {attributes.map((attr) => (
                                         <label
                                             key={attr.id}
                                             htmlFor={`attr-${attr.id}`}
-                                            className="flex cursor-pointer items-center gap-2"
+                                            className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 hover:bg-accent transition-colors"
                                         >
                                             <Checkbox
                                                 id={`attr-${attr.id}`}
@@ -89,7 +98,7 @@ export function AttributeSelector({ selectedIds, onSelectionChange }: AttributeS
                                             <span className="text-sm">
                                                 {attr.label || attr.name}
                                                 {attr.unit && (
-                                                    <span className="ml-1 text-muted-foreground">
+                                                    <span className="ml-1 text-muted-foreground text-xs">
                                                         ({attr.unit})
                                                     </span>
                                                 )}

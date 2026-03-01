@@ -9,11 +9,13 @@ class ActionRead(OrmBase, BaseModel):
     id: int
     name: str
     message: str
+    handler_id: int | None = None
 
 
 class ActionCreate(BaseModel):
     name: str
     message: str
+    handler_id: int | None = None
 
     @field_validator("message")
     @classmethod

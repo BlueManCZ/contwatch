@@ -1,4 +1,4 @@
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Shield, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ import {
     useUpdateUserApiAuthUsersUserIdPatch,
 } from "@/api/generated/auth/auth";
 import type { UserRead, UserUpdate } from "@/api/generated/contWatchAPI.schemas";
+import { EmptyState } from "@/components/layout/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,7 +25,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/providers/auth-provider";
 
 export function UserManagement() {
@@ -37,84 +37,71 @@ export function UserManagement() {
     const users = (data?.data ?? []) as UserRead[];
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold">{t("admin.title")}</h1>
+                <h2 className="text-sm font-semibold tracking-tight">{t("admin.title")}</h2>
                 <AddUserDialog />
             </div>
 
             {users.length === 0 ? (
-                <Card>
-                    <CardContent className="py-8 text-center">
-                        <p className="text-muted-foreground">{t("admin.noUsers")}</p>
-                    </CardContent>
-                </Card>
+                <EmptyState icon={Shield} title={t("admin.noUsers")} />
             ) : (
-                <Card>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>{t("admin.username")}</TableHead>
-                                <TableHead>{t("admin.email")}</TableHead>
-                                <TableHead>{t("admin.role")}</TableHead>
-                                <TableHead>{t("admin.active")}</TableHead>
-                                <TableHead className="w-24" />
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {users.map((user) => (
-                                <TableRow key={user.id}>
-                                    <TableCell className="font-medium">{user.username}</TableCell>
-                                    <TableCell>{user.email}</TableCell>
-                                    <TableCell>
-                                        <Badge variant={user.role === "admin" ? "default" : "secondary"}>
-                                            {user.role === "admin"
-                                                ? t("admin.roleAdmin")
-                                                : t("admin.roleUser")}
+                <Card className="!py-0 !gap-0 divide-y">
+                    {users.map((user) => (
+                        <CardContent
+                            key={user.id}
+                            className="flex items-center justify-between gap-4 px-4 py-4"
+                        >
+                            <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                    <p className="text-sm font-medium truncate">{user.username}</p>
+                                    <Badge
+                                        variant={user.role === "admin" ? "default" : "secondary"}
+                                        className="text-[10px]"
+                                    >
+                                        {user.role === "admin" ? t("admin.roleAdmin") : t("admin.roleUser")}
+                                    </Badge>
+                                    {!user.is_active && (
+                                        <Badge variant="destructive" className="text-[10px]">
+                                            {t("admin.inactive")}
                                         </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant={user.is_active ? "default" : "destructive"}>
-                                            {user.is_active ? t("admin.active") : t("admin.inactive")}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex gap-1">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon-sm"
-                                                onClick={() => setEditingUser(user)}
-                                                title={t("admin.editUser")}
-                                            >
-                                                <Pencil className="h-4 w-4 text-muted-foreground" />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon-sm"
-                                                onClick={() =>
-                                                    deleteUser.mutate(
-                                                        { userId: user.id },
-                                                        {
-                                                            onSuccess: () =>
-                                                                toast.success(t("toast.userDeleted")),
-                                                        },
-                                                    )
-                                                }
-                                                disabled={currentUser?.id === user.id}
-                                                title={
-                                                    currentUser?.id === user.id
-                                                        ? t("admin.cannotDeleteSelf")
-                                                        : t("admin.deleteUser")
-                                                }
-                                            >
-                                                <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                                            </Button>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                                    )}
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-0.5 truncate">{user.email}</p>
+                            </div>
+                            <div className="flex gap-0.5 shrink-0">
+                                <Button
+                                    variant="ghost"
+                                    size="icon-xs"
+                                    onClick={() => setEditingUser(user)}
+                                    title={t("admin.editUser")}
+                                >
+                                    <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon-xs"
+                                    onClick={() =>
+                                        deleteUser.mutate(
+                                            { userId: user.id },
+                                            {
+                                                onSuccess: () => toast.success(t("toast.userDeleted")),
+                                            },
+                                        )
+                                    }
+                                    disabled={currentUser?.id === user.id}
+                                    title={
+                                        currentUser?.id === user.id
+                                            ? t("admin.cannotDeleteSelf")
+                                            : t("admin.deleteUser")
+                                    }
+                                    className="text-muted-foreground hover:text-destructive-foreground"
+                                >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                            </div>
+                        </CardContent>
+                    ))}
                 </Card>
             )}
 
@@ -154,8 +141,8 @@ function AddUserDialog() {
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger
                 render={
-                    <Button>
-                        <Plus className="mr-2 h-4 w-4" />
+                    <Button size="sm">
+                        <Plus className="mr-1.5 h-3.5 w-3.5" />
                         {t("admin.addUser")}
                     </Button>
                 }

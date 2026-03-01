@@ -98,4 +98,5 @@ async def delete_user(user_id: int, db: DbSession, current_user: CurrentUser):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     await db.delete(user)
+    await db.commit()
     await sio.emit("mutate", {"entity": "auth"})

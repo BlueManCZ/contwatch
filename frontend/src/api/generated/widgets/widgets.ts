@@ -29,8 +29,10 @@ import type {
   SwitchToggleRequest,
   WidgetSwitchCreate,
   WidgetSwitchRead,
+  WidgetSwitchUpdate,
   WidgetTileCreate,
-  WidgetTileRead
+  WidgetTileRead,
+  WidgetTileUpdate
 } from '../contWatchAPI.schemas';
 
 import { axiosInstance } from '../../axios-instance';
@@ -238,6 +240,96 @@ export const useCreateTileApiWidgetsTilesPost = <TError = HTTPValidationError,
         TContext
       > => {
       return useMutation(getCreateTileApiWidgetsTilesPostMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Update Tile
+ */
+export type updateTileApiWidgetsTilesTileIdPatchResponse200 = {
+  data: WidgetTileRead
+  status: 200
+}
+
+export type updateTileApiWidgetsTilesTileIdPatchResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type updateTileApiWidgetsTilesTileIdPatchResponseSuccess = (updateTileApiWidgetsTilesTileIdPatchResponse200) & {
+  headers: Headers;
+};
+export type updateTileApiWidgetsTilesTileIdPatchResponseError = (updateTileApiWidgetsTilesTileIdPatchResponse422) & {
+  headers: Headers;
+};
+
+export type updateTileApiWidgetsTilesTileIdPatchResponse = (updateTileApiWidgetsTilesTileIdPatchResponseSuccess | updateTileApiWidgetsTilesTileIdPatchResponseError)
+
+export const getUpdateTileApiWidgetsTilesTileIdPatchUrl = (tileId: number,) => {
+
+
+  
+
+  return `/api/widgets/tiles/${tileId}`
+}
+
+export const updateTileApiWidgetsTilesTileIdPatch = async (tileId: number,
+    widgetTileUpdate: WidgetTileUpdate, options?: RequestInit): Promise<updateTileApiWidgetsTilesTileIdPatchResponse> => {
+  
+  return axiosInstance<updateTileApiWidgetsTilesTileIdPatchResponse>(getUpdateTileApiWidgetsTilesTileIdPatchUrl(tileId),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      widgetTileUpdate,)
+  }
+);}
+  
+
+
+
+export const getUpdateTileApiWidgetsTilesTileIdPatchMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTileApiWidgetsTilesTileIdPatch>>, TError,{tileId: number;data: WidgetTileUpdate}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateTileApiWidgetsTilesTileIdPatch>>, TError,{tileId: number;data: WidgetTileUpdate}, TContext> => {
+
+const mutationKey = ['updateTileApiWidgetsTilesTileIdPatch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateTileApiWidgetsTilesTileIdPatch>>, {tileId: number;data: WidgetTileUpdate}> = (props) => {
+          const {tileId,data} = props ?? {};
+
+          return  updateTileApiWidgetsTilesTileIdPatch(tileId,data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateTileApiWidgetsTilesTileIdPatchMutationResult = NonNullable<Awaited<ReturnType<typeof updateTileApiWidgetsTilesTileIdPatch>>>
+    export type UpdateTileApiWidgetsTilesTileIdPatchMutationBody = WidgetTileUpdate
+    export type UpdateTileApiWidgetsTilesTileIdPatchMutationError = HTTPValidationError
+
+    /**
+ * @summary Update Tile
+ */
+export const useUpdateTileApiWidgetsTilesTileIdPatch = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTileApiWidgetsTilesTileIdPatch>>, TError,{tileId: number;data: WidgetTileUpdate}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateTileApiWidgetsTilesTileIdPatch>>,
+        TError,
+        {tileId: number;data: WidgetTileUpdate},
+        TContext
+      > => {
+      return useMutation(getUpdateTileApiWidgetsTilesTileIdPatchMutationOptions(options), queryClient);
     }
     /**
  * @summary Delete Tile
@@ -525,6 +617,96 @@ export const useCreateSwitchApiWidgetsSwitchesPost = <TError = HTTPValidationErr
         TContext
       > => {
       return useMutation(getCreateSwitchApiWidgetsSwitchesPostMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Update Switch
+ */
+export type updateSwitchApiWidgetsSwitchesSwitchIdPatchResponse200 = {
+  data: WidgetSwitchRead
+  status: 200
+}
+
+export type updateSwitchApiWidgetsSwitchesSwitchIdPatchResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type updateSwitchApiWidgetsSwitchesSwitchIdPatchResponseSuccess = (updateSwitchApiWidgetsSwitchesSwitchIdPatchResponse200) & {
+  headers: Headers;
+};
+export type updateSwitchApiWidgetsSwitchesSwitchIdPatchResponseError = (updateSwitchApiWidgetsSwitchesSwitchIdPatchResponse422) & {
+  headers: Headers;
+};
+
+export type updateSwitchApiWidgetsSwitchesSwitchIdPatchResponse = (updateSwitchApiWidgetsSwitchesSwitchIdPatchResponseSuccess | updateSwitchApiWidgetsSwitchesSwitchIdPatchResponseError)
+
+export const getUpdateSwitchApiWidgetsSwitchesSwitchIdPatchUrl = (switchId: number,) => {
+
+
+  
+
+  return `/api/widgets/switches/${switchId}`
+}
+
+export const updateSwitchApiWidgetsSwitchesSwitchIdPatch = async (switchId: number,
+    widgetSwitchUpdate: WidgetSwitchUpdate, options?: RequestInit): Promise<updateSwitchApiWidgetsSwitchesSwitchIdPatchResponse> => {
+  
+  return axiosInstance<updateSwitchApiWidgetsSwitchesSwitchIdPatchResponse>(getUpdateSwitchApiWidgetsSwitchesSwitchIdPatchUrl(switchId),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      widgetSwitchUpdate,)
+  }
+);}
+  
+
+
+
+export const getUpdateSwitchApiWidgetsSwitchesSwitchIdPatchMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSwitchApiWidgetsSwitchesSwitchIdPatch>>, TError,{switchId: number;data: WidgetSwitchUpdate}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateSwitchApiWidgetsSwitchesSwitchIdPatch>>, TError,{switchId: number;data: WidgetSwitchUpdate}, TContext> => {
+
+const mutationKey = ['updateSwitchApiWidgetsSwitchesSwitchIdPatch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateSwitchApiWidgetsSwitchesSwitchIdPatch>>, {switchId: number;data: WidgetSwitchUpdate}> = (props) => {
+          const {switchId,data} = props ?? {};
+
+          return  updateSwitchApiWidgetsSwitchesSwitchIdPatch(switchId,data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateSwitchApiWidgetsSwitchesSwitchIdPatchMutationResult = NonNullable<Awaited<ReturnType<typeof updateSwitchApiWidgetsSwitchesSwitchIdPatch>>>
+    export type UpdateSwitchApiWidgetsSwitchesSwitchIdPatchMutationBody = WidgetSwitchUpdate
+    export type UpdateSwitchApiWidgetsSwitchesSwitchIdPatchMutationError = HTTPValidationError
+
+    /**
+ * @summary Update Switch
+ */
+export const useUpdateSwitchApiWidgetsSwitchesSwitchIdPatch = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSwitchApiWidgetsSwitchesSwitchIdPatch>>, TError,{switchId: number;data: WidgetSwitchUpdate}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateSwitchApiWidgetsSwitchesSwitchIdPatch>>,
+        TError,
+        {switchId: number;data: WidgetSwitchUpdate},
+        TContext
+      > => {
+      return useMutation(getUpdateSwitchApiWidgetsSwitchesSwitchIdPatchMutationOptions(options), queryClient);
     }
     /**
  * @summary Delete Switch

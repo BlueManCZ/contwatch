@@ -531,4 +531,92 @@ export const useDeleteActionApiActionsActionIdDelete = <TError = HTTPValidationE
       > => {
       return useMutation(getDeleteActionApiActionsActionIdDeleteMutationOptions(options), queryClient);
     }
+    /**
+ * @summary Execute Action
+ */
+export type executeActionApiActionsActionIdExecutePostResponse200 = {
+  data: unknown
+  status: 200
+}
+
+export type executeActionApiActionsActionIdExecutePostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type executeActionApiActionsActionIdExecutePostResponseSuccess = (executeActionApiActionsActionIdExecutePostResponse200) & {
+  headers: Headers;
+};
+export type executeActionApiActionsActionIdExecutePostResponseError = (executeActionApiActionsActionIdExecutePostResponse422) & {
+  headers: Headers;
+};
+
+export type executeActionApiActionsActionIdExecutePostResponse = (executeActionApiActionsActionIdExecutePostResponseSuccess | executeActionApiActionsActionIdExecutePostResponseError)
+
+export const getExecuteActionApiActionsActionIdExecutePostUrl = (actionId: number,) => {
+
+
+  
+
+  return `/api/actions/${actionId}/execute`
+}
+
+export const executeActionApiActionsActionIdExecutePost = async (actionId: number, options?: RequestInit): Promise<executeActionApiActionsActionIdExecutePostResponse> => {
+  
+  return axiosInstance<executeActionApiActionsActionIdExecutePostResponse>(getExecuteActionApiActionsActionIdExecutePostUrl(actionId),
+  {      
+    ...options,
+    method: 'POST'
+    
+    
+  }
+);}
+  
+
+
+
+export const getExecuteActionApiActionsActionIdExecutePostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof executeActionApiActionsActionIdExecutePost>>, TError,{actionId: number}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof executeActionApiActionsActionIdExecutePost>>, TError,{actionId: number}, TContext> => {
+
+const mutationKey = ['executeActionApiActionsActionIdExecutePost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof executeActionApiActionsActionIdExecutePost>>, {actionId: number}> = (props) => {
+          const {actionId} = props ?? {};
+
+          return  executeActionApiActionsActionIdExecutePost(actionId,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ExecuteActionApiActionsActionIdExecutePostMutationResult = NonNullable<Awaited<ReturnType<typeof executeActionApiActionsActionIdExecutePost>>>
+    
+    export type ExecuteActionApiActionsActionIdExecutePostMutationError = HTTPValidationError
+
+    /**
+ * @summary Execute Action
+ */
+export const useExecuteActionApiActionsActionIdExecutePost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof executeActionApiActionsActionIdExecutePost>>, TError,{actionId: number}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof executeActionApiActionsActionIdExecutePost>>,
+        TError,
+        {actionId: number},
+        TContext
+      > => {
+      return useMutation(getExecuteActionApiActionsActionIdExecutePostMutationOptions(options), queryClient);
+    }
     

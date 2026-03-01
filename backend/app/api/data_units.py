@@ -18,16 +18,19 @@ async def list_data_units(
     attribute_id: int | None = None,
     date_from: datetime.date | None = None,
     date_to: datetime.date | None = None,
+    tz_offset: int = Query(0, description="Browser timezone offset in minutes (JS getTimezoneOffset)"),
     limit: int = 1000,
 ):
+    tz_delta = datetime.timedelta(minutes=tz_offset)
     query = select(DataUnit)
     if attribute_id is not None:
         query = query.where(DataUnit.attribute_id == attribute_id)
     if date_from is not None:
-        start = datetime.datetime.combine(date_from, datetime.time.min, tzinfo=datetime.UTC)
+        start = datetime.datetime.combine(date_from, datetime.time.min, tzinfo=datetime.UTC) + tz_delta
         query = query.where(DataUnit.timestamp >= start)
     if date_to is not None:
-        end = datetime.datetime.combine(date_to + datetime.timedelta(days=1), datetime.time.min, tzinfo=datetime.UTC)
+        end_date = date_to + datetime.timedelta(days=1)
+        end = datetime.datetime.combine(end_date, datetime.time.min, tzinfo=datetime.UTC) + tz_delta
         query = query.where(DataUnit.timestamp < end)
     query = query.order_by(DataUnit.timestamp.desc()).limit(limit)
     result = await db.execute(query)
@@ -40,14 +43,16 @@ async def chart_data(
     _current_user: CurrentUser,
     attribute_ids: str = Query(..., description="Comma-separated attribute IDs"),
     date: datetime.date | None = None,
+    tz_offset: int = Query(0, description="Browser timezone offset in minutes (JS getTimezoneOffset)"),
 ):
+    tz_delta = datetime.timedelta(minutes=tz_offset)
     if date is None:
-        date = datetime.datetime.now(datetime.UTC).date()
+        date = (datetime.datetime.now(datetime.UTC) - tz_delta).date()
 
     ids = [int(x) for x in attribute_ids.split(",") if x.strip()]
 
-    # Day boundaries in UTC
-    day_start = datetime.datetime.combine(date, datetime.time.min, tzinfo=datetime.UTC)
+    # Day boundaries adjusted for client timezone
+    day_start = datetime.datetime.combine(date, datetime.time.min, tzinfo=datetime.UTC) + tz_delta
     day_end = day_start + datetime.timedelta(days=1)
 
     # Load attributes metadata

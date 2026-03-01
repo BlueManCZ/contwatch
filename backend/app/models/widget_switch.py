@@ -12,8 +12,8 @@ class WidgetSwitch(Base):
     icon: Mapped[str | None] = mapped_column(String(100), nullable=True)
     attribute_id: Mapped[int] = mapped_column(ForeignKey("attributes.id"))
     attribute_compare: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    action_on_id: Mapped[int | None] = mapped_column(ForeignKey("actions.id"), nullable=True)
-    action_off_id: Mapped[int | None] = mapped_column(ForeignKey("actions.id"), nullable=True)
+    action_on_id: Mapped[int | None] = mapped_column(ForeignKey("actions.id", ondelete="SET NULL"), nullable=True)
+    action_off_id: Mapped[int | None] = mapped_column(ForeignKey("actions.id", ondelete="SET NULL"), nullable=True)
 
     attribute: Mapped["Attribute"] = relationship(back_populates="widget_switches")  # noqa: F821
     action_on: Mapped["Action | None"] = relationship(  # noqa: F821

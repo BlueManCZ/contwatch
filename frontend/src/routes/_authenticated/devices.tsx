@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { HandlerList } from "@/components/handlers/handler-list";
 
-export const Route = createFileRoute("/_authenticated/handlers")({
-    component: HandlersPage,
+export const Route = createFileRoute("/_authenticated/devices")({
+    component: DevicesPage,
 });
 
-function HandlersPage() {
+function DevicesPage() {
     return <HandlerList />;
 }

@@ -3,7 +3,13 @@ from sqlalchemy import select
 
 from app.dependencies import CurrentUser, DbSession, HandlerManagerDep
 from app.models.attribute import Attribute
-from app.schemas.attribute import AttributeCreate, AttributeRead, AttributeUpdate, AttributeValue
+from app.schemas.attribute import (
+    AttributeCreate,
+    AttributeRead,
+    AttributeReorderRequest,
+    AttributeUpdate,
+    AttributeValue,
+)
 from app.socketio_app import sio
 
 router = APIRouter(prefix="/attributes", tags=["attributes"])
@@ -11,7 +17,7 @@ router = APIRouter(prefix="/attributes", tags=["attributes"])
 
 @router.get("/", response_model=list[AttributeRead])
 async def list_attributes(db: DbSession, _current_user: CurrentUser, handler_id: int | None = None):
-    query = select(Attribute)
+    query = select(Attribute).order_by(Attribute.order.asc().nullslast(), Attribute.id.asc())
     if handler_id is not None:
         query = query.where(Attribute.handler_id == handler_id)
     result = await db.execute(query)
@@ -22,16 +28,47 @@ async def list_attributes(db: DbSession, _current_user: CurrentUser, handler_id:
 async def all_attribute_values(manager: HandlerManagerDep, _current_user: CurrentUser):
     values = manager.get_current_values()
     daily_stats = manager.get_daily_stats()
-    return [
-        AttributeValue(
-            attribute_id=attr_id,
-            value=data["value"],
-            trend=data["trend"],
-            daily_min=daily_stats.get(attr_id, {}).get("min"),
-            daily_max=daily_stats.get(attr_id, {}).get("max"),
+
+    result = []
+    seen: set[int] = set()
+    for attr_id, data in values.items():
+        seen.add(attr_id)
+        stats = daily_stats.get(attr_id, {})
+        result.append(
+            AttributeValue(
+                attribute_id=attr_id,
+                value=data["value"],
+                trend=data["trend"],
+                daily_min=stats.get("min"),
+                daily_max=stats.get("max"),
+                last_changed=data.get("last_changed"),
+            )
         )
-        for attr_id, data in values.items()
-    ]
+    # Include attributes that have daily stats but no current value
+    for attr_id, stats in daily_stats.items():
+        if attr_id not in seen:
+            result.append(
+                AttributeValue(
+                    attribute_id=attr_id,
+                    value=None,
+                    trend=0,
+                    daily_min=stats.get("min"),
+                    daily_max=stats.get("max"),
+                )
+            )
+    return result
+
+
+@router.put("/reorder", status_code=204)
+async def reorder_attributes(body: AttributeReorderRequest, db: DbSession, _current_user: CurrentUser):
+    for item in body.items:
+        result = await db.execute(select(Attribute).where(Attribute.id == item.id))
+        attribute = result.scalar_one_or_none()
+        if attribute:
+            attribute.order = item.order
+    await db.commit()
+    await sio.emit("mutate", {"entity": "attributes"})
+    await sio.emit("mutate", {"entity": "handlers"})
 
 
 @router.get("/{attribute_id}", response_model=AttributeRead)
@@ -62,6 +99,19 @@ async def create_attribute(
     await manager.register_attribute(attribute)
     await sio.emit("mutate", {"entity": "attributes"})
     return attribute
+
+
+@router.delete("/{attribute_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_attribute(attribute_id: int, db: DbSession, manager: HandlerManagerDep, _current_user: CurrentUser):
+    result = await db.execute(select(Attribute).where(Attribute.id == attribute_id))
+    attribute = result.scalar_one_or_none()
+    if not attribute:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Attribute not found")
+
+    await manager.unregister_attribute(attribute.handler_id, attribute.name)
+    await db.delete(attribute)
+    await db.commit()
+    await sio.emit("mutate", {"entity": "attributes"})
 
 
 @router.patch("/{attribute_id}", response_model=AttributeRead)

@@ -24,12 +24,18 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AllHandlerStatusesApiHandlersStatusesGet200,
+  CategoryInfo,
   HTTPValidationError,
   HandlerCreate,
   HandlerRead,
   HandlerStatus,
   HandlerTypeInfo,
-  HandlerUpdate
+  HandlerUpdate,
+  ProbeRequest,
+  ProbeResult,
+  SerialPortInfo,
+  SetupRequest
 } from '../contWatchAPI.schemas';
 
 import { axiosInstance } from '../../axios-instance';
@@ -239,6 +245,116 @@ export const useCreateHandlerApiHandlersPost = <TError = HTTPValidationError,
       return useMutation(getCreateHandlerApiHandlersPostMutationOptions(options), queryClient);
     }
     /**
+ * @summary All Handler Statuses
+ */
+export type allHandlerStatusesApiHandlersStatusesGetResponse200 = {
+  data: AllHandlerStatusesApiHandlersStatusesGet200
+  status: 200
+}
+
+export type allHandlerStatusesApiHandlersStatusesGetResponseSuccess = (allHandlerStatusesApiHandlersStatusesGetResponse200) & {
+  headers: Headers;
+};
+;
+
+export type allHandlerStatusesApiHandlersStatusesGetResponse = (allHandlerStatusesApiHandlersStatusesGetResponseSuccess)
+
+export const getAllHandlerStatusesApiHandlersStatusesGetUrl = () => {
+
+
+  
+
+  return `/api/handlers/statuses`
+}
+
+export const allHandlerStatusesApiHandlersStatusesGet = async ( options?: RequestInit): Promise<allHandlerStatusesApiHandlersStatusesGetResponse> => {
+  
+  return axiosInstance<allHandlerStatusesApiHandlersStatusesGetResponse>(getAllHandlerStatusesApiHandlersStatusesGetUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getAllHandlerStatusesApiHandlersStatusesGetQueryKey = () => {
+    return [
+    `/api/handlers/statuses`
+    ] as const;
+    }
+
+    
+export const getAllHandlerStatusesApiHandlersStatusesGetQueryOptions = <TData = Awaited<ReturnType<typeof allHandlerStatusesApiHandlersStatusesGet>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof allHandlerStatusesApiHandlersStatusesGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAllHandlerStatusesApiHandlersStatusesGetQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof allHandlerStatusesApiHandlersStatusesGet>>> = ({ signal }) => allHandlerStatusesApiHandlersStatusesGet({ signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof allHandlerStatusesApiHandlersStatusesGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AllHandlerStatusesApiHandlersStatusesGetQueryResult = NonNullable<Awaited<ReturnType<typeof allHandlerStatusesApiHandlersStatusesGet>>>
+export type AllHandlerStatusesApiHandlersStatusesGetQueryError = unknown
+
+
+export function useAllHandlerStatusesApiHandlersStatusesGet<TData = Awaited<ReturnType<typeof allHandlerStatusesApiHandlersStatusesGet>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof allHandlerStatusesApiHandlersStatusesGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof allHandlerStatusesApiHandlersStatusesGet>>,
+          TError,
+          Awaited<ReturnType<typeof allHandlerStatusesApiHandlersStatusesGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAllHandlerStatusesApiHandlersStatusesGet<TData = Awaited<ReturnType<typeof allHandlerStatusesApiHandlersStatusesGet>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof allHandlerStatusesApiHandlersStatusesGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof allHandlerStatusesApiHandlersStatusesGet>>,
+          TError,
+          Awaited<ReturnType<typeof allHandlerStatusesApiHandlersStatusesGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAllHandlerStatusesApiHandlersStatusesGet<TData = Awaited<ReturnType<typeof allHandlerStatusesApiHandlersStatusesGet>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof allHandlerStatusesApiHandlersStatusesGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary All Handler Statuses
+ */
+
+export function useAllHandlerStatusesApiHandlersStatusesGet<TData = Awaited<ReturnType<typeof allHandlerStatusesApiHandlersStatusesGet>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof allHandlerStatusesApiHandlersStatusesGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAllHandlerStatusesApiHandlersStatusesGetQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
  * @summary List Handler Types
  */
 export type listHandlerTypesApiHandlersTypesGetResponse200 = {
@@ -349,6 +465,404 @@ export function useListHandlerTypesApiHandlersTypesGet<TData = Awaited<ReturnTyp
 
 
 /**
+ * @summary List Categories
+ */
+export type listCategoriesApiHandlersCategoriesGetResponse200 = {
+  data: CategoryInfo[]
+  status: 200
+}
+
+export type listCategoriesApiHandlersCategoriesGetResponseSuccess = (listCategoriesApiHandlersCategoriesGetResponse200) & {
+  headers: Headers;
+};
+;
+
+export type listCategoriesApiHandlersCategoriesGetResponse = (listCategoriesApiHandlersCategoriesGetResponseSuccess)
+
+export const getListCategoriesApiHandlersCategoriesGetUrl = () => {
+
+
+  
+
+  return `/api/handlers/categories`
+}
+
+export const listCategoriesApiHandlersCategoriesGet = async ( options?: RequestInit): Promise<listCategoriesApiHandlersCategoriesGetResponse> => {
+  
+  return axiosInstance<listCategoriesApiHandlersCategoriesGetResponse>(getListCategoriesApiHandlersCategoriesGetUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getListCategoriesApiHandlersCategoriesGetQueryKey = () => {
+    return [
+    `/api/handlers/categories`
+    ] as const;
+    }
+
+    
+export const getListCategoriesApiHandlersCategoriesGetQueryOptions = <TData = Awaited<ReturnType<typeof listCategoriesApiHandlersCategoriesGet>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategoriesApiHandlersCategoriesGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCategoriesApiHandlersCategoriesGetQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCategoriesApiHandlersCategoriesGet>>> = ({ signal }) => listCategoriesApiHandlersCategoriesGet({ signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCategoriesApiHandlersCategoriesGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListCategoriesApiHandlersCategoriesGetQueryResult = NonNullable<Awaited<ReturnType<typeof listCategoriesApiHandlersCategoriesGet>>>
+export type ListCategoriesApiHandlersCategoriesGetQueryError = unknown
+
+
+export function useListCategoriesApiHandlersCategoriesGet<TData = Awaited<ReturnType<typeof listCategoriesApiHandlersCategoriesGet>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategoriesApiHandlersCategoriesGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCategoriesApiHandlersCategoriesGet>>,
+          TError,
+          Awaited<ReturnType<typeof listCategoriesApiHandlersCategoriesGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCategoriesApiHandlersCategoriesGet<TData = Awaited<ReturnType<typeof listCategoriesApiHandlersCategoriesGet>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategoriesApiHandlersCategoriesGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCategoriesApiHandlersCategoriesGet>>,
+          TError,
+          Awaited<ReturnType<typeof listCategoriesApiHandlersCategoriesGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCategoriesApiHandlersCategoriesGet<TData = Awaited<ReturnType<typeof listCategoriesApiHandlersCategoriesGet>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategoriesApiHandlersCategoriesGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List Categories
+ */
+
+export function useListCategoriesApiHandlersCategoriesGet<TData = Awaited<ReturnType<typeof listCategoriesApiHandlersCategoriesGet>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategoriesApiHandlersCategoriesGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListCategoriesApiHandlersCategoriesGetQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * @summary List Serial Ports
+ */
+export type listSerialPortsApiHandlersSerialPortsGetResponse200 = {
+  data: SerialPortInfo[]
+  status: 200
+}
+
+export type listSerialPortsApiHandlersSerialPortsGetResponseSuccess = (listSerialPortsApiHandlersSerialPortsGetResponse200) & {
+  headers: Headers;
+};
+;
+
+export type listSerialPortsApiHandlersSerialPortsGetResponse = (listSerialPortsApiHandlersSerialPortsGetResponseSuccess)
+
+export const getListSerialPortsApiHandlersSerialPortsGetUrl = () => {
+
+
+  
+
+  return `/api/handlers/serial-ports`
+}
+
+export const listSerialPortsApiHandlersSerialPortsGet = async ( options?: RequestInit): Promise<listSerialPortsApiHandlersSerialPortsGetResponse> => {
+  
+  return axiosInstance<listSerialPortsApiHandlersSerialPortsGetResponse>(getListSerialPortsApiHandlersSerialPortsGetUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getListSerialPortsApiHandlersSerialPortsGetQueryKey = () => {
+    return [
+    `/api/handlers/serial-ports`
+    ] as const;
+    }
+
+    
+export const getListSerialPortsApiHandlersSerialPortsGetQueryOptions = <TData = Awaited<ReturnType<typeof listSerialPortsApiHandlersSerialPortsGet>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSerialPortsApiHandlersSerialPortsGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListSerialPortsApiHandlersSerialPortsGetQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSerialPortsApiHandlersSerialPortsGet>>> = ({ signal }) => listSerialPortsApiHandlersSerialPortsGet({ signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSerialPortsApiHandlersSerialPortsGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListSerialPortsApiHandlersSerialPortsGetQueryResult = NonNullable<Awaited<ReturnType<typeof listSerialPortsApiHandlersSerialPortsGet>>>
+export type ListSerialPortsApiHandlersSerialPortsGetQueryError = unknown
+
+
+export function useListSerialPortsApiHandlersSerialPortsGet<TData = Awaited<ReturnType<typeof listSerialPortsApiHandlersSerialPortsGet>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSerialPortsApiHandlersSerialPortsGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSerialPortsApiHandlersSerialPortsGet>>,
+          TError,
+          Awaited<ReturnType<typeof listSerialPortsApiHandlersSerialPortsGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSerialPortsApiHandlersSerialPortsGet<TData = Awaited<ReturnType<typeof listSerialPortsApiHandlersSerialPortsGet>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSerialPortsApiHandlersSerialPortsGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSerialPortsApiHandlersSerialPortsGet>>,
+          TError,
+          Awaited<ReturnType<typeof listSerialPortsApiHandlersSerialPortsGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSerialPortsApiHandlersSerialPortsGet<TData = Awaited<ReturnType<typeof listSerialPortsApiHandlersSerialPortsGet>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSerialPortsApiHandlersSerialPortsGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List Serial Ports
+ */
+
+export function useListSerialPortsApiHandlersSerialPortsGet<TData = Awaited<ReturnType<typeof listSerialPortsApiHandlersSerialPortsGet>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSerialPortsApiHandlersSerialPortsGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListSerialPortsApiHandlersSerialPortsGetQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * @summary Probe Handler
+ */
+export type probeHandlerApiHandlersProbePostResponse200 = {
+  data: ProbeResult
+  status: 200
+}
+
+export type probeHandlerApiHandlersProbePostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type probeHandlerApiHandlersProbePostResponseSuccess = (probeHandlerApiHandlersProbePostResponse200) & {
+  headers: Headers;
+};
+export type probeHandlerApiHandlersProbePostResponseError = (probeHandlerApiHandlersProbePostResponse422) & {
+  headers: Headers;
+};
+
+export type probeHandlerApiHandlersProbePostResponse = (probeHandlerApiHandlersProbePostResponseSuccess | probeHandlerApiHandlersProbePostResponseError)
+
+export const getProbeHandlerApiHandlersProbePostUrl = () => {
+
+
+  
+
+  return `/api/handlers/probe`
+}
+
+export const probeHandlerApiHandlersProbePost = async (probeRequest: ProbeRequest, options?: RequestInit): Promise<probeHandlerApiHandlersProbePostResponse> => {
+  
+  return axiosInstance<probeHandlerApiHandlersProbePostResponse>(getProbeHandlerApiHandlersProbePostUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      probeRequest,)
+  }
+);}
+  
+
+
+
+export const getProbeHandlerApiHandlersProbePostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof probeHandlerApiHandlersProbePost>>, TError,{data: ProbeRequest}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof probeHandlerApiHandlersProbePost>>, TError,{data: ProbeRequest}, TContext> => {
+
+const mutationKey = ['probeHandlerApiHandlersProbePost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof probeHandlerApiHandlersProbePost>>, {data: ProbeRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  probeHandlerApiHandlersProbePost(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProbeHandlerApiHandlersProbePostMutationResult = NonNullable<Awaited<ReturnType<typeof probeHandlerApiHandlersProbePost>>>
+    export type ProbeHandlerApiHandlersProbePostMutationBody = ProbeRequest
+    export type ProbeHandlerApiHandlersProbePostMutationError = HTTPValidationError
+
+    /**
+ * @summary Probe Handler
+ */
+export const useProbeHandlerApiHandlersProbePost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof probeHandlerApiHandlersProbePost>>, TError,{data: ProbeRequest}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof probeHandlerApiHandlersProbePost>>,
+        TError,
+        {data: ProbeRequest},
+        TContext
+      > => {
+      return useMutation(getProbeHandlerApiHandlersProbePostMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Setup Handler
+ */
+export type setupHandlerApiHandlersSetupPostResponse201 = {
+  data: HandlerRead
+  status: 201
+}
+
+export type setupHandlerApiHandlersSetupPostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type setupHandlerApiHandlersSetupPostResponseSuccess = (setupHandlerApiHandlersSetupPostResponse201) & {
+  headers: Headers;
+};
+export type setupHandlerApiHandlersSetupPostResponseError = (setupHandlerApiHandlersSetupPostResponse422) & {
+  headers: Headers;
+};
+
+export type setupHandlerApiHandlersSetupPostResponse = (setupHandlerApiHandlersSetupPostResponseSuccess | setupHandlerApiHandlersSetupPostResponseError)
+
+export const getSetupHandlerApiHandlersSetupPostUrl = () => {
+
+
+  
+
+  return `/api/handlers/setup`
+}
+
+export const setupHandlerApiHandlersSetupPost = async (setupRequest: SetupRequest, options?: RequestInit): Promise<setupHandlerApiHandlersSetupPostResponse> => {
+  
+  return axiosInstance<setupHandlerApiHandlersSetupPostResponse>(getSetupHandlerApiHandlersSetupPostUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      setupRequest,)
+  }
+);}
+  
+
+
+
+export const getSetupHandlerApiHandlersSetupPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupHandlerApiHandlersSetupPost>>, TError,{data: SetupRequest}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof setupHandlerApiHandlersSetupPost>>, TError,{data: SetupRequest}, TContext> => {
+
+const mutationKey = ['setupHandlerApiHandlersSetupPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setupHandlerApiHandlersSetupPost>>, {data: SetupRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setupHandlerApiHandlersSetupPost(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetupHandlerApiHandlersSetupPostMutationResult = NonNullable<Awaited<ReturnType<typeof setupHandlerApiHandlersSetupPost>>>
+    export type SetupHandlerApiHandlersSetupPostMutationBody = SetupRequest
+    export type SetupHandlerApiHandlersSetupPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Setup Handler
+ */
+export const useSetupHandlerApiHandlersSetupPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupHandlerApiHandlersSetupPost>>, TError,{data: SetupRequest}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setupHandlerApiHandlersSetupPost>>,
+        TError,
+        {data: SetupRequest},
+        TContext
+      > => {
+      return useMutation(getSetupHandlerApiHandlersSetupPostMutationOptions(options), queryClient);
+    }
+    /**
  * @summary Get Handler
  */
 export type getHandlerApiHandlersHandlerIdGetResponse200 = {

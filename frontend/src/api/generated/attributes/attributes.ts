@@ -26,6 +26,7 @@ import type {
 import type {
   AttributeCreate,
   AttributeRead,
+  AttributeReorderRequest,
   AttributeUpdate,
   AttributeValue,
   HTTPValidationError,
@@ -363,6 +364,95 @@ export function useAllAttributeValuesApiAttributesValuesGet<TData = Awaited<Retu
 
 
 /**
+ * @summary Reorder Attributes
+ */
+export type reorderAttributesApiAttributesReorderPutResponse204 = {
+  data: void
+  status: 204
+}
+
+export type reorderAttributesApiAttributesReorderPutResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type reorderAttributesApiAttributesReorderPutResponseSuccess = (reorderAttributesApiAttributesReorderPutResponse204) & {
+  headers: Headers;
+};
+export type reorderAttributesApiAttributesReorderPutResponseError = (reorderAttributesApiAttributesReorderPutResponse422) & {
+  headers: Headers;
+};
+
+export type reorderAttributesApiAttributesReorderPutResponse = (reorderAttributesApiAttributesReorderPutResponseSuccess | reorderAttributesApiAttributesReorderPutResponseError)
+
+export const getReorderAttributesApiAttributesReorderPutUrl = () => {
+
+
+  
+
+  return `/api/attributes/reorder`
+}
+
+export const reorderAttributesApiAttributesReorderPut = async (attributeReorderRequest: AttributeReorderRequest, options?: RequestInit): Promise<reorderAttributesApiAttributesReorderPutResponse> => {
+  
+  return axiosInstance<reorderAttributesApiAttributesReorderPutResponse>(getReorderAttributesApiAttributesReorderPutUrl(),
+  {      
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      attributeReorderRequest,)
+  }
+);}
+  
+
+
+
+export const getReorderAttributesApiAttributesReorderPutMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderAttributesApiAttributesReorderPut>>, TError,{data: AttributeReorderRequest}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof reorderAttributesApiAttributesReorderPut>>, TError,{data: AttributeReorderRequest}, TContext> => {
+
+const mutationKey = ['reorderAttributesApiAttributesReorderPut'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reorderAttributesApiAttributesReorderPut>>, {data: AttributeReorderRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  reorderAttributesApiAttributesReorderPut(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReorderAttributesApiAttributesReorderPutMutationResult = NonNullable<Awaited<ReturnType<typeof reorderAttributesApiAttributesReorderPut>>>
+    export type ReorderAttributesApiAttributesReorderPutMutationBody = AttributeReorderRequest
+    export type ReorderAttributesApiAttributesReorderPutMutationError = HTTPValidationError
+
+    /**
+ * @summary Reorder Attributes
+ */
+export const useReorderAttributesApiAttributesReorderPut = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderAttributesApiAttributesReorderPut>>, TError,{data: AttributeReorderRequest}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reorderAttributesApiAttributesReorderPut>>,
+        TError,
+        {data: AttributeReorderRequest},
+        TContext
+      > => {
+      return useMutation(getReorderAttributesApiAttributesReorderPutMutationOptions(options), queryClient);
+    }
+    /**
  * @summary Get Attribute
  */
 export type getAttributeApiAttributesAttributeIdGetResponse200 = {
@@ -480,6 +570,94 @@ export function useGetAttributeApiAttributesAttributeIdGet<TData = Awaited<Retur
 
 
 /**
+ * @summary Delete Attribute
+ */
+export type deleteAttributeApiAttributesAttributeIdDeleteResponse204 = {
+  data: void
+  status: 204
+}
+
+export type deleteAttributeApiAttributesAttributeIdDeleteResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type deleteAttributeApiAttributesAttributeIdDeleteResponseSuccess = (deleteAttributeApiAttributesAttributeIdDeleteResponse204) & {
+  headers: Headers;
+};
+export type deleteAttributeApiAttributesAttributeIdDeleteResponseError = (deleteAttributeApiAttributesAttributeIdDeleteResponse422) & {
+  headers: Headers;
+};
+
+export type deleteAttributeApiAttributesAttributeIdDeleteResponse = (deleteAttributeApiAttributesAttributeIdDeleteResponseSuccess | deleteAttributeApiAttributesAttributeIdDeleteResponseError)
+
+export const getDeleteAttributeApiAttributesAttributeIdDeleteUrl = (attributeId: number,) => {
+
+
+  
+
+  return `/api/attributes/${attributeId}`
+}
+
+export const deleteAttributeApiAttributesAttributeIdDelete = async (attributeId: number, options?: RequestInit): Promise<deleteAttributeApiAttributesAttributeIdDeleteResponse> => {
+  
+  return axiosInstance<deleteAttributeApiAttributesAttributeIdDeleteResponse>(getDeleteAttributeApiAttributesAttributeIdDeleteUrl(attributeId),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+  
+
+
+
+export const getDeleteAttributeApiAttributesAttributeIdDeleteMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAttributeApiAttributesAttributeIdDelete>>, TError,{attributeId: number}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAttributeApiAttributesAttributeIdDelete>>, TError,{attributeId: number}, TContext> => {
+
+const mutationKey = ['deleteAttributeApiAttributesAttributeIdDelete'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAttributeApiAttributesAttributeIdDelete>>, {attributeId: number}> = (props) => {
+          const {attributeId} = props ?? {};
+
+          return  deleteAttributeApiAttributesAttributeIdDelete(attributeId,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAttributeApiAttributesAttributeIdDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAttributeApiAttributesAttributeIdDelete>>>
+    
+    export type DeleteAttributeApiAttributesAttributeIdDeleteMutationError = HTTPValidationError
+
+    /**
+ * @summary Delete Attribute
+ */
+export const useDeleteAttributeApiAttributesAttributeIdDelete = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAttributeApiAttributesAttributeIdDelete>>, TError,{attributeId: number}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAttributeApiAttributesAttributeIdDelete>>,
+        TError,
+        {attributeId: number},
+        TContext
+      > => {
+      return useMutation(getDeleteAttributeApiAttributesAttributeIdDeleteMutationOptions(options), queryClient);
+    }
+    /**
  * @summary Update Attribute
  */
 export type updateAttributeApiAttributesAttributeIdPatchResponse200 = {

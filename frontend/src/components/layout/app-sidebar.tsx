@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Activity, Cable, LayoutDashboard, LogOut, ScrollText, Settings, Zap } from "lucide-react";
+import { Activity, Cable, Gauge, LogOut, ScrollText, Settings, Workflow } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
     Sidebar,
@@ -12,34 +12,105 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarSeparator,
+    useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/providers/auth-provider";
+import { ThemeToggle } from "./theme-toggle";
 
-const navItems = [
-    { to: "/", icon: LayoutDashboard, labelKey: "nav.dashboard" },
-    { to: "/inspector", icon: Activity, labelKey: "nav.inspector" },
-    { to: "/handlers", icon: Cable, labelKey: "nav.handlers" },
-    { to: "/actions", icon: Zap, labelKey: "nav.actions" },
+const monitoringItems = [
+    { to: "/", icon: Gauge, labelKey: "nav.dashboard" },
+    { to: "/analytics", icon: Activity, labelKey: "nav.analytics" },
+] as const;
+
+const managementItems = [
+    { to: "/devices", icon: Cable, labelKey: "nav.devices" },
+    { to: "/workflow", icon: Workflow, labelKey: "nav.workflow" },
+] as const;
+
+const systemItems = [
     { to: "/logs", icon: ScrollText, labelKey: "nav.logs" },
-    { to: "/admin", icon: Settings, labelKey: "nav.admin", adminOnly: true },
+    { to: "/settings", icon: Settings, labelKey: "nav.settings", adminOnly: true },
 ] as const;
 
 export function AppSidebar() {
     const { t } = useTranslation();
     const { logout, user } = useAuth();
     const location = useLocation();
+    const { isMobile, setOpenMobile } = useSidebar();
+
+    const isActive = (path: string) => {
+        if (path === "/") return location.pathname === "/";
+        return location.pathname.startsWith(path);
+    };
+
+    const closeMobile = () => {
+        if (isMobile) setOpenMobile(false);
+    };
+
+    const menuSize = isMobile ? "lg" : "default";
 
     return (
-        <Sidebar>
-            <SidebarHeader className="p-4">
-                <span className="text-lg font-bold">{t("common.appName")}</span>
+        <Sidebar collapsible="icon" className="border-r-0">
+            <SidebarHeader className="px-4 py-5">
+                <Link to="/" className="flex items-center gap-2.5 group">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-semibold text-sm shrink-0 transition-shadow group-hover:glow-amber">
+                        CW
+                    </div>
+                    <span className="text-base font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
+                        {t("common.appName")}
+                    </span>
+                </Link>
             </SidebarHeader>
+
             <SidebarContent>
                 <SidebarGroup>
-                    <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+                    <SidebarGroupLabel>{t("nav.monitoring")}</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {navItems
+                            {monitoringItems.map((item) => (
+                                <SidebarMenuItem key={item.to}>
+                                    <SidebarMenuButton
+                                        render={<Link to={item.to} />}
+                                        isActive={isActive(item.to)}
+                                        onClick={closeMobile}
+                                        size={menuSize}
+                                    >
+                                        <item.icon />
+                                        <span>{t(item.labelKey)}</span>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            ))}
+                        </SidebarMenu>
+                    </SidebarGroupContent>
+                </SidebarGroup>
+
+                <SidebarGroup>
+                    <SidebarGroupLabel>{t("nav.management")}</SidebarGroupLabel>
+                    <SidebarGroupContent>
+                        <SidebarMenu>
+                            {managementItems.map((item) => (
+                                <SidebarMenuItem key={item.to}>
+                                    <SidebarMenuButton
+                                        render={<Link to={item.to} />}
+                                        isActive={isActive(item.to)}
+                                        onClick={closeMobile}
+                                        size={menuSize}
+                                    >
+                                        <item.icon />
+                                        <span>{t(item.labelKey)}</span>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            ))}
+                        </SidebarMenu>
+                    </SidebarGroupContent>
+                </SidebarGroup>
+
+                <SidebarGroup>
+                    <SidebarGroupLabel>{t("nav.system")}</SidebarGroupLabel>
+                    <SidebarGroupContent>
+                        <SidebarMenu>
+                            {systemItems
                                 .filter(
                                     (item) =>
                                         !("adminOnly" in item && item.adminOnly) || user?.role === "admin",
@@ -48,7 +119,9 @@ export function AppSidebar() {
                                     <SidebarMenuItem key={item.to}>
                                         <SidebarMenuButton
                                             render={<Link to={item.to} />}
-                                            isActive={location.pathname === item.to}
+                                            isActive={isActive(item.to)}
+                                            onClick={closeMobile}
+                                            size={menuSize}
                                         >
                                             <item.icon />
                                             <span>{t(item.labelKey)}</span>
@@ -59,17 +132,28 @@ export function AppSidebar() {
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
-            <SidebarFooter className="p-4">
-                <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">{user?.username}</span>
-                    <button
-                        type="button"
-                        onClick={logout}
-                        className="text-muted-foreground hover:text-foreground"
-                        title={t("auth.logout")}
-                    >
-                        <LogOut className="h-4 w-4" />
-                    </button>
+
+            <SidebarSeparator />
+
+            <SidebarFooter className="px-3 py-3">
+                <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0 group-data-[collapsible=icon]:hidden">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-medium shrink-0">
+                            {user?.username?.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="text-sm text-muted-foreground truncate">{user?.username}</span>
+                    </div>
+                    <div className="flex items-center gap-0.5">
+                        <ThemeToggle />
+                        <button
+                            type="button"
+                            onClick={logout}
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                            title={t("auth.logout")}
+                        >
+                            <LogOut className="h-4 w-4" />
+                        </button>
+                    </div>
                 </div>
             </SidebarFooter>
         </Sidebar>

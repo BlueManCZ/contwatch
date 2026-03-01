@@ -14,4 +14,5 @@ export const PORT_COLORS: Record<string, string> = {
     action: "#f97316",
     operator: "#ef4444",
     aggregate: "#06b6d4",
+    handler_data_key: "#14b8a6",
 };

@@ -1,0 +1,77 @@
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+import { useListAttributesApiAttributesGet } from "@/api/generated/attributes/attributes";
+import type { AttributeRead, DashboardTile } from "@/api/generated/contWatchAPI.schemas";
+import { useUpdateTileApiWidgetsTilesTileIdPatch } from "@/api/generated/widgets/widgets";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+interface EditTileDialogProps {
+    tile: DashboardTile;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+}
+
+export function EditTileDialog({ tile, open, onOpenChange }: EditTileDialogProps) {
+    const { t } = useTranslation();
+    const [selectedAttrId, setSelectedAttrId] = useState<string>(String(tile.attribute_id));
+
+    const { data: attrsData } = useListAttributesApiAttributesGet(undefined);
+    const updateTile = useUpdateTileApiWidgetsTilesTileIdPatch();
+
+    const attributes = (attrsData?.data ?? []) as AttributeRead[];
+
+    function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        if (!selectedAttrId) return;
+        updateTile.mutate(
+            { tileId: tile.id, data: { attribute_id: Number(selectedAttrId) } },
+            {
+                onSuccess: () => {
+                    onOpenChange(false);
+                    toast.success(t("toast.tileUpdated"));
+                },
+            },
+        );
+    }
+
+    const selectedAttr = attributes.find((a) => String(a.id) === selectedAttrId);
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <form onSubmit={handleSubmit}>
+                    <DialogHeader>
+                        <DialogTitle>{t("dashboard.editTile")}</DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <Select value={selectedAttrId} onValueChange={(v) => setSelectedAttrId(v ?? "")}>
+                            <SelectTrigger>
+                                <SelectValue>
+                                    {selectedAttr
+                                        ? `${selectedAttr.label || selectedAttr.name}${selectedAttr.unit ? ` (${selectedAttr.unit})` : ""}`
+                                        : t("dashboard.selectAttribute")}
+                                </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                                {attributes.map((attr) => (
+                                    <SelectItem key={attr.id} value={String(attr.id)}>
+                                        {attr.label || attr.name}
+                                        {attr.unit ? ` (${attr.unit})` : ""}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <DialogFooter>
+                        <Button type="submit" disabled={!selectedAttrId || updateTile.isPending}>
+                            {t("common.save")}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}

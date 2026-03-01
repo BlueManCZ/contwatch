@@ -3,7 +3,7 @@ import contextlib
 import datetime
 import logging
 
-from sqlalchemy import select, text
+from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import selectinload
 
@@ -30,25 +30,31 @@ class HandlerManager:
         self._trackers: dict[int, AttributeTracker] = {}  # attribute_id -> tracker
         self._attr_name_map: dict[int, dict[str, int]] = {}  # handler_id -> {name: attribute_id}
         self._last_messages: dict[int, dict] = {}  # handler_id -> last linearized message
+        self._last_active: dict[int, datetime.datetime] = {}  # handler_id -> last message time
+        self._last_connected_state: dict[int, bool] = {}  # handler_id -> last known connected flag
         self._processor_task: asyncio.Task | None = None
         self._workflow_graph: NodeGraph | None = None
 
     async def startup(self) -> None:
-        """Load enabled handlers from DB and start them."""
+        """Load handlers from DB, register trackers, and start enabled ones."""
         async with self._session_factory() as session:
-            result = await session.execute(
-                select(Handler).where(Handler.enabled.is_(True)).options(selectinload(Handler.attributes))
-            )
-            handlers = result.scalars().all()
+            # Load ALL handlers to register trackers (so we can show last values)
+            result = await session.execute(select(Handler).options(selectinload(Handler.attributes)))
+            all_handlers = result.scalars().all()
 
-            for db_handler in handlers:
-                self._create_handler_instance(db_handler)
-                # Register existing attributes
+            for db_handler in all_handlers:
+                if db_handler.last_active:
+                    self._last_active[db_handler.id] = db_handler.last_active
+                # Register trackers for all enabled attributes
                 for attr in db_handler.attributes:
                     if attr.enabled:
                         self._register_tracker(attr.id, db_handler.id, attr.name)
+                # Only create runtime instances for enabled handlers
+                if db_handler.enabled:
+                    self._create_handler_instance(db_handler)
 
-        # Seed daily stats from continuous aggregate
+        # Seed last known values and daily stats from DB
+        await self._seed_last_values()
         await self._seed_daily_stats()
 
         # Start all loaded handlers
@@ -79,6 +85,7 @@ class HandlerManager:
         for handler in self._handlers.values():
             await handler.stop()
 
+        await self._persist_last_active()
         logger.info("HandlerManager shut down")
 
     # --- Message processing ---
@@ -92,6 +99,15 @@ class HandlerManager:
                         msg = handler.get_message()
                         if msg is not None:
                             await self._process_message(handler_id, msg)
+                    # Detect connection state changes
+                    connected = handler.is_connected
+                    prev = self._last_connected_state.get(handler_id)
+                    if prev is not None and connected != prev:
+                        await sio.emit(
+                            "handler_status",
+                            {"handler_id": handler_id, "running": True, "connected": connected},
+                        )
+                    self._last_connected_state[handler_id] = connected
                 await asyncio.sleep(0.05)
         except asyncio.CancelledError:
             pass
@@ -100,6 +116,7 @@ class HandlerManager:
         """Linearize message and distribute to attribute trackers."""
         flat = linearize(raw_message)
         self._last_messages[handler_id] = flat
+        self._last_active[handler_id] = datetime.datetime.now(datetime.UTC)
 
         name_map = self._attr_name_map.get(handler_id, {})
         if not name_map:
@@ -120,6 +137,7 @@ class HandlerManager:
 
                 if result.data_units:
                     stats = tracker.daily_stats
+                    last_changed = tracker.last_changed
                     await sio.emit(
                         "attribute_value",
                         {
@@ -129,6 +147,7 @@ class HandlerManager:
                             "trend": tracker.trend,
                             "daily_min": stats["min"],
                             "daily_max": stats["max"],
+                            "last_changed": last_changed.isoformat() if last_changed else None,
                         },
                     )
                     await self._execute_attribute_listeners(attr_id)
@@ -197,14 +216,16 @@ class HandlerManager:
                             self._register_tracker(attr.id, db_handler.id, attr.name)
                     instance.start()
 
-        await sio.emit("handler_status", {"handler_id": handler_id, "running": True})
+        self._last_connected_state[handler_id] = False
+        await sio.emit("handler_status", {"handler_id": handler_id, "running": True, "connected": False})
         await sio.emit("mutate", {"entity": "handlers"})
 
     async def stop_handler(self, handler_id: int) -> None:
         handler = self._handlers.get(handler_id)
         if handler:
             await handler.stop()
-            await sio.emit("handler_status", {"handler_id": handler_id, "running": False})
+            self._last_connected_state.pop(handler_id, None)
+            await sio.emit("handler_status", {"handler_id": handler_id, "running": False, "connected": False})
             await sio.emit("mutate", {"entity": "handlers"})
 
     async def restart_handler(self, handler_id: int) -> None:
@@ -226,7 +247,8 @@ class HandlerManager:
             if instance:
                 instance.start()
 
-        await sio.emit("handler_status", {"handler_id": handler_id, "running": True})
+        self._last_connected_state[handler_id] = False
+        await sio.emit("handler_status", {"handler_id": handler_id, "running": True, "connected": False})
         await sio.emit("mutate", {"entity": "handlers"})
 
     # --- Action execution ---
@@ -242,32 +264,96 @@ class HandlerManager:
             return False
         return await handler.execute_action(message)
 
-    # --- Daily stats ---
+    # --- Value & stats seeding ---
+
+    async def _seed_last_values(self) -> None:
+        """Load the most recent data unit per attribute and seed tracker values."""
+        if not self._trackers:
+            return
+        attr_ids = list(self._trackers.keys())
+        try:
+            async with self._session_factory() as session:
+                result = await session.execute(
+                    text(
+                        "SELECT DISTINCT ON (attribute_id) attribute_id, value, timestamp "
+                        "FROM data_units WHERE attribute_id = ANY(:ids) "
+                        "ORDER BY attribute_id, timestamp DESC"
+                    ),
+                    {"ids": attr_ids},
+                )
+                rows = result.mappings().all()
+        except Exception:
+            logger.debug("Could not seed last values from data_units, skipping")
+            return
+
+        for row in rows:
+            tracker = self._trackers.get(row["attribute_id"])
+            if tracker:
+                tracker.seed_value(row["value"], row["timestamp"])
+
+    async def _refresh_continuous_aggregate(self) -> None:
+        """Refresh the daily_stats continuous aggregate up to now.
+
+        Must run outside a transaction (autocommit) because TimescaleDB
+        requires CALL refresh_continuous_aggregate to not be in a tx block.
+        """
+        from app.database import engine
+
+        try:
+            async with engine.connect() as conn:
+                await conn.execution_options(isolation_level="AUTOCOMMIT")
+                await conn.execute(
+                    text("CALL refresh_continuous_aggregate('daily_stats', NULL, NULL)")
+                )
+            logger.info("Refreshed daily_stats continuous aggregate")
+        except Exception:
+            logger.debug("Could not refresh daily_stats continuous aggregate, skipping")
 
     async def _seed_daily_stats(self) -> None:
-        """Load today's stats from the continuous aggregate and seed in-memory trackers."""
+        """Refresh the continuous aggregate, then seed in-memory trackers.
+
+        First loads today's stats. For attributes without today's data,
+        falls back to the most recent available stats.
+        """
+        await self._refresh_continuous_aggregate()
+
         today = datetime.datetime.now(datetime.UTC).date()
         try:
             async with self._session_factory() as session:
+                # Today's stats
                 result = await session.execute(
                     text("SELECT attribute_id, min_value, max_value FROM daily_stats WHERE bucket::date = :date"),
                     {"date": today},
                 )
                 rows = result.mappings().all()
+
+                seeded: set[int] = set()
+                for row in rows:
+                    tracker = self._trackers.get(row["attribute_id"])
+                    if not tracker:
+                        continue
+                    tracker.seed_stats(date=today, min_val=row["min_value"], max_val=row["max_value"])
+                    seeded.add(row["attribute_id"])
+
+                # For remaining trackers, fetch the most recent stats
+                remaining = [aid for aid in self._trackers if aid not in seeded]
+                if remaining:
+                    result = await session.execute(
+                        text(
+                            "SELECT DISTINCT ON (attribute_id) attribute_id, bucket::date AS day, "
+                            "min_value, max_value FROM daily_stats "
+                            "WHERE attribute_id = ANY(:ids) "
+                            "ORDER BY attribute_id, bucket DESC"
+                        ),
+                        {"ids": remaining},
+                    )
+                    for row in result.mappings().all():
+                        tracker = self._trackers.get(row["attribute_id"])
+                        if tracker:
+                            tracker.seed_stats(date=row["day"], min_val=row["min_value"], max_val=row["max_value"])
         except Exception:
             # Continuous aggregate may not exist (e.g. tests with SQLite)
             logger.debug("Could not query daily_stats continuous aggregate, skipping seed")
-            return
-
-        for row in rows:
-            tracker = self._trackers.get(row["attribute_id"])
-            if not tracker:
-                continue
-            tracker.seed_stats(
-                date=today,
-                min_val=row["min_value"],
-                max_val=row["max_value"],
-            )
 
     def get_daily_stats(self) -> dict[int, dict[str, float | None]]:
         """Return daily stats for all tracked attributes {attr_id: {min, max}}."""
@@ -278,13 +364,30 @@ class HandlerManager:
                 result[attr_id] = stats
         return result
 
+    async def _persist_last_active(self) -> None:
+        """Flush in-memory last_active timestamps to the database."""
+        if not self._last_active:
+            return
+        async with self._session_factory() as session:
+            for handler_id, ts in self._last_active.items():
+                await session.execute(
+                    update(Handler).where(Handler.id == handler_id).values(last_active=ts)
+                )
+            await session.commit()
+
     # --- Status / values ---
 
     def get_handler_status(self, handler_id: int) -> dict:
+        last_active = self._last_active.get(handler_id)
         handler = self._handlers.get(handler_id)
         if not handler:
-            return {"running": False, "connected": False}
-        return {"running": handler.is_active, "connected": handler.is_connected}
+            return {"running": False, "connected": False, "last_active": last_active}
+        return {"running": handler.is_active, "connected": handler.is_connected, "last_active": last_active}
+
+    def get_all_handler_statuses(self) -> dict[int, dict]:
+        """Return running/connected status for every known handler."""
+        all_ids = set(self._handlers) | set(self._last_active) | set(self._attr_name_map)
+        return {hid: self.get_handler_status(hid) for hid in sorted(all_ids)}
 
     def get_available_attributes(self, handler_id: int) -> list[str]:
         """Return linearized keys from last message that are NOT yet registered."""
@@ -297,8 +400,25 @@ class HandlerManager:
         result = {}
         for attr_id, tracker in self._trackers.items():
             if tracker.current_value is not None:
-                result[attr_id] = {"value": tracker.current_value, "trend": tracker.trend}
+                last_changed = tracker.last_changed
+                result[attr_id] = {
+                    "value": tracker.current_value,
+                    "trend": tracker.trend,
+                    "last_changed": last_changed.isoformat() if last_changed else None,
+                }
         return result
+
+    def get_handler_data_value(self, handler_id: int, key: str):
+        """Read a raw value from a handler's last linearized message."""
+        return self._last_messages.get(handler_id, {}).get(key)
+
+    def get_all_data_keys(self) -> list[str]:
+        """Return linearized keys prefixed with handler_id (e.g. '1:wifi_sta/rssi')."""
+        keys: list[str] = []
+        for handler_id, flat in sorted(self._last_messages.items()):
+            for key in sorted(flat):
+                keys.append(f"{handler_id}:{key}")
+        return keys
 
     def get_attribute_value(self, attribute_id: int) -> dict | None:
         tracker = self._trackers.get(attribute_id)

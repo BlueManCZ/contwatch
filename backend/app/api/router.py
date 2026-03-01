@@ -7,6 +7,7 @@ from app.api.data_stats import router as data_stats_router
 from app.api.data_units import router as data_units_router
 from app.api.handlers import router as handlers_router
 from app.api.logs import router as logs_router
+from app.api.system import router as system_router
 from app.api.widgets import router as widgets_router
 from app.api.workflow import router as workflow_router
 
@@ -20,3 +21,4 @@ api_router.include_router(widgets_router)
 api_router.include_router(workflow_router)
 api_router.include_router(actions_router)
 api_router.include_router(logs_router)
+api_router.include_router(system_router)

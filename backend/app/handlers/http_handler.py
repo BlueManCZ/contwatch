@@ -15,17 +15,39 @@ class HttpHandler(AbstractHandler):
     handler_type = "http"
     handler_name = "HTTP API"
     handler_icon = "globe"
+    handler_category = "http"
+    probe_priority: ClassVar[int] = 0
     config_fields: ClassVar[list[dict]] = [
         {"key": "host", "type": "string", "label": "Host / URL", "default": "http://localhost"},
         {"key": "fetch_route", "type": "string", "label": "Fetch route", "default": "/"},
         {"key": "interval", "type": "int", "label": "Interval (s)", "default": 10},
-        {"key": "timeout", "type": "int", "label": "Timeout (s)", "default": 5},
     ]
+
+    @classmethod
+    def describe(cls, options: dict) -> str:
+        host = options.get("config", {}).get("host", "")
+        return host or cls.handler_name
+
+    @classmethod
+    async def probe(cls, config: dict) -> bool:
+        host = config.get("host", "")
+        fetch_route = config.get("fetch_route", "/")
+        if not host:
+            return False
+        url = f"{host.rstrip('/')}/{fetch_route.lstrip('/')}"
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                resp = await client.get(url)
+                resp.raise_for_status()
+                resp.json()
+                return True
+        except Exception:
+            return False
 
     async def execute_action(self, message: str) -> bool:
         """Execute an HTTP action and re-fetch polling URL to update values."""
         host = self.get_config_option("host", "http://localhost")
-        timeout = int(self.get_config_option("timeout", 5))
+        timeout = int(self.get_config_option("interval", 10))
 
         try:
             parsed = json.loads(message)
@@ -63,11 +85,10 @@ class HttpHandler(AbstractHandler):
         host = self.get_config_option("host", "http://localhost")
         route = self.get_config_option("fetch_route", "/")
         interval = int(self.get_config_option("interval", 10))
-        timeout = int(self.get_config_option("timeout", 5))
 
         url = f"{host.rstrip('/')}/{route.lstrip('/')}"
 
-        async with httpx.AsyncClient(timeout=timeout) as client:
+        async with httpx.AsyncClient(timeout=interval) as client:
             while self.is_active:
                 try:
                     response = await client.get(url)
@@ -80,6 +101,9 @@ class HttpHandler(AbstractHandler):
                     self._connected = False
                 except httpx.RequestError as e:
                     logger.warning("Handler %s request error: %s", self.handler_id, e)
+                    self._connected = False
+                except json.JSONDecodeError:
+                    logger.warning("Handler %s: response is not valid JSON", self.handler_id)
                     self._connected = False
                 except Exception:
                     logger.exception("Handler %s unexpected error", self.handler_id)

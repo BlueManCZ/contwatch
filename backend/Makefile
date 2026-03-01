@@ -1,7 +1,7 @@
 .PHONY: dev test lint lint-fix format check
 
 dev:
-	uv run uvicorn app.main:app --reload
+	uv run uvicorn app.main:sio_asgi_app --reload
 
 test:
 	uv run pytest -v

@@ -1,9 +1,25 @@
 import asyncio
 import contextlib
 import logging
+from dataclasses import dataclass
 from typing import Any, ClassVar
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class KnownAttribute:
+    name: str
+    label: str | None = None
+    unit: str | None = None
+    icon: str | None = None
+    rounding: int | None = None
+
+
+@dataclass(frozen=True)
+class KnownAction:
+    name: str
+    message: str
 
 
 class AbstractHandler:
@@ -16,7 +32,21 @@ class AbstractHandler:
     handler_type: ClassVar[str] = ""
     handler_name: ClassVar[str] = "Unknown"
     handler_icon: ClassVar[str] = "default"
+    handler_category: ClassVar[str] = ""
     config_fields: ClassVar[list[dict]] = []
+    known_attributes: ClassVar[list[KnownAttribute]] = []
+    known_actions: ClassVar[list[KnownAction]] = []
+    probe_priority: ClassVar[int] = 0
+
+    @classmethod
+    def describe(cls, options: dict) -> str:
+        """Return a short human-readable description for a handler instance."""
+        return cls.handler_name
+
+    @classmethod
+    async def probe(cls, config: dict) -> bool:
+        """Attempt to detect this handler type from the given config. Returns True if detected."""
+        return False
 
     def __init__(self, handler_id: int, options: dict):
         self.handler_id = handler_id
@@ -96,9 +126,6 @@ class AbstractHandler:
 
     def get_config_option(self, key: str, default: Any = None) -> Any:
         return self.get_config().get(key, default)
-
-    def get_label(self) -> str:
-        return self.options.get("label", self.handler_name)
 
     # --- Interval helper ---
 

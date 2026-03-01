@@ -17,18 +17,32 @@ class SerialHandler(AbstractHandler):
 
     handler_type = "serial"
     handler_name = "Serial device"
-    handler_icon = "serial"
+    handler_icon = "usb"
+    handler_category = "serial"
+    probe_priority: ClassVar[int] = 0
     config_fields: ClassVar[list[dict]] = [
         {"key": "port", "type": "string", "label": "Device port (e.g. /dev/ttyUSB0)", "default": ""},
         {"key": "baudrate", "type": "int", "label": "Baudrate", "default": 9600},
-        {"key": "timeout", "type": "float", "label": "Read timeout (s)", "default": 0.1},
         {"key": "auto_reconnect", "type": "bool", "label": "Auto reconnect", "default": True},
     ]
+
+    @classmethod
+    def describe(cls, options: dict) -> str:
+        port = options.get("config", {}).get("port", "")
+        return port or cls.handler_name
+
+    @classmethod
+    async def probe(cls, config: dict) -> bool:
+        port = config.get("port", "")
+        if not port:
+            return False
+        import os
+
+        return await asyncio.to_thread(os.path.exists, port)
 
     async def run(self) -> None:
         port = self.get_config_option("port", "")
         baudrate = int(self.get_config_option("baudrate", 9600))
-        timeout = float(self.get_config_option("timeout", 0.1))
         auto_reconnect = self.get_config_option("auto_reconnect", True)
 
         while self.is_active:
@@ -44,7 +58,7 @@ class SerialHandler(AbstractHandler):
 
                 while self.is_active:
                     try:
-                        raw = await asyncio.wait_for(reader.readline(), timeout=timeout)
+                        raw = await asyncio.wait_for(reader.readline(), timeout=0.1)
                     except TimeoutError:
                         continue
 

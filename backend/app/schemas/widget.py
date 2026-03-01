@@ -1,3 +1,4 @@
+import datetime
 from typing import Any
 
 from pydantic import BaseModel
@@ -16,9 +17,16 @@ class WidgetTileCreate(BaseModel):
     attribute_id: int
 
 
+class WidgetTileUpdate(BaseModel):
+    attribute_id: int
+
+
 class DashboardTile(BaseModel):
     id: int
     attribute_id: int
+    handler_id: int
+    handler_running: bool = True
+    handler_connected: bool = True
     name: str
     label: str | None = None
     unit: str | None = None
@@ -29,6 +37,7 @@ class DashboardTile(BaseModel):
     trend: int = 0
     daily_min: float | None = None
     daily_max: float | None = None
+    last_changed: datetime.datetime | None = None
 
 
 # --- Switches ---
@@ -53,11 +62,23 @@ class WidgetSwitchCreate(BaseModel):
     action_off_id: int | None = None
 
 
+class WidgetSwitchUpdate(BaseModel):
+    name: str | None = None
+    icon: str | None = None
+    attribute_id: int
+    attribute_compare: str | None = None
+    action_on_id: int | None = None
+    action_off_id: int | None = None
+
+
 class DashboardSwitch(BaseModel):
     id: int
     name: str | None = None
     icon: str | None = None
     attribute_id: int
+    handler_id: int
+    handler_running: bool = True
+    handler_connected: bool = True
     attribute_compare: str | None = None
     action_on_id: int | None = None
     action_off_id: int | None = None

@@ -12,8 +12,10 @@ from app.schemas.widget import (
     SwitchToggleRequest,
     WidgetSwitchCreate,
     WidgetSwitchRead,
+    WidgetSwitchUpdate,
     WidgetTileCreate,
     WidgetTileRead,
+    WidgetTileUpdate,
 )
 from app.socketio_app import sio
 
@@ -39,6 +41,19 @@ async def create_tile(body: WidgetTileCreate, db: DbSession, _current_user: Curr
     return tile
 
 
+@router.patch("/tiles/{tile_id}", response_model=WidgetTileRead)
+async def update_tile(tile_id: int, body: WidgetTileUpdate, db: DbSession, _current_user: CurrentUser):
+    result = await db.execute(select(WidgetTile).where(WidgetTile.id == tile_id))
+    tile = result.scalar_one_or_none()
+    if not tile:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tile not found")
+    tile.attribute_id = body.attribute_id
+    await db.flush()
+    await db.refresh(tile)
+    await sio.emit("mutate", {"entity": "widgets"})
+    return tile
+
+
 @router.delete("/tiles/{tile_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_tile(tile_id: int, db: DbSession, _current_user: CurrentUser):
     result = await db.execute(select(WidgetTile).where(WidgetTile.id == tile_id))
@@ -46,6 +61,7 @@ async def delete_tile(tile_id: int, db: DbSession, _current_user: CurrentUser):
     if not tile:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tile not found")
     await db.delete(tile)
+    await db.commit()
     await sio.emit("mutate", {"entity": "widgets"})
 
 
@@ -75,6 +91,24 @@ async def create_switch(body: WidgetSwitchCreate, db: DbSession, _current_user: 
     return switch
 
 
+@router.patch("/switches/{switch_id}", response_model=WidgetSwitchRead)
+async def update_switch(switch_id: int, body: WidgetSwitchUpdate, db: DbSession, _current_user: CurrentUser):
+    result = await db.execute(select(WidgetSwitch).where(WidgetSwitch.id == switch_id))
+    switch = result.scalar_one_or_none()
+    if not switch:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Switch not found")
+    switch.name = body.name
+    switch.icon = body.icon
+    switch.attribute_id = body.attribute_id
+    switch.attribute_compare = body.attribute_compare
+    switch.action_on_id = body.action_on_id
+    switch.action_off_id = body.action_off_id
+    await db.flush()
+    await db.refresh(switch)
+    await sio.emit("mutate", {"entity": "widgets"})
+    return switch
+
+
 @router.delete("/switches/{switch_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_switch(switch_id: int, db: DbSession, _current_user: CurrentUser):
     result = await db.execute(select(WidgetSwitch).where(WidgetSwitch.id == switch_id))
@@ -82,6 +116,7 @@ async def delete_switch(switch_id: int, db: DbSession, _current_user: CurrentUse
     if not switch:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Switch not found")
     await db.delete(switch)
+    await db.commit()
     await sio.emit("mutate", {"entity": "widgets"})
 
 
@@ -141,6 +176,9 @@ async def dashboard(db: DbSession, manager: HandlerManagerDep, _current_user: Cu
             DashboardTile(
                 id=tile.id,
                 attribute_id=attr.id,
+                handler_id=attr.handler_id,
+                handler_running=manager.get_handler_status(attr.handler_id)["running"],
+                handler_connected=manager.get_handler_status(attr.handler_id)["connected"],
                 name=attr.name,
                 label=attr.label,
                 unit=attr.unit,
@@ -151,6 +189,7 @@ async def dashboard(db: DbSession, manager: HandlerManagerDep, _current_user: Cu
                 trend=val.get("trend", 0),
                 daily_min=stats.get("min"),
                 daily_max=stats.get("max"),
+                last_changed=val.get("last_changed"),
             )
         )
 
@@ -174,6 +213,9 @@ async def dashboard(db: DbSession, manager: HandlerManagerDep, _current_user: Cu
                 name=switch.name,
                 icon=switch.icon,
                 attribute_id=attr.id,
+                handler_id=attr.handler_id,
+                handler_running=manager.get_handler_status(attr.handler_id)["running"],
+                handler_connected=manager.get_handler_status(attr.handler_id)["connected"],
                 attribute_compare=switch.attribute_compare,
                 action_on_id=switch.action_on_id,
                 action_off_id=switch.action_off_id,

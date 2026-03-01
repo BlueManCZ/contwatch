@@ -36,7 +36,7 @@ export function TileChartDialog({ tile, onClose }: TileChartDialogProps) {
         >
             <DialogContent className="sm:max-w-4xl">
                 <DialogHeader>
-                    <DialogTitle>{title}</DialogTitle>
+                    <DialogTitle className="data-value">{title}</DialogTitle>
                 </DialogHeader>
 
                 <div className="flex items-center justify-center gap-2">
@@ -52,7 +52,7 @@ export function TileChartDialog({ tile, onClose }: TileChartDialogProps) {
                         type="date"
                         value={date}
                         onChange={(e) => setDate(e.target.value)}
-                        className="rounded-md border border-input bg-background px-3 py-1 text-sm"
+                        className="rounded-md border border-input bg-background/50 px-3 py-1 text-sm font-mono"
                     />
                     <Button variant="outline" size="icon-sm" onClick={goToNextDay} title={t("chart.nextDay")}>
                         <ChevronRight className="h-4 w-4" />
@@ -64,13 +64,13 @@ export function TileChartDialog({ tile, onClose }: TileChartDialogProps) {
                 {tile && (
                     <div className="flex justify-end">
                         <Link
-                            to="/inspector"
+                            to="/analytics"
                             search={{ attributes: String(tile.attribute_id), date }}
-                            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
                             onClick={onClose}
                         >
                             <ExternalLink className="h-3 w-3" />
-                            {t("chart.openInInspector")}
+                            {t("chart.openInAnalytics")}
                         </Link>
                     </div>
                 )}

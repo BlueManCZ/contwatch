@@ -1,18 +1,26 @@
 {
     "nav": {
         "dashboard": "Dashboard",
-        "inspector": "Inspector",
-        "handlers": "Handlers",
-        "actions": "Actions",
-        "admin": "Admin",
-        "logs": "Logs"
+        "analytics": "Analytics",
+        "devices": "Devices",
+        "workflow": "Workflow",
+        "settings": "Settings",
+        "logs": "Logs",
+        "monitoring": "Monitoring",
+        "management": "Management",
+        "system": "System",
+        "controls": "Controls"
     },
     "auth": {
-        "login": "Log In",
+        "login": "Sign In",
         "username": "Username",
         "password": "Password",
-        "logout": "Log Out",
-        "loginTitle": "Sign in to ContWatch"
+        "logout": "Sign Out",
+        "loginTitle": "Welcome back",
+        "loginSubtitle": "IoT monitoring & control platform",
+        "invalidCredentials": "Invalid credentials",
+        "userInactive": "User account is inactive",
+        "serverUnavailable": "Server is unavailable"
     },
     "common": {
         "underConstruction": "This page is under construction.",
@@ -23,18 +31,22 @@
         "add": "Add",
         "close": "Close",
         "loading": "Loading...",
-        "noData": "No data"
+        "noData": "No data",
+        "yes": "Yes",
+        "no": "No"
     },
     "handlers": {
-        "title": "Handlers",
-        "addHandler": "Add Handler",
-        "noHandlers": "No handlers configured yet.",
-        "noHandlersDescription": "Add a handler to start collecting data from your IoT devices.",
-        "createHandler": "Create Handler",
+        "title": "Devices",
+        "addHandler": "Add Device",
+        "noHandlers": "No devices configured yet.",
+        "noHandlersDescription": "Add a device handler to start collecting data from your IoT devices.",
+        "createHandler": "Create Device Handler",
         "selectType": "Select handler type",
         "type": "Type",
         "status": "Status",
         "attributes": "Attributes",
+        "attributeCount_one": "{{count}} attribute",
+        "attributeCount_other": "{{count}} attributes",
         "start": "Start",
         "stop": "Stop",
         "running": "Running",
@@ -42,10 +54,10 @@
         "connected": "Connected",
         "disconnected": "Disconnected",
         "configure": "Configure",
-        "details": "Handler Details",
+        "details": "Device Details",
         "registeredAttributes": "Registered Attributes",
         "availableAttributes": "Available Attributes",
-        "noAvailableAttributes": "No available attributes. Start the handler first.",
+        "noAvailableAttributes": "No available attributes.",
         "name": "Name",
         "label": "Label",
         "value": "Value",
@@ -54,7 +66,16 @@
         "editConfig": "Edit Configuration",
         "icon": "Icon",
         "rounding": "Rounding",
-        "color": "Color"
+        "color": "Color",
+        "advancedSetup": "Advanced",
+        "actions": "Actions",
+        "noActions": "No actions defined.",
+        "editAction": "Edit Action",
+        "addAction": "Add Action",
+        "presets": "Presets",
+        "customAction": "Custom Action",
+        "executeAction": "Execute Action",
+        "presetAdded": "Added"
     },
     "dashboard": {
         "title": "Dashboard",
@@ -62,6 +83,7 @@
         "noTiles": "No dashboard tiles yet.",
         "noTilesDescription": "Add tiles to monitor your IoT device attributes in real-time.",
         "selectAttribute": "Select attribute",
+        "editTile": "Edit Tile",
         "removeTile": "Remove Tile",
         "trend": {
             "rising": "Rising",
@@ -70,6 +92,7 @@
         },
         "switches": "Switches",
         "addSwitch": "Add Switch",
+        "editSwitch": "Edit Switch",
         "removeSwitch": "Remove Switch",
         "switchName": "Name",
         "attributeCompare": "Compare value",
@@ -81,21 +104,24 @@
         "switchOn": "On",
         "switchOff": "Off",
         "min": "Daily Min",
-        "max": "Daily Max"
+        "max": "Daily Max",
+        "since": "Since"
     },
     "actions": {
-        "title": "Actions",
-        "addAction": "Add Action",
-        "name": "Name",
-        "message": "Message (JSON)",
-        "noActions": "No actions defined yet.",
-        "noActionsDescription": "Create actions to define commands that can be sent to your IoT devices."
+        "message": "Message",
+        "rawJson": "Raw JSON",
+        "params": "Parameters",
+        "noParams": "No parameters",
+        "paramKey": "Key",
+        "paramValue": "Value",
+        "addField": "Add Field"
     },
     "workflow": {
         "title": "Workflow",
         "nodeTypes": "Node Types",
+        "unsaved": "Unsaved changes",
         "saving": "Saving...",
-        "saved": "Workflow saved",
+        "saved": "Saved",
         "saveError": "Failed to save workflow"
     },
     "chart": {
@@ -104,10 +130,10 @@
         "resetZoom": "Reset Zoom",
         "previousDay": "Previous Day",
         "nextDay": "Next Day",
-        "openInInspector": "Open in Inspector"
+        "openInAnalytics": "Open in Analytics"
     },
     "inspector": {
-        "title": "Inspector",
+        "title": "Analytics",
         "selectAttributes": "Select Attributes",
         "noAttributes": "No attributes selected.",
         "noAttributesDescription": "Select attributes to view their historical data.",
@@ -128,26 +154,53 @@
         "allSources": "All sources"
     },
     "toast": {
-        "handlerCreated": "Handler created",
-        "handlerDeleted": "Handler deleted",
-        "handlerStarted": "Handler started",
-        "handlerStopped": "Handler stopped",
-        "handlerUpdated": "Handler updated",
+        "handlerCreated": "Device handler created",
+        "handlerDeleted": "Device handler deleted",
+        "handlerStarted": "Device handler started",
+        "handlerStopped": "Device handler stopped",
+        "handlerUpdated": "Device handler updated",
         "attributeAdded": "Attribute added",
+        "attributeDeleted": "Attribute deleted",
         "attributeUpdated": "Attribute updated",
         "actionCreated": "Action created",
+        "actionUpdated": "Action updated",
         "actionDeleted": "Action deleted",
+        "actionExecuted": "{{name}} executed",
+        "actionFailed": "{{name}} failed",
         "userCreated": "User created",
         "userUpdated": "User updated",
         "userDeleted": "User deleted",
         "tileAdded": "Tile added",
+        "tileUpdated": "Tile updated",
         "tileRemoved": "Tile removed",
         "switchAdded": "Switch added",
+        "switchUpdated": "Switch updated",
         "switchRemoved": "Switch removed",
         "logsCleared": "Logs cleared"
     },
+    "wizard": {
+        "chooseCategory": "Choose Device Type",
+        "connectionDetails": "Connection Details",
+        "detectDevice": "Detect Device",
+        "detecting": "Detecting Device",
+        "detectingDescription": "Probing the device, please wait...",
+        "review": "Review & Create",
+        "detected": "{{name}} detected!",
+        "notDetected": "No specific device detected. Setting up as generic handler.",
+        "showAdvanced": "Show advanced settings",
+        "hideAdvanced": "Hide advanced settings",
+        "attributes": "Attributes",
+        "actions": "Actions",
+        "genericNote": "Attributes can be added after the device starts sending data.",
+        "createDevice": "Create Device",
+        "back": "Back"
+    },
+    "settings": {
+        "language": "Language",
+        "languageDescription": "Choose the display language for the interface."
+    },
     "admin": {
-        "title": "Admin",
+        "title": "User Management",
         "users": "Users",
         "addUser": "Add User",
         "noUsers": "No users found.",

@@ -8,6 +8,7 @@ import {
 } from "@/api/generated/handlers/handlers";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ConfigFieldInput, convertConfigValues } from "./config-field-input";
 
@@ -18,6 +19,7 @@ interface HandlerConfigEditDialogProps {
 
 export function HandlerConfigEditDialog({ handler, onClose }: HandlerConfigEditDialogProps) {
     const { t } = useTranslation();
+    const [label, setLabel] = useState("");
     const [configValues, setConfigValues] = useState<Record<string, string>>({});
     const { data: typesData } = useListHandlerTypesApiHandlersTypesGet();
     const updateHandler = useUpdateHandlerApiHandlersHandlerIdPatch();
@@ -35,6 +37,7 @@ export function HandlerConfigEditDialog({ handler, onClose }: HandlerConfigEditD
 
     useEffect(() => {
         if (handler) {
+            setLabel(handler.label ?? "");
             const currentConfig = (handler.options?.config ?? {}) as Record<string, unknown>;
             const stringValues: Record<string, string> = {};
             for (const field of configFields) {
@@ -53,7 +56,7 @@ export function HandlerConfigEditDialog({ handler, onClose }: HandlerConfigEditD
         updateHandler.mutate(
             {
                 handlerId: handler.id,
-                data: { options: { ...handler.options, config } },
+                data: { label: label || undefined, options: { ...handler.options, config } },
             },
             {
                 onSuccess: () => {
@@ -72,6 +75,15 @@ export function HandlerConfigEditDialog({ handler, onClose }: HandlerConfigEditD
                         <DialogTitle>{t("handlers.editConfig")}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="handler-label">{t("handlers.label")}</Label>
+                            <Input
+                                id="handler-label"
+                                value={label}
+                                onChange={(e) => setLabel(e.target.value)}
+                                placeholder={t("handlers.label")}
+                            />
+                        </div>
                         {configFields.map((field: HandlerConfigField) => (
                             <div key={field.key} className="space-y-2">
                                 <Label htmlFor={field.key}>{field.label}</Label>
@@ -87,7 +99,7 @@ export function HandlerConfigEditDialog({ handler, onClose }: HandlerConfigEditD
                         )}
                     </div>
                     <DialogFooter>
-                        <Button type="submit" disabled={configFields.length === 0 || updateHandler.isPending}>
+                        <Button type="submit" disabled={updateHandler.isPending}>
                             {t("common.save")}
                         </Button>
                     </DialogFooter>

@@ -7,12 +7,14 @@
 export interface ActionCreate {
   name: string;
   message: string;
+  handler_id?: number | null;
 }
 
 export interface ActionRead {
   id: number;
   name: string;
   message: string;
+  handler_id?: number | null;
 }
 
 export interface ActionUpdate {
@@ -45,10 +47,20 @@ export interface AttributeRead {
   color?: string | null;
 }
 
+export interface AttributeReorderItem {
+  id: number;
+  order: number;
+}
+
+export interface AttributeReorderRequest {
+  items: AttributeReorderItem[];
+}
+
 export interface AttributeUpdate {
   label?: string | null;
   unit?: string | null;
   icon?: string | null;
+  order?: number | null;
   rounding?: number | null;
   color?: string | null;
 }
@@ -59,6 +71,29 @@ export interface AttributeValue {
   trend: number;
   daily_min?: number | null;
   daily_max?: number | null;
+  last_changed?: string | null;
+}
+
+export interface FieldChoice {
+  value: string;
+  label: string;
+}
+
+export interface HandlerConfigField {
+  key: string;
+  type: string;
+  label: string;
+  default?: unknown;
+  choices?: FieldChoice[] | null;
+}
+
+export interface CategoryInfo {
+  name: string;
+  label: string;
+  icon: string;
+  default_handler_type: string;
+  default_label: string;
+  probe_fields: HandlerConfigField[];
 }
 
 export interface ChartDataPoint {
@@ -84,6 +119,9 @@ export interface DailyStatRead {
 export interface DashboardTile {
   id: number;
   attribute_id: number;
+  handler_id: number;
+  handler_running?: boolean;
+  handler_connected?: boolean;
   name: string;
   label?: string | null;
   unit?: string | null;
@@ -94,6 +132,7 @@ export interface DashboardTile {
   trend?: number;
   daily_min?: number | null;
   daily_max?: number | null;
+  last_changed?: string | null;
 }
 
 export interface DashboardSwitch {
@@ -101,6 +140,9 @@ export interface DashboardSwitch {
   name?: string | null;
   icon?: string | null;
   attribute_id: number;
+  handler_id: number;
+  handler_running?: boolean;
+  handler_connected?: boolean;
   attribute_compare?: string | null;
   action_on_id?: number | null;
   action_off_id?: number | null;
@@ -137,17 +179,11 @@ export interface HTTPValidationError {
   detail?: ValidationError[];
 }
 
-export interface HandlerConfigField {
-  key: string;
-  type: string;
-  label: string;
-  default?: unknown;
-}
-
 export type HandlerCreateOptions = { [key: string]: unknown };
 
 export interface HandlerCreate {
   type: string;
+  label?: string | null;
   options?: HandlerCreateOptions;
   enabled?: boolean;
 }
@@ -157,29 +193,49 @@ export type HandlerReadOptions = { [key: string]: unknown };
 export interface HandlerRead {
   id: number;
   type: string;
+  label?: string | null;
   options: HandlerReadOptions;
   enabled: boolean;
+  description?: string;
   attributes?: AttributeRead[];
+  actions?: ActionRead[];
 }
 
 export interface HandlerStatus {
   running: boolean;
   connected: boolean;
+  last_active?: string | null;
+}
+
+export interface KnownActionInfo {
+  name: string;
+  message: string;
 }
 
 export interface HandlerTypeInfo {
   type: string;
   name: string;
   icon: string;
+  category: string;
   config_fields: HandlerConfigField[];
+  known_actions?: KnownActionInfo[];
 }
 
 export type HandlerUpdateOptions = { [key: string]: unknown } | null;
 
 export interface HandlerUpdate {
   type?: string | null;
+  label?: string | null;
   options?: HandlerUpdateOptions;
   enabled?: boolean | null;
+}
+
+export interface KnownAttributeInfo {
+  name: string;
+  label?: string | null;
+  unit?: string | null;
+  icon?: string | null;
+  rounding?: number | null;
 }
 
 export type LoggingMessageReadPayload = { [key: string]: unknown } | null;
@@ -215,6 +271,39 @@ export interface NodeDefinition {
   description: string;
   input_ports: PortDefinition[];
   output_ports: PortDefinition[];
+}
+
+export type ProbeRequestConfig = { [key: string]: unknown };
+
+export interface ProbeRequest {
+  category: string;
+  config: ProbeRequestConfig;
+}
+
+export interface ProbeResult {
+  detected: boolean;
+  handler_type?: string | null;
+  handler_name?: string | null;
+  handler_icon?: string | null;
+  config_fields?: HandlerConfigField[];
+  known_attributes?: KnownAttributeInfo[];
+  known_actions?: KnownActionInfo[];
+}
+
+export interface SerialPortInfo {
+  device: string;
+  description: string;
+}
+
+export type SetupRequestConfig = { [key: string]: unknown };
+
+export interface SetupRequest {
+  type: string;
+  label?: string | null;
+  config?: SetupRequestConfig;
+  enabled?: boolean;
+  attributes?: KnownAttributeInfo[];
+  actions?: KnownActionInfo[];
 }
 
 export interface SwitchToggleRequest {
@@ -267,12 +356,25 @@ export interface WidgetSwitchRead {
   action_off_id?: number | null;
 }
 
+export interface WidgetSwitchUpdate {
+  name?: string | null;
+  icon?: string | null;
+  attribute_id: number;
+  attribute_compare?: string | null;
+  action_on_id?: number | null;
+  action_off_id?: number | null;
+}
+
 export interface WidgetTileCreate {
   attribute_id: number;
 }
 
 export interface WidgetTileRead {
   id: number;
+  attribute_id: number;
+}
+
+export interface WidgetTileUpdate {
   attribute_id: number;
 }
 
@@ -300,6 +402,8 @@ export interface WorkflowData {
   edges?: WorkflowEdge[];
 }
 
+export type AllHandlerStatusesApiHandlersStatusesGet200 = {[key: string]: HandlerStatus};
+
 export type ListAttributesApiAttributesGetParams = {
 handler_id?: number | null;
 };
@@ -308,6 +412,10 @@ export type ListDataUnitsApiDataUnitsGetParams = {
 attribute_id?: number | null;
 date_from?: string | null;
 date_to?: string | null;
+/**
+ * Browser timezone offset in minutes (JS getTimezoneOffset)
+ */
+tz_offset?: number;
 limit?: number;
 };
 
@@ -317,6 +425,10 @@ export type ChartDataApiDataUnitsChartGetParams = {
  */
 attribute_ids: string;
 date?: string | null;
+/**
+ * Browser timezone offset in minutes (JS getTimezoneOffset)
+ */
+tz_offset?: number;
 };
 
 export type ListDataStatsApiDataStatsGetParams = {
@@ -350,4 +462,6 @@ date_to?: string | null;
  */
 limit?: number;
 };
+
+export type GetHostIpApiSystemIpGet200 = {[key: string]: string};
 

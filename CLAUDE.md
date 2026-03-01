@@ -33,6 +33,7 @@
 
 - **Never hand-write API types or hooks** — always run `pnpm codegen` to generate them from the backend OpenAPI schema. All types and hooks live in `frontend/src/api/generated/` and must come from orval.
 - Frontend components should import types from `@/api/generated/contWatchAPI.schemas` and hooks from `@/api/generated/<tag>/<tag>`.
+- **If you create Alembic migrations, always run `cd backend && uv run alembic upgrade head` before running `pnpm codegen`** — the backend must be able to start (which requires the DB schema to be up to date) for codegen to fetch the OpenAPI schema.
 
 ## Code Quality
 
@@ -40,8 +41,13 @@
 - Fix all issues, including pre-existing ones unrelated to your changes. The codebase must always be warning-free.
 - **Do not suppress lint warnings with ignore comments by default.** Always try to fix the issue properly first. Only add a suppress comment when the lint rule genuinely does not apply and a proper fix would be worse (e.g. less readable, wrong behavior). Include a clear justification in the comment.
 
+## Bug Fixes
+
+- **When fixing a bug, always search the entire codebase for the same pattern** before considering the fix done. Proactively find and fix all similar occurrences.
+
 ## shadcn/ui Components
 
 - **Never modify files in `frontend/src/components/ui/`** — these are managed by the shadcn CLI and must be reinstallable at any time via `npx shadcn@latest add <component> --overwrite` without losing our changes.
 - To customize styling or behavior, create wrapper components in `frontend/src/components/` (outside `ui/`).
 - Style is `base-vega` (Base UI primitives, not Radix). See `frontend/components.json`.
+- **If you need a component that doesn't exist yet in `frontend/src/components/ui/`**, install it from shadcn via `npx shadcn@latest add <component>`. Do not reimplement or work around missing components with other primitives.

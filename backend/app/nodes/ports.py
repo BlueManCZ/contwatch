@@ -32,6 +32,10 @@ def attribute_port(name: str = "attribute_id", label: str = "Attribute") -> Port
     return PortDef(name=name, type="attribute", label=label, control="select")
 
 
+def handler_data_key_port(name: str = "key", label: str = "Key") -> PortDef:
+    return PortDef(name=name, type="handler_data_key", label=label, control="tree-select")
+
+
 def action_port(name: str = "action_id", label: str = "Action") -> PortDef:
     return PortDef(name=name, type="action", label=label, control="select")
 

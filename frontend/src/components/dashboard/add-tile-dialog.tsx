@@ -16,9 +16,16 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-export function AddTileDialog() {
+interface AddTileDialogProps {
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+}
+
+export function AddTileDialog({ open: controlledOpen, onOpenChange }: AddTileDialogProps = {}) {
     const { t } = useTranslation();
-    const [open, setOpen] = useState(false);
+    const [internalOpen, setInternalOpen] = useState(false);
+    const open = controlledOpen ?? internalOpen;
+    const setOpen = onOpenChange ?? setInternalOpen;
     const [selectedAttrId, setSelectedAttrId] = useState<string>("");
 
     const { data: attrsData } = useListAttributesApiAttributesGet(undefined);
@@ -45,14 +52,16 @@ export function AddTileDialog() {
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger
-                render={
-                    <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        {t("dashboard.addTile")}
-                    </Button>
-                }
-            />
+            {controlledOpen === undefined && (
+                <DialogTrigger
+                    render={
+                        <Button size="sm">
+                            <Plus className="mr-1.5 h-3.5 w-3.5" />
+                            {t("dashboard.addTile")}
+                        </Button>
+                    }
+                />
+            )}
             <DialogContent>
                 <form onSubmit={handleSubmit}>
                     <DialogHeader>

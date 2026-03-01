@@ -26,6 +26,7 @@ class AttributeTracker:
         self.attribute_id = attribute_id
         self.handler_id = handler_id
         self._current_value: Any = None
+        self._last_changed: datetime.datetime | None = None
         self._last_value_save_skipped: bool = False
         self._history: deque[float] = deque(maxlen=3)
 
@@ -37,6 +38,10 @@ class AttributeTracker:
     @property
     def current_value(self) -> Any:
         return self._current_value
+
+    @property
+    def last_changed(self) -> datetime.datetime | None:
+        return self._last_changed
 
     @property
     def trend(self) -> int:
@@ -55,11 +60,17 @@ class AttributeTracker:
 
     @property
     def daily_stats(self) -> dict[str, float | None]:
-        """Return current day's min/max values."""
-        today = datetime.datetime.now(datetime.UTC).date()
-        if self._stat_date != today:
+        """Return min/max values (today's if available, otherwise last known)."""
+        if self._stat_date is None:
             return {"min": None, "max": None}
         return {"min": self._daily_min, "max": self._daily_max}
+
+    def seed_value(self, value: Any, last_changed: datetime.datetime | None = None) -> None:
+        """Seed the current value from the database on startup."""
+        self._current_value = value
+        self._last_changed = last_changed
+        if isinstance(value, (int, float)):
+            self._history.append(value)
 
     def seed_stats(
         self,
@@ -85,6 +96,7 @@ class AttributeTracker:
             # First value ever
             result.data_units.append(self._make_unit(value, now))
             self._current_value = value
+            self._last_changed = now
             self._last_value_save_skipped = False
         elif value != self._current_value:
             # Value changed — emit held previous value first for step chart.
@@ -94,6 +106,7 @@ class AttributeTracker:
                 result.data_units.append(self._make_unit(self._current_value, held_ts))
             result.data_units.append(self._make_unit(value, now))
             self._current_value = value
+            self._last_changed = now
             self._last_value_save_skipped = False
         else:
             # Value unchanged — skip DB write

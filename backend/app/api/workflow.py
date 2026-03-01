@@ -18,16 +18,16 @@ router = APIRouter(prefix="/actions/workflow", tags=["workflow"])
 
 
 @router.get("/nodes", response_model=list[NodeDefinition])
-async def get_node_definitions(db: DbSession, _current_user: CurrentUser):
+async def get_node_definitions(db: DbSession, _current_user: CurrentUser, manager: HandlerManagerDep):
     """Return all node type definitions with dynamic select options populated."""
     # Load dynamic options from DB
-    handlers_result = await db.execute(select(Handler.id, Handler.type))
-    handlers = [(row[0], row[1]) for row in handlers_result.all()]
-    handler_options = [f"{h_id}: {h_type}" for h_id, h_type in handlers]
+    handlers_result = await db.execute(select(Handler.id, Handler.type, Handler.label))
+    handlers = [(row[0], row[1], row[2]) for row in handlers_result.all()]
+    handler_options = [f"{h_id}: {h_label or h_type}" for h_id, h_type, h_label in handlers]
 
-    attributes_result = await db.execute(select(Attribute.id, Attribute.name))
-    attributes = [(row[0], row[1]) for row in attributes_result.all()]
-    attribute_options = [f"{a_id}: {a_name}" for a_id, a_name in attributes]
+    attributes_result = await db.execute(select(Attribute.id, Attribute.name, Attribute.label))
+    attributes = [(row[0], row[1], row[2]) for row in attributes_result.all()]
+    attribute_options = [f"{a_id}: {a_label or a_name}" for a_id, a_name, a_label in attributes]
 
     actions_result = await db.execute(select(Action.id, Action.name))
     actions = [(row[0], row[1]) for row in actions_result.all()]
@@ -37,6 +37,7 @@ async def get_node_definitions(db: DbSession, _current_user: CurrentUser):
         "handler": handler_options,
         "attribute": attribute_options,
         "action": action_options,
+        "handler_data_key": manager.get_all_data_keys(),
     }
 
     definitions = []
@@ -44,7 +45,7 @@ async def get_node_definitions(db: DbSession, _current_user: CurrentUser):
         defn = node_cls.get_definition()
         # Inject dynamic options for select ports with empty options
         for port in defn["input_ports"]:
-            if port["control"] == "select" and not port["options"]:
+            if port["control"] in ("select", "tree-select") and not port["options"]:
                 port["options"] = dynamic_options.get(port["type"], [])
         definitions.append(defn)
 

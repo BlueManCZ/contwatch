@@ -5,7 +5,7 @@ from typing import ClassVar
 
 import serial_asyncio
 
-from app.handlers.base import AbstractHandler
+from app.handlers.base import AbstractHandler, KnownAction, KnownAttribute
 from app.handlers.registry import register_handler_type
 
 logger = logging.getLogger(__name__)
@@ -23,20 +23,58 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
     handler_type = "jiabaida_bms_serial"
     handler_name = "Jiabaida BMS"
     handler_icon = "battery"
+    handler_category = "serial"
+    probe_priority: ClassVar[int] = 20
     config_fields: ClassVar[list[dict]] = [
         {"key": "port", "type": "string", "label": "Device port (e.g. /dev/ttyUSB0)", "default": ""},
         {"key": "interval", "type": "int", "label": "Polling interval (s)", "default": 10},
-        {"key": "timeout", "type": "float", "label": "Read timeout (s)", "default": 0.1},
         {"key": "auto_reconnect", "type": "bool", "label": "Auto reconnect", "default": True},
         {"key": "trim_echo", "type": "bool", "label": "Trim echoed messages", "default": False},
     ]
+
+    @classmethod
+    def describe(cls, options: dict) -> str:
+        port = options.get("config", {}).get("port", "")
+        return port or cls.handler_name
+    known_attributes: ClassVar[list[KnownAttribute]] = [
+        KnownAttribute(name="voltage", label="Voltage", unit="V", rounding=2),
+        KnownAttribute(name="current", label="Current", unit="A", rounding=2),
+        KnownAttribute(name="capacity", label="Capacity", unit="mAh", rounding=0),
+        KnownAttribute(name="nominal_capacity", label="Nominal capacity", unit="mAh", rounding=0),
+        KnownAttribute(name="cycles", label="Cycles", rounding=0),
+        KnownAttribute(name="percentages", label="State of charge", unit="%", rounding=0),
+        KnownAttribute(name="mos_state", label="MOS state"),
+        KnownAttribute(name="protection_bits", label="Protection bits"),
+    ]
+    known_actions: ClassVar[list[KnownAction]] = [
+        KnownAction(name="Charge+Discharge ON", message=json.dumps({"mos_state": "00"})),
+        KnownAction(name="Charge OFF", message=json.dumps({"mos_state": "01"})),
+        KnownAction(name="Discharge OFF", message=json.dumps({"mos_state": "10"})),
+        KnownAction(name="Both OFF", message=json.dumps({"mos_state": "11"})),
+    ]
+
+    @classmethod
+    async def probe(cls, config: dict) -> bool:
+        port = config.get("port", "")
+        if not port:
+            return False
+        try:
+            reader, writer = await serial_asyncio.open_serial_connection(url=port)
+            try:
+                writer.write(b"\xdd\xa5\x03\x00\xff\xfd\x77")
+                await writer.drain()
+                raw = await asyncio.wait_for(reader.readexactly(1), timeout=2)
+                return raw[0] == 0xDD
+            finally:
+                writer.close()
+        except Exception:
+            return False
 
     async def _read_block(
         self,
         reader: asyncio.StreamReader,
         writer: asyncio.StreamWriter,
         query: bytes,
-        timeout: float,
     ) -> list[int]:
         """Send a binary query and read the response block."""
         writer.write(query)
@@ -48,7 +86,7 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
         header = []
         length = 0
         for i in range(header_len):
-            raw = await asyncio.wait_for(reader.readexactly(1), timeout=timeout)
+            raw = await asyncio.wait_for(reader.readexactly(1), timeout=0.1)
             byte = int.from_bytes(raw, "big")
             if i == header_len - 2 and byte != 0:
                 break
@@ -58,12 +96,12 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
 
         data = []
         for _ in range(length):
-            raw = await asyncio.wait_for(reader.readexactly(1), timeout=timeout)
+            raw = await asyncio.wait_for(reader.readexactly(1), timeout=0.1)
             data.append(int.from_bytes(raw, "big"))
 
         # Skip 3 trailing bytes (checksum + end marker)
         for _ in range(3):
-            await asyncio.wait_for(reader.readexactly(1), timeout=timeout)
+            await asyncio.wait_for(reader.readexactly(1), timeout=0.1)
 
         return data
 
@@ -71,11 +109,10 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
         self,
         reader: asyncio.StreamReader,
         writer: asyncio.StreamWriter,
-        timeout: float,
     ) -> dict:
         """Send both queries and decode the response into a dict."""
-        d1 = await self._read_block(reader, writer, b"\xdd\xa5\x03\x00\xff\xfd\x77", timeout)
-        d2 = await self._read_block(reader, writer, b"\xdd\xa5\x04\x00\xff\xfc\x77", timeout)
+        d1 = await self._read_block(reader, writer, b"\xdd\xa5\x03\x00\xff\xfd\x77")
+        d2 = await self._read_block(reader, writer, b"\xdd\xa5\x04\x00\xff\xfc\x77")
 
         if not d1 or not d2:
             raise OSError("Missing data block from BMS")
@@ -114,7 +151,6 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
     async def run(self) -> None:
         port = self.get_config_option("port", "")
         interval = int(self.get_config_option("interval", 10))
-        timeout = float(self.get_config_option("timeout", 0.1))
         auto_reconnect = self.get_config_option("auto_reconnect", True)
 
         while self.is_active:
@@ -126,7 +162,7 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
                 logger.info("Handler %s: connected to %s", self.handler_id, port)
 
                 while self.is_active:
-                    data = await self._poll(reader, writer, timeout)
+                    data = await self._poll(reader, writer)
                     self.add_message(data)
                     await self.wait_for_interval(interval)
 

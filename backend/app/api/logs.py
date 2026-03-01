@@ -41,4 +41,5 @@ async def list_logs(
 @router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
 async def clear_logs(db: DbSession, _current_user: CurrentUser):
     await db.execute(delete(LoggingMessage))
+    await db.commit()
     await sio.emit("mutate", {"entity": "logs"})
