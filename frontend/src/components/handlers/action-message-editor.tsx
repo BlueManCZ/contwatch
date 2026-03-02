@@ -155,7 +155,7 @@ function HttpMessageEditor({
                     <SelectTrigger className="w-[100px] text-xs">
                         <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent alignItemWithTrigger={false}>
                         {HTTP_METHODS.map((m) => (
                             <SelectItem key={m} value={m}>
                                 {m}

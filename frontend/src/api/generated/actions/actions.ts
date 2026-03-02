@@ -27,6 +27,7 @@ import type {
   ActionCreate,
   ActionRead,
   ActionUpdate,
+  ExecuteActionRequest,
   HTTPValidationError
 } from '../contWatchAPI.schemas';
 
@@ -561,14 +562,16 @@ export const getExecuteActionApiActionsActionIdExecutePostUrl = (actionId: numbe
   return `/api/actions/${actionId}/execute`
 }
 
-export const executeActionApiActionsActionIdExecutePost = async (actionId: number, options?: RequestInit): Promise<executeActionApiActionsActionIdExecutePostResponse> => {
+export const executeActionApiActionsActionIdExecutePost = async (actionId: number,
+    executeActionRequestNull: ExecuteActionRequest | null, options?: RequestInit): Promise<executeActionApiActionsActionIdExecutePostResponse> => {
   
   return axiosInstance<executeActionApiActionsActionIdExecutePostResponse>(getExecuteActionApiActionsActionIdExecutePostUrl(actionId),
   {      
     ...options,
-    method: 'POST'
-    
-    
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      executeActionRequestNull,)
   }
 );}
   
@@ -576,8 +579,8 @@ export const executeActionApiActionsActionIdExecutePost = async (actionId: numbe
 
 
 export const getExecuteActionApiActionsActionIdExecutePostMutationOptions = <TError = HTTPValidationError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof executeActionApiActionsActionIdExecutePost>>, TError,{actionId: number}, TContext>, request?: SecondParameter<typeof axiosInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof executeActionApiActionsActionIdExecutePost>>, TError,{actionId: number}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof executeActionApiActionsActionIdExecutePost>>, TError,{actionId: number;data: ExecuteActionRequest | null}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof executeActionApiActionsActionIdExecutePost>>, TError,{actionId: number;data: ExecuteActionRequest | null}, TContext> => {
 
 const mutationKey = ['executeActionApiActionsActionIdExecutePost'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -589,10 +592,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof executeActionApiActionsActionIdExecutePost>>, {actionId: number}> = (props) => {
-          const {actionId} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof executeActionApiActionsActionIdExecutePost>>, {actionId: number;data: ExecuteActionRequest | null}> = (props) => {
+          const {actionId,data} = props ?? {};
 
-          return  executeActionApiActionsActionIdExecutePost(actionId,requestOptions)
+          return  executeActionApiActionsActionIdExecutePost(actionId,data,requestOptions)
         }
 
 
@@ -603,18 +606,18 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type ExecuteActionApiActionsActionIdExecutePostMutationResult = NonNullable<Awaited<ReturnType<typeof executeActionApiActionsActionIdExecutePost>>>
-    
+    export type ExecuteActionApiActionsActionIdExecutePostMutationBody = ExecuteActionRequest | null
     export type ExecuteActionApiActionsActionIdExecutePostMutationError = HTTPValidationError
 
     /**
  * @summary Execute Action
  */
 export const useExecuteActionApiActionsActionIdExecutePost = <TError = HTTPValidationError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof executeActionApiActionsActionIdExecutePost>>, TError,{actionId: number}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof executeActionApiActionsActionIdExecutePost>>, TError,{actionId: number;data: ExecuteActionRequest | null}, TContext>, request?: SecondParameter<typeof axiosInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof executeActionApiActionsActionIdExecutePost>>,
         TError,
-        {actionId: number},
+        {actionId: number;data: ExecuteActionRequest | null},
         TContext
       > => {
       return useMutation(getExecuteActionApiActionsActionIdExecutePostMutationOptions(options), queryClient);

@@ -1,19 +1,23 @@
-import { Check, ChevronLeft, Loader2, Search, Wand2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Check, ChevronLeft, Info, Loader2, Search, Wand2 } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type {
     CategoryInfo,
     HandlerConfigField,
+    HandlerRead,
     HandlerTypeInfo,
     KnownActionInfo,
     KnownAttributeInfo,
     ProbeResult,
 } from "@/api/generated/contWatchAPI.schemas";
 import {
+    getListHandlersApiHandlersGetQueryKey,
     useCreateHandlerApiHandlersPost,
     useListCategoriesApiHandlersCategoriesGet,
+    useListHandlersApiHandlersGet,
     useListHandlerTypesApiHandlersTypesGet,
     useProbeHandlerApiHandlersProbePost,
     useSetupHandlerApiHandlersSetupPost,
@@ -31,11 +35,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { ConfigFieldInput, convertConfigValues } from "./config-field-input";
 
-type WizardStep = "category" | "connection" | "probing" | "review";
+type WizardStep = "category" | "connection" | "probing" | "review" | "manual";
 
 interface ProbeState {
     result: ProbeResult | null;
@@ -44,6 +47,7 @@ interface ProbeState {
 
 export function HandlerWizard() {
     const { t } = useTranslation();
+    const queryClient = useQueryClient();
     const [open, setOpen] = useState(false);
     const [step, setStep] = useState<WizardStep>("category");
 
@@ -55,6 +59,7 @@ export function HandlerWizard() {
     const [configValues, setConfigValues] = useState<Record<string, string>>({});
     const [selectedAttrs, setSelectedAttrs] = useState<Set<string>>(new Set());
     const [selectedActions, setSelectedActions] = useState<Set<string>>(new Set());
+    const [manualInitialType, setManualInitialType] = useState<string>("");
 
     const { data: typesData } = useListHandlerTypesApiHandlersTypesGet();
     const handlerTypes = (typesData?.data ?? []) as HandlerTypeInfo[];
@@ -71,6 +76,7 @@ export function HandlerWizard() {
         setConfigValues({});
         setSelectedAttrs(new Set());
         setSelectedActions(new Set());
+        setManualInitialType("");
     }
 
     function handleOpenChange(next: boolean) {
@@ -103,14 +109,20 @@ export function HandlerWizard() {
             {
                 onSuccess: (resp) => {
                     const result = resp.data as ProbeResult;
-                    setProbeState({ result, category });
-                    initReviewState(result, category);
-                    setStep("review");
+                    if (result.detected) {
+                        setProbeState({ result, category });
+                        initReviewState(result, category);
+                        setStep("review");
+                    } else {
+                        toast.info(t("wizard.detectionFailed"));
+                        setManualInitialType(category.default_handler_type);
+                        setStep("manual");
+                    }
                 },
                 onError: () => {
-                    setProbeState({ result: { detected: false }, category });
-                    initReviewState({ detected: false }, category);
-                    setStep("review");
+                    toast.info(t("wizard.detectionFailed"));
+                    setManualInitialType(category.default_handler_type);
+                    setStep("manual");
                 },
             },
         );
@@ -127,9 +139,14 @@ export function HandlerWizard() {
                 defaults[f.key] = String(f.default ?? "");
             }
 
-            // Override connection params with what the user entered
+            // Override connection params with what the user entered, but only for
+            // keys where the backend hasn't already provided a non-empty default
+            // (e.g. _normalize_config splits host into host + fetch_route).
             for (const [key, val] of Object.entries(probeValues)) {
-                defaults[key] = val;
+                const backendDefault = fields.find((f) => f.key === key)?.default;
+                if (!backendDefault) {
+                    defaults[key] = val;
+                }
             }
 
             setConfigValues(defaults);
@@ -175,6 +192,9 @@ export function HandlerWizard() {
             },
             {
                 onSuccess: () => {
+                    queryClient.invalidateQueries({
+                        queryKey: getListHandlersApiHandlersGetQueryKey(),
+                    });
                     handleOpenChange(false);
                     toast.success(t("toast.handlerCreated"));
                 },
@@ -193,8 +213,15 @@ export function HandlerWizard() {
                 }
             />
             <DialogContent className="sm:max-w-lg">
-                {step === "category" && (
-                    <CategoryStep onSelect={handleCategorySelect} onClose={() => handleOpenChange(false)} />
+                {step === "category" && <CategoryStep onSelect={handleCategorySelect} />}
+                {step === "manual" && category && (
+                    <ManualStep
+                        category={category}
+                        initialType={manualInitialType}
+                        initialValues={probeValues}
+                        onBack={() => setStep("connection")}
+                        onClose={() => handleOpenChange(false)}
+                    />
                 )}
                 {step === "connection" && category && (
                     <ConnectionStep
@@ -202,6 +229,7 @@ export function HandlerWizard() {
                         probeValues={probeValues}
                         onProbeValueChange={(k, v) => setProbeValues((prev) => ({ ...prev, [k]: v }))}
                         onBack={() => setStep("category")}
+                        onManual={() => setStep("manual")}
                         onProbe={handleProbe}
                     />
                 )}
@@ -242,22 +270,120 @@ export function HandlerWizard() {
     );
 }
 
-function CategoryStep({ onSelect, onClose }: { onSelect: (cat: CategoryInfo) => void; onClose: () => void }) {
+function CategoryStep({ onSelect }: { onSelect: (cat: CategoryInfo) => void }) {
     const { t } = useTranslation();
-    const [showAdvanced, setShowAdvanced] = useState(false);
-    const [selectedType, setSelectedType] = useState<string>("");
+    const { data: categoriesData } = useListCategoriesApiHandlersCategoriesGet();
+    const categories = (categoriesData?.data ?? []) as CategoryInfo[];
+
+    return (
+        <>
+            <DialogHeader>
+                <DialogTitle>{t("wizard.chooseMethod")}</DialogTitle>
+            </DialogHeader>
+            <div className="py-4 space-y-3">
+                <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+                    {t("wizard.chooseCategory")}
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                    {categories.map((cat) => (
+                        <Card
+                            key={cat.name}
+                            className="cursor-pointer transition-all hover:shadow-md hover:border-primary py-0"
+                            onClick={() => onSelect(cat)}
+                        >
+                            <CardContent className="flex flex-col items-center gap-2 p-6">
+                                <DynamicIcon
+                                    // biome-ignore lint/suspicious/noExplicitAny: icon name is dynamic from backend
+                                    name={cat.icon as any}
+                                    fallback={() => (
+                                        <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
+                                    )}
+                                    className="h-8 w-8 text-muted-foreground"
+                                />
+                                <span className="text-sm font-medium">{cat.label}</span>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </div>
+        </>
+    );
+}
+
+function ManualStep({
+    category,
+    initialType,
+    initialValues,
+    onBack,
+    onClose,
+}: {
+    category: CategoryInfo;
+    initialType?: string;
+    initialValues?: Record<string, string>;
+    onBack: () => void;
+    onClose: () => void;
+}) {
+    const { t } = useTranslation();
+    const queryClient = useQueryClient();
+    const [selectedType, setSelectedType] = useState<string>(initialType ?? "");
     const [configValues, setConfigValues] = useState<Record<string, string>>({});
 
     const { data: typesData } = useListHandlerTypesApiHandlersTypesGet();
-    const { data: categoriesData } = useListCategoriesApiHandlersCategoriesGet();
+    const { data: handlersData } = useListHandlersApiHandlersGet();
     const createHandler = useCreateHandlerApiHandlersPost();
 
     const handlerTypes = (typesData?.data ?? []) as HandlerTypeInfo[];
-    const categories = (categoriesData?.data ?? []) as CategoryInfo[];
+    const existingHandlers = (handlersData?.data ?? []) as HandlerRead[];
+
+    const categoryTypes = useMemo(
+        () => handlerTypes.filter((ht) => ht.category === category.name),
+        [handlerTypes, category.name],
+    );
     const selectedTypeInfo = handlerTypes.find((ht) => ht.type === selectedType);
 
-    function handleTypeChange(value: string | null) {
-        if (!value) return;
+    // Check if an existing handler shares the same host or port
+    const duplicateHandler = useMemo(() => {
+        const host = configValues.host?.trim();
+        const port = configValues.port?.trim();
+        if (!host && !port) return null;
+        return (
+            existingHandlers.find((h) => {
+                const cfg = (h.options as Record<string, unknown>)?.config as
+                    | Record<string, unknown>
+                    | undefined;
+                if (!cfg) return false;
+                if (host && String(cfg.host ?? "").trim() === host) return true;
+                if (port && String(cfg.port ?? "").trim() === port) return true;
+                return false;
+            }) ?? null
+        );
+    }, [configValues.host, configValues.port, existingHandlers]);
+
+    // Populate config defaults when initialType is provided and handler types are loaded,
+    // then overlay any values carried over from the connection step (e.g. host, port)
+    const initializedRef = useRef(false);
+    useEffect(() => {
+        if (initialType && handlerTypes.length > 0 && !initializedRef.current) {
+            initializedRef.current = true;
+            const info = handlerTypes.find((ht) => ht.type === initialType);
+            if (info) {
+                const defaults: Record<string, string> = {};
+                for (const field of info.config_fields) {
+                    defaults[field.key] = String(field.default ?? "");
+                }
+                if (initialValues) {
+                    for (const [key, val] of Object.entries(initialValues)) {
+                        if (val && key in defaults) {
+                            defaults[key] = val;
+                        }
+                    }
+                }
+                setConfigValues(defaults);
+            }
+        }
+    }, [initialType, initialValues, handlerTypes]);
+
+    function handleTypeChange(value: string) {
         setSelectedType(value);
         const info = handlerTypes.find((ht) => ht.type === value);
         if (info) {
@@ -265,17 +391,27 @@ function CategoryStep({ onSelect, onClose }: { onSelect: (cat: CategoryInfo) => 
             for (const field of info.config_fields) {
                 defaults[field.key] = String(field.default ?? "");
             }
+            if (initialValues) {
+                for (const [key, val] of Object.entries(initialValues)) {
+                    if (val && key in defaults) {
+                        defaults[key] = val;
+                    }
+                }
+            }
             setConfigValues(defaults);
         }
     }
 
-    function handleAdvancedCreate() {
+    function handleCreate() {
         if (!selectedType) return;
         const config = convertConfigValues(selectedTypeInfo?.config_fields ?? [], configValues);
         createHandler.mutate(
             { data: { type: selectedType, options: { config }, enabled: true } },
             {
                 onSuccess: () => {
+                    queryClient.invalidateQueries({
+                        queryKey: getListHandlersApiHandlersGetQueryKey(),
+                    });
                     toast.success(t("toast.handlerCreated"));
                     onClose();
                 },
@@ -286,80 +422,72 @@ function CategoryStep({ onSelect, onClose }: { onSelect: (cat: CategoryInfo) => 
     return (
         <>
             <DialogHeader>
-                <DialogTitle>{t("wizard.chooseCategory")}</DialogTitle>
+                <DialogTitle>{t("wizard.manualSetup")}</DialogTitle>
             </DialogHeader>
-            <div className="grid grid-cols-2 gap-3 py-4">
-                {categories.map((cat) => (
-                    <Card
-                        key={cat.name}
-                        className="cursor-pointer transition-all hover:shadow-md hover:border-primary py-0"
-                        onClick={() => onSelect(cat)}
-                    >
-                        <CardContent className="flex flex-col items-center gap-2 p-6">
-                            <DynamicIcon
-                                // biome-ignore lint/suspicious/noExplicitAny: icon name is dynamic from backend
-                                name={cat.icon as any}
-                                fallback={() => (
-                                    <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
-                                )}
-                                className="h-8 w-8 text-muted-foreground"
-                            />
-                            <span className="text-sm font-medium">{cat.label}</span>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-            <Separator />
-            <div>
-                <button
-                    type="button"
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => setShowAdvanced(!showAdvanced)}
-                >
-                    {showAdvanced ? t("wizard.hideAdvanced") : t("handlers.advancedSetup")}
-                </button>
-                {showAdvanced && (
-                    <div className="space-y-4 mt-3">
-                        <div className="space-y-2">
-                            <Label>{t("handlers.type")}</Label>
-                            <Select value={selectedType} onValueChange={handleTypeChange}>
-                                <SelectTrigger>
-                                    <SelectValue>
-                                        {selectedType
-                                            ? handlerTypes.find((ht) => ht.type === selectedType)?.name
-                                            : t("handlers.selectType")}
-                                    </SelectValue>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {handlerTypes.map((ht) => (
-                                        <SelectItem key={ht.type} value={ht.type}>
-                                            {ht.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        {selectedTypeInfo?.config_fields.map((field: HandlerConfigField) => (
-                            <div key={field.key} className="space-y-1">
-                                <Label className="text-xs">{field.label}</Label>
-                                <ConfigFieldInput
-                                    field={field}
-                                    value={configValues[field.key] ?? ""}
-                                    onChange={(v) => setConfigValues((prev) => ({ ...prev, [field.key]: v }))}
-                                />
-                            </div>
-                        ))}
-                        <div className="flex justify-end">
-                            <Button
-                                onClick={handleAdvancedCreate}
-                                disabled={!selectedType || createHandler.isPending}
+            <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                    <Label>{t("handlers.type")}</Label>
+                    <div className="flex flex-wrap gap-2">
+                        {categoryTypes.map((ht) => (
+                            <Card
+                                key={ht.type}
+                                className={`cursor-pointer transition-all hover:shadow-md py-0 ${
+                                    selectedType === ht.type
+                                        ? "border-primary ring-1 ring-primary"
+                                        : "hover:border-primary/50"
+                                }`}
+                                onClick={() => handleTypeChange(ht.type)}
                             >
-                                {t("handlers.createHandler")}
-                            </Button>
-                        </div>
+                                <CardContent className="flex items-center gap-3 p-3">
+                                    <DynamicIcon
+                                        // biome-ignore lint/suspicious/noExplicitAny: icon name is dynamic from backend
+                                        name={ht.icon as any}
+                                        fallback={() => (
+                                            <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
+                                        )}
+                                        className={`h-5 w-5 shrink-0 ${
+                                            selectedType === ht.type
+                                                ? "text-primary"
+                                                : "text-muted-foreground"
+                                        }`}
+                                    />
+                                    <span className="text-sm font-medium">{ht.name}</span>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                </div>
+                {selectedTypeInfo?.config_fields.map((field: HandlerConfigField) => (
+                    <div key={field.key} className="space-y-1">
+                        <Label className="text-xs">{t(`fields.${field.key}`, field.label)}</Label>
+                        <ConfigFieldInput
+                            field={field}
+                            value={configValues[field.key] ?? ""}
+                            onChange={(v) => setConfigValues((prev) => ({ ...prev, [field.key]: v }))}
+                        />
+                    </div>
+                ))}
+                {duplicateHandler && (
+                    <div className="flex items-start gap-2 rounded-md border border-warning/50 bg-warning/10 px-3 py-2">
+                        <Info className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+                        <span className="text-sm text-warning">
+                            {t("wizard.duplicateHost", {
+                                name: duplicateHandler.label || duplicateHandler.type,
+                            })}
+                        </span>
                     </div>
                 )}
             </div>
+            <DialogFooter>
+                <Button variant="ghost" onClick={onBack}>
+                    <ChevronLeft className="mr-1.5 h-3.5 w-3.5" />
+                    {t("wizard.back")}
+                </Button>
+                <Button onClick={handleCreate} disabled={!selectedType || createHandler.isPending}>
+                    {createHandler.isPending && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+                    {t("handlers.createHandler")}
+                </Button>
+            </DialogFooter>
         </>
     );
 }
@@ -369,41 +497,93 @@ function ConnectionStep({
     probeValues,
     onProbeValueChange,
     onBack,
+    onManual,
     onProbe,
 }: {
     category: CategoryInfo;
     probeValues: Record<string, string>;
     onProbeValueChange: (key: string, value: string) => void;
     onBack: () => void;
+    onManual: () => void;
     onProbe: () => void;
 }) {
     const { t } = useTranslation();
-    const hasRequiredValues = category.probe_fields.some((f) => probeValues[f.key]);
+
+    // Poll for updated port choices (e.g. USB device connect/disconnect)
+    const { data: freshCategories } = useListCategoriesApiHandlersCategoriesGet({
+        query: { refetchInterval: 2000 },
+    });
+    const liveCategory = useMemo(() => {
+        const fresh = (freshCategories?.data as CategoryInfo[] | undefined)?.find(
+            (c) => c.name === category.name,
+        );
+        if (!fresh) return category;
+        return {
+            ...category,
+            probe_fields: category.probe_fields.map((field) => {
+                const updated = fresh.probe_fields.find((f) => f.key === field.key);
+                return updated ? { ...field, choices: updated.choices } : field;
+            }),
+        };
+    }, [category, freshCategories]);
+
+    const hasRequiredValues = liveCategory.probe_fields.some((f) => probeValues[f.key]);
 
     return (
         <>
             <DialogHeader>
                 <DialogTitle>{t("wizard.connectionDetails")}</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-                {category.probe_fields.map((field) => (
-                    <div key={field.key} className="space-y-2">
-                        <Label>{field.label}</Label>
-                        <ConfigFieldInput
-                            field={field}
-                            value={probeValues[field.key] ?? ""}
-                            onChange={(v) => onProbeValueChange(field.key, v)}
-                        />
-                    </div>
-                ))}
+            <div className="space-y-3 py-4">
+                {(() => {
+                    const groups: (typeof liveCategory.probe_fields)[] = [];
+                    for (const field of liveCategory.probe_fields) {
+                        if (field.row != null) {
+                            const existing = groups.find((g) => g[0].row === field.row);
+                            if (existing) {
+                                existing.push(field);
+                                continue;
+                            }
+                        }
+                        groups.push([field]);
+                    }
+                    return groups.map((group) =>
+                        group.length === 1 ? (
+                            <div key={group[0].key} className="space-y-2">
+                                <Label>{t(`fields.${group[0].key}`, group[0].label)}</Label>
+                                <ConfigFieldInput
+                                    field={group[0]}
+                                    value={probeValues[group[0].key] ?? ""}
+                                    onChange={(v) => onProbeValueChange(group[0].key, v)}
+                                />
+                            </div>
+                        ) : (
+                            <div key={group.map((f) => f.key).join("-")} className="grid grid-cols-2 gap-3">
+                                {group.map((field) => (
+                                    <div key={field.key} className="space-y-2">
+                                        <Label>{t(`fields.${field.key}`, field.label)}</Label>
+                                        <ConfigFieldInput
+                                            field={field}
+                                            value={probeValues[field.key] ?? ""}
+                                            onChange={(v) => onProbeValueChange(field.key, v)}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        ),
+                    );
+                })()}
             </div>
             <DialogFooter>
                 <Button variant="ghost" onClick={onBack}>
                     <ChevronLeft className="mr-1.5 h-3.5 w-3.5" />
                     {t("wizard.back")}
                 </Button>
+                <Button variant="outline" onClick={onManual}>
+                    {t("wizard.manualSetup")}
+                </Button>
                 <Button onClick={onProbe} disabled={!hasRequiredValues}>
-                    <Search className="mr-1.5 h-3.5 w-3.5" />
+                    <Search className="h-3.5 w-3.5" />
                     {t("wizard.detectDevice")}
                 </Button>
             </DialogFooter>
@@ -506,7 +686,7 @@ function ReviewStep({
                         <div className="space-y-3 mt-3">
                             {fallbackFields.map((field) => (
                                 <div key={field.key} className="space-y-1">
-                                    <Label className="text-xs">{field.label}</Label>
+                                    <Label className="text-xs">{t(`fields.${field.key}`, field.label)}</Label>
                                     <ConfigFieldInput
                                         field={field}
                                         value={configValues[field.key] ?? ""}
@@ -536,7 +716,14 @@ function ReviewStep({
                                             onCheckedChange={() => onToggleAttr(attr.name)}
                                         />
                                         <div className="flex-1 min-w-0">
-                                            <span className="text-sm">{attr.label || attr.name}</span>
+                                            <span className="text-sm">
+                                                {attr.label
+                                                    ? t(
+                                                          `knownAttributes.${attr.name.replace(/[/:]/g, "_")}`,
+                                                          attr.label,
+                                                      )
+                                                    : attr.name}
+                                            </span>
                                             {attr.unit && (
                                                 <span className="text-xs text-muted-foreground ml-1">
                                                     ({attr.unit})
@@ -570,7 +757,12 @@ function ReviewStep({
                                             checked={selectedActions.has(action.name)}
                                             onCheckedChange={() => onToggleAction(action.name)}
                                         />
-                                        <span className="text-sm">{action.name}</span>
+                                        <span className="text-sm">
+                                            {t(
+                                                `knownActions.${action.name.replaceAll(" ", "_")}`,
+                                                action.name,
+                                            )}
+                                        </span>
                                     </div>
                                 ))}
                             </div>

@@ -1,10 +1,14 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useListAttributesApiAttributesGet } from "@/api/generated/attributes/attributes";
 import type { AttributeRead } from "@/api/generated/contWatchAPI.schemas";
-import { useCreateTileApiWidgetsTilesPost } from "@/api/generated/widgets/widgets";
+import {
+    getListTilesApiWidgetsTilesGetQueryKey,
+    useCreateTileApiWidgetsTilesPost,
+} from "@/api/generated/widgets/widgets";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -23,6 +27,7 @@ interface AddTileDialogProps {
 
 export function AddTileDialog({ open: controlledOpen, onOpenChange }: AddTileDialogProps = {}) {
     const { t } = useTranslation();
+    const queryClient = useQueryClient();
     const [internalOpen, setInternalOpen] = useState(false);
     const open = controlledOpen ?? internalOpen;
     const setOpen = onOpenChange ?? setInternalOpen;
@@ -40,6 +45,9 @@ export function AddTileDialog({ open: controlledOpen, onOpenChange }: AddTileDia
             { data: { attribute_id: Number(selectedAttrId) } },
             {
                 onSuccess: () => {
+                    queryClient.invalidateQueries({
+                        queryKey: getListTilesApiWidgetsTilesGetQueryKey(),
+                    });
                     setOpen(false);
                     setSelectedAttrId("");
                     toast.success(t("toast.tileAdded"));
@@ -76,7 +84,7 @@ export function AddTileDialog({ open: controlledOpen, onOpenChange }: AddTileDia
                                         : t("dashboard.selectAttribute")}
                                 </SelectValue>
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent alignItemWithTrigger={false}>
                                 {attributes.map((attr) => (
                                     <SelectItem key={attr.id} value={String(attr.id)}>
                                         {attr.label || attr.name}

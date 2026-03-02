@@ -3,13 +3,22 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.dependencies import CurrentUser, DbSession, HandlerManagerDep
+from app.handlers.registry import get_handler_class
+from app.models.handler import Handler
+from app.models.widget_slider import WidgetSlider
 from app.models.widget_switch import WidgetSwitch
 from app.models.widget_tile import WidgetTile
+from app.schemas.handler import CreateWidgetFromControlRequest
 from app.schemas.widget import (
     DashboardResponse,
+    DashboardSlider,
     DashboardSwitch,
     DashboardTile,
+    SliderSetRequest,
     SwitchToggleRequest,
+    WidgetSliderCreate,
+    WidgetSliderRead,
+    WidgetSliderUpdate,
     WidgetSwitchCreate,
     WidgetSwitchRead,
     WidgetSwitchUpdate,
@@ -18,6 +27,7 @@ from app.schemas.widget import (
     WidgetTileUpdate,
 )
 from app.socketio_app import sio
+from app.utils.action_params import merge_params
 
 router = APIRouter(prefix="/widgets", tags=["widgets"])
 
@@ -35,7 +45,7 @@ async def list_tiles(db: DbSession, _current_user: CurrentUser):
 async def create_tile(body: WidgetTileCreate, db: DbSession, _current_user: CurrentUser):
     tile = WidgetTile(attribute_id=body.attribute_id)
     db.add(tile)
-    await db.flush()
+    await db.commit()
     await db.refresh(tile)
     await sio.emit("mutate", {"entity": "widgets"})
     return tile
@@ -48,7 +58,7 @@ async def update_tile(tile_id: int, body: WidgetTileUpdate, db: DbSession, _curr
     if not tile:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tile not found")
     tile.attribute_id = body.attribute_id
-    await db.flush()
+    await db.commit()
     await db.refresh(tile)
     await sio.emit("mutate", {"entity": "widgets"})
     return tile
@@ -77,7 +87,6 @@ async def list_switches(db: DbSession, _current_user: CurrentUser):
 @router.post("/switches", response_model=WidgetSwitchRead, status_code=status.HTTP_201_CREATED)
 async def create_switch(body: WidgetSwitchCreate, db: DbSession, _current_user: CurrentUser):
     switch = WidgetSwitch(
-        name=body.name,
         icon=body.icon,
         attribute_id=body.attribute_id,
         attribute_compare=body.attribute_compare,
@@ -85,7 +94,7 @@ async def create_switch(body: WidgetSwitchCreate, db: DbSession, _current_user: 
         action_off_id=body.action_off_id,
     )
     db.add(switch)
-    await db.flush()
+    await db.commit()
     await db.refresh(switch)
     await sio.emit("mutate", {"entity": "widgets"})
     return switch
@@ -97,13 +106,12 @@ async def update_switch(switch_id: int, body: WidgetSwitchUpdate, db: DbSession,
     switch = result.scalar_one_or_none()
     if not switch:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Switch not found")
-    switch.name = body.name
     switch.icon = body.icon
     switch.attribute_id = body.attribute_id
     switch.attribute_compare = body.attribute_compare
     switch.action_on_id = body.action_on_id
     switch.action_off_id = body.action_off_id
-    await db.flush()
+    await db.commit()
     await db.refresh(switch)
     await sio.emit("mutate", {"entity": "widgets"})
     return switch
@@ -149,11 +157,162 @@ async def toggle_switch(
         )
 
     handler_id = switch.attribute.handler_id
-    success = await manager.execute_action(handler_id, action.message)
+    success = await manager.execute_action(handler_id, action.message, action_name=action.name, source="manual")
     if not success:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="Action execution failed")
 
     return {"ok": True}
+
+
+# --- Sliders ---
+
+
+@router.get("/sliders", response_model=list[WidgetSliderRead])
+async def list_sliders(db: DbSession, _current_user: CurrentUser):
+    result = await db.execute(select(WidgetSlider))
+    return result.scalars().all()
+
+
+@router.post("/sliders", response_model=WidgetSliderRead, status_code=status.HTTP_201_CREATED)
+async def create_slider(body: WidgetSliderCreate, db: DbSession, _current_user: CurrentUser):
+    slider = WidgetSlider(
+        icon=body.icon,
+        attribute_id=body.attribute_id,
+        action_id=body.action_id,
+        param_key=body.param_key,
+        min=body.min,
+        max=body.max,
+        step=body.step,
+    )
+    db.add(slider)
+    await db.commit()
+    await db.refresh(slider)
+    await sio.emit("mutate", {"entity": "widgets"})
+    return slider
+
+
+@router.patch("/sliders/{slider_id}", response_model=WidgetSliderRead)
+async def update_slider(slider_id: int, body: WidgetSliderUpdate, db: DbSession, _current_user: CurrentUser):
+    result = await db.execute(select(WidgetSlider).where(WidgetSlider.id == slider_id))
+    slider = result.scalar_one_or_none()
+    if not slider:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Slider not found")
+    slider.icon = body.icon
+    slider.attribute_id = body.attribute_id
+    slider.action_id = body.action_id
+    slider.param_key = body.param_key
+    slider.min = body.min
+    slider.max = body.max
+    slider.step = body.step
+    await db.commit()
+    await db.refresh(slider)
+    await sio.emit("mutate", {"entity": "widgets"})
+    return slider
+
+
+@router.delete("/sliders/{slider_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_slider(slider_id: int, db: DbSession, _current_user: CurrentUser):
+    result = await db.execute(select(WidgetSlider).where(WidgetSlider.id == slider_id))
+    slider = result.scalar_one_or_none()
+    if not slider:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Slider not found")
+    await db.delete(slider)
+    await db.commit()
+    await sio.emit("mutate", {"entity": "widgets"})
+
+
+@router.post("/sliders/{slider_id}/set")
+async def set_slider(
+    slider_id: int,
+    body: SliderSetRequest,
+    db: DbSession,
+    manager: HandlerManagerDep,
+    _current_user: CurrentUser,
+):
+    result = await db.execute(
+        select(WidgetSlider)
+        .where(WidgetSlider.id == slider_id)
+        .options(
+            selectinload(WidgetSlider.attribute),
+            selectinload(WidgetSlider.action),
+        )
+    )
+    slider = result.scalar_one_or_none()
+    if not slider:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Slider not found")
+
+    action = slider.action
+    handler_id = slider.attribute.handler_id
+    message = merge_params(action.message, {slider.param_key: body.value})
+    success = await manager.execute_action(handler_id, message, action_name=action.name, source="manual")
+    if not success:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="Action execution failed")
+
+    return {"ok": True}
+
+
+# --- From Control ---
+
+
+@router.post("/from-control", status_code=status.HTTP_201_CREATED)
+async def create_widget_from_control(body: CreateWidgetFromControlRequest, db: DbSession, _current_user: CurrentUser):
+    result = await db.execute(
+        select(Handler)
+        .where(Handler.id == body.handler_id)
+        .options(selectinload(Handler.attributes), selectinload(Handler.actions))
+    )
+    handler = result.scalar_one_or_none()
+    if not handler:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Handler not found")
+
+    cls = get_handler_class(handler.type)
+    if not cls:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unknown handler type")
+
+    kc = next((c for c in cls.known_controls if c.key == body.control_key), None)
+    if not kc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Control not found")
+
+    attrs_by_name = {a.name: a for a in handler.attributes}
+    actions_by_name = {a.name: a for a in handler.actions}
+
+    attr = attrs_by_name.get(kc.state_attribute)
+    if not attr:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="State attribute not registered")
+
+    if kc.type == "switch":
+        act_on = actions_by_name.get(kc.action_on) if kc.action_on else None
+        act_off = actions_by_name.get(kc.action_off) if kc.action_off else None
+        widget = WidgetSwitch(
+            icon=kc.icon,
+            attribute_id=attr.id,
+            attribute_compare=kc.state_compare,
+            action_on_id=act_on.id if act_on else None,
+            action_off_id=act_off.id if act_off else None,
+        )
+        db.add(widget)
+        await db.commit()
+        await db.refresh(widget)
+        await sio.emit("mutate", {"entity": "widgets"})
+        return WidgetSwitchRead.model_validate(widget)
+
+    act = actions_by_name.get(kc.action) if kc.action else None
+    if not act:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Action not registered")
+    widget = WidgetSlider(
+        icon=kc.icon,
+        attribute_id=attr.id,
+        action_id=act.id,
+        param_key=kc.param_key or "",
+        min=kc.min,
+        max=kc.max,
+        step=kc.step,
+    )
+    db.add(widget)
+    await db.commit()
+    await db.refresh(widget)
+    await sio.emit("mutate", {"entity": "widgets"})
+    return WidgetSliderRead.model_validate(widget)
 
 
 # --- Dashboard ---
@@ -227,4 +386,39 @@ async def dashboard(db: DbSession, manager: HandlerManagerDep, _current_user: Cu
             )
         )
 
-    return DashboardResponse(tiles=dashboard_tiles, switches=dashboard_switches)
+    # Fetch sliders
+    slider_result = await db.execute(
+        select(WidgetSlider).options(
+            selectinload(WidgetSlider.attribute),
+            selectinload(WidgetSlider.action),
+        )
+    )
+    sliders = slider_result.scalars().all()
+
+    dashboard_sliders = []
+    for slider in sliders:
+        attr = slider.attribute
+        val = values.get(attr.id, {})
+        dashboard_sliders.append(
+            DashboardSlider(
+                id=slider.id,
+                name=slider.name,
+                icon=slider.icon,
+                attribute_id=attr.id,
+                handler_id=attr.handler_id,
+                handler_running=manager.get_handler_status(attr.handler_id)["running"],
+                handler_connected=manager.get_handler_status(attr.handler_id)["connected"],
+                action_id=slider.action_id,
+                action_name=slider.action.name,
+                param_key=slider.param_key,
+                min=slider.min,
+                max=slider.max,
+                step=slider.step,
+                unit=attr.unit,
+                attribute_name=attr.name,
+                attribute_label=attr.label,
+                value=val.get("value"),
+            )
+        )
+
+    return DashboardResponse(tiles=dashboard_tiles, switches=dashboard_switches, sliders=dashboard_sliders)

@@ -3,9 +3,18 @@ from typing import ClassVar
 
 import httpx
 
-from app.handlers.base import KnownAction, KnownAttribute
+from app.handlers.base import Indicator, KnownAction, KnownAttribute, KnownControl
 from app.handlers.http_handler import HttpHandler
 from app.handlers.registry import register_handler_type
+
+
+def _wifi_indicator(rssi: int) -> Indicator:
+    """Build a WiFi signal indicator from RSSI (dBm)."""
+    if rssi >= -50:
+        return Indicator(icon="wifi", color="success", tooltip=f"WiFi: {rssi} dBm")
+    if rssi >= -70:
+        return Indicator(icon="wifi-high", color="warning", tooltip=f"WiFi: {rssi} dBm")
+    return Indicator(icon="wifi-low", color="destructive", tooltip=f"WiFi: {rssi} dBm")
 
 
 @register_handler_type
@@ -18,14 +27,15 @@ class ShellyPlugHandler(HttpHandler):
     handler_category = "http"
     probe_priority: ClassVar[int] = 10
     config_fields: ClassVar[list[dict]] = [
-        {"key": "host", "type": "string", "label": "Host / URL", "default": "http://192.168.1.100"},
+        {"key": "host", "type": "string", "label": "Device URL / IP", "default": ""},
         {"key": "fetch_route", "type": "string", "label": "Fetch route", "default": "/status"},
         {"key": "interval", "type": "int", "label": "Interval (s)", "default": 10},
     ]
     known_attributes: ClassVar[list[KnownAttribute]] = [
         KnownAttribute(name="relays/0/ison", label="Relay state"),
-        KnownAttribute(name="meters/0/power", label="Power", unit="W", rounding=1),
-        KnownAttribute(name="meters/0/total", label="Total energy", unit="Wh", rounding=0),
+        KnownAttribute(name="meters/0/power", label="Power", unit="W", rounding=0),
+        # Gen1 API reports watt-minutes
+        KnownAttribute(name="meters/0/total", label="Total energy", unit="Wm", rounding=0),
         KnownAttribute(name="temperature", label="Temperature", unit="\u00b0C", rounding=1),
     ]
     known_actions: ClassVar[list[KnownAction]] = [
@@ -42,10 +52,39 @@ class ShellyPlugHandler(HttpHandler):
             message=json.dumps({"method": "GET", "path": "/relay/0", "params": {"turn": "toggle"}}),
         ),
     ]
+    known_controls: ClassVar[list[KnownControl]] = [
+        KnownControl(
+            type="switch",
+            key="relay",
+            label="Relay",
+            icon="plug",
+            state_attribute="relays/0/ison",
+            state_compare="true",
+            action_on="Relay ON",
+            action_off="Relay OFF",
+        ),
+    ]
+
+    def extract_indicators(self, data: dict) -> list[Indicator]:
+        indicators: list[Indicator] = []
+        relay = data.get("relays/0/ison")
+        if relay is not None:
+            on = str(relay).lower() == "true"
+            indicators.append(
+                Indicator(
+                    icon="power" if on else "power-off",
+                    color="success" if on else "muted",
+                    tooltip=f"Relay: {'ON' if on else 'OFF'}",
+                )
+            )
+        rssi = data.get("wifi_sta/rssi")
+        if rssi is not None:
+            indicators.append(_wifi_indicator(int(rssi)))
+        return indicators
 
     @classmethod
     async def probe(cls, config: dict) -> bool:
-        host = config.get("host", "")
+        host = cls._normalize_host(config.get("host", ""))
         if not host:
             return False
         url = f"{host.rstrip('/')}/status"

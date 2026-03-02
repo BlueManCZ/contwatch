@@ -12,6 +12,7 @@ from app.handlers.registry import get_handler_class
 from app.models.attribute import Attribute
 from app.models.data_unit import DataUnit
 from app.models.handler import Handler
+from app.models.logging_message import LoggingMessage
 from app.models.settings import Settings
 from app.nodes.graph import NodeGraph
 from app.services.attribute_tracker import AttributeTracker
@@ -32,6 +33,7 @@ class HandlerManager:
         self._last_messages: dict[int, dict] = {}  # handler_id -> last linearized message
         self._last_active: dict[int, datetime.datetime] = {}  # handler_id -> last message time
         self._last_connected_state: dict[int, bool] = {}  # handler_id -> last known connected flag
+        self._last_indicators: dict[int, list[dict]] = {}  # handler_id -> last indicators
         self._processor_task: asyncio.Task | None = None
         self._workflow_graph: NodeGraph | None = None
 
@@ -48,7 +50,7 @@ class HandlerManager:
                 # Register trackers for all enabled attributes
                 for attr in db_handler.attributes:
                     if attr.enabled:
-                        self._register_tracker(attr.id, db_handler.id, attr.name)
+                        self._register_tracker(attr.id, db_handler.id, attr.name, rounding=attr.rounding)
                 # Only create runtime instances for enabled handlers
                 if db_handler.enabled:
                     self._create_handler_instance(db_handler)
@@ -98,7 +100,10 @@ class HandlerManager:
                     while handler.has_messages():
                         msg = handler.get_message()
                         if msg is not None:
-                            await self._process_message(handler_id, msg)
+                            try:
+                                await self._process_message(handler_id, msg)
+                            except Exception:
+                                logger.exception("Error processing message for handler %d", handler_id)
                     # Detect connection state changes
                     connected = handler.is_connected
                     prev = self._last_connected_state.get(handler_id)
@@ -118,6 +123,20 @@ class HandlerManager:
         self._last_messages[handler_id] = flat
         self._last_active[handler_id] = datetime.datetime.now(datetime.UTC)
 
+        # Extract and emit status indicators
+        handler = self._handlers.get(handler_id)
+        if handler:
+            indicators = handler.extract_indicators(flat)
+            if indicators:
+                indicator_dicts = [
+                    {"icon": ind.icon, "color": ind.color, "tooltip": ind.tooltip} for ind in indicators
+                ]
+                self._last_indicators[handler_id] = indicator_dicts
+                await sio.emit(
+                    "handler_indicators",
+                    {"handler_id": handler_id, "indicators": indicator_dicts},
+                )
+
         name_map = self._attr_name_map.get(handler_id, {})
         if not name_map:
             return
@@ -135,7 +154,7 @@ class HandlerManager:
                 for unit_data in result.data_units:
                     session.add(DataUnit(**unit_data))
 
-                if result.data_units:
+                if result.data_units or result.type_corrected:
                     stats = tracker.daily_stats
                     last_changed = tracker.last_changed
                     await sio.emit(
@@ -150,6 +169,7 @@ class HandlerManager:
                             "last_changed": last_changed.isoformat() if last_changed else None,
                         },
                     )
+                if result.data_units:
                     await self._execute_attribute_listeners(attr_id)
 
             await session.commit()
@@ -188,8 +208,8 @@ class HandlerManager:
         self._handlers[db_handler.id] = instance
         return instance
 
-    def _register_tracker(self, attribute_id: int, handler_id: int, name: str) -> None:
-        self._trackers[attribute_id] = AttributeTracker(attribute_id, handler_id)
+    def _register_tracker(self, attribute_id: int, handler_id: int, name: str, rounding: int | None = None) -> None:
+        self._trackers[attribute_id] = AttributeTracker(attribute_id, handler_id, rounding=rounding)
         if handler_id not in self._attr_name_map:
             self._attr_name_map[handler_id] = {}
         self._attr_name_map[handler_id][name] = attribute_id
@@ -213,7 +233,7 @@ class HandlerManager:
                 if instance:
                     for attr in db_handler.attributes:
                         if attr.enabled:
-                            self._register_tracker(attr.id, db_handler.id, attr.name)
+                            self._register_tracker(attr.id, db_handler.id, attr.name, rounding=attr.rounding)
                     instance.start()
 
         self._last_connected_state[handler_id] = False
@@ -227,6 +247,18 @@ class HandlerManager:
             self._last_connected_state.pop(handler_id, None)
             await sio.emit("handler_status", {"handler_id": handler_id, "running": False, "connected": False})
             await sio.emit("mutate", {"entity": "handlers"})
+
+    async def remove_handler(self, handler_id: int) -> None:
+        """Stop a handler and remove all its in-memory state (trackers, name map, etc.)."""
+        await self.stop_handler(handler_id)
+        self._handlers.pop(handler_id, None)
+        self._last_active.pop(handler_id, None)
+        self._last_messages.pop(handler_id, None)
+        self._last_indicators.pop(handler_id, None)
+        # Remove trackers for this handler's attributes
+        attr_names = self._attr_name_map.pop(handler_id, {})
+        for attr_id in attr_names.values():
+            self._trackers.pop(attr_id, None)
 
     async def restart_handler(self, handler_id: int) -> None:
         """Restart a running handler to pick up config changes."""
@@ -253,7 +285,14 @@ class HandlerManager:
 
     # --- Action execution ---
 
-    async def execute_action(self, handler_id: int, message: str) -> bool:
+    async def execute_action(
+        self,
+        handler_id: int,
+        message: str,
+        *,
+        action_name: str | None = None,
+        source: str = "manual",
+    ) -> bool:
         """Route an action to the appropriate handler for execution."""
         handler = self._handlers.get(handler_id)
         if not handler:
@@ -262,7 +301,30 @@ class HandlerManager:
         if not handler.is_active:
             logger.warning("Cannot execute action: handler %d not active", handler_id)
             return False
-        return await handler.execute_action(message)
+        success = await handler.execute_action(message)
+        await self._log_action(action_name or message, handler_id, source, success)
+        return success
+
+    async def _log_action(self, action_name: str, handler_id: int, source: str, success: bool) -> None:
+        """Persist an action execution record to the logging_messages table."""
+        now = datetime.datetime.now()
+        level = logging.INFO if success else logging.WARNING
+        status = "executed" if success else "failed"
+        record = LoggingMessage(
+            source="action",
+            level=level,
+            message=f"{action_name} {status} (handler {handler_id}, {source})",
+            payload={"handler_id": handler_id, "source": source, "success": success},
+            date=now.date(),
+            time=now.time(),
+        )
+        try:
+            async with self._session_factory() as session:
+                session.add(record)
+                await session.commit()
+            await sio.emit("mutate", {"entity": "logs"})
+        except Exception:
+            logger.debug("Failed to persist action log", exc_info=True)
 
     # --- Value & stats seeding ---
 
@@ -302,9 +364,7 @@ class HandlerManager:
         try:
             async with engine.connect() as conn:
                 await conn.execution_options(isolation_level="AUTOCOMMIT")
-                await conn.execute(
-                    text("CALL refresh_continuous_aggregate('daily_stats', NULL, NULL)")
-                )
+                await conn.execute(text("CALL refresh_continuous_aggregate('daily_stats', NULL, NULL)"))
             logger.info("Refreshed daily_stats continuous aggregate")
         except Exception:
             logger.debug("Could not refresh daily_stats continuous aggregate, skipping")
@@ -370,19 +430,23 @@ class HandlerManager:
             return
         async with self._session_factory() as session:
             for handler_id, ts in self._last_active.items():
-                await session.execute(
-                    update(Handler).where(Handler.id == handler_id).values(last_active=ts)
-                )
+                await session.execute(update(Handler).where(Handler.id == handler_id).values(last_active=ts))
             await session.commit()
 
     # --- Status / values ---
 
     def get_handler_status(self, handler_id: int) -> dict:
         last_active = self._last_active.get(handler_id)
+        indicators = self._last_indicators.get(handler_id, [])
         handler = self._handlers.get(handler_id)
         if not handler:
-            return {"running": False, "connected": False, "last_active": last_active}
-        return {"running": handler.is_active, "connected": handler.is_connected, "last_active": last_active}
+            return {"running": False, "connected": False, "last_active": last_active, "indicators": indicators}
+        return {
+            "running": handler.is_active,
+            "connected": handler.is_connected,
+            "last_active": last_active,
+            "indicators": indicators,
+        }
 
     def get_all_handler_statuses(self) -> dict[int, dict]:
         """Return running/connected status for every known handler."""
@@ -428,9 +492,13 @@ class HandlerManager:
 
     # --- Attribute registration ---
 
+    def get_tracker(self, attribute_id: int) -> AttributeTracker | None:
+        """Return the in-memory tracker for an attribute, if it exists."""
+        return self._trackers.get(attribute_id)
+
     async def register_attribute(self, attribute: Attribute) -> None:
         """Register a new attribute for tracking."""
-        self._register_tracker(attribute.id, attribute.handler_id, attribute.name)
+        self._register_tracker(attribute.id, attribute.handler_id, attribute.name, rounding=attribute.rounding)
 
     async def unregister_attribute(self, handler_id: int, name: str) -> None:
         name_map = self._attr_name_map.get(handler_id, {})

@@ -54,7 +54,6 @@ class WidgetSwitchRead(OrmBase, BaseModel):
 
 
 class WidgetSwitchCreate(BaseModel):
-    name: str | None = None
     icon: str | None = None
     attribute_id: int
     attribute_compare: str | None = None
@@ -63,7 +62,6 @@ class WidgetSwitchCreate(BaseModel):
 
 
 class WidgetSwitchUpdate(BaseModel):
-    name: str | None = None
     icon: str | None = None
     attribute_id: int
     attribute_compare: str | None = None
@@ -93,9 +91,70 @@ class SwitchToggleRequest(BaseModel):
     value: bool
 
 
+# --- Sliders ---
+
+
+class WidgetSliderRead(OrmBase, BaseModel):
+    id: int
+    name: str | None = None
+    icon: str | None = None
+    attribute_id: int
+    action_id: int
+    param_key: str
+    min: float
+    max: float
+    step: float
+    unit: str | None = None
+
+
+class WidgetSliderCreate(BaseModel):
+    icon: str | None = None
+    attribute_id: int
+    action_id: int
+    param_key: str
+    min: float = 0
+    max: float = 100
+    step: float = 1
+
+
+class WidgetSliderUpdate(BaseModel):
+    icon: str | None = None
+    attribute_id: int
+    action_id: int
+    param_key: str
+    min: float = 0
+    max: float = 100
+    step: float = 1
+
+
+class DashboardSlider(BaseModel):
+    id: int
+    name: str | None = None
+    icon: str | None = None
+    attribute_id: int
+    handler_id: int
+    handler_running: bool = True
+    handler_connected: bool = True
+    action_id: int
+    action_name: str
+    param_key: str
+    min: float
+    max: float
+    step: float
+    unit: str | None = None
+    attribute_name: str
+    attribute_label: str | None = None
+    value: Any = None
+
+
+class SliderSetRequest(BaseModel):
+    value: float
+
+
 # --- Dashboard ---
 
 
 class DashboardResponse(BaseModel):
     tiles: list[DashboardTile]
     switches: list[DashboardSwitch]
+    sliders: list[DashboardSlider] = []

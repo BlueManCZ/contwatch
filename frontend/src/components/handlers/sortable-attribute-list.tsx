@@ -35,18 +35,23 @@ export function SortableAttributeList<T extends { id: number }>({
     onLongPress,
 }: SortableAttributeListProps<T>) {
     const dndId = useId();
-    const [localItems, setLocalItems] = useState(items);
+    // Only track item ORDER locally (for drag-and-drop); actual item DATA always comes from props.
+    const [localOrder, setLocalOrder] = useState<number[]>(() => items.map((i) => i.id));
     const isLocalReorder = useRef(false);
 
     const propIds = items.map((i) => i.id).join(",");
-    const localIds = localItems.map((i) => i.id).join(",");
+    const localIds = localOrder.join(",");
     if (propIds !== localIds) {
         if (!isLocalReorder.current) {
-            setLocalItems(items);
+            setLocalOrder(items.map((i) => i.id));
         }
     } else {
         isLocalReorder.current = false;
     }
+
+    // Build display list: always use fresh data from props, arranged in local order
+    const itemMap = new Map(items.map((i) => [i.id, i]));
+    const displayItems = localOrder.map((id) => itemMap.get(id)).filter((i): i is T => i != null);
 
     const sensors = useSensors(
         useSensor(MouseSensor, { activationConstraint: { distance: DRAG_TOLERANCE } }),
@@ -58,19 +63,21 @@ export function SortableAttributeList<T extends { id: number }>({
         const { active, over } = event;
         if (!over || active.id === over.id) return;
 
-        const oldIndex = localItems.findIndex((i) => i.id === active.id);
-        const newIndex = localItems.findIndex((i) => i.id === over.id);
+        const oldIndex = localOrder.indexOf(Number(active.id));
+        const newIndex = localOrder.indexOf(Number(over.id));
         if (oldIndex === -1 || newIndex === -1) return;
 
-        const reordered = arrayMove(localItems, oldIndex, newIndex);
+        const reordered = arrayMove(localOrder, oldIndex, newIndex);
         isLocalReorder.current = true;
-        setLocalItems(reordered);
-        onReorder(reordered);
+        setLocalOrder(reordered);
+
+        const reorderedItems = reordered.map((id) => itemMap.get(id)).filter((i): i is T => i != null);
+        onReorder(reorderedItems);
     }
 
     function triggerLongPress(activeId: string | number) {
         if (!onLongPress) return;
-        const item = localItems.find((i) => i.id === activeId);
+        const item = itemMap.get(Number(activeId));
         if (item) onLongPress(item);
     }
 
@@ -108,8 +115,8 @@ export function SortableAttributeList<T extends { id: number }>({
                 }
             }}
         >
-            <SortableContext items={localItems.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-                {localItems.map((item) => (
+            <SortableContext items={localOrder} strategy={verticalListSortingStrategy}>
+                {displayItems.map((item) => (
                     <SortableItem
                         key={item.id}
                         id={item.id}
@@ -140,13 +147,15 @@ function SortableItem<T extends { id: number }>({
     });
 
     const style: React.CSSProperties = {
-        transform: CSS.Transform.toString(transform),
+        transform: CSS.Translate.toString(transform),
         transition,
+        zIndex: isDragging ? 10 : undefined,
+        position: isDragging ? "relative" : undefined,
         pointerEvents: dragging && !isDragging ? "none" : undefined,
     };
 
     return (
-        <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+        <div ref={setNodeRef} style={style} className="select-none" {...attributes} {...listeners}>
             {renderItem(item, isDragging)}
         </div>
     );

@@ -24,3 +24,6 @@ class Attribute(Base):
     widget_switches: Mapped[list["WidgetSwitch"]] = relationship(  # noqa: F821
         back_populates="attribute", cascade="all, delete-orphan"
     )
+    widget_sliders: Mapped[list["WidgetSlider"]] = relationship(  # noqa: F821
+        back_populates="attribute", cascade="all, delete-orphan"
+    )

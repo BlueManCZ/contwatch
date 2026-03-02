@@ -18,10 +18,17 @@ class HttpHandler(AbstractHandler):
     handler_category = "http"
     probe_priority: ClassVar[int] = 0
     config_fields: ClassVar[list[dict]] = [
-        {"key": "host", "type": "string", "label": "Host / URL", "default": "http://localhost"},
+        {"key": "host", "type": "string", "label": "Device URL / IP", "default": ""},
         {"key": "fetch_route", "type": "string", "label": "Fetch route", "default": "/"},
         {"key": "interval", "type": "int", "label": "Interval (s)", "default": 10},
     ]
+
+    @staticmethod
+    def _normalize_host(host: str) -> str:
+        """Ensure the host has a URL scheme."""
+        if host and not host.startswith(("http://", "https://")):
+            return f"http://{host}"
+        return host
 
     @classmethod
     def describe(cls, options: dict) -> str:
@@ -30,7 +37,7 @@ class HttpHandler(AbstractHandler):
 
     @classmethod
     async def probe(cls, config: dict) -> bool:
-        host = config.get("host", "")
+        host = cls._normalize_host(config.get("host", ""))
         fetch_route = config.get("fetch_route", "/")
         if not host:
             return False
@@ -46,7 +53,7 @@ class HttpHandler(AbstractHandler):
 
     async def execute_action(self, message: str) -> bool:
         """Execute an HTTP action and re-fetch polling URL to update values."""
-        host = self.get_config_option("host", "http://localhost")
+        host = self._normalize_host(self.get_config_option("host", ""))
         timeout = int(self.get_config_option("interval", 10))
 
         try:
@@ -82,7 +89,7 @@ class HttpHandler(AbstractHandler):
             return False
 
     async def run(self) -> None:
-        host = self.get_config_option("host", "http://localhost")
+        host = self._normalize_host(self.get_config_option("host", ""))
         route = self.get_config_option("fetch_route", "/")
         interval = int(self.get_config_option("interval", 10))
 

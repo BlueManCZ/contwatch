@@ -27,7 +27,45 @@ def get_available_handler_types() -> list[dict]:
                 "icon": cls.handler_icon,
                 "category": cls.handler_category,
                 "config_fields": cls.config_fields,
-                "known_actions": [{"name": a.name, "message": a.message} for a in cls.known_actions],
+                "known_actions": [
+                    {
+                        "name": a.name,
+                        "message": a.message,
+                        "params": [
+                            {
+                                "key": p.key,
+                                "label": p.label,
+                                "type": p.type,
+                                "min": p.min,
+                                "max": p.max,
+                                "step": p.step,
+                                "unit": p.unit,
+                                "default": p.default,
+                            }
+                            for p in a.params
+                        ],
+                    }
+                    for a in cls.known_actions
+                ],
+                "known_controls": [
+                    {
+                        "type": c.type,
+                        "key": c.key,
+                        "label": c.label,
+                        "icon": c.icon,
+                        "state_attribute": c.state_attribute,
+                        "state_compare": c.state_compare,
+                        "action_on": c.action_on,
+                        "action_off": c.action_off,
+                        "action": c.action,
+                        "param_key": c.param_key,
+                        "min": c.min,
+                        "max": c.max,
+                        "step": c.step,
+                        "unit": c.unit,
+                    }
+                    for c in cls.known_controls
+                ],
             }
         )
     return result
@@ -70,26 +108,28 @@ def get_categories() -> list[dict[str, Any]]:
     return list(_categories.values())
 
 
+def get_category(name: str) -> dict[str, Any] | None:
+    return _categories.get(name)
+
+
 register_category(
     "http",
-    label="HTTP Device",
+    label="HTTP",
     icon="globe",
     default_handler_type="http",
     default_label="HTTP API",
     probe_fields=[
-        {"key": "host", "type": "string", "label": "Host URL", "default": None},
+        {"key": "host", "type": "string", "label": "Device URL / IP", "default": None},
     ],
 )
 
 register_category(
     "serial",
-    label="Serial Device",
+    label="Serial",
     icon="cable",
     default_handler_type="serial",
     default_label="Serial device",
     probe_fields=[
         {"key": "port", "type": "string", "label": "Serial Port", "default": None, "choices": None},
-        {"key": "baudrate", "type": "int", "label": "Baudrate", "default": 9600},
-        {"key": "slave_address", "type": "int", "label": "Slave Address", "default": 4},
     ],
 )

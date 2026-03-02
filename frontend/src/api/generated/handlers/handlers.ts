@@ -29,11 +29,13 @@ import type {
   HTTPValidationError,
   HandlerCreate,
   HandlerRead,
+  HandlerReorderRequest,
   HandlerStatus,
   HandlerTypeInfo,
   HandlerUpdate,
   ProbeRequest,
   ProbeResult,
+  ResolvedControl,
   SerialPortInfo,
   SetupRequest
 } from '../contWatchAPI.schemas';
@@ -863,6 +865,95 @@ export const useSetupHandlerApiHandlersSetupPost = <TError = HTTPValidationError
       return useMutation(getSetupHandlerApiHandlersSetupPostMutationOptions(options), queryClient);
     }
     /**
+ * @summary Reorder Handlers
+ */
+export type reorderHandlersApiHandlersReorderPutResponse204 = {
+  data: void
+  status: 204
+}
+
+export type reorderHandlersApiHandlersReorderPutResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type reorderHandlersApiHandlersReorderPutResponseSuccess = (reorderHandlersApiHandlersReorderPutResponse204) & {
+  headers: Headers;
+};
+export type reorderHandlersApiHandlersReorderPutResponseError = (reorderHandlersApiHandlersReorderPutResponse422) & {
+  headers: Headers;
+};
+
+export type reorderHandlersApiHandlersReorderPutResponse = (reorderHandlersApiHandlersReorderPutResponseSuccess | reorderHandlersApiHandlersReorderPutResponseError)
+
+export const getReorderHandlersApiHandlersReorderPutUrl = () => {
+
+
+  
+
+  return `/api/handlers/reorder`
+}
+
+export const reorderHandlersApiHandlersReorderPut = async (handlerReorderRequest: HandlerReorderRequest, options?: RequestInit): Promise<reorderHandlersApiHandlersReorderPutResponse> => {
+  
+  return axiosInstance<reorderHandlersApiHandlersReorderPutResponse>(getReorderHandlersApiHandlersReorderPutUrl(),
+  {      
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      handlerReorderRequest,)
+  }
+);}
+  
+
+
+
+export const getReorderHandlersApiHandlersReorderPutMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderHandlersApiHandlersReorderPut>>, TError,{data: HandlerReorderRequest}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof reorderHandlersApiHandlersReorderPut>>, TError,{data: HandlerReorderRequest}, TContext> => {
+
+const mutationKey = ['reorderHandlersApiHandlersReorderPut'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reorderHandlersApiHandlersReorderPut>>, {data: HandlerReorderRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  reorderHandlersApiHandlersReorderPut(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReorderHandlersApiHandlersReorderPutMutationResult = NonNullable<Awaited<ReturnType<typeof reorderHandlersApiHandlersReorderPut>>>
+    export type ReorderHandlersApiHandlersReorderPutMutationBody = HandlerReorderRequest
+    export type ReorderHandlersApiHandlersReorderPutMutationError = HTTPValidationError
+
+    /**
+ * @summary Reorder Handlers
+ */
+export const useReorderHandlersApiHandlersReorderPut = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderHandlersApiHandlersReorderPut>>, TError,{data: HandlerReorderRequest}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reorderHandlersApiHandlersReorderPut>>,
+        TError,
+        {data: HandlerReorderRequest},
+        TContext
+      > => {
+      return useMutation(getReorderHandlersApiHandlersReorderPutMutationOptions(options), queryClient);
+    }
+    /**
  * @summary Get Handler
  */
 export type getHandlerApiHandlersHandlerIdGetResponse200 = {
@@ -1558,6 +1649,123 @@ export function useAvailableAttributesApiHandlersHandlerIdAvailableAttributesGet
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getAvailableAttributesApiHandlersHandlerIdAvailableAttributesGetQueryOptions(handlerId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * @summary Handler Controls
+ */
+export type handlerControlsApiHandlersHandlerIdControlsGetResponse200 = {
+  data: ResolvedControl[]
+  status: 200
+}
+
+export type handlerControlsApiHandlersHandlerIdControlsGetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type handlerControlsApiHandlersHandlerIdControlsGetResponseSuccess = (handlerControlsApiHandlersHandlerIdControlsGetResponse200) & {
+  headers: Headers;
+};
+export type handlerControlsApiHandlersHandlerIdControlsGetResponseError = (handlerControlsApiHandlersHandlerIdControlsGetResponse422) & {
+  headers: Headers;
+};
+
+export type handlerControlsApiHandlersHandlerIdControlsGetResponse = (handlerControlsApiHandlersHandlerIdControlsGetResponseSuccess | handlerControlsApiHandlersHandlerIdControlsGetResponseError)
+
+export const getHandlerControlsApiHandlersHandlerIdControlsGetUrl = (handlerId: number,) => {
+
+
+  
+
+  return `/api/handlers/${handlerId}/controls`
+}
+
+export const handlerControlsApiHandlersHandlerIdControlsGet = async (handlerId: number, options?: RequestInit): Promise<handlerControlsApiHandlersHandlerIdControlsGetResponse> => {
+  
+  return axiosInstance<handlerControlsApiHandlersHandlerIdControlsGetResponse>(getHandlerControlsApiHandlersHandlerIdControlsGetUrl(handlerId),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getHandlerControlsApiHandlersHandlerIdControlsGetQueryKey = (handlerId: number,) => {
+    return [
+    `/api/handlers/${handlerId}/controls`
+    ] as const;
+    }
+
+    
+export const getHandlerControlsApiHandlersHandlerIdControlsGetQueryOptions = <TData = Awaited<ReturnType<typeof handlerControlsApiHandlersHandlerIdControlsGet>>, TError = HTTPValidationError>(handlerId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof handlerControlsApiHandlersHandlerIdControlsGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getHandlerControlsApiHandlersHandlerIdControlsGetQueryKey(handlerId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof handlerControlsApiHandlersHandlerIdControlsGet>>> = ({ signal }) => handlerControlsApiHandlersHandlerIdControlsGet(handlerId, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(handlerId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof handlerControlsApiHandlersHandlerIdControlsGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type HandlerControlsApiHandlersHandlerIdControlsGetQueryResult = NonNullable<Awaited<ReturnType<typeof handlerControlsApiHandlersHandlerIdControlsGet>>>
+export type HandlerControlsApiHandlersHandlerIdControlsGetQueryError = HTTPValidationError
+
+
+export function useHandlerControlsApiHandlersHandlerIdControlsGet<TData = Awaited<ReturnType<typeof handlerControlsApiHandlersHandlerIdControlsGet>>, TError = HTTPValidationError>(
+ handlerId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof handlerControlsApiHandlersHandlerIdControlsGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof handlerControlsApiHandlersHandlerIdControlsGet>>,
+          TError,
+          Awaited<ReturnType<typeof handlerControlsApiHandlersHandlerIdControlsGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useHandlerControlsApiHandlersHandlerIdControlsGet<TData = Awaited<ReturnType<typeof handlerControlsApiHandlersHandlerIdControlsGet>>, TError = HTTPValidationError>(
+ handlerId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof handlerControlsApiHandlersHandlerIdControlsGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof handlerControlsApiHandlersHandlerIdControlsGet>>,
+          TError,
+          Awaited<ReturnType<typeof handlerControlsApiHandlersHandlerIdControlsGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useHandlerControlsApiHandlersHandlerIdControlsGet<TData = Awaited<ReturnType<typeof handlerControlsApiHandlersHandlerIdControlsGet>>, TError = HTTPValidationError>(
+ handlerId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof handlerControlsApiHandlersHandlerIdControlsGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Handler Controls
+ */
+
+export function useHandlerControlsApiHandlersHandlerIdControlsGet<TData = Awaited<ReturnType<typeof handlerControlsApiHandlersHandlerIdControlsGet>>, TError = HTTPValidationError>(
+ handlerId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof handlerControlsApiHandlersHandlerIdControlsGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getHandlerControlsApiHandlersHandlerIdControlsGetQueryOptions(handlerId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

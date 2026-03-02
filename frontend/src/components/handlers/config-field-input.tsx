@@ -17,10 +17,10 @@ export function ConfigFieldInput({
     if (field.choices && field.choices.length > 0) {
         return (
             <Select value={value} onValueChange={(v) => onChange(v ?? "")}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                     <SelectValue>{field.choices.find((c) => c.value === value)?.label ?? value}</SelectValue>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent alignItemWithTrigger={false}>
                     {field.choices.map((c) => (
                         <SelectItem key={c.value} value={c.value}>
                             {c.label}
@@ -39,7 +39,7 @@ export function ConfigFieldInput({
                         {value === "true" ? t("common.yes", "Yes") : t("common.no", "No")}
                     </SelectValue>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent alignItemWithTrigger={false}>
                     <SelectItem value="true">{t("common.yes", "Yes")}</SelectItem>
                     <SelectItem value="false">{t("common.no", "No")}</SelectItem>
                 </SelectContent>

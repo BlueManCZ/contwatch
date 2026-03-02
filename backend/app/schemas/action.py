@@ -40,3 +40,7 @@ class ActionUpdate(BaseModel):
             except (json.JSONDecodeError, TypeError) as e:
                 raise ValueError("message must be valid JSON") from e
         return v
+
+
+class ExecuteActionRequest(BaseModel):
+    params: dict[str, float | str] | None = None

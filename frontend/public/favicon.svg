@@ -1,0 +1,15 @@
+<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        .icon { fill: oklch(0.78 0.14 70) }
+        @media (prefers-color-scheme: light) { .icon { fill: oklch(0.58 0.19 55) } }
+    </style>
+    <rect x="0" y="0" width="16" height="16" rx="2" fill="#000" />
+    <rect class="icon" x="2" y="2" width="4" height="1" />
+    <rect class="icon" x="10" y="2" width="4" height="1" />
+    <rect class="icon" x="2" y="3" width="1" height="3" />
+    <rect class="icon" x="13" y="3" width="1" height="3" />
+    <rect class="icon" x="6" y="6" width="4" height="1" />
+    <rect class="icon" x="6" y="7" width="1" height="3" />
+    <rect class="icon" x="2" y="10" width="1" height="3" />
+    <rect class="icon" x="2" y="13" width="4" height="1" />
+</svg>

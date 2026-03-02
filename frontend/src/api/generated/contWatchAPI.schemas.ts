@@ -10,6 +10,17 @@ export interface ActionCreate {
   handler_id?: number | null;
 }
 
+export interface ActionParamInfo {
+  key: string;
+  label: string;
+  type?: string;
+  min?: number | null;
+  max?: number | null;
+  step?: number | null;
+  unit?: string | null;
+  default?: number | null;
+}
+
 export interface ActionRead {
   id: number;
   name: string;
@@ -85,6 +96,7 @@ export interface HandlerConfigField {
   label: string;
   default?: unknown;
   choices?: FieldChoice[] | null;
+  row?: number | null;
 }
 
 export interface CategoryInfo {
@@ -107,6 +119,12 @@ export interface ChartDataset {
   unit: string | null;
   color: string | null;
   data: ChartDataPoint[];
+}
+
+export interface CreateWidgetFromControlRequest {
+  handler_id: number;
+  control_key: string;
+  label?: string | null;
 }
 
 export interface DailyStatRead {
@@ -153,9 +171,30 @@ export interface DashboardSwitch {
   value?: unknown;
 }
 
+export interface DashboardSlider {
+  id: number;
+  name?: string | null;
+  icon?: string | null;
+  attribute_id: number;
+  handler_id: number;
+  handler_running?: boolean;
+  handler_connected?: boolean;
+  action_id: number;
+  action_name: string;
+  param_key: string;
+  min: number;
+  max: number;
+  step: number;
+  unit?: string | null;
+  attribute_name: string;
+  attribute_label?: string | null;
+  value?: unknown;
+}
+
 export interface DashboardResponse {
   tiles: DashboardTile[];
   switches: DashboardSwitch[];
+  sliders?: DashboardSlider[];
 }
 
 export interface DataUnitRead {
@@ -163,6 +202,12 @@ export interface DataUnitRead {
   attribute_id: number;
   value: number;
   timestamp: string;
+}
+
+export type ExecuteActionRequestParams = {[key: string]: number | string} | null;
+
+export interface ExecuteActionRequest {
+  params?: ExecuteActionRequestParams;
 }
 
 export type ValidationErrorCtx = { [key: string]: unknown };
@@ -196,20 +241,55 @@ export interface HandlerRead {
   label?: string | null;
   options: HandlerReadOptions;
   enabled: boolean;
+  order?: number | null;
   description?: string;
   attributes?: AttributeRead[];
   actions?: ActionRead[];
+}
+
+export interface HandlerReorderItem {
+  id: number;
+  order: number;
+}
+
+export interface HandlerReorderRequest {
+  items: HandlerReorderItem[];
+}
+
+export interface IndicatorInfo {
+  icon: string;
+  color: string;
+  tooltip: string;
 }
 
 export interface HandlerStatus {
   running: boolean;
   connected: boolean;
   last_active?: string | null;
+  indicators?: IndicatorInfo[];
 }
 
 export interface KnownActionInfo {
   name: string;
   message: string;
+  params?: ActionParamInfo[];
+}
+
+export interface KnownControlInfo {
+  type: string;
+  key: string;
+  label: string;
+  icon?: string | null;
+  state_attribute?: string;
+  state_compare?: string | null;
+  action_on?: string | null;
+  action_off?: string | null;
+  action?: string | null;
+  param_key?: string | null;
+  min?: number;
+  max?: number;
+  step?: number;
+  unit?: string | null;
 }
 
 export interface HandlerTypeInfo {
@@ -219,6 +299,7 @@ export interface HandlerTypeInfo {
   category: string;
   config_fields: HandlerConfigField[];
   known_actions?: KnownActionInfo[];
+  known_controls?: KnownControlInfo[];
 }
 
 export type HandlerUpdateOptions = { [key: string]: unknown } | null;
@@ -290,6 +371,32 @@ export interface ProbeResult {
   known_actions?: KnownActionInfo[];
 }
 
+export interface ResolvedControl {
+  type: string;
+  key: string;
+  label: string;
+  icon?: string | null;
+  state_attribute?: string;
+  state_compare?: string | null;
+  action_on?: string | null;
+  action_off?: string | null;
+  action?: string | null;
+  param_key?: string | null;
+  min?: number;
+  max?: number;
+  step?: number;
+  unit?: string | null;
+  attribute_id?: number | null;
+  action_on_id?: number | null;
+  action_off_id?: number | null;
+  action_id?: number | null;
+  action_on_name?: string | null;
+  action_off_name?: string | null;
+  action_name?: string | null;
+  resolved?: boolean;
+  value?: unknown;
+}
+
 export interface SerialPortInfo {
   device: string;
   description: string;
@@ -304,6 +411,10 @@ export interface SetupRequest {
   enabled?: boolean;
   attributes?: KnownAttributeInfo[];
   actions?: KnownActionInfo[];
+}
+
+export interface SliderSetRequest {
+  value: number;
 }
 
 export interface SwitchToggleRequest {
@@ -337,8 +448,40 @@ export interface UserUpdate {
   password?: string | null;
 }
 
-export interface WidgetSwitchCreate {
+export interface WidgetSliderCreate {
+  icon?: string | null;
+  attribute_id: number;
+  action_id: number;
+  param_key: string;
+  min?: number;
+  max?: number;
+  step?: number;
+}
+
+export interface WidgetSliderRead {
+  id: number;
   name?: string | null;
+  icon?: string | null;
+  attribute_id: number;
+  action_id: number;
+  param_key: string;
+  min: number;
+  max: number;
+  step: number;
+  unit?: string | null;
+}
+
+export interface WidgetSliderUpdate {
+  icon?: string | null;
+  attribute_id: number;
+  action_id: number;
+  param_key: string;
+  min?: number;
+  max?: number;
+  step?: number;
+}
+
+export interface WidgetSwitchCreate {
   icon?: string | null;
   attribute_id: number;
   attribute_compare?: string | null;
@@ -357,7 +500,6 @@ export interface WidgetSwitchRead {
 }
 
 export interface WidgetSwitchUpdate {
-  name?: string | null;
   icon?: string | null;
   attribute_id: number;
   attribute_compare?: string | null;

@@ -54,7 +54,7 @@ async def create_user(body: UserCreate, db: DbSession, current_user: CurrentUser
         is_active=True,
     )
     db.add(user)
-    await db.flush()
+    await db.commit()
     await db.refresh(user)
     await sio.emit("mutate", {"entity": "auth"})
     return user
@@ -78,7 +78,7 @@ async def update_user(user_id: int, body: UserUpdate, db: DbSession, current_use
     for field, value in update_data.items():
         setattr(user, field, value)
 
-    await db.flush()
+    await db.commit()
     await db.refresh(user)
     await sio.emit("mutate", {"entity": "auth"})
     return user

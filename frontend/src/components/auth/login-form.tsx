@@ -1,6 +1,7 @@
 import { isAxiosError } from "axios";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { ContwatchLogo } from "@/components/layout/contwatch-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -45,8 +46,8 @@ export function LoginForm() {
             <div className="relative z-10 w-full max-w-sm px-4 animate-slide-up">
                 {/* Branding */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-bold text-xl mb-4 glow-amber">
-                        CW
+                    <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground mb-4 glow-amber">
+                        <ContwatchLogo className="h-8 w-8" />
                     </div>
                     <h1 className="text-2xl font-semibold tracking-tight">{t("common.appName")}</h1>
                     <p className="text-sm text-muted-foreground mt-1">{t("auth.loginSubtitle")}</p>

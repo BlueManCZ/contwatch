@@ -17,9 +17,47 @@ class KnownAttribute:
 
 
 @dataclass(frozen=True)
+class ActionParam:
+    key: str
+    label: str
+    type: str = "number"
+    min: float | None = None
+    max: float | None = None
+    step: float | None = None
+    unit: str | None = None
+    default: float | None = None
+
+
+@dataclass(frozen=True)
 class KnownAction:
     name: str
     message: str
+    params: tuple[ActionParam, ...] = ()
+
+
+@dataclass(frozen=True)
+class Indicator:
+    icon: str  # lucide icon name, e.g. "wifi", "battery-low"
+    color: str  # "success" | "warning" | "destructive" | "muted"
+    tooltip: str  # "WiFi: -80 dBm"
+
+
+@dataclass(frozen=True)
+class KnownControl:
+    type: str  # "switch" or "slider"
+    key: str
+    label: str
+    icon: str | None = None
+    state_attribute: str = ""
+    state_compare: str | None = None
+    action_on: str | None = None
+    action_off: str | None = None
+    action: str | None = None
+    param_key: str | None = None
+    min: float = 0
+    max: float = 100
+    step: float = 1
+    unit: str | None = None
 
 
 class AbstractHandler:
@@ -36,6 +74,7 @@ class AbstractHandler:
     config_fields: ClassVar[list[dict]] = []
     known_attributes: ClassVar[list[KnownAttribute]] = []
     known_actions: ClassVar[list[KnownAction]] = []
+    known_controls: ClassVar[list[KnownControl]] = []
     probe_priority: ClassVar[int] = 0
 
     @classmethod
@@ -118,6 +157,10 @@ class AbstractHandler:
     async def execute_action(self, message: str) -> bool:
         """Execute an action. message is a JSON string. Returns success."""
         raise NotImplementedError
+
+    def extract_indicators(self, data: dict) -> list[Indicator]:
+        """Override to extract status indicators from raw device data."""
+        return []
 
     # --- Config helpers ---
 

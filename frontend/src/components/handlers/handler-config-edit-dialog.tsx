@@ -1,8 +1,10 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { HandlerConfigField, HandlerRead, HandlerTypeInfo } from "@/api/generated/contWatchAPI.schemas";
 import {
+    getListHandlersApiHandlersGetQueryKey,
     useListHandlerTypesApiHandlersTypesGet,
     useUpdateHandlerApiHandlersHandlerIdPatch,
 } from "@/api/generated/handlers/handlers";
@@ -19,6 +21,7 @@ interface HandlerConfigEditDialogProps {
 
 export function HandlerConfigEditDialog({ handler, onClose }: HandlerConfigEditDialogProps) {
     const { t } = useTranslation();
+    const queryClient = useQueryClient();
     const [label, setLabel] = useState("");
     const [configValues, setConfigValues] = useState<Record<string, string>>({});
     const { data: typesData } = useListHandlerTypesApiHandlersTypesGet();
@@ -60,6 +63,9 @@ export function HandlerConfigEditDialog({ handler, onClose }: HandlerConfigEditD
             },
             {
                 onSuccess: () => {
+                    queryClient.invalidateQueries({
+                        queryKey: getListHandlersApiHandlersGetQueryKey(),
+                    });
                     onClose();
                     toast.success(t("toast.handlerUpdated"));
                 },
@@ -86,7 +92,7 @@ export function HandlerConfigEditDialog({ handler, onClose }: HandlerConfigEditD
                         </div>
                         {configFields.map((field: HandlerConfigField) => (
                             <div key={field.key} className="space-y-2">
-                                <Label htmlFor={field.key}>{field.label}</Label>
+                                <Label htmlFor={field.key}>{t(`fields.${field.key}`, field.label)}</Label>
                                 <ConfigFieldInput
                                     field={field}
                                     value={configValues[field.key] ?? ""}

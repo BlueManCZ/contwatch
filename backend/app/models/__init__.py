@@ -7,6 +7,7 @@ from app.models.logging_message import LoggingMessage
 from app.models.settings import Settings
 from app.models.unit import Unit
 from app.models.user import User
+from app.models.widget_slider import WidgetSlider
 from app.models.widget_switch import WidgetSwitch
 from app.models.widget_tile import WidgetTile
 
@@ -20,6 +21,7 @@ __all__ = [
     "Settings",
     "Unit",
     "User",
+    "WidgetSlider",
     "WidgetSwitch",
     "WidgetTile",
 ]

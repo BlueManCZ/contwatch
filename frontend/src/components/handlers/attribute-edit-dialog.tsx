@@ -6,6 +6,7 @@ import {
     useUpdateAttributeApiAttributesAttributeIdPatch,
 } from "@/api/generated/attributes/attributes";
 import type { AttributeRead, AttributeUpdate } from "@/api/generated/contWatchAPI.schemas";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -17,12 +18,13 @@ interface AttributeEditDialogProps {
 }
 
 export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogProps) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [label, setLabel] = useState("");
     const [unit, setUnit] = useState("");
     const [icon, setIcon] = useState("");
     const [rounding, setRounding] = useState("");
     const [color, setColor] = useState("");
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
     const updateAttribute = useUpdateAttributeApiAttributesAttributeIdPatch();
     const deleteAttribute = useDeleteAttributeApiAttributesAttributeIdDelete();
 
@@ -34,13 +36,19 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
 
     useEffect(() => {
         if (attribute) {
-            setLabel(attribute.label ?? "");
+            const i18nKey = `knownAttributes.${attribute.name.replace(/[/:]/g, "_")}`;
+            const englishDefault = i18n.exists(i18nKey) ? String(i18n.t(i18nKey, { lng: "en" })) : null;
+            const localizedLabel =
+                attribute.label && attribute.label === englishDefault
+                    ? String(t(i18nKey))
+                    : (attribute.label ?? "");
+            setLabel(localizedLabel);
             setUnit(attribute.unit ?? "");
             setIcon(attribute.icon ?? "");
             setRounding(attribute.rounding != null ? String(attribute.rounding) : "");
             setColor(attribute.color ?? "");
         }
-    }, [attribute]);
+    }, [attribute, t, i18n]);
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -108,18 +116,7 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
                             type="button"
                             variant="destructive"
                             disabled={deleteAttribute.isPending}
-                            onClick={() => {
-                                if (!attribute) return;
-                                deleteAttribute.mutate(
-                                    { attributeId: attribute.id },
-                                    {
-                                        onSuccess: () => {
-                                            onClose();
-                                            toast.success(t("toast.attributeDeleted"));
-                                        },
-                                    },
-                                );
-                            }}
+                            onClick={() => setConfirmDeleteOpen(true)}
                         >
                             {t("common.delete")}
                         </Button>
@@ -129,6 +126,23 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
                     </DialogFooter>
                 </form>
             </DialogContent>
+            <ConfirmDialog
+                open={confirmDeleteOpen}
+                onOpenChange={setConfirmDeleteOpen}
+                onConfirm={() => {
+                    if (!attribute) return;
+                    deleteAttribute.mutate(
+                        { attributeId: attribute.id },
+                        {
+                            onSuccess: () => {
+                                onClose();
+                                toast.success(t("toast.attributeDeleted"));
+                            },
+                        },
+                    );
+                }}
+                description={t("confirm.deleteAttribute")}
+            />
         </Dialog>
     );
 }

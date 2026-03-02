@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/app-layout";
+import { useSeedHandlerStatuses } from "@/hooks/use-seed-handler-statuses";
 import { useSeedLiveValues } from "@/hooks/use-seed-live-values";
 import { useSocketMutationInvalidation } from "@/providers/socket-provider";
 
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/_authenticated")({
 function AuthenticatedLayout() {
     useSocketMutationInvalidation();
     useSeedLiveValues();
+    useSeedHandlerStatuses();
 
     return (
         <AppLayout>

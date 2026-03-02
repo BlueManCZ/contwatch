@@ -8,6 +8,7 @@ import type { ChartDataset } from "@/api/generated/contWatchAPI.schemas";
 import { useChartDataApiDataUnitsChartGet } from "@/api/generated/data-units/data-units";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatValue } from "@/lib/format-value";
 import { useLiveValuesStore } from "@/stores/live-values";
 import { useSettingsStore } from "@/stores/settings";
 
@@ -196,7 +197,9 @@ export function AttributeChart({ attributeIds, date }: AttributeChartProps) {
                         label(ctx) {
                             const ds = datasetsRef.current[ctx.datasetIndex];
                             const val = ctx.parsed.y;
-                            return ds?.unit ? `${ds.label}: ${val} ${ds.unit}` : `${ds?.label}: ${val}`;
+                            if (!ds?.unit || val == null) return `${ds?.label}: ${val}`;
+                            const f = formatValue(val, ds.unit);
+                            return `${ds.label}: ${f.value} ${f.unit}`;
                         },
                     },
                 },

@@ -1,9 +1,10 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { io } from "socket.io-client";
-import api from "@/api/axios-instance";
 import type { AttributeValue } from "@/api/generated/contWatchAPI.schemas";
+import { getAllHandlerStatusesApiHandlersStatusesGetQueryKey } from "@/api/generated/handlers/handlers";
 import { useAuth } from "@/providers/auth-provider";
+import { type Indicator, useHandlerIndicatorStore } from "@/stores/handler-indicators";
 import { useHandlerStatusStore } from "@/stores/handler-status";
 import { useLiveValuesStore } from "@/stores/live-values";
 
@@ -12,7 +13,7 @@ export function useSocketMutationInvalidation() {
     const { token } = useAuth();
     const setAttributeValue = useLiveValuesStore((s) => s.setAttributeValue);
     const setHandlerStatus = useHandlerStatusStore((s) => s.setStatus);
-    const bulkSetStatuses = useHandlerStatusStore((s) => s.bulkSetStatuses);
+    const setIndicators = useHandlerIndicatorStore((s) => s.setIndicators);
 
     useEffect(() => {
         if (!token) return;
@@ -23,15 +24,9 @@ export function useSocketMutationInvalidation() {
         });
 
         socket.on("connect", () => {
-            api.get("/handlers/statuses").then((res) => {
-                const normalized: Record<number, { running: boolean; connected: boolean }> = {};
-                for (const [key, val] of Object.entries(res.data) as [
-                    string,
-                    { running: boolean; connected: boolean },
-                ][]) {
-                    normalized[Number(key)] = { running: val.running, connected: val.connected };
-                }
-                bulkSetStatuses(normalized);
+            // Invalidate handler statuses query so the seed hook re-fetches
+            queryClient.invalidateQueries({
+                queryKey: getAllHandlerStatusesApiHandlersStatusesGetQueryKey(),
             });
         });
 
@@ -55,8 +50,12 @@ export function useSocketMutationInvalidation() {
             });
         });
 
+        socket.on("handler_indicators", (data: { handler_id: number; indicators: Indicator[] }) => {
+            setIndicators(data.handler_id, data.indicators);
+        });
+
         return () => {
             socket.disconnect();
         };
-    }, [token, queryClient, setAttributeValue, setHandlerStatus, bulkSetStatuses]);
+    }, [token, queryClient, setAttributeValue, setHandlerStatus, setIndicators]);
 }

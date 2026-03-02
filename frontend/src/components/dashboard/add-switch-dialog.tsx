@@ -1,11 +1,24 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useListActionsApiActionsGet } from "@/api/generated/actions/actions";
 import { useListAttributesApiAttributesGet } from "@/api/generated/attributes/attributes";
-import type { ActionRead, AttributeRead } from "@/api/generated/contWatchAPI.schemas";
-import { useCreateSwitchApiWidgetsSwitchesPost } from "@/api/generated/widgets/widgets";
+import type {
+    ActionRead,
+    AttributeRead,
+    HandlerRead,
+    HandlerTypeInfo,
+} from "@/api/generated/contWatchAPI.schemas";
+import {
+    useListHandlersApiHandlersGet,
+    useListHandlerTypesApiHandlersTypesGet,
+} from "@/api/generated/handlers/handlers";
+import {
+    getListSwitchesApiWidgetsSwitchesGetQueryKey,
+    useCreateSwitchApiWidgetsSwitchesPost,
+} from "@/api/generated/widgets/widgets";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -26,10 +39,10 @@ interface AddSwitchDialogProps {
 
 export function AddSwitchDialog({ open: controlledOpen, onOpenChange }: AddSwitchDialogProps = {}) {
     const { t } = useTranslation();
+    const queryClient = useQueryClient();
     const [internalOpen, setInternalOpen] = useState(false);
     const open = controlledOpen ?? internalOpen;
     const setOpen = onOpenChange ?? setInternalOpen;
-    const [name, setName] = useState("");
     const [selectedAttrId, setSelectedAttrId] = useState<string>("");
     const [attributeCompare, setAttributeCompare] = useState("");
     const [actionOnId, setActionOnId] = useState<string>("");
@@ -37,18 +50,43 @@ export function AddSwitchDialog({ open: controlledOpen, onOpenChange }: AddSwitc
 
     const { data: attrsData } = useListAttributesApiAttributesGet(undefined);
     const { data: actionsData } = useListActionsApiActionsGet();
+    const { data: handlersData } = useListHandlersApiHandlersGet();
+    const { data: typesData } = useListHandlerTypesApiHandlersTypesGet();
     const createSwitch = useCreateSwitchApiWidgetsSwitchesPost();
 
     const attributes = (attrsData?.data ?? []) as AttributeRead[];
     const actions = (actionsData?.data ?? []) as ActionRead[];
+    const handlers = (handlersData?.data ?? []) as HandlerRead[];
+    const handlerTypes = (typesData?.data ?? []) as HandlerTypeInfo[];
 
     function resetForm() {
-        setName("");
         setSelectedAttrId("");
         setAttributeCompare("");
         setActionOnId("");
         setActionOffId("");
     }
+
+    const tryAutoFill = useCallback(
+        (attrId: string) => {
+            const attr = attributes.find((a) => String(a.id) === attrId);
+            if (!attr) return;
+            const handler = handlers.find((h) => h.id === attr.handler_id);
+            if (!handler) return;
+            const ht = handlerTypes.find((t) => t.type === handler.type);
+            if (!ht?.known_controls) return;
+            const kc = ht.known_controls.find((c) => c.type === "switch" && c.state_attribute === attr.name);
+            if (!kc) return;
+            const handlerActions = actions.filter((a) => a.handler_id === handler.id);
+            const onAction = kc.action_on ? handlerActions.find((a) => a.name === kc.action_on) : undefined;
+            const offAction = kc.action_off
+                ? handlerActions.find((a) => a.name === kc.action_off)
+                : undefined;
+            if (kc.state_compare) setAttributeCompare(kc.state_compare);
+            if (onAction) setActionOnId(String(onAction.id));
+            if (offAction) setActionOffId(String(offAction.id));
+        },
+        [attributes, handlers, handlerTypes, actions],
+    );
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -56,7 +94,6 @@ export function AddSwitchDialog({ open: controlledOpen, onOpenChange }: AddSwitc
         createSwitch.mutate(
             {
                 data: {
-                    name: name || undefined,
                     attribute_id: Number(selectedAttrId),
                     attribute_compare: attributeCompare || undefined,
                     action_on_id: actionOnId ? Number(actionOnId) : undefined,
@@ -65,6 +102,9 @@ export function AddSwitchDialog({ open: controlledOpen, onOpenChange }: AddSwitc
             },
             {
                 onSuccess: () => {
+                    queryClient.invalidateQueries({
+                        queryKey: getListSwitchesApiWidgetsSwitchesGetQueryKey(),
+                    });
                     setOpen(false);
                     resetForm();
                     toast.success(t("toast.switchAdded"));
@@ -94,17 +134,15 @@ export function AddSwitchDialog({ open: controlledOpen, onOpenChange }: AddSwitc
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <Label>{t("dashboard.switchName")}</Label>
-                            <Input
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder={t("dashboard.switchName")}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
                             <Label>{t("dashboard.selectAttribute")}</Label>
-                            <Select value={selectedAttrId} onValueChange={(v) => setSelectedAttrId(v ?? "")}>
+                            <Select
+                                value={selectedAttrId}
+                                onValueChange={(v) => {
+                                    const val = v ?? "";
+                                    setSelectedAttrId(val);
+                                    tryAutoFill(val);
+                                }}
+                            >
                                 <SelectTrigger>
                                     <SelectValue>
                                         {selectedAttr
@@ -112,7 +150,7 @@ export function AddSwitchDialog({ open: controlledOpen, onOpenChange }: AddSwitc
                                             : t("dashboard.selectAttribute")}
                                     </SelectValue>
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent alignItemWithTrigger={false}>
                                     {attributes.map((attr) => (
                                         <SelectItem key={attr.id} value={String(attr.id)}>
                                             {attr.label || attr.name}
@@ -138,14 +176,21 @@ export function AddSwitchDialog({ open: controlledOpen, onOpenChange }: AddSwitc
                                     <SelectTrigger>
                                         <SelectValue>
                                             {actionOnId
-                                                ? actions.find((a) => String(a.id) === actionOnId)?.name
+                                                ? t(
+                                                      `knownActions.${actions.find((a) => String(a.id) === actionOnId)?.name?.replaceAll(" ", "_")}`,
+                                                      actions.find((a) => String(a.id) === actionOnId)
+                                                          ?.name ?? "",
+                                                  )
                                                 : t("dashboard.selectAction")}
                                         </SelectValue>
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent alignItemWithTrigger={false}>
                                         {actions.map((action) => (
                                             <SelectItem key={action.id} value={String(action.id)}>
-                                                {action.name}
+                                                {t(
+                                                    `knownActions.${action.name.replaceAll(" ", "_")}`,
+                                                    action.name,
+                                                )}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -158,14 +203,21 @@ export function AddSwitchDialog({ open: controlledOpen, onOpenChange }: AddSwitc
                                     <SelectTrigger>
                                         <SelectValue>
                                             {actionOffId
-                                                ? actions.find((a) => String(a.id) === actionOffId)?.name
+                                                ? t(
+                                                      `knownActions.${actions.find((a) => String(a.id) === actionOffId)?.name?.replaceAll(" ", "_")}`,
+                                                      actions.find((a) => String(a.id) === actionOffId)
+                                                          ?.name ?? "",
+                                                  )
                                                 : t("dashboard.selectAction")}
                                         </SelectValue>
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent alignItemWithTrigger={false}>
                                         {actions.map((action) => (
                                             <SelectItem key={action.id} value={String(action.id)}>
-                                                {action.name}
+                                                {t(
+                                                    `knownActions.${action.name.replaceAll(" ", "_")}`,
+                                                    action.name,
+                                                )}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>

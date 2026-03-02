@@ -14,6 +14,7 @@ class HandlerRead(OrmBase, BaseModel):
     label: str | None = None
     options: dict
     enabled: bool
+    order: int | None = None
     description: str = ""
     attributes: list[AttributeRead] = []
     actions: list[ActionRead] = []
@@ -44,6 +45,7 @@ class HandlerConfigField(BaseModel):
     label: str
     default: Any = None
     choices: list[FieldChoice] | None = None
+    row: int | None = None
 
 
 class KnownAttributeInfo(BaseModel):
@@ -54,9 +56,38 @@ class KnownAttributeInfo(BaseModel):
     rounding: int | None = None
 
 
+class ActionParamInfo(BaseModel):
+    key: str
+    label: str
+    type: str = "number"
+    min: float | None = None
+    max: float | None = None
+    step: float | None = None
+    unit: str | None = None
+    default: float | None = None
+
+
 class KnownActionInfo(BaseModel):
     name: str
     message: str
+    params: list[ActionParamInfo] = []
+
+
+class KnownControlInfo(BaseModel):
+    type: str
+    key: str
+    label: str
+    icon: str | None = None
+    state_attribute: str = ""
+    state_compare: str | None = None
+    action_on: str | None = None
+    action_off: str | None = None
+    action: str | None = None
+    param_key: str | None = None
+    min: float = 0
+    max: float = 100
+    step: float = 1
+    unit: str | None = None
 
 
 class HandlerTypeInfo(BaseModel):
@@ -66,12 +97,20 @@ class HandlerTypeInfo(BaseModel):
     category: str
     config_fields: list[HandlerConfigField]
     known_actions: list[KnownActionInfo] = []
+    known_controls: list[KnownControlInfo] = []
+
+
+class IndicatorInfo(BaseModel):
+    icon: str
+    color: str
+    tooltip: str
 
 
 class HandlerStatus(BaseModel):
     running: bool
     connected: bool
     last_active: datetime | None = None
+    indicators: list[IndicatorInfo] = []
 
 
 class ProbeRequest(BaseModel):
@@ -101,6 +140,47 @@ class SetupRequest(BaseModel):
 class SerialPortInfo(BaseModel):
     device: str
     description: str
+
+
+class ResolvedControl(BaseModel):
+    type: str
+    key: str
+    label: str
+    icon: str | None = None
+    state_attribute: str = ""
+    state_compare: str | None = None
+    action_on: str | None = None
+    action_off: str | None = None
+    action: str | None = None
+    param_key: str | None = None
+    min: float = 0
+    max: float = 100
+    step: float = 1
+    unit: str | None = None
+    attribute_id: int | None = None
+    action_on_id: int | None = None
+    action_off_id: int | None = None
+    action_id: int | None = None
+    action_on_name: str | None = None
+    action_off_name: str | None = None
+    action_name: str | None = None
+    resolved: bool = False
+    value: Any = None
+
+
+class CreateWidgetFromControlRequest(BaseModel):
+    handler_id: int
+    control_key: str
+    label: str | None = None
+
+
+class HandlerReorderItem(BaseModel):
+    id: int
+    order: int
+
+
+class HandlerReorderRequest(BaseModel):
+    items: list[HandlerReorderItem]
 
 
 class CategoryInfo(BaseModel):

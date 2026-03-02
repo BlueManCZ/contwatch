@@ -9,6 +9,7 @@ class ProcessResult:
     """Result of processing a new attribute value."""
 
     data_units: list[dict] = field(default_factory=list)
+    type_corrected: bool = False
 
 
 class AttributeTracker:
@@ -22,9 +23,10 @@ class AttributeTracker:
     The DB-persisted stats are handled by a TimescaleDB continuous aggregate.
     """
 
-    def __init__(self, attribute_id: int, handler_id: int):
+    def __init__(self, attribute_id: int, handler_id: int, rounding: int | None = None):
         self.attribute_id = attribute_id
         self.handler_id = handler_id
+        self.rounding = rounding
         self._current_value: Any = None
         self._last_changed: datetime.datetime | None = None
         self._last_value_save_skipped: bool = False
@@ -87,8 +89,10 @@ class AttributeTracker:
         """Process a new raw value. Returns ProcessResult with data units."""
         now = datetime.datetime.now(datetime.UTC)
 
-        # Try numeric conversion
+        # Try numeric conversion, then apply rounding
         value = self._try_numeric(raw_value)
+        if self.rounding is not None and isinstance(value, (int, float)) and not isinstance(value, bool):
+            value = round(value, self.rounding)
 
         result = ProcessResult()
 
@@ -111,6 +115,10 @@ class AttributeTracker:
         else:
             # Value unchanged — skip DB write
             self._last_value_save_skipped = True
+            # Fix type if seeded from DB (e.g., bool stored as float)
+            if isinstance(value, bool) != isinstance(self._current_value, bool):
+                self._current_value = value
+                result.type_corrected = True
 
         if isinstance(value, (int, float)):
             self._history.append(value)
@@ -146,6 +154,8 @@ class AttributeTracker:
 
     @staticmethod
     def _try_numeric(value: Any) -> Any:
+        if isinstance(value, bool):
+            return value  # Preserve boolean type (bool is subclass of int)
         if isinstance(value, (int, float)):
             return value
         if isinstance(value, str):

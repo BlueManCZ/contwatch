@@ -14,6 +14,7 @@ class Handler(Base):
     label: Mapped[str | None] = mapped_column(String(150), nullable=True)
     options: Mapped[dict] = mapped_column(JsonType, default=dict)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    order: Mapped[int | None] = mapped_column(Integer, nullable=True)
     last_active: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     attributes: Mapped[list["Attribute"]] = relationship(  # noqa: F821

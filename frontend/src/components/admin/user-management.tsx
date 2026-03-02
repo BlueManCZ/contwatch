@@ -1,14 +1,17 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Pencil, Plus, Shield, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
+    getListUsersApiAuthUsersGetQueryKey,
     useCreateUserApiAuthUsersPost,
     useDeleteUserApiAuthUsersUserIdDelete,
     useListUsersApiAuthUsersGet,
     useUpdateUserApiAuthUsersUserIdPatch,
 } from "@/api/generated/auth/auth";
 import type { UserRead, UserUpdate } from "@/api/generated/contWatchAPI.schemas";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,10 +32,12 @@ import { useAuth } from "@/providers/auth-provider";
 
 export function UserManagement() {
     const { t } = useTranslation();
+    const queryClient = useQueryClient();
     const { user: currentUser } = useAuth();
     const { data } = useListUsersApiAuthUsersGet();
     const deleteUser = useDeleteUserApiAuthUsersUserIdDelete();
     const [editingUser, setEditingUser] = useState<UserRead | null>(null);
+    const [pendingDeleteUser, setPendingDeleteUser] = useState<UserRead | null>(null);
 
     const users = (data?.data ?? []) as UserRead[];
 
@@ -81,14 +86,7 @@ export function UserManagement() {
                                 <Button
                                     variant="ghost"
                                     size="icon-xs"
-                                    onClick={() =>
-                                        deleteUser.mutate(
-                                            { userId: user.id },
-                                            {
-                                                onSuccess: () => toast.success(t("toast.userDeleted")),
-                                            },
-                                        )
-                                    }
+                                    onClick={() => setPendingDeleteUser(user)}
                                     disabled={currentUser?.id === user.id}
                                     title={
                                         currentUser?.id === user.id
@@ -106,12 +104,34 @@ export function UserManagement() {
             )}
 
             <EditUserDialog user={editingUser} onClose={() => setEditingUser(null)} />
+            <ConfirmDialog
+                open={pendingDeleteUser !== null}
+                onOpenChange={(open) => {
+                    if (!open) setPendingDeleteUser(null);
+                }}
+                onConfirm={() => {
+                    if (!pendingDeleteUser) return;
+                    deleteUser.mutate(
+                        { userId: pendingDeleteUser.id },
+                        {
+                            onSuccess: () => {
+                                queryClient.invalidateQueries({
+                                    queryKey: getListUsersApiAuthUsersGetQueryKey(),
+                                });
+                                toast.success(t("toast.userDeleted"));
+                            },
+                        },
+                    );
+                }}
+                description={t("confirm.deleteUser")}
+            />
         </div>
     );
 }
 
 function AddUserDialog() {
     const { t } = useTranslation();
+    const queryClient = useQueryClient();
     const [open, setOpen] = useState(false);
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
@@ -126,6 +146,9 @@ function AddUserDialog() {
             { data: { username, email, password, role } },
             {
                 onSuccess: () => {
+                    queryClient.invalidateQueries({
+                        queryKey: getListUsersApiAuthUsersGetQueryKey(),
+                    });
                     setOpen(false);
                     setUsername("");
                     setEmail("");
@@ -181,7 +204,7 @@ function AddUserDialog() {
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent alignItemWithTrigger={false}>
                                     <SelectItem value="user">{t("admin.roleUser")}</SelectItem>
                                     <SelectItem value="admin">{t("admin.roleAdmin")}</SelectItem>
                                 </SelectContent>
@@ -204,6 +227,7 @@ function AddUserDialog() {
 
 function EditUserDialog({ user, onClose }: { user: UserRead | null; onClose: () => void }) {
     const { t } = useTranslation();
+    const queryClient = useQueryClient();
     const [email, setEmail] = useState("");
     const [role, setRole] = useState("");
     const [isActive, setIsActive] = useState(true);
@@ -239,6 +263,9 @@ function EditUserDialog({ user, onClose }: { user: UserRead | null; onClose: () 
             { userId: user.id, data },
             {
                 onSuccess: () => {
+                    queryClient.invalidateQueries({
+                        queryKey: getListUsersApiAuthUsersGetQueryKey(),
+                    });
                     onClose();
                     toast.success(t("toast.userUpdated"));
                 },
@@ -269,7 +296,7 @@ function EditUserDialog({ user, onClose }: { user: UserRead | null; onClose: () 
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent alignItemWithTrigger={false}>
                                     <SelectItem value="user">{t("admin.roleUser")}</SelectItem>
                                     <SelectItem value="admin">{t("admin.roleAdmin")}</SelectItem>
                                 </SelectContent>

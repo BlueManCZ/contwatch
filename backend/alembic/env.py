@@ -13,6 +13,19 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
+# Indexes created and managed by TimescaleDB on hypertables.
+# Alembic doesn't know about them and would generate DROP statements.
+_TIMESCALEDB_INDEXES = frozenset({
+    "data_units_timestamp_idx",
+    "ix_data_units_attribute_id",
+})
+
+
+def include_object(object, name, type_, reflected, compare_to):
+    if type_ == "index" and name in _TIMESCALEDB_INDEXES:
+        return False
+    return True
+
 
 def run_migrations_offline() -> None:
     context.configure(
@@ -20,13 +33,18 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_object=include_object,
     )
     with context.begin_transaction():
         context.run_migrations()
 
 
 def do_run_migrations(connection):
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        include_object=include_object,
+    )
     with context.begin_transaction():
         context.run_migrations()
 

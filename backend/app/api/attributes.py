@@ -94,10 +94,12 @@ async def create_attribute(
 ):
     attribute = Attribute(**body.model_dump())
     db.add(attribute)
-    await db.flush()
+    await db.commit()
     await db.refresh(attribute)
     await manager.register_attribute(attribute)
     await sio.emit("mutate", {"entity": "attributes"})
+    await sio.emit("mutate", {"entity": "handlers"})
+    await sio.emit("mutate", {"entity": "widgets"})
     return attribute
 
 
@@ -112,10 +114,14 @@ async def delete_attribute(attribute_id: int, db: DbSession, manager: HandlerMan
     await db.delete(attribute)
     await db.commit()
     await sio.emit("mutate", {"entity": "attributes"})
+    await sio.emit("mutate", {"entity": "handlers"})
+    await sio.emit("mutate", {"entity": "widgets"})
 
 
 @router.patch("/{attribute_id}", response_model=AttributeRead)
-async def update_attribute(attribute_id: int, body: AttributeUpdate, db: DbSession, _current_user: CurrentUser):
+async def update_attribute(
+    attribute_id: int, body: AttributeUpdate, db: DbSession, manager: HandlerManagerDep, _current_user: CurrentUser
+):
     result = await db.execute(select(Attribute).where(Attribute.id == attribute_id))
     attribute = result.scalar_one_or_none()
     if not attribute:
@@ -124,7 +130,15 @@ async def update_attribute(attribute_id: int, body: AttributeUpdate, db: DbSessi
     for field, value in body.model_dump(exclude_unset=True).items():
         setattr(attribute, field, value)
 
-    await db.flush()
+    await db.commit()
     await db.refresh(attribute)
+
+    # Sync rounding to the in-memory tracker so it takes effect immediately
+    tracker = manager.get_tracker(attribute_id)
+    if tracker is not None:
+        tracker.rounding = attribute.rounding
+
     await sio.emit("mutate", {"entity": "attributes"})
+    await sio.emit("mutate", {"entity": "handlers"})
+    await sio.emit("mutate", {"entity": "widgets"})
     return attribute

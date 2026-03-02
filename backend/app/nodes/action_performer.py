@@ -34,7 +34,9 @@ class ActionPerformer(AbstractNode):
                 logger.warning("[Workflow] ActionPerformer %s: action %s not found", self.node_id, action_id)
                 return
 
-        success = await self.manager.execute_action(int(handler_id), action.message)
+        success = await self.manager.execute_action(
+            int(handler_id), action.message, action_name=action.name, source="workflow"
+        )
         if success:
             logger.info(
                 "[Workflow] ActionPerformer %s: executed action '%s' on handler %s",

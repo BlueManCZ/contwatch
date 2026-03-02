@@ -2,6 +2,7 @@ import asyncio
 import copy
 import json
 import logging
+from urllib.parse import urlsplit
 
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
@@ -11,6 +12,7 @@ from app.dependencies import CurrentUser, DbSession, HandlerManagerDep
 from app.handlers.registry import (
     get_available_handler_types,
     get_categories,
+    get_category,
     get_handler_class,
     get_handlers_by_category,
 )
@@ -21,15 +23,18 @@ from app.schemas.handler import (
     CategoryInfo,
     HandlerCreate,
     HandlerRead,
+    HandlerReorderRequest,
     HandlerStatus,
     HandlerTypeInfo,
     HandlerUpdate,
     ProbeRequest,
     ProbeResult,
+    ResolvedControl,
     SerialPortInfo,
     SetupRequest,
 )
 from app.socketio_app import sio
+from app.utils.linearize import linearize
 
 logger = logging.getLogger(__name__)
 
@@ -37,11 +42,22 @@ router = APIRouter(prefix="/handlers", tags=["handlers"])
 
 
 def _normalize_config(config: dict) -> dict:
-    """Ensure the host field has a scheme prefix."""
+    """Ensure the host field has a scheme prefix and split path into fetch_route."""
     host = config.get("host")
-    if isinstance(host, str) and host and not host.startswith(("http://", "https://")):
-        config["host"] = f"http://{host}"
+    if not isinstance(host, str) or not host:
+        return config
+
+    if not host.startswith(("http://", "https://")):
+        host = f"http://{host}"
+
+    parts = urlsplit(host)
+    if parts.path and parts.path != "/" and not config.get("fetch_route"):
+        config["fetch_route"] = parts.path
+        host = f"{parts.scheme}://{parts.netloc}"
+
+    config["host"] = host
     return config
+
 
 _HANDLER_LOAD_OPTIONS = [selectinload(Handler.attributes), selectinload(Handler.actions)]
 
@@ -56,7 +72,11 @@ def _to_handler_read(handler: Handler) -> HandlerRead:
 
 @router.get("/", response_model=list[HandlerRead])
 async def list_handlers(db: DbSession, _current_user: CurrentUser):
-    result = await db.execute(select(Handler).options(*_HANDLER_LOAD_OPTIONS))
+    result = await db.execute(
+        select(Handler)
+        .options(*_HANDLER_LOAD_OPTIONS)
+        .order_by(Handler.order.asc().nullslast(), Handler.id.asc())
+    )
     return [_to_handler_read(h) for h in result.scalars().all()]
 
 
@@ -79,13 +99,19 @@ async def list_categories(_current_user: CurrentUser):
         if cat["name"] == "http":
             for field in cat["probe_fields"]:
                 if field["key"] == "host" and field.get("default") is None:
-                    field["default"] = f"http://{_get_lan_ip()}"
+                    field["default"] = _get_lan_ip()
         elif cat["name"] == "serial":
             try:
                 from serial.tools.list_ports import comports
 
-                ports = await asyncio.to_thread(comports)
-                choices = [{"value": p.device, "label": f"{p.device} — {p.description}"} for p in ports]
+                all_ports = await asyncio.to_thread(comports)
+                choices = []
+                for p in all_ports:
+                    if p.hwid == "n/a":
+                        continue
+                    has_desc = p.description and p.description != "n/a"
+                    label = f"{p.device} — {p.description}" if has_desc else p.device
+                    choices.append({"value": p.device, "label": label})
             except ImportError:
                 choices = []
             for field in cat["probe_fields"]:
@@ -100,7 +126,7 @@ async def list_serial_ports(_current_user: CurrentUser):
         from serial.tools.list_ports import comports
 
         ports = await asyncio.to_thread(comports)
-        return [{"device": p.device, "description": p.description} for p in ports]
+        return [{"device": p.device, "description": p.description} for p in ports if p.hwid != "n/a"]
     except ImportError:
         return []
 
@@ -112,7 +138,13 @@ async def probe_handler(body: ProbeRequest, _current_user: CurrentUser):
     if not handlers:
         return ProbeResult(detected=False)
 
+    # Skip the generic fallback handler — it should not count as a specific detection.
+    cat = get_category(body.category)
+    default_type = cat["default_handler_type"] if cat else None
+
     for cls in handlers:
+        if cls.handler_type == default_type:
+            continue
         try:
             detected = await asyncio.wait_for(cls.probe(body.config), timeout=10)
         except Exception:
@@ -126,7 +158,12 @@ async def probe_handler(body: ProbeRequest, _current_user: CurrentUser):
                 handler_name=cls.handler_name,
                 handler_icon=cls.handler_icon,
                 config_fields=[
-                    {"key": f["key"], "type": f["type"], "label": f["label"], "default": f.get("default")}
+                    {
+                        "key": f["key"],
+                        "type": f["type"],
+                        "label": f["label"],
+                        "default": body.config.get(f["key"], f.get("default")),
+                    }
                     for f in cls.config_fields
                 ],
                 known_attributes=[
@@ -141,6 +178,41 @@ async def probe_handler(body: ProbeRequest, _current_user: CurrentUser):
                 ],
                 known_actions=[{"name": a.name, "message": a.message} for a in cls.known_actions],
             )
+
+    # Generic HTTP fallback: try to fetch the URL and discover attributes from JSON
+    if body.category == "http":
+        host = body.config.get("host", "")
+        fetch_route = body.config.get("fetch_route", "/")
+        if host:
+            url = f"{host.rstrip('/')}/{fetch_route.lstrip('/')}"
+            try:
+                import httpx
+
+                async with httpx.AsyncClient(timeout=5) as client:
+                    resp = await client.get(url)
+                    resp.raise_for_status()
+                    data = resp.json()
+
+                flat = linearize(data)
+                default_cls = get_handler_class(default_type) if default_type else None
+                return ProbeResult(
+                    detected=True,
+                    handler_type=default_type or "http",
+                    handler_name=default_cls.handler_name if default_cls else "HTTP API",
+                    handler_icon=default_cls.handler_icon if default_cls else "globe",
+                    config_fields=[
+                        {
+                            "key": f["key"],
+                            "type": f["type"],
+                            "label": f["label"],
+                            "default": body.config.get(f["key"], f.get("default")),
+                        }
+                        for f in (default_cls.config_fields if default_cls else [])
+                    ],
+                    known_attributes=[{"name": key, "label": key} for key in flat],
+                )
+            except Exception:
+                logger.debug("Generic HTTP probe failed for %s", url, exc_info=True)
 
     return ProbeResult(detected=False)
 
@@ -186,6 +258,17 @@ async def setup_handler(body: SetupRequest, db: DbSession, manager: HandlerManag
     await sio.emit("mutate", {"entity": "handlers"})
     await sio.emit("mutate", {"entity": "actions"})
     return _to_handler_read(handler)
+
+
+@router.put("/reorder", status_code=204)
+async def reorder_handlers(body: HandlerReorderRequest, db: DbSession, _current_user: CurrentUser):
+    for item in body.items:
+        result = await db.execute(select(Handler).where(Handler.id == item.id))
+        handler = result.scalar_one_or_none()
+        if handler:
+            handler.order = item.order
+    await db.commit()
+    await sio.emit("mutate", {"entity": "handlers"})
 
 
 @router.post("/", response_model=HandlerRead, status_code=status.HTTP_201_CREATED)
@@ -239,12 +322,13 @@ async def update_handler(
 
 
 @router.delete("/{handler_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_handler(handler_id: int, db: DbSession, _current_user: CurrentUser):
+async def delete_handler(handler_id: int, db: DbSession, manager: HandlerManagerDep, _current_user: CurrentUser):
     result = await db.execute(select(Handler).where(Handler.id == handler_id))
     handler = result.scalar_one_or_none()
     if not handler:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Handler not found")
 
+    await manager.remove_handler(handler_id)
     await db.delete(handler)
     await db.commit()
     await sio.emit("mutate", {"entity": "handlers"})
@@ -281,3 +365,78 @@ async def handler_status(handler_id: int, manager: HandlerManagerDep, _current_u
 @router.get("/{handler_id}/available-attributes", response_model=list[str])
 async def available_attributes(handler_id: int, manager: HandlerManagerDep, _current_user: CurrentUser):
     return manager.get_available_attributes(handler_id)
+
+
+@router.get("/{handler_id}/controls", response_model=list[ResolvedControl])
+async def handler_controls(handler_id: int, db: DbSession, manager: HandlerManagerDep, _current_user: CurrentUser):
+    result = await db.execute(select(Handler).where(Handler.id == handler_id).options(*_HANDLER_LOAD_OPTIONS))
+    handler = result.scalar_one_or_none()
+    if not handler:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Handler not found")
+
+    cls = get_handler_class(handler.type)
+    if not cls or not cls.known_controls:
+        return []
+
+    attrs_by_name = {a.name: a for a in handler.attributes}
+    actions_by_name = {a.name: a for a in handler.actions}
+    values = manager.get_current_values()
+
+    controls = []
+    for kc in cls.known_controls:
+        attr = attrs_by_name.get(kc.state_attribute)
+        attr_id = attr.id if attr else None
+        live_val = values.get(attr_id, {}).get("value") if attr_id else None
+
+        if kc.type == "switch":
+            act_on = actions_by_name.get(kc.action_on) if kc.action_on else None
+            act_off = actions_by_name.get(kc.action_off) if kc.action_off else None
+            resolved = attr_id is not None and act_on is not None and act_off is not None
+            controls.append(
+                ResolvedControl(
+                    type=kc.type,
+                    key=kc.key,
+                    label=kc.label,
+                    icon=kc.icon,
+                    state_attribute=kc.state_attribute,
+                    state_compare=kc.state_compare,
+                    action_on=kc.action_on,
+                    action_off=kc.action_off,
+                    min=kc.min,
+                    max=kc.max,
+                    step=kc.step,
+                    unit=kc.unit,
+                    attribute_id=attr_id,
+                    action_on_id=act_on.id if act_on else None,
+                    action_off_id=act_off.id if act_off else None,
+                    action_on_name=act_on.name if act_on else None,
+                    action_off_name=act_off.name if act_off else None,
+                    resolved=resolved,
+                    value=live_val,
+                )
+            )
+        else:
+            act = actions_by_name.get(kc.action) if kc.action else None
+            resolved = attr_id is not None and act is not None
+            controls.append(
+                ResolvedControl(
+                    type=kc.type,
+                    key=kc.key,
+                    label=kc.label,
+                    icon=kc.icon,
+                    state_attribute=kc.state_attribute,
+                    action=kc.action,
+                    param_key=kc.param_key,
+                    min=kc.min,
+                    max=kc.max,
+                    step=kc.step,
+                    unit=kc.unit,
+                    attribute_id=attr_id,
+                    action_id=act.id if act else None,
+                    action_name=act.name if act else None,
+                    resolved=resolved,
+                    value=live_val,
+                )
+            )
+
+    return controls

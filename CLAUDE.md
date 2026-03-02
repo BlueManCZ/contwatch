@@ -45,9 +45,15 @@
 
 - **When fixing a bug, always search the entire codebase for the same pattern** before considering the fix done. Proactively find and fix all similar occurrences.
 
+## Common Pitfalls
+
+- **Always invalidate React Query cache after mutations.** Every mutation's `onSuccess` must call `queryClient.invalidateQueries()` for the affected query keys. Do not rely solely on Socket.IO `mutate` events for cache invalidation — explicit invalidation ensures the UI updates immediately.
+- **Always commit the DB transaction before emitting Socket.IO events.** If a socket event fires before the commit, clients will re-fetch and get stale data. Pattern: `await session.commit()` first, then `sio.emit(...)`.
+
 ## shadcn/ui Components
 
 - **Never modify files in `frontend/src/components/ui/`** — these are managed by the shadcn CLI and must be reinstallable at any time via `npx shadcn@latest add <component> --overwrite` without losing our changes.
 - To customize styling or behavior, create wrapper components in `frontend/src/components/` (outside `ui/`).
 - Style is `base-vega` (Base UI primitives, not Radix). See `frontend/components.json`.
 - **If you need a component that doesn't exist yet in `frontend/src/components/ui/`**, install it from shadcn via `npx shadcn@latest add <component>`. Do not reimplement or work around missing components with other primitives.
+- **`SelectTrigger` uses `w-fit` by default**, so it only sizes to its content. To make it fill its container, override with `[&_[data-slot=select-trigger]]:w-full` on a parent element or pass `className="w-full"` to `<SelectTrigger>`.

@@ -1,9 +1,14 @@
+import { useQueryClient } from "@tanstack/react-query";
+import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useListAttributesApiAttributesGet } from "@/api/generated/attributes/attributes";
 import type { AttributeRead, DashboardTile } from "@/api/generated/contWatchAPI.schemas";
-import { useUpdateTileApiWidgetsTilesTileIdPatch } from "@/api/generated/widgets/widgets";
+import {
+    getListTilesApiWidgetsTilesGetQueryKey,
+    useUpdateTileApiWidgetsTilesTileIdPatch,
+} from "@/api/generated/widgets/widgets";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,10 +17,12 @@ interface EditTileDialogProps {
     tile: DashboardTile;
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    onRemove?: () => void;
 }
 
-export function EditTileDialog({ tile, open, onOpenChange }: EditTileDialogProps) {
+export function EditTileDialog({ tile, open, onOpenChange, onRemove }: EditTileDialogProps) {
     const { t } = useTranslation();
+    const queryClient = useQueryClient();
     const [selectedAttrId, setSelectedAttrId] = useState<string>(String(tile.attribute_id));
 
     const { data: attrsData } = useListAttributesApiAttributesGet(undefined);
@@ -30,6 +37,9 @@ export function EditTileDialog({ tile, open, onOpenChange }: EditTileDialogProps
             { tileId: tile.id, data: { attribute_id: Number(selectedAttrId) } },
             {
                 onSuccess: () => {
+                    queryClient.invalidateQueries({
+                        queryKey: getListTilesApiWidgetsTilesGetQueryKey(),
+                    });
                     onOpenChange(false);
                     toast.success(t("toast.tileUpdated"));
                 },
@@ -55,7 +65,7 @@ export function EditTileDialog({ tile, open, onOpenChange }: EditTileDialogProps
                                         : t("dashboard.selectAttribute")}
                                 </SelectValue>
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent alignItemWithTrigger={false}>
                                 {attributes.map((attr) => (
                                     <SelectItem key={attr.id} value={String(attr.id)}>
                                         {attr.label || attr.name}
@@ -65,7 +75,21 @@ export function EditTileDialog({ tile, open, onOpenChange }: EditTileDialogProps
                             </SelectContent>
                         </Select>
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className="flex-row justify-between sm:justify-between">
+                        {onRemove ? (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => onRemove()}
+                                className="text-muted-foreground hover:text-destructive-foreground"
+                            >
+                                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                                {t("dashboard.removeTile")}
+                            </Button>
+                        ) : (
+                            <div />
+                        )}
                         <Button type="submit" disabled={!selectedAttrId || updateTile.isPending}>
                             {t("common.save")}
                         </Button>

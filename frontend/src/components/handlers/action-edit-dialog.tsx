@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -6,6 +7,8 @@ import {
     useUpdateActionApiActionsActionIdPatch,
 } from "@/api/generated/actions/actions";
 import type { ActionRead, ActionUpdate } from "@/api/generated/contWatchAPI.schemas";
+import { getListHandlersApiHandlersGetQueryKey } from "@/api/generated/handlers/handlers";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -19,8 +22,10 @@ interface ActionEditDialogProps {
 
 export function ActionEditDialog({ action, onClose }: ActionEditDialogProps) {
     const { t } = useTranslation();
+    const queryClient = useQueryClient();
     const [name, setName] = useState("");
     const [message, setMessage] = useState("");
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
     const updateAction = useUpdateActionApiActionsActionIdPatch();
     const deleteAction = useDeleteActionApiActionsActionIdDelete();
 
@@ -49,6 +54,9 @@ export function ActionEditDialog({ action, onClose }: ActionEditDialogProps) {
             { actionId: action.id, data },
             {
                 onSuccess: () => {
+                    queryClient.invalidateQueries({
+                        queryKey: getListHandlersApiHandlersGetQueryKey(),
+                    });
                     onClose();
                     toast.success(t("toast.actionUpdated"));
                 },
@@ -75,18 +83,7 @@ export function ActionEditDialog({ action, onClose }: ActionEditDialogProps) {
                             type="button"
                             variant="destructive"
                             disabled={deleteAction.isPending}
-                            onClick={() => {
-                                if (!action) return;
-                                deleteAction.mutate(
-                                    { actionId: action.id },
-                                    {
-                                        onSuccess: () => {
-                                            onClose();
-                                            toast.success(t("toast.actionDeleted"));
-                                        },
-                                    },
-                                );
-                            }}
+                            onClick={() => setConfirmDeleteOpen(true)}
                         >
                             {t("common.delete")}
                         </Button>
@@ -96,6 +93,26 @@ export function ActionEditDialog({ action, onClose }: ActionEditDialogProps) {
                     </DialogFooter>
                 </form>
             </DialogContent>
+            <ConfirmDialog
+                open={confirmDeleteOpen}
+                onOpenChange={setConfirmDeleteOpen}
+                onConfirm={() => {
+                    if (!action) return;
+                    deleteAction.mutate(
+                        { actionId: action.id },
+                        {
+                            onSuccess: () => {
+                                queryClient.invalidateQueries({
+                                    queryKey: getListHandlersApiHandlersGetQueryKey(),
+                                });
+                                onClose();
+                                toast.success(t("toast.actionDeleted"));
+                            },
+                        },
+                    );
+                }}
+                description={t("confirm.deleteAction")}
+            />
         </Dialog>
     );
 }

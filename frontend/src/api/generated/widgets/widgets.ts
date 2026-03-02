@@ -24,9 +24,14 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CreateWidgetFromControlRequest,
   DashboardResponse,
   HTTPValidationError,
+  SliderSetRequest,
   SwitchToggleRequest,
+  WidgetSliderCreate,
+  WidgetSliderRead,
+  WidgetSliderUpdate,
   WidgetSwitchCreate,
   WidgetSwitchRead,
   WidgetSwitchUpdate,
@@ -885,6 +890,562 @@ export const useToggleSwitchApiWidgetsSwitchesSwitchIdTogglePost = <TError = HTT
         TContext
       > => {
       return useMutation(getToggleSwitchApiWidgetsSwitchesSwitchIdTogglePostMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary List Sliders
+ */
+export type listSlidersApiWidgetsSlidersGetResponse200 = {
+  data: WidgetSliderRead[]
+  status: 200
+}
+
+export type listSlidersApiWidgetsSlidersGetResponseSuccess = (listSlidersApiWidgetsSlidersGetResponse200) & {
+  headers: Headers;
+};
+;
+
+export type listSlidersApiWidgetsSlidersGetResponse = (listSlidersApiWidgetsSlidersGetResponseSuccess)
+
+export const getListSlidersApiWidgetsSlidersGetUrl = () => {
+
+
+  
+
+  return `/api/widgets/sliders`
+}
+
+export const listSlidersApiWidgetsSlidersGet = async ( options?: RequestInit): Promise<listSlidersApiWidgetsSlidersGetResponse> => {
+  
+  return axiosInstance<listSlidersApiWidgetsSlidersGetResponse>(getListSlidersApiWidgetsSlidersGetUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getListSlidersApiWidgetsSlidersGetQueryKey = () => {
+    return [
+    `/api/widgets/sliders`
+    ] as const;
+    }
+
+    
+export const getListSlidersApiWidgetsSlidersGetQueryOptions = <TData = Awaited<ReturnType<typeof listSlidersApiWidgetsSlidersGet>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSlidersApiWidgetsSlidersGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListSlidersApiWidgetsSlidersGetQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSlidersApiWidgetsSlidersGet>>> = ({ signal }) => listSlidersApiWidgetsSlidersGet({ signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSlidersApiWidgetsSlidersGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListSlidersApiWidgetsSlidersGetQueryResult = NonNullable<Awaited<ReturnType<typeof listSlidersApiWidgetsSlidersGet>>>
+export type ListSlidersApiWidgetsSlidersGetQueryError = unknown
+
+
+export function useListSlidersApiWidgetsSlidersGet<TData = Awaited<ReturnType<typeof listSlidersApiWidgetsSlidersGet>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSlidersApiWidgetsSlidersGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSlidersApiWidgetsSlidersGet>>,
+          TError,
+          Awaited<ReturnType<typeof listSlidersApiWidgetsSlidersGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSlidersApiWidgetsSlidersGet<TData = Awaited<ReturnType<typeof listSlidersApiWidgetsSlidersGet>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSlidersApiWidgetsSlidersGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSlidersApiWidgetsSlidersGet>>,
+          TError,
+          Awaited<ReturnType<typeof listSlidersApiWidgetsSlidersGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSlidersApiWidgetsSlidersGet<TData = Awaited<ReturnType<typeof listSlidersApiWidgetsSlidersGet>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSlidersApiWidgetsSlidersGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List Sliders
+ */
+
+export function useListSlidersApiWidgetsSlidersGet<TData = Awaited<ReturnType<typeof listSlidersApiWidgetsSlidersGet>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSlidersApiWidgetsSlidersGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListSlidersApiWidgetsSlidersGetQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * @summary Create Slider
+ */
+export type createSliderApiWidgetsSlidersPostResponse201 = {
+  data: WidgetSliderRead
+  status: 201
+}
+
+export type createSliderApiWidgetsSlidersPostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type createSliderApiWidgetsSlidersPostResponseSuccess = (createSliderApiWidgetsSlidersPostResponse201) & {
+  headers: Headers;
+};
+export type createSliderApiWidgetsSlidersPostResponseError = (createSliderApiWidgetsSlidersPostResponse422) & {
+  headers: Headers;
+};
+
+export type createSliderApiWidgetsSlidersPostResponse = (createSliderApiWidgetsSlidersPostResponseSuccess | createSliderApiWidgetsSlidersPostResponseError)
+
+export const getCreateSliderApiWidgetsSlidersPostUrl = () => {
+
+
+  
+
+  return `/api/widgets/sliders`
+}
+
+export const createSliderApiWidgetsSlidersPost = async (widgetSliderCreate: WidgetSliderCreate, options?: RequestInit): Promise<createSliderApiWidgetsSlidersPostResponse> => {
+  
+  return axiosInstance<createSliderApiWidgetsSlidersPostResponse>(getCreateSliderApiWidgetsSlidersPostUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      widgetSliderCreate,)
+  }
+);}
+  
+
+
+
+export const getCreateSliderApiWidgetsSlidersPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSliderApiWidgetsSlidersPost>>, TError,{data: WidgetSliderCreate}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof createSliderApiWidgetsSlidersPost>>, TError,{data: WidgetSliderCreate}, TContext> => {
+
+const mutationKey = ['createSliderApiWidgetsSlidersPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createSliderApiWidgetsSlidersPost>>, {data: WidgetSliderCreate}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createSliderApiWidgetsSlidersPost(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateSliderApiWidgetsSlidersPostMutationResult = NonNullable<Awaited<ReturnType<typeof createSliderApiWidgetsSlidersPost>>>
+    export type CreateSliderApiWidgetsSlidersPostMutationBody = WidgetSliderCreate
+    export type CreateSliderApiWidgetsSlidersPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Create Slider
+ */
+export const useCreateSliderApiWidgetsSlidersPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSliderApiWidgetsSlidersPost>>, TError,{data: WidgetSliderCreate}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createSliderApiWidgetsSlidersPost>>,
+        TError,
+        {data: WidgetSliderCreate},
+        TContext
+      > => {
+      return useMutation(getCreateSliderApiWidgetsSlidersPostMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Update Slider
+ */
+export type updateSliderApiWidgetsSlidersSliderIdPatchResponse200 = {
+  data: WidgetSliderRead
+  status: 200
+}
+
+export type updateSliderApiWidgetsSlidersSliderIdPatchResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type updateSliderApiWidgetsSlidersSliderIdPatchResponseSuccess = (updateSliderApiWidgetsSlidersSliderIdPatchResponse200) & {
+  headers: Headers;
+};
+export type updateSliderApiWidgetsSlidersSliderIdPatchResponseError = (updateSliderApiWidgetsSlidersSliderIdPatchResponse422) & {
+  headers: Headers;
+};
+
+export type updateSliderApiWidgetsSlidersSliderIdPatchResponse = (updateSliderApiWidgetsSlidersSliderIdPatchResponseSuccess | updateSliderApiWidgetsSlidersSliderIdPatchResponseError)
+
+export const getUpdateSliderApiWidgetsSlidersSliderIdPatchUrl = (sliderId: number,) => {
+
+
+  
+
+  return `/api/widgets/sliders/${sliderId}`
+}
+
+export const updateSliderApiWidgetsSlidersSliderIdPatch = async (sliderId: number,
+    widgetSliderUpdate: WidgetSliderUpdate, options?: RequestInit): Promise<updateSliderApiWidgetsSlidersSliderIdPatchResponse> => {
+  
+  return axiosInstance<updateSliderApiWidgetsSlidersSliderIdPatchResponse>(getUpdateSliderApiWidgetsSlidersSliderIdPatchUrl(sliderId),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      widgetSliderUpdate,)
+  }
+);}
+  
+
+
+
+export const getUpdateSliderApiWidgetsSlidersSliderIdPatchMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSliderApiWidgetsSlidersSliderIdPatch>>, TError,{sliderId: number;data: WidgetSliderUpdate}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateSliderApiWidgetsSlidersSliderIdPatch>>, TError,{sliderId: number;data: WidgetSliderUpdate}, TContext> => {
+
+const mutationKey = ['updateSliderApiWidgetsSlidersSliderIdPatch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateSliderApiWidgetsSlidersSliderIdPatch>>, {sliderId: number;data: WidgetSliderUpdate}> = (props) => {
+          const {sliderId,data} = props ?? {};
+
+          return  updateSliderApiWidgetsSlidersSliderIdPatch(sliderId,data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateSliderApiWidgetsSlidersSliderIdPatchMutationResult = NonNullable<Awaited<ReturnType<typeof updateSliderApiWidgetsSlidersSliderIdPatch>>>
+    export type UpdateSliderApiWidgetsSlidersSliderIdPatchMutationBody = WidgetSliderUpdate
+    export type UpdateSliderApiWidgetsSlidersSliderIdPatchMutationError = HTTPValidationError
+
+    /**
+ * @summary Update Slider
+ */
+export const useUpdateSliderApiWidgetsSlidersSliderIdPatch = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSliderApiWidgetsSlidersSliderIdPatch>>, TError,{sliderId: number;data: WidgetSliderUpdate}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateSliderApiWidgetsSlidersSliderIdPatch>>,
+        TError,
+        {sliderId: number;data: WidgetSliderUpdate},
+        TContext
+      > => {
+      return useMutation(getUpdateSliderApiWidgetsSlidersSliderIdPatchMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Delete Slider
+ */
+export type deleteSliderApiWidgetsSlidersSliderIdDeleteResponse204 = {
+  data: void
+  status: 204
+}
+
+export type deleteSliderApiWidgetsSlidersSliderIdDeleteResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type deleteSliderApiWidgetsSlidersSliderIdDeleteResponseSuccess = (deleteSliderApiWidgetsSlidersSliderIdDeleteResponse204) & {
+  headers: Headers;
+};
+export type deleteSliderApiWidgetsSlidersSliderIdDeleteResponseError = (deleteSliderApiWidgetsSlidersSliderIdDeleteResponse422) & {
+  headers: Headers;
+};
+
+export type deleteSliderApiWidgetsSlidersSliderIdDeleteResponse = (deleteSliderApiWidgetsSlidersSliderIdDeleteResponseSuccess | deleteSliderApiWidgetsSlidersSliderIdDeleteResponseError)
+
+export const getDeleteSliderApiWidgetsSlidersSliderIdDeleteUrl = (sliderId: number,) => {
+
+
+  
+
+  return `/api/widgets/sliders/${sliderId}`
+}
+
+export const deleteSliderApiWidgetsSlidersSliderIdDelete = async (sliderId: number, options?: RequestInit): Promise<deleteSliderApiWidgetsSlidersSliderIdDeleteResponse> => {
+  
+  return axiosInstance<deleteSliderApiWidgetsSlidersSliderIdDeleteResponse>(getDeleteSliderApiWidgetsSlidersSliderIdDeleteUrl(sliderId),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+  
+
+
+
+export const getDeleteSliderApiWidgetsSlidersSliderIdDeleteMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSliderApiWidgetsSlidersSliderIdDelete>>, TError,{sliderId: number}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteSliderApiWidgetsSlidersSliderIdDelete>>, TError,{sliderId: number}, TContext> => {
+
+const mutationKey = ['deleteSliderApiWidgetsSlidersSliderIdDelete'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteSliderApiWidgetsSlidersSliderIdDelete>>, {sliderId: number}> = (props) => {
+          const {sliderId} = props ?? {};
+
+          return  deleteSliderApiWidgetsSlidersSliderIdDelete(sliderId,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteSliderApiWidgetsSlidersSliderIdDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteSliderApiWidgetsSlidersSliderIdDelete>>>
+    
+    export type DeleteSliderApiWidgetsSlidersSliderIdDeleteMutationError = HTTPValidationError
+
+    /**
+ * @summary Delete Slider
+ */
+export const useDeleteSliderApiWidgetsSlidersSliderIdDelete = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSliderApiWidgetsSlidersSliderIdDelete>>, TError,{sliderId: number}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteSliderApiWidgetsSlidersSliderIdDelete>>,
+        TError,
+        {sliderId: number},
+        TContext
+      > => {
+      return useMutation(getDeleteSliderApiWidgetsSlidersSliderIdDeleteMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Set Slider
+ */
+export type setSliderApiWidgetsSlidersSliderIdSetPostResponse200 = {
+  data: unknown
+  status: 200
+}
+
+export type setSliderApiWidgetsSlidersSliderIdSetPostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type setSliderApiWidgetsSlidersSliderIdSetPostResponseSuccess = (setSliderApiWidgetsSlidersSliderIdSetPostResponse200) & {
+  headers: Headers;
+};
+export type setSliderApiWidgetsSlidersSliderIdSetPostResponseError = (setSliderApiWidgetsSlidersSliderIdSetPostResponse422) & {
+  headers: Headers;
+};
+
+export type setSliderApiWidgetsSlidersSliderIdSetPostResponse = (setSliderApiWidgetsSlidersSliderIdSetPostResponseSuccess | setSliderApiWidgetsSlidersSliderIdSetPostResponseError)
+
+export const getSetSliderApiWidgetsSlidersSliderIdSetPostUrl = (sliderId: number,) => {
+
+
+  
+
+  return `/api/widgets/sliders/${sliderId}/set`
+}
+
+export const setSliderApiWidgetsSlidersSliderIdSetPost = async (sliderId: number,
+    sliderSetRequest: SliderSetRequest, options?: RequestInit): Promise<setSliderApiWidgetsSlidersSliderIdSetPostResponse> => {
+  
+  return axiosInstance<setSliderApiWidgetsSlidersSliderIdSetPostResponse>(getSetSliderApiWidgetsSlidersSliderIdSetPostUrl(sliderId),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sliderSetRequest,)
+  }
+);}
+  
+
+
+
+export const getSetSliderApiWidgetsSlidersSliderIdSetPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setSliderApiWidgetsSlidersSliderIdSetPost>>, TError,{sliderId: number;data: SliderSetRequest}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof setSliderApiWidgetsSlidersSliderIdSetPost>>, TError,{sliderId: number;data: SliderSetRequest}, TContext> => {
+
+const mutationKey = ['setSliderApiWidgetsSlidersSliderIdSetPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setSliderApiWidgetsSlidersSliderIdSetPost>>, {sliderId: number;data: SliderSetRequest}> = (props) => {
+          const {sliderId,data} = props ?? {};
+
+          return  setSliderApiWidgetsSlidersSliderIdSetPost(sliderId,data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetSliderApiWidgetsSlidersSliderIdSetPostMutationResult = NonNullable<Awaited<ReturnType<typeof setSliderApiWidgetsSlidersSliderIdSetPost>>>
+    export type SetSliderApiWidgetsSlidersSliderIdSetPostMutationBody = SliderSetRequest
+    export type SetSliderApiWidgetsSlidersSliderIdSetPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Set Slider
+ */
+export const useSetSliderApiWidgetsSlidersSliderIdSetPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setSliderApiWidgetsSlidersSliderIdSetPost>>, TError,{sliderId: number;data: SliderSetRequest}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setSliderApiWidgetsSlidersSliderIdSetPost>>,
+        TError,
+        {sliderId: number;data: SliderSetRequest},
+        TContext
+      > => {
+      return useMutation(getSetSliderApiWidgetsSlidersSliderIdSetPostMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Create Widget From Control
+ */
+export type createWidgetFromControlApiWidgetsFromControlPostResponse201 = {
+  data: unknown
+  status: 201
+}
+
+export type createWidgetFromControlApiWidgetsFromControlPostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type createWidgetFromControlApiWidgetsFromControlPostResponseSuccess = (createWidgetFromControlApiWidgetsFromControlPostResponse201) & {
+  headers: Headers;
+};
+export type createWidgetFromControlApiWidgetsFromControlPostResponseError = (createWidgetFromControlApiWidgetsFromControlPostResponse422) & {
+  headers: Headers;
+};
+
+export type createWidgetFromControlApiWidgetsFromControlPostResponse = (createWidgetFromControlApiWidgetsFromControlPostResponseSuccess | createWidgetFromControlApiWidgetsFromControlPostResponseError)
+
+export const getCreateWidgetFromControlApiWidgetsFromControlPostUrl = () => {
+
+
+  
+
+  return `/api/widgets/from-control`
+}
+
+export const createWidgetFromControlApiWidgetsFromControlPost = async (createWidgetFromControlRequest: CreateWidgetFromControlRequest, options?: RequestInit): Promise<createWidgetFromControlApiWidgetsFromControlPostResponse> => {
+  
+  return axiosInstance<createWidgetFromControlApiWidgetsFromControlPostResponse>(getCreateWidgetFromControlApiWidgetsFromControlPostUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createWidgetFromControlRequest,)
+  }
+);}
+  
+
+
+
+export const getCreateWidgetFromControlApiWidgetsFromControlPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createWidgetFromControlApiWidgetsFromControlPost>>, TError,{data: CreateWidgetFromControlRequest}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof createWidgetFromControlApiWidgetsFromControlPost>>, TError,{data: CreateWidgetFromControlRequest}, TContext> => {
+
+const mutationKey = ['createWidgetFromControlApiWidgetsFromControlPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createWidgetFromControlApiWidgetsFromControlPost>>, {data: CreateWidgetFromControlRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createWidgetFromControlApiWidgetsFromControlPost(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateWidgetFromControlApiWidgetsFromControlPostMutationResult = NonNullable<Awaited<ReturnType<typeof createWidgetFromControlApiWidgetsFromControlPost>>>
+    export type CreateWidgetFromControlApiWidgetsFromControlPostMutationBody = CreateWidgetFromControlRequest
+    export type CreateWidgetFromControlApiWidgetsFromControlPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Create Widget From Control
+ */
+export const useCreateWidgetFromControlApiWidgetsFromControlPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createWidgetFromControlApiWidgetsFromControlPost>>, TError,{data: CreateWidgetFromControlRequest}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createWidgetFromControlApiWidgetsFromControlPost>>,
+        TError,
+        {data: CreateWidgetFromControlRequest},
+        TContext
+      > => {
+      return useMutation(getCreateWidgetFromControlApiWidgetsFromControlPostMutationOptions(options), queryClient);
     }
     /**
  * @summary Dashboard

@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useCreateActionApiActionsPost } from "@/api/generated/actions/actions";
 import type { HandlerRead, HandlerTypeInfo } from "@/api/generated/contWatchAPI.schemas";
-import { useListHandlerTypesApiHandlersTypesGet } from "@/api/generated/handlers/handlers";
+import {
+    getListHandlersApiHandlersGetQueryKey,
+    useListHandlerTypesApiHandlersTypesGet,
+} from "@/api/generated/handlers/handlers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -19,7 +23,7 @@ interface AddActionDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 
-function defaultMessage(knownActions: { message: string }[]): string {
+function defaultMessage(knownActions: { message: string }[], category?: string): string {
     // Check if known actions use HTTP format
     for (const ka of knownActions) {
         try {
@@ -29,11 +33,14 @@ function defaultMessage(knownActions: { message: string }[]): string {
             /* empty */
         }
     }
+    // Fall back to HTTP format for HTTP-category handlers
+    if (category === "http") return JSON.stringify({ method: "GET", path: "/" });
     return "{}";
 }
 
 export function AddActionDialog({ handler, open, onOpenChange }: AddActionDialogProps) {
     const { t } = useTranslation();
+    const queryClient = useQueryClient();
     const createAction = useCreateActionApiActionsPost();
     const { data: typesData } = useListHandlerTypesApiHandlersTypesGet();
 
@@ -44,7 +51,16 @@ export function AddActionDialog({ handler, open, onOpenChange }: AddActionDialog
     const existingNames = new Set(handler.actions?.map((a) => a.name));
 
     const [name, setName] = useState("");
-    const [message, setMessage] = useState(() => defaultMessage(knownActions));
+    const [message, setMessage] = useState("{}");
+
+    // Reset state when dialog opens (handlerType may not be loaded on first mount)
+    // biome-ignore lint/correctness/useExhaustiveDependencies: only reset on open change
+    useEffect(() => {
+        if (open) {
+            setName("");
+            setMessage(defaultMessage(knownActions, handlerType?.category));
+        }
+    }, [open]);
 
     function handlePresetClick(presetName: string, presetMessage: string) {
         setName(presetName);
@@ -58,9 +74,12 @@ export function AddActionDialog({ handler, open, onOpenChange }: AddActionDialog
             { data: { name, message, handler_id: handler.id } },
             {
                 onSuccess: () => {
+                    queryClient.invalidateQueries({
+                        queryKey: getListHandlersApiHandlersGetQueryKey(),
+                    });
                     onOpenChange(false);
                     setName("");
-                    setMessage(defaultMessage(knownActions));
+                    setMessage(defaultMessage(knownActions, handlerType?.category));
                     toast.success(t("toast.actionCreated"));
                 },
             },

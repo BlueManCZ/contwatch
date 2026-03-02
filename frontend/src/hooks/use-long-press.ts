@@ -22,7 +22,7 @@ export function useLongPress({ onLongPress, disabled }: UseLongPressOptions) {
 
     const onPointerDown = useCallback(
         (e: React.PointerEvent) => {
-            if (disabled) return;
+            if (disabled || e.pointerType === "mouse") return;
             firedRef.current = false;
             startPos.current = { x: e.clientX, y: e.clientY };
             clear();

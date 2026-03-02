@@ -16,6 +16,7 @@ import {
     useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/providers/auth-provider";
+import { ContwatchLogo } from "./contwatch-logo";
 import { ThemeToggle } from "./theme-toggle";
 
 const monitoringItems = [
@@ -53,10 +54,8 @@ export function AppSidebar() {
     return (
         <Sidebar collapsible="icon" className="border-r-0">
             <SidebarHeader className="px-4 py-5">
-                <Link to="/" className="flex items-center gap-2.5 group">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-semibold text-sm shrink-0 transition-shadow group-hover:glow-amber">
-                        CW
-                    </div>
+                <Link to="/" className="flex items-center gap-2.5 group" onClick={closeMobile}>
+                    <ContwatchLogo className="h-5 w-5 shrink-0 text-primary" />
                     <span className="text-base font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
                         {t("common.appName")}
                     </span>

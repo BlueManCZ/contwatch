@@ -5,7 +5,7 @@ from typing import ClassVar
 
 import serial_asyncio
 
-from app.handlers.base import AbstractHandler, KnownAction, KnownAttribute
+from app.handlers.base import AbstractHandler, Indicator, KnownAction, KnownAttribute
 from app.handlers.registry import register_handler_type
 
 logger = logging.getLogger(__name__)
@@ -36,6 +36,7 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
     def describe(cls, options: dict) -> str:
         port = options.get("config", {}).get("port", "")
         return port or cls.handler_name
+
     known_attributes: ClassVar[list[KnownAttribute]] = [
         KnownAttribute(name="voltage", label="Voltage", unit="V", rounding=2),
         KnownAttribute(name="current", label="Current", unit="A", rounding=2),
@@ -52,6 +53,17 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
         KnownAction(name="Discharge OFF", message=json.dumps({"mos_state": "10"})),
         KnownAction(name="Both OFF", message=json.dumps({"mos_state": "11"})),
     ]
+
+    def extract_indicators(self, data: dict) -> list[Indicator]:
+        pct = data.get("percentages")
+        if pct is not None:
+            pct = int(pct)
+            if pct >= 60:
+                return [Indicator(icon="battery-full", color="success", tooltip=f"Battery: {pct}%")]
+            if pct >= 30:
+                return [Indicator(icon="battery-medium", color="warning", tooltip=f"Battery: {pct}%")]
+            return [Indicator(icon="battery-low", color="destructive", tooltip=f"Battery: {pct}%")]
+        return []
 
     @classmethod
     async def probe(cls, config: dict) -> bool:

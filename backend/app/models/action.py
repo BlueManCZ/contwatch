@@ -19,3 +19,6 @@ class Action(Base):
     widget_switches_off: Mapped[list["WidgetSwitch"]] = relationship(  # noqa: F821
         back_populates="action_off", foreign_keys="WidgetSwitch.action_off_id"
     )
+    widget_sliders: Mapped[list["WidgetSlider"]] = relationship(  # noqa: F821
+        back_populates="action", cascade="all, delete-orphan"
+    )
