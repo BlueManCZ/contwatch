@@ -33,7 +33,10 @@
         "loading": "Loading...",
         "noData": "No data",
         "yes": "Yes",
-        "no": "No"
+        "no": "No",
+        "fullscreenPromptTitle": "Enter fullscreen?",
+        "fullscreenPromptDescription": "Would you like to view this in fullscreen mode?",
+        "enterFullscreen": "Enter Fullscreen"
     },
     "controls": {
         "relay": "Relay",

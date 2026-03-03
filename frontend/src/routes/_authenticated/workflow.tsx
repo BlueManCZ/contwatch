@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { NodeDefinition } from "@/api/generated/contWatchAPI.schemas";
 import { useGetNodeDefinitionsApiActionsWorkflowNodesGet } from "@/api/generated/workflow/workflow";
@@ -14,31 +14,11 @@ export const Route = createFileRoute("/_authenticated/workflow")({
 function WorkflowPage() {
     const { t } = useTranslation();
     const editorRef = useRef<WorkflowEditorRef>(null);
-    const pageRef = useRef<HTMLDivElement>(null);
     const { data: defsResponse } = useGetNodeDefinitionsApiActionsWorkflowNodesGet();
     const definitions = (defsResponse?.data ?? []) as NodeDefinition[];
 
-    useEffect(() => {
-        const mobileQuery = window.matchMedia("(max-width: 640px)");
-        if (!mobileQuery.matches) return;
-
-        const orientationQuery = window.matchMedia("(orientation: landscape)");
-
-        function handleChange() {
-            if (!pageRef.current) return;
-            if (orientationQuery.matches) {
-                pageRef.current.requestFullscreen?.().catch(() => {});
-            } else if (document.fullscreenElement) {
-                document.exitFullscreen?.().catch(() => {});
-            }
-        }
-
-        orientationQuery.addEventListener("change", handleChange);
-        return () => orientationQuery.removeEventListener("change", handleChange);
-    }, []);
-
     return (
-        <div ref={pageRef} className="flex flex-col flex-1 min-h-0 bg-background">
+        <div className="flex flex-col flex-1 min-h-0 bg-background">
             <PageHeader
                 title={t("workflow.title")}
                 actions={

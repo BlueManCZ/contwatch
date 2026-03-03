@@ -1,7 +1,7 @@
 import "@/lib/chart-setup";
 import { useQueries } from "@tanstack/react-query";
 import type { Chart, ChartData, ChartOptions } from "chart.js";
-import { RotateCcw } from "lucide-react";
+import { Maximize, Minimize, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Line } from "react-chartjs-2";
 import { useTranslation } from "react-i18next";
@@ -10,8 +10,18 @@ import {
     chartDataApiDataUnitsChartGet,
     getChartDataApiDataUnitsChartGetQueryKey,
 } from "@/api/generated/data-units/data-units";
-import { Button } from "@/components/ui/button";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useFullscreen } from "@/hooks/use-fullscreen";
 import { formatValue } from "@/lib/format-value";
 import { useLiveValuesStore } from "@/stores/live-values";
 import { useSettingsStore } from "@/stores/settings";
@@ -70,7 +80,11 @@ interface AttributeChartProps {
 export function AttributeChart({ attributeIds, date }: AttributeChartProps) {
     const { t } = useTranslation();
     const chartRef = useRef<Chart<"line">>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
     const theme = useSettingsStore((s) => s.theme);
+
+    const { isFullscreen, showPrompt, setShowPrompt, toggleFullscreen, enterFullscreen } =
+        useFullscreen(containerRef);
 
     const resetBtnRef = useRef<HTMLDivElement>(null);
 
@@ -125,6 +139,24 @@ export function AttributeChart({ attributeIds, date }: AttributeChartProps) {
     if (datasetsRef.current !== datasets) {
         datasetsRef.current = datasets;
     }
+
+    const [hiddenDatasets, setHiddenDatasets] = useState<Set<number>>(() => new Set());
+
+    const toggleDataset = useCallback((index: number) => {
+        const chart = chartRef.current;
+        if (!chart) return;
+        setHiddenDatasets((prev) => {
+            const next = new Set(prev);
+            if (next.has(index)) {
+                next.delete(index);
+                chart.show(index);
+            } else {
+                next.add(index);
+                chart.hide(index);
+            }
+            return next;
+        });
+    }, []);
 
     // Guard ref to prevent resetZoom recursion (resetZoom fires onZoomComplete).
     const resettingRef = useRef(false);
@@ -194,15 +226,7 @@ export function AttributeChart({ attributeIds, date }: AttributeChartProps) {
                 },
             },
             plugins: {
-                legend: {
-                    display: datasetsRef.current.length > 1,
-                    labels: {
-                        font: { family: "'Plus Jakarta Sans', sans-serif", size: 12 },
-                        usePointStyle: true,
-                        pointStyle: "circle",
-                        boxWidth: 6,
-                    },
-                },
+                legend: { display: false },
                 tooltip: {
                     backgroundColor: fgColor,
                     titleColor: bgColor,
@@ -282,25 +306,84 @@ export function AttributeChart({ attributeIds, date }: AttributeChartProps) {
     }
 
     return (
-        <div className="relative min-h-0 flex-1 -mx-3 sm:-mx-5 -mb-3 sm:-mb-5">
+        <div
+            ref={containerRef}
+            className="relative min-h-0 flex-1 -mx-3 sm:-mx-5 -mt-3 sm:-mt-5 -mb-3 sm:-mb-5 bg-background"
+        >
             <div className="absolute inset-0 px-1 sm:px-2 pb-1 sm:pb-2">
                 <Line ref={chartRef} data={chartData} options={chartOptions} />
             </div>
-            <div
-                ref={resetBtnRef}
-                data-visible="false"
-                className="absolute top-1 right-2 sm:right-4 transition-opacity duration-150 data-[visible=false]:opacity-0 data-[visible=false]:pointer-events-none"
-            >
-                <Button
-                    variant="outline"
-                    size="icon-lg"
-                    onClick={resetZoom}
-                    title={t("chart.resetZoom")}
-                    className="shadow-md"
+            {datasets.length > 0 && (
+                <div className="absolute top-2 left-2 sm:left-4 z-10 flex flex-wrap items-center gap-1">
+                    {datasets.map((ds, i) => {
+                        const color = ds.color || DEFAULT_COLORS[i % DEFAULT_COLORS.length];
+                        const label = ds.unit ? `${ds.label} (${ds.unit})` : ds.label;
+                        const hidden = hiddenDatasets.has(i);
+                        return (
+                            <button
+                                key={ds.label}
+                                type="button"
+                                className={`flex cursor-pointer items-center gap-1.5 rounded-full border bg-card/80 backdrop-blur-sm px-2.5 py-1 shadow-sm transition-opacity ${hidden ? "opacity-40" : ""}`}
+                                onClick={() => toggleDataset(i)}
+                            >
+                                <span
+                                    className="inline-block h-2 w-2 rounded-full shrink-0"
+                                    style={{ backgroundColor: color }}
+                                />
+                                <span className="text-[11px] font-medium text-muted-foreground">{label}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
+            <div className="absolute top-2 right-2 sm:right-4 z-10 flex items-center gap-1.5">
+                <div
+                    ref={resetBtnRef}
+                    data-visible="false"
+                    className="transition-all duration-150 data-[visible=false]:opacity-0 data-[visible=false]:pointer-events-none data-[visible=false]:scale-90"
                 >
-                    <RotateCcw className="size-5" />
-                </Button>
+                    <button
+                        type="button"
+                        className="flex cursor-pointer items-center justify-center rounded-full border bg-card/80 backdrop-blur-sm p-2 shadow-sm"
+                        onClick={resetZoom}
+                        title={t("chart.resetZoom")}
+                    >
+                        <RotateCcw className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                </div>
+                <button
+                    type="button"
+                    className="flex cursor-pointer items-center justify-center rounded-full border bg-card/80 backdrop-blur-sm p-2 shadow-sm"
+                    onClick={toggleFullscreen}
+                >
+                    {isFullscreen ? (
+                        <Minimize className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                        <Maximize className="h-4 w-4 text-muted-foreground" />
+                    )}
+                </button>
             </div>
+            <AlertDialog open={showPrompt} onOpenChange={setShowPrompt}>
+                <AlertDialogContent size="sm">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{t("common.fullscreenPromptTitle")}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {t("common.fullscreenPromptDescription")}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                setShowPrompt(false);
+                                enterFullscreen();
+                            }}
+                        >
+                            {t("common.enterFullscreen")}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

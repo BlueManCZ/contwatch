@@ -33,6 +33,7 @@ export function InspectorView({ attributesParam, dateParam }: InspectorViewProps
                 attributes: attrs.length > 0 ? attrs.join(",") : undefined,
                 date: d !== format(new Date(), "yyyy-MM-dd") ? d : undefined,
             },
+            replace: true,
         });
     }
 

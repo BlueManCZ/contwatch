@@ -14,6 +14,7 @@ const router = createRouter({
     context: {
         auth: { user: null, isLoading: true, waitUntilReady: () => Promise.resolve() },
     },
+    scrollRestoration: true,
 });
 
 declare module "@tanstack/react-router" {

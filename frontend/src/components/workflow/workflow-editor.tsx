@@ -17,7 +17,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import { useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
-import { AlertCircle, Check, Circle, Loader2, Trash2 } from "lucide-react";
+import { AlertCircle, Check, Circle, Loader2, Maximize, Minimize, Trash2 } from "lucide-react";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { NodeDefinition, WorkflowData } from "@/api/generated/contWatchAPI.schemas";
@@ -27,6 +27,17 @@ import {
     useGetWorkflowApiActionsWorkflowGet,
     useSaveWorkflowApiActionsWorkflowPut,
 } from "@/api/generated/workflow/workflow";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useFullscreen } from "@/hooks/use-fullscreen";
 import { DeletableEdge } from "./deletable-edge";
 import { createConnectionValidator } from "./edge-validation";
 import { PORT_COLORS } from "./types";
@@ -86,6 +97,9 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
     const saveMutation = useSaveWorkflowApiActionsWorkflowPut();
 
     const [saveStatus, setSaveStatus] = useState<"idle" | "unsaved" | "saving" | "saved" | "error">("idle");
+
+    const { isFullscreen, showPrompt, setShowPrompt, toggleFullscreen, enterFullscreen } =
+        useFullscreen(reactFlowWrapper);
 
     useEffect(() => {
         if (saveMutation.isPending) {
@@ -511,10 +525,10 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
     }, [flushSave]);
 
     return (
-        <div className="relative h-full touch-none -mx-3 sm:-mx-5" ref={reactFlowWrapper}>
+        <div className="relative h-full touch-none -mx-3 sm:-mx-5 bg-background" ref={reactFlowWrapper}>
             {saveStatus !== "idle" && (
                 <div
-                    className={`absolute top-2 right-2 z-10 flex items-center gap-1.5 rounded-full bg-card/80 backdrop-blur-sm border px-2.5 py-1 shadow-sm transition-opacity duration-300 ${saveStatus === "saved" ? "opacity-80" : ""}`}
+                    className={`absolute top-2 left-2 z-10 flex items-center gap-1.5 rounded-full bg-card/80 backdrop-blur-sm border px-2.5 py-1 shadow-sm transition-opacity duration-300 ${saveStatus === "saved" ? "opacity-80" : ""}`}
                 >
                     {saveStatus === "unsaved" && (
                         <Circle className="h-2.5 w-2.5 fill-amber-500 text-amber-500" />
@@ -529,6 +543,17 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
                     </span>
                 </div>
             )}
+            <button
+                type="button"
+                className="absolute top-2 right-2 z-10 flex cursor-pointer items-center justify-center rounded-full border bg-card/80 backdrop-blur-sm p-2 shadow-sm"
+                onClick={toggleFullscreen}
+            >
+                {isFullscreen ? (
+                    <Minimize className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                    <Maximize className="h-4 w-4 text-muted-foreground" />
+                )}
+            </button>
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -572,6 +597,27 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
                     </div>
                 </div>
             )}
+            <AlertDialog open={showPrompt} onOpenChange={setShowPrompt}>
+                <AlertDialogContent size="sm">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{t("common.fullscreenPromptTitle")}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {t("common.fullscreenPromptDescription")}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                setShowPrompt(false);
+                                enterFullscreen();
+                            }}
+                        >
+                            {t("common.enterFullscreen")}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 });
