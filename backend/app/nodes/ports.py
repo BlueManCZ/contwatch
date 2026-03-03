@@ -28,6 +28,10 @@ def handler_port(name: str = "handler_id", label: str = "Handler") -> PortDef:
     return PortDef(name=name, type="handler", label=label, control="select")  # options=() -> dynamic
 
 
+def action_handler_port(name: str = "handler_id", label: str = "Handler") -> PortDef:
+    return PortDef(name=name, type="action_handler", label=label, control="select")
+
+
 def attribute_port(name: str = "attribute_id", label: str = "Attribute") -> PortDef:
     return PortDef(name=name, type="attribute", label=label, control="select")
 

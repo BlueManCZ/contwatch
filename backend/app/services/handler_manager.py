@@ -490,12 +490,12 @@ class HandlerManager:
         """Read a raw value from a handler's last linearized message."""
         return self._last_messages.get(handler_id, {}).get(key)
 
-    def get_all_data_keys(self) -> list[str]:
-        """Return linearized keys prefixed with handler_id (e.g. '1:wifi_sta/rssi')."""
-        keys: list[str] = []
+    def get_all_data_keys(self) -> list[dict]:
+        """Return linearized keys as structured dicts with value, label, and group."""
+        keys: list[dict] = []
         for handler_id, flat in sorted(self._last_messages.items()):
             for key in sorted(flat):
-                keys.append(f"{handler_id}:{key}")
+                keys.append({"value": key, "label": key, "group": str(handler_id)})
         return keys
 
     def get_attribute_value(self, attribute_id: int) -> dict | None:

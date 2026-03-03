@@ -1,13 +1,19 @@
 from pydantic import BaseModel, Field
 
 
+class PortOption(BaseModel):
+    value: str
+    label: str
+    group: str = ""
+
+
 class PortDefinition(BaseModel):
     name: str
     type: str
     label: str
     color: str = ""
     control: str = ""
-    options: list[str] = []
+    options: list[PortOption] = []
     data_key: str = ""
 
 

@@ -157,7 +157,8 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
 
         const loadedNodes: Node[] = (savedWorkflow.nodes ?? []).map((n) => ({
             id: n.id,
-            type: n.type,
+            // Normalize legacy PascalCase types (e.g. "HandlerListener" -> "handler_listener")
+            type: n.type.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase(),
             position: n.position as { x: number; y: number },
             data: n.data ?? {},
         }));
@@ -580,18 +581,23 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
             </ReactFlow>
             {nodePicker && nodePickerItems.length > 0 && (
                 <div
-                    className="absolute z-20 w-48 rounded-lg border bg-card shadow-lg overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+                    className="absolute z-20 w-72 rounded-lg border bg-card shadow-lg overflow-hidden animate-in fade-in zoom-in-95 duration-100"
                     style={{ left: nodePicker.pickerPosition.x, top: nodePicker.pickerPosition.y }}
                 >
-                    <div className="max-h-56 overflow-y-auto p-1.5">
+                    <div className="max-h-[70vh] overflow-y-auto p-1.5">
                         {nodePickerItems.map((def) => (
                             <button
                                 key={def.type}
                                 type="button"
-                                className="w-full rounded-md px-3 py-1.5 text-left text-xs font-medium transition-colors hover:bg-accent"
+                                className="w-full rounded-md px-3 pb-1.5 text-left transition-colors hover:bg-accent"
                                 onClick={() => handleNodePickerSelect(def.type)}
                             >
-                                {def.label}
+                                <span className="text-xs font-medium">
+                                    {t(`workflow.nodes.${def.type}.label`, def.label)}
+                                </span>
+                                <span className="block text-[10px] text-muted-foreground mt-0.5">
+                                    {t(`workflow.nodes.${def.type}.description`, def.description)}
+                                </span>
                             </button>
                         ))}
                     </div>

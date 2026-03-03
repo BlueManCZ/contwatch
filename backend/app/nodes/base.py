@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import asdict
 from typing import TYPE_CHECKING, ClassVar
 
@@ -9,6 +10,8 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
     from app.services.handler_manager import HandlerManager
+
+_PASCAL_TO_SNAKE_RE = re.compile(r"(?<=[a-z0-9])([A-Z])")
 
 
 class AbstractNode:
@@ -20,7 +23,7 @@ class AbstractNode:
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        cls.node_type = cls.__name__
+        cls.node_type = _PASCAL_TO_SNAKE_RE.sub(r"_\1", cls.__name__).lower()
 
     def __init__(
         self,
@@ -59,6 +62,10 @@ class AbstractNode:
             "type": cls.node_type,
             "label": cls.label,
             "description": cls.description,
-            "input_ports": [asdict(p) for p in cls.input_ports],
-            "output_ports": [asdict(p) for p in cls.output_ports],
+            "input_ports": [
+                asdict(p) | {"options": [{"value": o, "label": o} for o in p.options]} for p in cls.input_ports
+            ],
+            "output_ports": [
+                asdict(p) | {"options": [{"value": o, "label": o} for o in p.options]} for p in cls.output_ports
+            ],
         }

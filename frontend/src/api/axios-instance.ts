@@ -20,7 +20,8 @@ api.interceptors.response.use(
             const url = error.config?.url ?? "";
             if (!url.endsWith("/auth/me")) {
                 localStorage.removeItem("access_token");
-                window.location.href = "/login";
+                const currentPath = window.location.pathname + window.location.search;
+                window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
             }
         }
         return Promise.reject(error);

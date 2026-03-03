@@ -1,13 +1,22 @@
 import { Handle, type Node, type NodeProps, Position, useNodeConnections, useReactFlow } from "@xyflow/react";
 import { X } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import type { NodeDefinition, PortDefinition } from "@/api/generated/contWatchAPI.schemas";
 import { TreeSelectControl } from "./tree-select-control";
 import { PORT_COLORS } from "./types";
 
 type WorkflowNodeData = Record<string, string | undefined> & { _label?: string };
 
-function PortHandle({ port, type }: { port: PortDefinition; type: "source" | "target" }) {
+function PortHandle({
+    port,
+    type,
+    label,
+}: {
+    port: PortDefinition;
+    type: "source" | "target";
+    label: string;
+}) {
     const position = type === "target" ? Position.Left : Position.Right;
     const color = port.color || PORT_COLORS[port.type] || "#6b7280";
 
@@ -16,7 +25,7 @@ function PortHandle({ port, type }: { port: PortDefinition; type: "source" | "ta
             type={type}
             position={position}
             id={port.name}
-            title={port.label}
+            title={label}
             style={{
                 backgroundColor: color,
                 width: 14,
@@ -27,27 +36,66 @@ function PortHandle({ port, type }: { port: PortDefinition; type: "source" | "ta
     );
 }
 
+function FilteredSelect({
+    port,
+    value,
+    onChange,
+    disabled,
+    filterPrefix,
+}: {
+    port: PortDefinition;
+    value: string;
+    onChange: (value: string) => void;
+    disabled?: boolean;
+    filterPrefix?: string;
+}) {
+    const options = useMemo(() => {
+        const raw = port.options ?? [];
+        if (!filterPrefix) return raw;
+        return raw.filter((o) => o.group === filterPrefix);
+    }, [port.options, filterPrefix]);
+
+    return (
+        <select
+            aria-label={port.label}
+            className={`nodrag w-full rounded border border-input bg-card text-card-foreground px-2 py-1 text-xs font-mono ${disabled ? "opacity-50" : ""}`}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+        >
+            <option value="">—</option>
+            {options.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                </option>
+            ))}
+        </select>
+    );
+}
+
 function ControlPort({
     port,
     dataKey,
     value,
     onChange,
     nodeData,
+    label,
 }: {
     port: PortDefinition;
     dataKey: string;
     value: string;
     onChange: (key: string, value: string) => void;
     nodeData: WorkflowNodeData;
+    label: string;
 }) {
+    const isConnectable = port.type === "event" || port.type === "value";
     const connections = useNodeConnections({ handleType: "target", handleId: port.name });
     const isConnected = connections.length > 0;
 
     return (
         <div>
-            <span className="text-[10px] text-muted-foreground mb-1 block px-3">{port.label}</span>
+            <span className="text-[10px] text-muted-foreground mb-1 block px-3">{label}</span>
             <div className="relative flex items-center px-3 gap-1">
-                <PortHandle port={port} type="target" />
+                {isConnectable && <PortHandle port={port} type="target" label={label} />}
                 {isConnected && (
                     <svg className="shrink-0 w-3 h-3 text-primary" viewBox="0 0 16 16" fill="currentColor">
                         <title>Overridden by connection</title>
@@ -60,35 +108,25 @@ function ControlPort({
                         options={port.options ?? []}
                         value={value}
                         onChange={(v) => onChange(dataKey, v)}
-                        placeholder={port.label}
                         disabled={isConnected}
                         filterPrefix={nodeData.handler_id}
                     />
                 ) : port.control === "select" ? (
-                    <select
-                        aria-label={port.label}
-                        className={`nodrag w-full rounded border border-input bg-card text-card-foreground px-2 py-1 text-xs font-mono ${isConnected ? "opacity-50" : ""}`}
+                    <FilteredSelect
+                        port={port}
                         value={value}
-                        onChange={(e) => onChange(dataKey, e.target.value)}
-                    >
-                        <option value="">—</option>
-                        {(port.options ?? []).map((opt) => {
-                            const val = opt.includes(": ") ? opt.split(": ")[0] : opt;
-                            return (
-                                <option key={opt} value={val}>
-                                    {opt}
-                                </option>
-                            );
-                        })}
-                    </select>
+                        onChange={(v) => onChange(dataKey, v)}
+                        disabled={isConnected}
+                        filterPrefix={port.name === "action_id" ? nodeData.handler_id : undefined}
+                    />
                 ) : (
                     <input
-                        aria-label={port.label}
+                        aria-label={label}
                         type={port.control === "number" ? "number" : "text"}
                         className={`nodrag w-full rounded border border-input bg-card text-card-foreground px-2 py-1 text-xs font-mono ${isConnected ? "opacity-50" : ""}`}
                         value={value}
                         onChange={(e) => onChange(dataKey, e.target.value)}
-                        placeholder={port.label}
+                        placeholder={label}
                     />
                 )}
             </div>
@@ -99,16 +137,19 @@ function ControlPort({
 export function createWorkflowNode(definition: NodeDefinition) {
     function WorkflowNodeComponent({ id, data, selected }: NodeProps<Node<WorkflowNodeData>>) {
         const { updateNodeData, deleteElements } = useReactFlow();
+        const { t } = useTranslation();
+
+        const portLabel = (port: PortDefinition) => t(`workflow.ports.${port.name}`, port.label);
 
         const inputPorts = definition.input_ports ?? [];
 
         const handleChange = useCallback(
             (key: string, value: string) => {
                 const update: Record<string, string> = { [key]: value };
-                // When handler changes, clear dependent tree-select ports
+                // When handler changes, clear dependent filtered ports
                 if (key === "handler_id") {
                     for (const p of inputPorts) {
-                        if (p.control === "tree-select") {
+                        if (p.control === "tree-select" || p.name === "action_id") {
                             update[p.data_key || p.name] = "";
                         }
                     }
@@ -121,13 +162,15 @@ export function createWorkflowNode(definition: NodeDefinition) {
         const inputPortsWithControl = inputPorts.filter((p) => p.control);
         const inputPortsWithoutControl = inputPorts.filter((p) => !p.control);
 
+        const nodeLabel = data._label || t(`workflow.nodes.${definition.type}.label`, definition.label);
+
         return (
             <div
                 className={`rounded-lg border bg-card shadow-lg min-w-[180px] ${data._error ? "ring-2 ring-destructive" : selected ? "ring-2 ring-primary/50" : ""}`}
             >
                 {/* Header */}
                 <div className="group/header rounded-t-lg bg-primary/10 border-b px-3 py-1.5 text-xs font-semibold text-foreground flex items-center">
-                    <span className="flex-1 truncate">{data._label || definition.label}</span>
+                    <span className="flex-1 truncate">{nodeLabel}</span>
                     <button
                         type="button"
                         className="nodrag -mr-1 ml-1 h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded opacity-0 transition-opacity group-hover/header:opacity-100 hover:text-destructive hidden group-hover/header:flex"
@@ -140,8 +183,8 @@ export function createWorkflowNode(definition: NodeDefinition) {
                 {/* Handle-only input ports */}
                 {inputPortsWithoutControl.map((port) => (
                     <div key={port.name} className="relative flex items-center py-1.5 px-3">
-                        <PortHandle port={port} type="target" />
-                        <span className="text-[10px] text-muted-foreground">{port.label}</span>
+                        <PortHandle port={port} type="target" label={portLabel(port)} />
+                        <span className="text-[10px] text-muted-foreground">{portLabel(port)}</span>
                     </div>
                 ))}
 
@@ -158,6 +201,7 @@ export function createWorkflowNode(definition: NodeDefinition) {
                                     value={data[dataKey] ?? ""}
                                     onChange={handleChange}
                                     nodeData={data}
+                                    label={portLabel(port)}
                                 />
                             );
                         })}
@@ -167,8 +211,8 @@ export function createWorkflowNode(definition: NodeDefinition) {
                 {/* Output ports */}
                 {outputPorts.map((port) => (
                     <div key={port.name} className="relative flex items-center justify-end py-1.5 px-3">
-                        <span className="text-[10px] text-muted-foreground">{port.label}</span>
-                        <PortHandle port={port} type="source" />
+                        <span className="text-[10px] text-muted-foreground">{portLabel(port)}</span>
+                        <PortHandle port={port} type="source" label={portLabel(port)} />
                     </div>
                 ))}
 

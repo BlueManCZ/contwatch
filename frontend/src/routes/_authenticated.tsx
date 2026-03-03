@@ -11,7 +11,10 @@ export const Route = createFileRoute("/_authenticated")({
             await context.auth.waitUntilReady();
         }
         if (!context.auth.user) {
-            throw redirect({ to: "/login" });
+            throw redirect({
+                to: "/login",
+                search: { redirect: location.pathname + location.search },
+            });
         }
     },
     component: AuthenticatedLayout,

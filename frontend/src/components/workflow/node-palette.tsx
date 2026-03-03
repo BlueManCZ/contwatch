@@ -19,19 +19,25 @@ function PaletteItems({
     onAddNode: (type: string) => void;
     onDragStart: (event: React.DragEvent, nodeType: string) => void;
 }) {
+    const { t } = useTranslation();
+
     return (
         <div className="space-y-1.5">
             {definitions.map((def) => (
                 <button
                     key={def.type}
                     type="button"
-                    className="w-full rounded-md border bg-card px-3 py-2 text-left text-xs font-medium shadow-sm transition-all hover:bg-accent hover:border-primary/30 cursor-grab active:cursor-grabbing"
+                    className="w-full rounded-md border bg-card px-3 py-2 text-left shadow-sm transition-all hover:bg-accent hover:border-primary/30 cursor-grab active:cursor-grabbing"
                     draggable
                     onDragStart={(e) => onDragStart(e, def.type)}
                     onClick={() => onAddNode(def.type)}
-                    title={def.description}
                 >
-                    {def.label}
+                    <span className="text-xs font-medium">
+                        {t(`workflow.nodes.${def.type}.label`, def.label)}
+                    </span>
+                    <span className="block text-[10px] text-muted-foreground mt-0.5">
+                        {t(`workflow.nodes.${def.type}.description`, def.description)}
+                    </span>
                 </button>
             ))}
         </div>

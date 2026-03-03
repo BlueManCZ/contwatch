@@ -388,11 +388,14 @@ async def handler_controls(handler_id: int, db: DbSession, manager: HandlerManag
         attr = attrs_by_name.get(kc.state_attribute)
         attr_id = attr.id if attr else None
         live_val = values.get(attr_id, {}).get("value") if attr_id else None
+        # Fall back to last raw message if attribute is not registered in the DB
+        if live_val is None and kc.state_attribute:
+            live_val = manager.get_handler_data_value(handler_id, kc.state_attribute)
 
         if kc.type == "switch":
             act_on = actions_by_name.get(kc.action_on) if kc.action_on else None
             act_off = actions_by_name.get(kc.action_off) if kc.action_off else None
-            resolved = attr_id is not None and act_on is not None and act_off is not None
+            resolved = act_on is not None and act_off is not None
             controls.append(
                 ResolvedControl(
                     type=kc.type,
@@ -418,7 +421,7 @@ async def handler_controls(handler_id: int, db: DbSession, manager: HandlerManag
             )
         else:
             act = actions_by_name.get(kc.action) if kc.action else None
-            resolved = attr_id is not None and act is not None
+            resolved = act is not None
             controls.append(
                 ResolvedControl(
                     type=kc.type,

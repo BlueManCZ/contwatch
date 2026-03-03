@@ -335,13 +335,19 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface PortOption {
+  value: string;
+  label: string;
+  group?: string;
+}
+
 export interface PortDefinition {
   name: string;
   type: string;
   label: string;
   color?: string;
   control?: string;
-  options?: string[];
+  options?: PortOption[];
   data_key?: string;
 }
 

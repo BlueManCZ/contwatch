@@ -82,7 +82,12 @@
         "cycles": "Cycles",
         "percentages": "State of charge",
         "mos_state": "MOS state",
-        "protection_bits": "Protection bits"
+        "charge_mos": "Charge MOS",
+        "discharge_mos": "Discharge MOS",
+        "protection_bits": "Protection bits",
+        "production_date": "Production date",
+        "software_version": "Software version",
+        "hardware_version": "Hardware version"
     },
     "knownActions": {
         "Relay_ON": "Relay ON",
@@ -96,9 +101,11 @@
         "Switch_ON": "Switch ON",
         "Switch_OFF": "Switch OFF",
         "Switch_Toggle": "Switch Toggle",
-        "Charge+Discharge_ON": "Charge+Discharge ON",
+        "Charge_ON": "Charge ON",
         "Charge_OFF": "Charge OFF",
+        "Discharge_ON": "Discharge ON",
         "Discharge_OFF": "Discharge OFF",
+        "Charge+Discharge_ON": "Charge+Discharge ON",
         "Both_OFF": "Both OFF"
     },
     "fields": {
@@ -213,7 +220,54 @@
         "unsaved": "Unsaved changes",
         "saving": "Saving...",
         "saved": "Saved",
-        "error": "Failed to save workflow"
+        "error": "Failed to save workflow",
+        "nodes": {
+            "handler_listener": {
+                "label": "Handler Listener",
+                "description": "Triggers when a handler receives data"
+            },
+            "attribute_reader_listener": {
+                "label": "Attribute Listener",
+                "description": "Triggers when an attribute value changes and provides the value"
+            },
+            "attribute_reader": {
+                "label": "Attribute Reader",
+                "description": "Reads the current value of an attribute"
+            },
+            "handler_data_reader": {
+                "label": "Handler Data Reader",
+                "description": "Reads a raw value from handler data by key"
+            },
+            "evaluator": { "label": "Evaluator", "description": "Compares two values using an operator" },
+            "aggregator": {
+                "label": "Aggregator",
+                "description": "Applies an aggregate function to multiple values"
+            },
+            "condition": {
+                "label": "Condition",
+                "description": "Branches execution based on a value's truthiness"
+            },
+            "negation": { "label": "Negation", "description": "Inverts a boolean value" },
+            "logger": { "label": "Logger", "description": "Logs a value for debugging" },
+            "action_performer": {
+                "label": "Action Performer",
+                "description": "Executes an action on a handler"
+            }
+        },
+        "ports": {
+            "event": "Event",
+            "handler_id": "Handler",
+            "attribute_id": "Attribute",
+            "value": "Value",
+            "key": "Key",
+            "first_value": "First Value",
+            "second_value": "Second Value",
+            "operator": "Operator",
+            "function": "Function",
+            "true_event": "True",
+            "false_event": "False",
+            "action_id": "Action"
+        }
     },
     "chart": {
         "title": "Chart",

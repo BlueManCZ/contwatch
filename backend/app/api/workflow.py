@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 
 from app.dependencies import CurrentUser, DbSession, HandlerManagerDep
+from app.handlers.registry import get_handler_class
 from app.models.action import Action
 from app.models.attribute import Attribute
 from app.models.handler import Handler
@@ -21,20 +22,38 @@ router = APIRouter(prefix="/actions/workflow", tags=["workflow"])
 async def get_node_definitions(db: DbSession, _current_user: CurrentUser, manager: HandlerManagerDep):
     """Return all node type definitions with dynamic select options populated."""
     # Load dynamic options from DB
-    handlers_result = await db.execute(select(Handler.id, Handler.type, Handler.label))
+    handlers_result = await db.execute(
+        select(Handler.id, Handler.type, Handler.label).order_by(Handler.order.asc().nullslast(), Handler.id.asc())
+    )
     handlers = [(row[0], row[1], row[2]) for row in handlers_result.all()]
-    handler_options = [f"{h_id}: {h_label or h_type}" for h_id, h_type, h_label in handlers]
+    handler_options = [
+        {"value": str(h_id), "label": h_label or (cls.handler_name if (cls := get_handler_class(h_type)) else h_type)}
+        for h_id, h_type, h_label in handlers
+    ]
 
     attributes_result = await db.execute(select(Attribute.id, Attribute.name, Attribute.label))
     attributes = [(row[0], row[1], row[2]) for row in attributes_result.all()]
-    attribute_options = [f"{a_id}: {a_label or a_name}" for a_id, a_name, a_label in attributes]
+    attribute_options = [{"value": str(a_id), "label": a_label or a_name} for a_id, a_name, a_label in attributes]
 
-    actions_result = await db.execute(select(Action.id, Action.name))
-    actions = [(row[0], row[1]) for row in actions_result.all()]
-    action_options = [f"{a_id}: {a_name}" for a_id, a_name in actions]
+    actions_result = await db.execute(select(Action.id, Action.name, Action.handler_id))
+    actions = [(row[0], row[1], row[2]) for row in actions_result.all()]
+    action_options = [
+        {"value": str(a_id), "label": a_name, "group": str(a_hid)}
+        for a_id, a_name, a_hid in actions
+        if a_hid is not None
+    ]
+
+    # Handlers that have at least one action (for ActionPerformer node)
+    handler_ids_with_actions = {a_hid for _, _, a_hid in actions if a_hid is not None}
+    action_handler_options = [
+        {"value": str(h_id), "label": h_label or (cls.handler_name if (cls := get_handler_class(h_type)) else h_type)}
+        for h_id, h_type, h_label in handlers
+        if h_id in handler_ids_with_actions
+    ]
 
     dynamic_options = {
         "handler": handler_options,
+        "action_handler": action_handler_options,
         "attribute": attribute_options,
         "action": action_options,
         "handler_data_key": manager.get_all_data_keys(),

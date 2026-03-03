@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from typing import TYPE_CHECKING
 
 from app.nodes import NODES_MAP
@@ -10,6 +11,8 @@ if TYPE_CHECKING:
 
     from app.nodes.base import AbstractNode
     from app.services.handler_manager import HandlerManager
+
+_PASCAL_TO_SNAKE_RE = re.compile(r"(?<=[a-z0-9])([A-Z])")
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +52,9 @@ class NodeGraph:
             node_id = node_data.get("id")
             node_payload = node_data.get("data", {})
 
+            # Normalize PascalCase types from legacy stored workflows
+            if node_type and node_type not in NODES_MAP:
+                node_type = _PASCAL_TO_SNAKE_RE.sub(r"_\1", node_type).lower()
             cls = NODES_MAP.get(node_type)
             if not cls:
                 logger.warning("Unknown node type '%s' for node '%s', skipping", node_type, node_id)

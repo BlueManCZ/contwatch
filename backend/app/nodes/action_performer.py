@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 from app.models.action import Action
 from app.nodes.base import AbstractNode
-from app.nodes.ports import action_port, event_port, handler_port
+from app.nodes.ports import action_handler_port, action_port, event_port
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class ActionPerformer(AbstractNode):
     label = "Action Performer"
     description = "Executes an action on a handler"
-    input_ports = (event_port(), handler_port(), action_port())
+    input_ports = (event_port(), action_handler_port(), action_port())
     output_ports = ()
 
     async def execute(self) -> None:

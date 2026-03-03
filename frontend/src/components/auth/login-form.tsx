@@ -1,3 +1,4 @@
+import { useNavigate } from "@tanstack/react-router";
 import { isAxiosError } from "axios";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -7,10 +8,13 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/providers/auth-provider";
+import { Route } from "@/routes/login";
 
 export function LoginForm() {
     const { t } = useTranslation();
     const { login } = useAuth();
+    const navigate = useNavigate();
+    const { redirect: redirectTo } = Route.useSearch();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -22,6 +26,7 @@ export function LoginForm() {
         setIsSubmitting(true);
         try {
             await login(username, password);
+            await navigate({ to: redirectTo || "/" });
         } catch (err) {
             if (isAxiosError(err) && err.response?.status === 403) {
                 setError(t("auth.userInactive"));

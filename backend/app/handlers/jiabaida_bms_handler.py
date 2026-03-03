@@ -16,6 +16,29 @@ _CMD_BASIC_INFO = b"\xdd\xa5\x03\x00\xff\xfd\x77"
 _CMD_CELL_VOLTAGES = b"\xdd\xa5\x04\x00\xff\xfc\x77"
 _CMD_HARDWARE_VERSION = b"\xdd\xa5\x05\x00\xff\xfb\x77"
 
+# TODO: Additional write commands to implement
+# All writes use frame format: DD 5A <register> <len> <data> <checksum_hi> <checksum_lo> 77
+# Factory mode is required before 0xE0 and 0xE2 — enter via reg 0x00, exit via reg 0x01.
+#
+# Register 0x00 — Enter factory mode (required before 0xE0/0xE2):
+#   DD 5A 00 02 56 78 <checksum> 77
+#
+# Register 0x01 — Exit factory mode:
+#   DD 5A 01 02 00 00 <checksum> 77  (exit without saving)
+#   DD 5A 01 02 28 28 <checksum> 77  (exit, save to EEPROM, reset error counts)
+#
+# Register 0xE0 — Set remaining capacity (U16, unit 10mAh):
+#   DD 5A E0 02 <hi> <lo> <checksum> 77
+#   Useful for SOC calibration.
+#
+# Register 0xE2 — Balance control (U16):
+#   DD 5A E2 02 00 01 <checksum> 77  (open odd cells)
+#   DD 5A E2 02 00 02 <checksum> 77  (open even cells)
+#   DD 5A E2 02 00 03 <checksum> 77  (close all cells)
+#   Exit factory mode to stop balancing.
+#
+# Source: https://gitlab.com/bms-tools/bms-tools/-/raw/master/JBD_REGISTER_MAP.md
+
 
 def _uint16(data: list[int], index: int) -> int:
     """Read big-endian uint16 from two consecutive bytes."""

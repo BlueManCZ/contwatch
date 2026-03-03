@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import type { PortOption } from "@/api/generated/contWatchAPI.schemas";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -11,28 +12,28 @@ import {
 
 interface TreeNode {
     label: string;
-    fullPath: string;
+    value: string;
     children: TreeNode[];
 }
 
-function buildTree(options: string[]): TreeNode[] {
+function buildTree(options: PortOption[]): TreeNode[] {
     const root: TreeNode[] = [];
 
     for (const option of options) {
-        const segments = option.split("/");
+        const segments = option.value.split("/");
         let level = root;
 
         for (let i = 0; i < segments.length; i++) {
             const segment = segments[i];
             let existing = level.find((n) => n.label === segment);
             if (!existing) {
-                existing = { label: segment, fullPath: option, children: [] };
+                existing = { label: segment, value: option.value, children: [] };
                 level.push(existing);
             }
             if (i < segments.length - 1) {
                 level = existing.children;
             } else {
-                existing.fullPath = option;
+                existing.value = option.value;
             }
         }
     }
@@ -40,16 +41,16 @@ function buildTree(options: string[]): TreeNode[] {
     return root;
 }
 
-function TreeMenuItems({ nodes, onSelect }: { nodes: TreeNode[]; onSelect: (fullPath: string) => void }) {
+function TreeMenuItems({ nodes, onSelect }: { nodes: TreeNode[]; onSelect: (value: string) => void }) {
     return (
         <>
             {nodes.map((node) => {
                 if (node.children.length === 0) {
                     return (
                         <DropdownMenuItem
-                            key={node.fullPath}
+                            key={node.value}
                             className="text-xs font-mono"
-                            onClick={() => onSelect(node.fullPath)}
+                            onClick={() => onSelect(node.value)}
                         >
                             {node.label}
                         </DropdownMenuItem>
@@ -74,21 +75,18 @@ export function TreeSelectControl({
     options,
     value,
     onChange,
-    placeholder,
     disabled,
     filterPrefix,
 }: {
-    options: string[];
+    options: PortOption[];
     value: string;
     onChange: (value: string) => void;
-    placeholder?: string;
     disabled?: boolean;
     filterPrefix?: string;
 }) {
     const filtered = useMemo(() => {
         if (!filterPrefix) return options;
-        const prefix = `${filterPrefix}:`;
-        return options.filter((o) => o.startsWith(prefix)).map((o) => o.slice(prefix.length));
+        return options.filter((o) => o.group === filterPrefix);
     }, [options, filterPrefix]);
     const tree = useMemo(() => buildTree(filtered), [filtered]);
 
@@ -99,9 +97,16 @@ export function TreeSelectControl({
                 render={
                     <button
                         type="button"
-                        className={`nodrag w-full rounded border border-input bg-card text-card-foreground px-2 py-1 text-xs font-mono text-left truncate ${disabled ? "opacity-50" : ""}`}
+                        className={`nodrag relative w-full cursor-pointer ${disabled ? "opacity-50" : ""}`}
                     >
-                        {value || placeholder || "—"}
+                        <select
+                            className="w-full rounded border border-input bg-card text-card-foreground px-2 py-1 text-xs font-mono pointer-events-none"
+                            tabIndex={-1}
+                            value=""
+                            onChange={() => {}}
+                        >
+                            <option value="">{value || "—"}</option>
+                        </select>
                     </button>
                 }
             />

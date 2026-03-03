@@ -82,7 +82,12 @@
         "cycles": "Cykly",
         "percentages": "Stav nabití",
         "mos_state": "Stav MOS",
-        "protection_bits": "Ochranné bity"
+        "charge_mos": "Nabíjecí MOS",
+        "discharge_mos": "Vybíjecí MOS",
+        "protection_bits": "Ochranné bity",
+        "production_date": "Datum výroby",
+        "software_version": "Verze softwaru",
+        "hardware_version": "Verze hardwaru"
     },
     "knownActions": {
         "Relay_ON": "Relé ZAP",
@@ -96,9 +101,11 @@
         "Switch_ON": "Vypínač ZAP",
         "Switch_OFF": "Vypínač VYP",
         "Switch_Toggle": "Přepnout vypínač",
-        "Charge+Discharge_ON": "Nabíjení+vybíjení ZAP",
+        "Charge_ON": "Nabíjení ZAP",
         "Charge_OFF": "Nabíjení VYP",
+        "Discharge_ON": "Vybíjení ZAP",
         "Discharge_OFF": "Vybíjení VYP",
+        "Charge+Discharge_ON": "Nabíjení+vybíjení ZAP",
         "Both_OFF": "Obojí VYP"
     },
     "fields": {
@@ -214,7 +221,48 @@
         "unsaved": "Neulo\u017een\u00e9 zm\u011bny",
         "saving": "Ukl\u00e1d\u00e1n\u00ed...",
         "saved": "Ulo\u017eeno",
-        "error": "Nepodařilo se uložit workflow"
+        "error": "Nepodařilo se uložit workflow",
+        "nodes": {
+            "handler_listener": {
+                "label": "Naslouchač handleru",
+                "description": "Spustí se při příjmu dat z handleru"
+            },
+            "attribute_reader_listener": {
+                "label": "Naslouchač atributu",
+                "description": "Spustí se při změně hodnoty atributu a poskytne hodnotu"
+            },
+            "attribute_reader": {
+                "label": "Čtečka atributu",
+                "description": "Přečte aktuální hodnotu atributu"
+            },
+            "handler_data_reader": {
+                "label": "Čtečka dat handleru",
+                "description": "Přečte surovou hodnotu z dat handleru podle klíče"
+            },
+            "evaluator": { "label": "Vyhodnocovač", "description": "Porovná dvě hodnoty pomocí operátoru" },
+            "aggregator": { "label": "Agregátor", "description": "Aplikuje agregační funkci na více hodnot" },
+            "condition": {
+                "label": "Podmínka",
+                "description": "Větví provádění na základě pravdivosti hodnoty"
+            },
+            "negation": { "label": "Negace", "description": "Invertuje booleovskou hodnotu" },
+            "logger": { "label": "Logger", "description": "Zaloguje hodnotu pro ladění" },
+            "action_performer": { "label": "Spouštěč akce", "description": "Spustí akci na zařízení" }
+        },
+        "ports": {
+            "event": "Událost",
+            "handler_id": "Zařízení",
+            "attribute_id": "Atribut",
+            "value": "Hodnota",
+            "key": "Klíč",
+            "first_value": "První hodnota",
+            "second_value": "Druhá hodnota",
+            "operator": "Operátor",
+            "function": "Funkce",
+            "true_event": "Pravda",
+            "false_event": "Nepravda",
+            "action_id": "Akce"
+        }
     },
     "chart": {
         "title": "Graf",
