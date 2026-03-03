@@ -28,11 +28,13 @@ async def list_logs(
     if source is not None:
         stmt = stmt.where(LoggingMessage.source == source)
     if date_from is not None:
-        stmt = stmt.where(LoggingMessage.date >= date_from)
+        start = datetime.datetime.combine(date_from, datetime.time.min, tzinfo=datetime.UTC)
+        stmt = stmt.where(LoggingMessage.timestamp >= start)
     if date_to is not None:
-        stmt = stmt.where(LoggingMessage.date <= date_to)
+        end = datetime.datetime.combine(date_to + datetime.timedelta(days=1), datetime.time.min, tzinfo=datetime.UTC)
+        stmt = stmt.where(LoggingMessage.timestamp < end)
 
-    stmt = stmt.order_by(LoggingMessage.date.desc(), LoggingMessage.time.desc()).limit(limit)
+    stmt = stmt.order_by(LoggingMessage.timestamp.desc()).limit(limit)
 
     result = await db.execute(stmt)
     return result.scalars().all()

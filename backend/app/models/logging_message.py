@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Date, Integer, String, Time
+from sqlalchemy import DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, JsonType
@@ -14,5 +14,4 @@ class LoggingMessage(Base):
     level: Mapped[int] = mapped_column(Integer)
     message: Mapped[str] = mapped_column(String(1000))
     payload: Mapped[dict | None] = mapped_column(JsonType, nullable=True)
-    date: Mapped[datetime.date] = mapped_column(Date, index=True)
-    time: Mapped[datetime.time] = mapped_column(Time)
+    timestamp: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), index=True)

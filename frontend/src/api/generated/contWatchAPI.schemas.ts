@@ -327,8 +327,7 @@ export interface LoggingMessageRead {
   level: number;
   message: string;
   payload?: LoggingMessageReadPayload;
-  date: string;
-  time: string;
+  timestamp: string;
 }
 
 export interface LoginRequest {

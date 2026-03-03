@@ -4,6 +4,7 @@ import logging
 from typing import ClassVar
 
 import serial_asyncio
+from serial import SerialException
 
 from app.handlers.base import AbstractHandler
 from app.handlers.registry import register_handler_type
@@ -73,7 +74,7 @@ class SerialHandler(AbstractHandler):
                     if data:
                         self.add_message(data if isinstance(data, dict) else {"raw": data})
 
-            except (OSError, serial_asyncio.serial.SerialException) as e:
+            except (OSError, SerialException) as e:
                 logger.warning("Handler %s: serial error on %s: %s", self.handler_id, port, e)
                 self._connected = False
             finally:
@@ -89,6 +90,3 @@ class SerialHandler(AbstractHandler):
                 await asyncio.sleep(1)
             else:
                 return
-
-    async def execute_action(self, message: str) -> bool:
-        return False

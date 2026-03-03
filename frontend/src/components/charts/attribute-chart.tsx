@@ -1,11 +1,15 @@
 import "@/lib/chart-setup";
+import { useQueries } from "@tanstack/react-query";
 import type { Chart, ChartData, ChartOptions } from "chart.js";
 import { RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Line } from "react-chartjs-2";
 import { useTranslation } from "react-i18next";
 import type { ChartDataset } from "@/api/generated/contWatchAPI.schemas";
-import { useChartDataApiDataUnitsChartGet } from "@/api/generated/data-units/data-units";
+import {
+    chartDataApiDataUnitsChartGet,
+    getChartDataApiDataUnitsChartGetQueryKey,
+} from "@/api/generated/data-units/data-units";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatValue } from "@/lib/format-value";
@@ -75,16 +79,30 @@ export function AttributeChart({ attributeIds, date }: AttributeChartProps) {
         setThemeColors(resolveThemeColors(theme));
     }, [theme]);
 
-    const queryParams = {
-        attribute_ids: attributeIds.join(","),
-        date,
-        tz_offset: new Date().getTimezoneOffset(),
-    };
-    const { data: response, isLoading, refetch } = useChartDataApiDataUnitsChartGet(queryParams);
+    // One query per attribute — React Query caches each (attribute, date) pair
+    // individually, so adding a new attribute only fetches that one.
+    const tzOffset = useMemo(() => new Date().getTimezoneOffset(), []);
+    const queries = useQueries({
+        queries: attributeIds.map((id) => {
+            const params = { attribute_ids: String(id), date, tz_offset: tzOffset };
+            return {
+                queryKey: getChartDataApiDataUnitsChartGetQueryKey(params),
+                queryFn: ({ signal }: { signal: AbortSignal }) =>
+                    chartDataApiDataUnitsChartGet(params, { signal }),
+            };
+        }),
+    });
+
+    const isLoading = queries.length > 0 && queries.every((q) => q.isLoading);
+    const datasets = queries.flatMap((q) => (q.data?.data ?? []) as ChartDataset[]);
 
     // Refetch chart data when live attribute values change (debounced).
-    const refetchRef = useRef(refetch);
-    refetchRef.current = refetch;
+    const refetchRef = useRef(() => {
+        for (const q of queries) q.refetch();
+    });
+    refetchRef.current = () => {
+        for (const q of queries) q.refetch();
+    };
     useEffect(() => {
         const debounceMs = 10_000;
         let timer: ReturnType<typeof setTimeout> | null = null;
@@ -103,8 +121,6 @@ export function AttributeChart({ attributeIds, date }: AttributeChartProps) {
             if (timer) clearTimeout(timer);
         };
     }, [attributeIds]);
-
-    const datasets = (response?.data ?? []) as ChartDataset[];
     const datasetsRef = useRef(datasets);
     if (datasetsRef.current !== datasets) {
         datasetsRef.current = datasets;

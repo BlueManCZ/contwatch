@@ -4,6 +4,7 @@ import logging
 from typing import ClassVar
 
 import serial_asyncio
+from serial import SerialException
 
 from app.handlers.base import AbstractHandler, Indicator, KnownAction, KnownAttribute
 from app.handlers.registry import register_handler_type
@@ -11,7 +12,7 @@ from app.handlers.registry import register_handler_type
 logger = logging.getLogger(__name__)
 
 
-def _byte(array: list[int], index: int) -> int:
+def _uint16(array: list[int], index: int) -> int:
     """Read big-endian uint16 from two consecutive bytes."""
     return array[index] * 256 + array[index + 1]
 
@@ -129,32 +130,32 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
         if not d1 or not d2:
             raise OSError("Missing data block from BMS")
 
-        raw_current = _byte(d1, 2)
+        raw_current = _uint16(d1, 2)
         current = (raw_current / 100 if raw_current < 2**15 else (raw_current - 2**16) / 100) or 0
 
         result: dict = {
-            "voltage": _byte(d1, 0) / 100,
+            "voltage": _uint16(d1, 0) / 100,
             "current": current,
-            "capacity": _byte(d1, 4) * 10,
-            "nominal_capacity": _byte(d1, 6) * 10,
-            "cycles": _byte(d1, 8),
+            "capacity": _uint16(d1, 4) * 10,
+            "nominal_capacity": _uint16(d1, 6) * 10,
+            "cycles": _uint16(d1, 8),
             "percentages": d1[19],
             "mos_state": d1[20],
-            "protection_bits": bin(_byte(d1, 16))[2:].zfill(16),
+            "protection_bits": bin(_uint16(d1, 16))[2:].zfill(16),
             "temperatures": {},
             "cells": {},
         }
 
         temperatures_count = d1[22]
         for i in range(temperatures_count):
-            result["temperatures"][str(i + 1)] = (_byte(d1, 23 + i * 2) - 2731) / 10
+            result["temperatures"][str(i + 1)] = (_uint16(d1, 23 + i * 2) - 2731) / 10
 
         cell_count = d1[21]
-        balancing = bin(_byte(d1, 14))[2:].zfill(16) + bin(_byte(d1, 12))[2:].zfill(16)
+        balancing = bin(_uint16(d1, 14))[2:].zfill(16) + bin(_uint16(d1, 12))[2:].zfill(16)
 
         for i in range(cell_count):
             result["cells"][str(i + 1)] = {
-                "voltage": _byte(d2, i * 2) / 1000,
+                "voltage": _uint16(d2, i * 2) / 1000,
                 "balancing": int(balancing[31 - i]),
             }
 
@@ -178,7 +179,7 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
                     self.add_message(data)
                     await self.wait_for_interval(interval)
 
-            except (OSError, serial_asyncio.serial.SerialException, TimeoutError) as e:
+            except (OSError, SerialException, TimeoutError) as e:
                 logger.warning("Handler %s: BMS error on %s: %s", self.handler_id, port, e)
                 self._connected = False
             finally:
@@ -224,6 +225,6 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
             finally:
                 writer.close()
             return True
-        except (OSError, serial_asyncio.serial.SerialException) as e:
+        except (OSError, SerialException) as e:
             logger.warning("Handler %s: action error: %s", self.handler_id, e)
             return False

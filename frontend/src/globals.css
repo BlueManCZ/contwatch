@@ -267,6 +267,13 @@
     color: var(--muted-foreground);
 }
 
+.react-flow__edge.selected .react-flow__edge-path {
+    /* biome-ignore lint/complexity/noImportantStyles: must override ReactFlow inline styles on SVG paths */
+    stroke-width: 3 !important;
+    /* biome-ignore lint/complexity/noImportantStyles: must override ReactFlow inline styles on SVG paths */
+    stroke: var(--primary) !important;
+}
+
 /* ───────────────────────────────────────────
    SCROLLBAR STYLING
    ─────────────────────────────────────────── */

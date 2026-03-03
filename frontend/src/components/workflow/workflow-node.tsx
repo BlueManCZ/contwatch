@@ -1,11 +1,4 @@
-import {
-    Handle,
-    type Node,
-    type NodeProps,
-    Position,
-    useHandleConnections,
-    useReactFlow,
-} from "@xyflow/react";
+import { Handle, type Node, type NodeProps, Position, useNodeConnections, useReactFlow } from "@xyflow/react";
 import { X } from "lucide-react";
 import { useCallback } from "react";
 import type { NodeDefinition, PortDefinition } from "@/api/generated/contWatchAPI.schemas";
@@ -47,7 +40,7 @@ function ControlPort({
     onChange: (key: string, value: string) => void;
     nodeData: WorkflowNodeData;
 }) {
-    const connections = useHandleConnections({ type: "target", id: port.name });
+    const connections = useNodeConnections({ handleType: "target", handleId: port.name });
     const isConnected = connections.length > 0;
 
     return (
@@ -130,14 +123,14 @@ export function createWorkflowNode(definition: NodeDefinition) {
 
         return (
             <div
-                className={`rounded-lg border bg-card shadow-lg min-w-[180px] ${selected ? "ring-2 ring-primary/50" : ""}`}
+                className={`rounded-lg border bg-card shadow-lg min-w-[180px] ${data._error ? "ring-2 ring-destructive" : selected ? "ring-2 ring-primary/50" : ""}`}
             >
                 {/* Header */}
                 <div className="group/header rounded-t-lg bg-primary/10 border-b px-3 py-1.5 text-xs font-semibold text-foreground flex items-center">
                     <span className="flex-1 truncate">{data._label || definition.label}</span>
                     <button
                         type="button"
-                        className="nodrag -mr-1 ml-1 h-4 w-4 shrink-0 items-center justify-center rounded opacity-0 transition-opacity group-hover/header:opacity-100 hover:text-destructive hidden group-hover/header:flex"
+                        className="nodrag -mr-1 ml-1 h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded opacity-0 transition-opacity group-hover/header:opacity-100 hover:text-destructive hidden group-hover/header:flex"
                         onClick={() => deleteElements({ nodes: [{ id }] })}
                     >
                         <X className="h-3 w-3" />

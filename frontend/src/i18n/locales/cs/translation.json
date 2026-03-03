@@ -211,7 +211,7 @@
         "unsaved": "Neulo\u017een\u00e9 zm\u011bny",
         "saving": "Ukl\u00e1d\u00e1n\u00ed...",
         "saved": "Ulo\u017eeno",
-        "saveError": "Nepoda\u0159ilo se ulo\u017eit workflow"
+        "error": "Nepoda\u0159ilo se ulo\u017eit workflow"
     },
     "chart": {
         "title": "Graf",

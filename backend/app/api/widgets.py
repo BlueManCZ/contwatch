@@ -326,18 +326,27 @@ async def dashboard(db: DbSession, manager: HandlerManagerDep, _current_user: Cu
     values = manager.get_current_values()
     daily_stats = manager.get_daily_stats()
 
+    # Cache handler statuses to avoid redundant lookups per widget
+    status_cache: dict[int, dict] = {}
+
+    def get_cached_status(handler_id: int) -> dict:
+        if handler_id not in status_cache:
+            status_cache[handler_id] = manager.get_handler_status(handler_id)
+        return status_cache[handler_id]
+
     dashboard_tiles = []
     for tile in tiles:
         attr = tile.attribute
         val = values.get(attr.id, {})
         stats = daily_stats.get(attr.id, {})
+        h_status = get_cached_status(attr.handler_id)
         dashboard_tiles.append(
             DashboardTile(
                 id=tile.id,
                 attribute_id=attr.id,
                 handler_id=attr.handler_id,
-                handler_running=manager.get_handler_status(attr.handler_id)["running"],
-                handler_connected=manager.get_handler_status(attr.handler_id)["connected"],
+                handler_running=h_status["running"],
+                handler_connected=h_status["connected"],
                 name=attr.name,
                 label=attr.label,
                 unit=attr.unit,
@@ -366,6 +375,7 @@ async def dashboard(db: DbSession, manager: HandlerManagerDep, _current_user: Cu
     for switch in switches:
         attr = switch.attribute
         val = values.get(attr.id, {})
+        h_status = get_cached_status(attr.handler_id)
         dashboard_switches.append(
             DashboardSwitch(
                 id=switch.id,
@@ -373,8 +383,8 @@ async def dashboard(db: DbSession, manager: HandlerManagerDep, _current_user: Cu
                 icon=switch.icon,
                 attribute_id=attr.id,
                 handler_id=attr.handler_id,
-                handler_running=manager.get_handler_status(attr.handler_id)["running"],
-                handler_connected=manager.get_handler_status(attr.handler_id)["connected"],
+                handler_running=h_status["running"],
+                handler_connected=h_status["connected"],
                 attribute_compare=switch.attribute_compare,
                 action_on_id=switch.action_on_id,
                 action_off_id=switch.action_off_id,
@@ -399,6 +409,7 @@ async def dashboard(db: DbSession, manager: HandlerManagerDep, _current_user: Cu
     for slider in sliders:
         attr = slider.attribute
         val = values.get(attr.id, {})
+        h_status = get_cached_status(attr.handler_id)
         dashboard_sliders.append(
             DashboardSlider(
                 id=slider.id,
@@ -406,8 +417,8 @@ async def dashboard(db: DbSession, manager: HandlerManagerDep, _current_user: Cu
                 icon=slider.icon,
                 attribute_id=attr.id,
                 handler_id=attr.handler_id,
-                handler_running=manager.get_handler_status(attr.handler_id)["running"],
-                handler_connected=manager.get_handler_status(attr.handler_id)["connected"],
+                handler_running=h_status["running"],
+                handler_connected=h_status["connected"],
                 action_id=slider.action_id,
                 action_name=slider.action.name,
                 param_key=slider.param_key,

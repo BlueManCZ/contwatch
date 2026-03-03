@@ -73,7 +73,8 @@ class HandlerManager:
             settings = result.scalar_one_or_none()
             if settings and settings.actions_node_map:
                 try:
-                    self.rebuild_workflow(settings.actions_node_map)
+                    graph = self.build_workflow(settings.actions_node_map)
+                    self.install_workflow(graph)
                 except Exception:
                     logger.exception("Failed to load saved workflow graph")
 
@@ -128,9 +129,7 @@ class HandlerManager:
         if handler:
             indicators = handler.extract_indicators(flat)
             if indicators:
-                indicator_dicts = [
-                    {"icon": ind.icon, "color": ind.color, "tooltip": ind.tooltip} for ind in indicators
-                ]
+                indicator_dicts = [{"icon": ind.icon, "color": ind.color, "tooltip": ind.tooltip} for ind in indicators]
                 self._last_indicators[handler_id] = indicator_dicts
                 await sio.emit(
                     "handler_indicators",
@@ -178,10 +177,18 @@ class HandlerManager:
 
     # --- Workflow graph ---
 
-    def rebuild_workflow(self, data: dict) -> None:
-        """Build (or rebuild) the workflow execution graph from ReactFlow JSON."""
-        self._workflow_graph = NodeGraph(data, manager=self, session_factory=self._session_factory)
-        logger.info("Workflow graph rebuilt")
+    def build_workflow(self, data: dict) -> NodeGraph:
+        """Build a workflow graph from ReactFlow JSON without installing it.
+
+        Use this for validation. The returned graph can be installed via
+        :meth:`install_workflow`.
+        """
+        return NodeGraph(data, manager=self, session_factory=self._session_factory)
+
+    def install_workflow(self, graph: NodeGraph) -> None:
+        """Install a previously built workflow graph as the active graph."""
+        self._workflow_graph = graph
+        logger.info("Workflow graph installed")
 
     async def _execute_handler_listeners(self, handler_id: int) -> None:
         if self._workflow_graph:
@@ -307,7 +314,7 @@ class HandlerManager:
 
     async def _log_action(self, action_name: str, handler_id: int, source: str, success: bool) -> None:
         """Persist an action execution record to the logging_messages table."""
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(datetime.UTC)
         level = logging.INFO if success else logging.WARNING
         status = "executed" if success else "failed"
         record = LoggingMessage(
@@ -315,8 +322,7 @@ class HandlerManager:
             level=level,
             message=f"{action_name} {status} (handler {handler_id}, {source})",
             payload={"handler_id": handler_id, "source": source, "success": success},
-            date=now.date(),
-            time=now.time(),
+            timestamp=now,
         )
         try:
             async with self._session_factory() as session:

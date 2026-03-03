@@ -17,7 +17,9 @@ MAX_EXECUTION_DEPTH = 100
 
 
 class CycleDetectedError(Exception):
-    pass
+    def __init__(self, message: str, node_id: str):
+        super().__init__(message)
+        self.node_id = node_id
 
 
 class NodeGraph:
@@ -120,7 +122,7 @@ class NodeGraph:
             in_stack.add(node_id)
             for neighbor in adj.get(node_id, []):
                 if neighbor in in_stack:
-                    raise CycleDetectedError(f"Cycle detected involving node '{neighbor}'")
+                    raise CycleDetectedError(f"Cycle detected involving node '{neighbor}'", node_id=neighbor)
                 if neighbor not in visited:
                     dfs(neighbor)
             in_stack.discard(node_id)

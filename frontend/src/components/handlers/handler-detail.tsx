@@ -324,8 +324,14 @@ function DetailAttributeRow({
             <div className="flex items-center gap-2 shrink-0">
                 <span className="data-value text-sm font-medium tabular-nums">{displayValue}</span>
                 {displayUnit && <span className="text-xs text-muted-foreground">{displayUnit}</span>}
-                <Button variant="ghost" size="icon-xs" onClick={onEdit} title={t("handlers.editAttribute")}>
-                    <Pencil className="h-3 w-3 text-muted-foreground" />
+                <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    onClick={onEdit}
+                    title={t("handlers.editAttribute")}
+                    className="cursor-pointer hover:bg-accent"
+                >
+                    <Pencil className="h-3 w-3 text-muted-foreground group-hover/button:text-foreground" />
                 </Button>
             </div>
         </div>
@@ -503,34 +509,33 @@ function ActionCard({
     const { t } = useTranslation();
 
     const card = (
-        <button
-            type="button"
-            className="flex w-full items-center gap-2 rounded-md border px-3 py-2 text-left transition-colors hover:bg-accent/50 cursor-pointer disabled:opacity-50 disabled:cursor-default"
-            onClick={params ? undefined : () => onExecute(action)}
-            disabled={isPending}
-        >
-            <Play className="h-3.5 w-3.5 shrink-0 text-primary" />
-            <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium">
-                    {t(`knownActions.${action.name.replaceAll(" ", "_")}`, action.name)}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">
-                    {formatActionMessage(action.message)}
-                </p>
-            </div>
+        <div className="flex items-center rounded-md border transition-colors hover:bg-accent/50">
+            <button
+                type="button"
+                className="flex flex-1 items-center gap-2 px-3 py-2 text-left cursor-pointer disabled:opacity-50 disabled:cursor-default"
+                onClick={params ? undefined : () => onExecute(action)}
+                disabled={isPending}
+            >
+                <Play className="h-3.5 w-3.5 shrink-0 text-primary" />
+                <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium">
+                        {t(`knownActions.${action.name.replaceAll(" ", "_")}`, action.name)}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                        {formatActionMessage(action.message)}
+                    </p>
+                </div>
+            </button>
             <Button
                 variant="ghost"
                 size="icon-xs"
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit();
-                }}
+                onClick={onEdit}
                 title={t("handlers.editAction")}
-                className="shrink-0"
+                className="shrink-0 mr-2 cursor-pointer hover:bg-accent"
             >
-                <Pencil className="h-3 w-3 text-muted-foreground" />
+                <Pencil className="h-3 w-3 text-muted-foreground group-hover/button:text-foreground" />
             </Button>
-        </button>
+        </div>
     );
 
     if (params) {

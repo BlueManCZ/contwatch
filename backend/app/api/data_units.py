@@ -59,38 +59,31 @@ async def chart_data(
     attr_result = await db.execute(select(Attribute).where(Attribute.id.in_(ids)))
     attrs_by_id = {a.id: a for a in attr_result.scalars().all()}
 
-    datasets: list[ChartDataset] = []
-    for attr_id in ids:
-        attr = attrs_by_id.get(attr_id)
-        if attr is None:
-            continue
-
-        result = await db.execute(
-            select(DataUnit)
-            .where(
-                DataUnit.attribute_id == attr_id,
-                DataUnit.timestamp >= day_start,
-                DataUnit.timestamp < day_end,
-            )
-            .order_by(DataUnit.timestamp.asc())
+    # Single query for all attribute data in the date range
+    valid_ids = [aid for aid in ids if aid in attrs_by_id]
+    units_result = await db.execute(
+        select(DataUnit)
+        .where(
+            DataUnit.attribute_id.in_(valid_ids),
+            DataUnit.timestamp >= day_start,
+            DataUnit.timestamp < day_end,
         )
-        units = result.scalars().all()
+        .order_by(DataUnit.timestamp.asc())
+    )
+    units_by_attr: dict[int, list[ChartDataPoint]] = {aid: [] for aid in valid_ids}
+    for du in units_result.scalars():
+        units_by_attr[du.attribute_id].append(ChartDataPoint(x=int(du.timestamp.timestamp() * 1000), y=du.value))
 
-        points = [
-            ChartDataPoint(
-                x=int(du.timestamp.timestamp() * 1000),
-                y=du.value,
-            )
-            for du in units
-        ]
-
+    datasets: list[ChartDataset] = []
+    for attr_id in valid_ids:
+        attr = attrs_by_id[attr_id]
         datasets.append(
             ChartDataset(
                 id=attr.id,
                 label=attr.label or attr.name,
                 unit=attr.unit,
                 color=attr.color,
-                data=points,
+                data=units_by_attr[attr_id],
             )
         )
 

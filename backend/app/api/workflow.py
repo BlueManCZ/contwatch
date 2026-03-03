@@ -67,13 +67,16 @@ async def save_workflow(body: WorkflowData, db: DbSession, _current_user: Curren
     """Validate and save workflow, then rebuild the execution graph."""
     workflow_dict = body.model_dump(by_alias=True)
 
-    # Validate by attempting to build the graph (detects cycles, unknown types)
+    # Validate by building the graph (detects cycles, unknown types) without installing it
     try:
-        manager.rebuild_workflow(workflow_dict)
+        graph = manager.build_workflow(workflow_dict)
     except CycleDetectedError as e:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)) from e
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"message": str(e), "node_id": e.node_id},
+        ) from e
 
-    # Save to DB
+    # Persist to DB before installing the in-memory graph
     result = await db.execute(select(Settings).limit(1))
     settings = result.scalar_one_or_none()
     if settings:
@@ -81,7 +84,9 @@ async def save_workflow(body: WorkflowData, db: DbSession, _current_user: Curren
     else:
         settings = Settings(user_id=0, actions_node_map=workflow_dict)
         db.add(settings)
-
     await db.flush()
+
+    # Only install after DB succeeds — keeps in-memory and DB state consistent
+    manager.install_workflow(graph)
     logger.info("Workflow saved and rebuilt successfully")
     return workflow_dict

@@ -20,13 +20,12 @@ class Logger(AbstractNode):
         logger.info("[Workflow] Node %s: %s", self.node_id, value)
 
         if self.session_factory:
-            now = datetime.datetime.now()
+            now = datetime.datetime.now(datetime.UTC)
             record = LoggingMessage(
                 source="workflow",
                 level=logging.INFO,
                 message=f"Node {self.node_id}: {value}",
-                date=now.date(),
-                time=now.time(),
+                timestamp=now,
             )
             async with self.session_factory() as session:
                 session.add(record)

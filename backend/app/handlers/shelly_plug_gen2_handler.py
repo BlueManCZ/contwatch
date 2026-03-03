@@ -6,7 +6,7 @@ import httpx
 from app.handlers.base import Indicator, KnownAction, KnownAttribute, KnownControl
 from app.handlers.http_handler import HttpHandler
 from app.handlers.registry import register_handler_type
-from app.handlers.shelly_plug_handler import _wifi_indicator
+from app.handlers.shelly_utils import is_on, wifi_indicator
 
 
 @register_handler_type
@@ -62,7 +62,7 @@ class ShellyPlugGen2Handler(HttpHandler):
         indicators: list[Indicator] = []
         output = data.get("switch:0/output")
         if output is not None:
-            on = str(output).lower() == "true"
+            on = is_on(output)
             indicators.append(
                 Indicator(
                     icon="power" if on else "power-off",
@@ -72,7 +72,7 @@ class ShellyPlugGen2Handler(HttpHandler):
             )
         rssi = data.get("wifi/rssi")
         if rssi is not None:
-            indicators.append(_wifi_indicator(int(rssi)))
+            indicators.append(wifi_indicator(int(rssi)))
         return indicators
 
     @classmethod

@@ -61,11 +61,12 @@ async def all_attribute_values(manager: HandlerManagerDep, _current_user: Curren
 
 @router.put("/reorder", status_code=204)
 async def reorder_attributes(body: AttributeReorderRequest, db: DbSession, _current_user: CurrentUser):
+    ids = [item.id for item in body.items]
+    result = await db.execute(select(Attribute).where(Attribute.id.in_(ids)))
+    attrs_by_id = {a.id: a for a in result.scalars()}
     for item in body.items:
-        result = await db.execute(select(Attribute).where(Attribute.id == item.id))
-        attribute = result.scalar_one_or_none()
-        if attribute:
-            attribute.order = item.order
+        if attr := attrs_by_id.get(item.id):
+            attr.order = item.order
     await db.commit()
     await sio.emit("mutate", {"entity": "attributes"})
     await sio.emit("mutate", {"entity": "handlers"})

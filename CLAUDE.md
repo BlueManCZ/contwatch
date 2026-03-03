@@ -37,13 +37,17 @@
 
 ## Code Quality
 
-- **Every task must finish with a clean build and lint — zero errors, zero warnings.** Run `pnpm typecheck`, `pnpm lint`, and `pnpm format` (frontend) or `make check` (backend) before considering work done.
+- **Every task must finish with a clean build and lint — zero errors, zero warnings.** Run `pnpm typecheck` and `pnpm lint:fix` (frontend) or `make check` (backend) before considering work done. Always use `pnpm lint:fix` (not `pnpm lint`) so formatting issues are auto-fixed immediately.
 - Fix all issues, including pre-existing ones unrelated to your changes. The codebase must always be warning-free.
 - **Do not suppress lint warnings with ignore comments by default.** Always try to fix the issue properly first. Only add a suppress comment when the lint rule genuinely does not apply and a proper fix would be worse (e.g. less readable, wrong behavior). Include a clear justification in the comment.
 
 ## Bug Fixes
 
 - **When fixing a bug, always search the entire codebase for the same pattern** before considering the fix done. Proactively find and fix all similar occurrences.
+
+## UI/UX
+
+- **All clickable elements must have `cursor-pointer`.** Buttons, icon buttons, clickable cards, and any other interactive elements should always show a pointer cursor on hover.
 
 ## Common Pitfalls
 

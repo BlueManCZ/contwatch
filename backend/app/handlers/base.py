@@ -1,6 +1,8 @@
 import asyncio
 import contextlib
 import logging
+import time
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, ClassVar
 
@@ -60,7 +62,7 @@ class KnownControl:
     unit: str | None = None
 
 
-class AbstractHandler:
+class AbstractHandler(ABC):
     """Base class for all IoT data handlers.
 
     Subclasses must set class-level attributes (handler_type, handler_name, etc.)
@@ -125,8 +127,8 @@ class AbstractHandler:
             self._active = False
             self._connected = False
 
-    async def run(self) -> None:
-        raise NotImplementedError
+    @abstractmethod
+    async def run(self) -> None: ...
 
     # --- State ---
 
@@ -156,7 +158,8 @@ class AbstractHandler:
 
     async def execute_action(self, message: str) -> bool:
         """Execute an action. message is a JSON string. Returns success."""
-        raise NotImplementedError
+        logger.warning("Handler %s (%s) does not support actions", self.handler_id, self.handler_type)
+        return False
 
     def extract_indicators(self, data: dict) -> list[Indicator]:
         """Override to extract status indicators from raw device data."""
@@ -173,8 +176,18 @@ class AbstractHandler:
     # --- Interval helper ---
 
     async def wait_for_interval(self, seconds: float) -> None:
-        """Sleep for the given interval, checking every 0.5s for cancellation."""
-        elapsed = 0.0
-        while self._active and elapsed < seconds:
-            await asyncio.sleep(min(0.5, seconds - elapsed))
-            elapsed += 0.5
+        """Sleep until the next wall-clock-aligned interval boundary.
+
+        For a 10s interval, polls align to :00, :10, :20, etc.
+        If a poll overshoots the next boundary, skips to the following one.
+        """
+        now = time.time()
+        sleep_for = seconds - (now % seconds)
+        if sleep_for < 0.1:
+            sleep_for += seconds
+        deadline = asyncio.get_event_loop().time() + sleep_for
+        while self._active:
+            remaining = deadline - asyncio.get_event_loop().time()
+            if remaining <= 0:
+                break
+            await asyncio.sleep(min(0.5, remaining))

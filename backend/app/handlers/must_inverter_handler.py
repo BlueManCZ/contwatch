@@ -1,7 +1,6 @@
 import asyncio
 import contextlib
 import logging
-from time import sleep
 from typing import ClassVar
 
 import minimalmodbus
@@ -34,15 +33,15 @@ def _open_instrument(port: str, slave_address: int, timeout: float) -> minimalmo
     return instrument
 
 
-def _read_all_registers(instrument: minimalmodbus.Instrument) -> dict:
-    """Read all configured registers from the instrument (blocking)."""
-    instrument.serial.reset_input_buffer()
+async def _read_all_registers(instrument: minimalmodbus.Instrument) -> dict:
+    """Read all configured registers from the instrument."""
+    await asyncio.to_thread(instrument.serial.reset_input_buffer)
     result: dict = {}
     for section, registers in _REGISTERS.items():
         result[section] = {}
         for key, (address, decimals) in registers.items():
-            result[section][key] = instrument.read_register(address, decimals)
-            sleep(0.05)
+            result[section][key] = await asyncio.to_thread(instrument.read_register, address, decimals)
+            await asyncio.sleep(0.05)
     return result
 
 
@@ -109,7 +108,7 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
                 logger.info("Handler %s: connected to %s (addr=%s)", self.handler_id, port, slave_address)
 
                 while self.is_active:
-                    data = await asyncio.to_thread(_read_all_registers, instrument)
+                    data = await _read_all_registers(instrument)
                     self.add_message(data)
                     await self.wait_for_interval(interval)
 
@@ -130,6 +129,3 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
                 await asyncio.sleep(1)
             else:
                 return
-
-    async def execute_action(self, message: str) -> bool:
-        return False

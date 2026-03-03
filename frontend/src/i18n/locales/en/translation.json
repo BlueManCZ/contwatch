@@ -210,7 +210,7 @@
         "unsaved": "Unsaved changes",
         "saving": "Saving...",
         "saved": "Saved",
-        "saveError": "Failed to save workflow"
+        "error": "Failed to save workflow"
     },
     "chart": {
         "title": "Chart",

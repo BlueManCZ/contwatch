@@ -4,6 +4,7 @@ import {
     type Connection,
     Controls,
     type Edge,
+    type EdgeTypes,
     type HandleType,
     type Node,
     type NodeTypes,
@@ -15,7 +16,8 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Circle, Loader2, Trash2 } from "lucide-react";
+import type { AxiosError } from "axios";
+import { AlertCircle, Check, Circle, Loader2, Trash2 } from "lucide-react";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { NodeDefinition, WorkflowData } from "@/api/generated/contWatchAPI.schemas";
@@ -25,9 +27,13 @@ import {
     useGetWorkflowApiActionsWorkflowGet,
     useSaveWorkflowApiActionsWorkflowPut,
 } from "@/api/generated/workflow/workflow";
+import { DeletableEdge } from "./deletable-edge";
 import { createConnectionValidator } from "./edge-validation";
 import { PORT_COLORS } from "./types";
 import { createWorkflowNode } from "./workflow-node";
+
+const EMPTY_DEFINITIONS: NodeDefinition[] = [];
+const EDGE_TYPES: EdgeTypes = { default: DeletableEdge };
 
 let nodeIdCounter = 0;
 function nextNodeId() {
@@ -51,7 +57,7 @@ function MobileNodeActions() {
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 md:hidden animate-in fade-in slide-in-from-bottom-2 duration-150">
             <button
                 type="button"
-                className="flex items-center gap-2 rounded-full border bg-card px-4 py-2.5 shadow-lg active:scale-95 transition-transform"
+                className="flex cursor-pointer items-center gap-2 rounded-full border bg-card px-4 py-2.5 shadow-lg active:scale-95 transition-transform"
                 onClick={() => {
                     deleteElements({ nodes: selectedNodeIds.map((id) => ({ id })) });
                 }}
@@ -79,34 +85,46 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
     const { data: workflowResponse } = useGetWorkflowApiActionsWorkflowGet();
     const saveMutation = useSaveWorkflowApiActionsWorkflowPut();
 
-    const [saveStatus, setSaveStatus] = useState<"idle" | "unsaved" | "saving" | "saved">("idle");
+    const [saveStatus, setSaveStatus] = useState<"idle" | "unsaved" | "saving" | "saved" | "error">("idle");
 
     useEffect(() => {
         if (saveMutation.isPending) {
             setSaveStatus("saving");
         } else if (saveStatus === "saving") {
-            setSaveStatus("saved");
-            const timer = setTimeout(() => setSaveStatus("idle"), 2000);
-            return () => clearTimeout(timer);
+            if (saveMutation.isError) {
+                setSaveStatus("error");
+            } else {
+                setSaveStatus("saved");
+                const timer = setTimeout(() => setSaveStatus("idle"), 2000);
+                return () => clearTimeout(timer);
+            }
         }
-    }, [saveMutation.isPending, saveStatus]);
+    }, [saveMutation.isPending, saveMutation.isError, saveStatus]);
 
-    const definitions = (defsResponse?.data ?? []) as NodeDefinition[];
+    const definitions = useMemo(
+        () => (defsResponse?.data as NodeDefinition[] | undefined) ?? EMPTY_DEFINITIONS,
+        [defsResponse?.data],
+    );
     const savedWorkflow = workflowResponse?.data as WorkflowData | undefined;
 
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
     const [loaded, setLoaded] = useState(false);
 
-    const { definitionsMap, nodeTypes } = useMemo(() => {
+    const nodeTypesRef = useRef<NodeTypes>({});
+
+    const definitionsMap = useMemo(() => {
         const map = new Map<string, NodeDefinition>();
-        const types: NodeTypes = {};
         for (const def of definitions) {
             map.set(def.type, def);
-            types[def.type] = createWorkflowNode(def);
+            if (!nodeTypesRef.current[def.type]) {
+                nodeTypesRef.current[def.type] = createWorkflowNode(def);
+            }
         }
-        return { definitionsMap: map, nodeTypes: types };
+        return map;
     }, [definitions]);
+
+    const nodeTypes = nodeTypesRef.current;
 
     const getEdgeStyle = useCallback(
         (sourceNodeType: string, sourceHandle: string | null | undefined) => {
@@ -245,24 +263,50 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
                 onSuccess: (response) => {
                     queryClient.setQueryData(getGetWorkflowApiActionsWorkflowGetQueryKey(), response);
                 },
+                onError: (error) => {
+                    const axiosError = error as AxiosError<{ detail?: { node_id?: string } }>;
+                    const nodeId = axiosError?.response?.data?.detail?.node_id;
+                    if (nodeId) {
+                        setNodes((nds) =>
+                            nds.map((n) =>
+                                n.id === nodeId ? { ...n, data: { ...n.data, _error: true } } : n,
+                            ),
+                        );
+                    }
+                },
             },
         );
-    }, [queryClient]);
+    }, [queryClient, setNodes]);
+
+    const clearErrorNodes = useCallback(() => {
+        if (nodesRef.current.some((n) => n.data._error)) {
+            setNodes((nds) =>
+                nds.map((n) => (n.data._error ? { ...n, data: { ...n.data, _error: undefined } } : n)),
+            );
+        }
+        if (saveStatus === "error") setSaveStatus("unsaved");
+    }, [setNodes, saveStatus]);
 
     const wrappedOnNodesChange: typeof onNodesChange = useCallback(
         (changes) => {
             onNodesChange(changes);
-            if (readyRef.current) changeCountRef.current++;
+            if (readyRef.current) {
+                changeCountRef.current++;
+                clearErrorNodes();
+            }
         },
-        [onNodesChange],
+        [onNodesChange, clearErrorNodes],
     );
 
     const wrappedOnEdgesChange: typeof onEdgesChange = useCallback(
         (changes) => {
             onEdgesChange(changes);
-            if (readyRef.current) changeCountRef.current++;
+            if (readyRef.current) {
+                changeCountRef.current++;
+                clearErrorNodes();
+            }
         },
-        [onEdgesChange],
+        [onEdgesChange, clearErrorNodes],
     );
 
     const wrappedOnConnect = useCallback(
@@ -479,6 +523,7 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
                         <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
                     )}
                     {saveStatus === "saved" && <Check className="h-3 w-3 text-emerald-500" />}
+                    {saveStatus === "error" && <AlertCircle className="h-3 w-3 text-destructive" />}
                     <span className="text-[11px] font-medium text-muted-foreground">
                         {t(`workflow.${saveStatus}`)}
                     </span>
@@ -498,6 +543,7 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
                 onDrop={onDrop}
                 onDragOver={onDragOver}
                 nodeTypes={nodeTypes}
+                edgeTypes={EDGE_TYPES}
                 isValidConnection={isValidConnection}
                 deleteKeyCode={["Backspace", "Delete"]}
                 fitView

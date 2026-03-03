@@ -35,17 +35,18 @@ from app.schemas.handler import (
 )
 from app.socketio_app import sio
 from app.utils.linearize import linearize
+from app.utils.network import get_lan_ip
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/handlers", tags=["handlers"])
 
 
-def _normalize_config(config: dict) -> dict:
+def _normalize_config(config: dict) -> None:
     """Ensure the host field has a scheme prefix and split path into fetch_route."""
     host = config.get("host")
     if not isinstance(host, str) or not host:
-        return config
+        return
 
     if not host.startswith(("http://", "https://")):
         host = f"http://{host}"
@@ -56,7 +57,6 @@ def _normalize_config(config: dict) -> dict:
         host = f"{parts.scheme}://{parts.netloc}"
 
     config["host"] = host
-    return config
 
 
 _HANDLER_LOAD_OPTIONS = [selectinload(Handler.attributes), selectinload(Handler.actions)]
@@ -73,9 +73,7 @@ def _to_handler_read(handler: Handler) -> HandlerRead:
 @router.get("/", response_model=list[HandlerRead])
 async def list_handlers(db: DbSession, _current_user: CurrentUser):
     result = await db.execute(
-        select(Handler)
-        .options(*_HANDLER_LOAD_OPTIONS)
-        .order_by(Handler.order.asc().nullslast(), Handler.id.asc())
+        select(Handler).options(*_HANDLER_LOAD_OPTIONS).order_by(Handler.order.asc().nullslast(), Handler.id.asc())
     )
     return [_to_handler_read(h) for h in result.scalars().all()]
 
@@ -92,14 +90,12 @@ async def list_handler_types(_current_user: CurrentUser):
 
 @router.get("/categories", response_model=list[CategoryInfo])
 async def list_categories(_current_user: CurrentUser):
-    from app.api.system import _get_lan_ip
-
     categories = copy.deepcopy(get_categories())
     for cat in categories:
         if cat["name"] == "http":
             for field in cat["probe_fields"]:
                 if field["key"] == "host" and field.get("default") is None:
-                    field["default"] = _get_lan_ip()
+                    field["default"] = get_lan_ip()
         elif cat["name"] == "serial":
             try:
                 from serial.tools.list_ports import comports
@@ -262,10 +258,11 @@ async def setup_handler(body: SetupRequest, db: DbSession, manager: HandlerManag
 
 @router.put("/reorder", status_code=204)
 async def reorder_handlers(body: HandlerReorderRequest, db: DbSession, _current_user: CurrentUser):
+    ids = [item.id for item in body.items]
+    result = await db.execute(select(Handler).where(Handler.id.in_(ids)))
+    handlers_by_id = {h.id: h for h in result.scalars()}
     for item in body.items:
-        result = await db.execute(select(Handler).where(Handler.id == item.id))
-        handler = result.scalar_one_or_none()
-        if handler:
+        if handler := handlers_by_id.get(item.id):
             handler.order = item.order
     await db.commit()
     await sio.emit("mutate", {"entity": "handlers"})
@@ -342,7 +339,9 @@ async def start_handler(handler_id: int, db: DbSession, manager: HandlerManagerD
     if not handler:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Handler not found")
     handler.enabled = True
+    await db.commit()
     await manager.start_handler(handler_id)
+    await sio.emit("mutate", {"entity": "handlers"})
     return {"ok": True}
 
 
@@ -353,7 +352,9 @@ async def stop_handler(handler_id: int, db: DbSession, manager: HandlerManagerDe
     if not handler:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Handler not found")
     handler.enabled = False
+    await db.commit()
     await manager.stop_handler(handler_id)
+    await sio.emit("mutate", {"entity": "handlers"})
     return {"ok": True}
 
 

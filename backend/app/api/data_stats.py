@@ -1,19 +1,12 @@
 import datetime
 
 from fastapi import APIRouter, Query
-from pydantic import BaseModel
 from sqlalchemy import text
 
 from app.dependencies import CurrentUser, DbSession
+from app.schemas.data_stat import DailyStatRead
 
 router = APIRouter(prefix="/data-stats", tags=["data-stats"])
-
-
-class DailyStatRead(BaseModel):
-    attribute_id: int
-    date: datetime.date
-    min_value: float | None
-    max_value: float | None
 
 
 @router.get("/", response_model=list[DailyStatRead])

@@ -6,15 +6,7 @@ import httpx
 from app.handlers.base import Indicator, KnownAction, KnownAttribute, KnownControl
 from app.handlers.http_handler import HttpHandler
 from app.handlers.registry import register_handler_type
-
-
-def _wifi_indicator(rssi: int) -> Indicator:
-    """Build a WiFi signal indicator from RSSI (dBm)."""
-    if rssi >= -50:
-        return Indicator(icon="wifi", color="success", tooltip=f"WiFi: {rssi} dBm")
-    if rssi >= -70:
-        return Indicator(icon="wifi-high", color="warning", tooltip=f"WiFi: {rssi} dBm")
-    return Indicator(icon="wifi-low", color="destructive", tooltip=f"WiFi: {rssi} dBm")
+from app.handlers.shelly_utils import is_on, wifi_indicator
 
 
 @register_handler_type
@@ -69,7 +61,7 @@ class ShellyPlugHandler(HttpHandler):
         indicators: list[Indicator] = []
         relay = data.get("relays/0/ison")
         if relay is not None:
-            on = str(relay).lower() == "true"
+            on = is_on(relay)
             indicators.append(
                 Indicator(
                     icon="power" if on else "power-off",
@@ -79,7 +71,7 @@ class ShellyPlugHandler(HttpHandler):
             )
         rssi = data.get("wifi_sta/rssi")
         if rssi is not None:
-            indicators.append(_wifi_indicator(int(rssi)))
+            indicators.append(wifi_indicator(int(rssi)))
         return indicators
 
     @classmethod

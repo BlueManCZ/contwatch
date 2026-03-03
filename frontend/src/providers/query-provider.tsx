@@ -5,8 +5,12 @@ import { type ReactNode, useState } from "react";
 import { toast } from "sonner";
 
 function extractErrorMessage(error: unknown): string {
-    const axiosError = error as AxiosError<{ detail?: string }>;
-    return axiosError?.response?.data?.detail ?? axiosError?.message ?? "An unexpected error occurred";
+    const axiosError = error as AxiosError<{ detail?: string | { message?: string } }>;
+    const detail = axiosError?.response?.data?.detail;
+    if (typeof detail === "string") return detail;
+    if (detail && typeof detail === "object" && "message" in detail)
+        return detail.message ?? "An unexpected error occurred";
+    return axiosError?.message ?? "An unexpected error occurred";
 }
 
 export function QueryProvider({ children }: { children: ReactNode }) {

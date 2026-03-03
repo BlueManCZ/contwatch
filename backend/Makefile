@@ -1,4 +1,4 @@
-.PHONY: dev test lint lint-fix format check
+.PHONY: dev test lint lint-fix format format-check check
 
 dev:
 	uv run uvicorn app.main:sio_asgi_app --reload
@@ -15,4 +15,7 @@ lint-fix:
 format:
 	uv run ruff format .
 
-check: lint test
+format-check:
+	uv run ruff format --check .
+
+check: format-check lint test

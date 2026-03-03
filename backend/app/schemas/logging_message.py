@@ -11,5 +11,4 @@ class LoggingMessageRead(OrmBase, BaseModel):
     level: int
     message: str
     payload: dict | None = None
-    date: datetime.date
-    time: datetime.time
+    timestamp: datetime.datetime
