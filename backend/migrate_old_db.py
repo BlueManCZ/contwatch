@@ -23,7 +23,7 @@ import argparse
 import json
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import psycopg
 from psycopg.rows import dict_row
@@ -41,7 +41,7 @@ TIMEZONE = "UTC"
 
 
 def log(msg: str) -> None:
-    ts = datetime.now(timezone.utc).strftime("%H:%M:%S")
+    ts = datetime.now(UTC).strftime("%H:%M:%S")
     print(f"[{ts}] {msg}", flush=True)
 
 

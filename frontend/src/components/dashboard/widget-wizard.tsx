@@ -11,7 +11,6 @@ import {
     SlidersHorizontal,
     ToggleLeft,
 } from "lucide-react";
-import { DynamicIcon } from "lucide-react/dynamic";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -36,6 +35,7 @@ import {
     useCreateWidgetFromControlApiWidgetsFromControlPost,
     useDashboardApiWidgetsDashboardGet,
 } from "@/api/generated/widgets/widgets";
+import { SafeIcon } from "@/components/safe-icon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -221,12 +221,8 @@ function DeviceStep({
                                     />
                                 )}
 
-                                <DynamicIcon
-                                    // biome-ignore lint/suspicious/noExplicitAny: icon name is dynamic from backend
-                                    name={(handler.label ? guessHandlerIcon(handler) : "cpu") as any}
-                                    fallback={() => (
-                                        <Loader2 className="h-7 w-7 text-muted-foreground animate-spin" />
-                                    )}
+                                <SafeIcon
+                                    name={handler.label ? guessHandlerIcon(handler) : "cpu"}
                                     className={cn(
                                         "h-7 w-7 shrink-0",
                                         status === "online"
@@ -434,12 +430,7 @@ function WidgetStep({ handler, onBack, onClose }: WidgetStepProps) {
         <>
             <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                    <DynamicIcon
-                        // biome-ignore lint/suspicious/noExplicitAny: icon name is dynamic from backend
-                        name={guessHandlerIcon(handler) as any}
-                        fallback={() => <Loader2 className="h-4 w-4 animate-spin" />}
-                        className="h-4 w-4 text-muted-foreground"
-                    />
+                    <SafeIcon name={guessHandlerIcon(handler)} className="h-4 w-4 text-muted-foreground" />
                     {handler.label || handler.type}
                 </DialogTitle>
             </DialogHeader>
@@ -485,9 +476,8 @@ function WidgetStep({ handler, onBack, onClose }: WidgetStepProps) {
                                             onClick={(e) => e.stopPropagation()}
                                         />
                                         {control.icon && (
-                                            <DynamicIcon
-                                                // biome-ignore lint/suspicious/noExplicitAny: icon name is dynamic from backend
-                                                name={control.icon as any}
+                                            <SafeIcon
+                                                name={control.icon}
                                                 className={cn(
                                                     "h-4 w-4 shrink-0",
                                                     checked ? "text-primary" : "text-muted-foreground",
@@ -571,23 +561,23 @@ function WidgetStep({ handler, onBack, onClose }: WidgetStepProps) {
                                                 onCheckedChange={() => toggleAttr(attr.id)}
                                                 onClick={(e) => e.stopPropagation()}
                                             />
-                                            {attr.icon ? (
-                                                <DynamicIcon
-                                                    // biome-ignore lint/suspicious/noExplicitAny: icon name is dynamic from backend
-                                                    name={attr.icon as any}
-                                                    className={cn(
-                                                        "h-4 w-4 shrink-0",
-                                                        checked ? "text-primary" : "text-muted-foreground",
-                                                    )}
-                                                />
-                                            ) : (
-                                                <Gauge
-                                                    className={cn(
-                                                        "h-4 w-4 shrink-0",
-                                                        checked ? "text-primary" : "text-muted-foreground",
-                                                    )}
-                                                />
-                                            )}
+                                            <SafeIcon
+                                                name={attr.icon}
+                                                className={cn(
+                                                    "h-4 w-4 shrink-0",
+                                                    checked ? "text-primary" : "text-muted-foreground",
+                                                )}
+                                                fallback={
+                                                    <Gauge
+                                                        className={cn(
+                                                            "h-4 w-4 shrink-0",
+                                                            checked
+                                                                ? "text-primary"
+                                                                : "text-muted-foreground",
+                                                        )}
+                                                    />
+                                                }
+                                            />
                                             <span className="text-sm flex-1 min-w-0 truncate">
                                                 {displayLabel}
                                             </span>

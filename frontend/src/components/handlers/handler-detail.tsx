@@ -3,7 +3,6 @@ import type { Locale } from "date-fns";
 import { formatDistanceToNow } from "date-fns";
 import { cs, enUS } from "date-fns/locale";
 import { Cable, ChevronDown, Pencil, Play, Plus, Square, Trash2 } from "lucide-react";
-import { DynamicIcon } from "lucide-react/dynamic";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -34,6 +33,7 @@ import {
     useStopHandlerApiHandlersHandlerIdStopPost,
 } from "@/api/generated/handlers/handlers";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { SafeIcon } from "@/components/safe-icon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -139,15 +139,11 @@ function HandlerInfo({
                     {aura && (
                         <span className={cn("absolute h-full w-full rounded-full", aura.bg, aura.anim)} />
                     )}
-                    {icon ? (
-                        <DynamicIcon
-                            // biome-ignore lint/suspicious/noExplicitAny: icon name is dynamic from backend
-                            name={icon as any}
-                            className={cn("relative h-6 w-6", statusColor)}
-                        />
-                    ) : (
-                        <Cable className={cn("relative h-6 w-6", statusColor)} />
-                    )}
+                    <SafeIcon
+                        name={icon}
+                        className={cn("relative h-6 w-6", statusColor)}
+                        fallback={<Cable className={cn("relative h-6 w-6", statusColor)} />}
+                    />
                 </span>
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">

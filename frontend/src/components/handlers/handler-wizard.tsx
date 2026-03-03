@@ -1,6 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronLeft, Info, Loader2, Search, Wand2 } from "lucide-react";
-import { DynamicIcon } from "lucide-react/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -22,6 +21,7 @@ import {
     useProbeHandlerApiHandlersProbePost,
     useSetupHandlerApiHandlersSetupPost,
 } from "@/api/generated/handlers/handlers";
+import { SafeIcon } from "@/components/safe-icon";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -292,14 +292,7 @@ function CategoryStep({ onSelect }: { onSelect: (cat: CategoryInfo) => void }) {
                             onClick={() => onSelect(cat)}
                         >
                             <CardContent className="flex flex-col items-center gap-2 p-6">
-                                <DynamicIcon
-                                    // biome-ignore lint/suspicious/noExplicitAny: icon name is dynamic from backend
-                                    name={cat.icon as any}
-                                    fallback={() => (
-                                        <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
-                                    )}
-                                    className="h-8 w-8 text-muted-foreground"
-                                />
+                                <SafeIcon name={cat.icon} className="h-8 w-8 text-muted-foreground" />
                                 <span className="text-sm font-medium">{cat.label}</span>
                             </CardContent>
                         </Card>
@@ -439,12 +432,8 @@ function ManualStep({
                                 onClick={() => handleTypeChange(ht.type)}
                             >
                                 <CardContent className="flex items-center gap-3 p-3">
-                                    <DynamicIcon
-                                        // biome-ignore lint/suspicious/noExplicitAny: icon name is dynamic from backend
-                                        name={ht.icon as any}
-                                        fallback={() => (
-                                            <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
-                                        )}
+                                    <SafeIcon
+                                        name={ht.icon}
                                         className={`h-5 w-5 shrink-0 ${
                                             selectedType === ht.type
                                                 ? "text-primary"
@@ -658,18 +647,11 @@ function ReviewStep({
             <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
                 {detected ? (
                     <div className="flex items-center gap-2 rounded-md border border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950 px-3 py-2">
-                        {result?.handler_icon ? (
-                            <DynamicIcon
-                                // biome-ignore lint/suspicious/noExplicitAny: icon name is dynamic from backend
-                                name={result.handler_icon as any}
-                                fallback={() => (
-                                    <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-                                )}
-                                className="h-4 w-4 text-green-600 dark:text-green-400"
-                            />
-                        ) : (
-                            <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-                        )}
+                        <SafeIcon
+                            name={result?.handler_icon}
+                            className="h-4 w-4 text-green-600 dark:text-green-400"
+                            fallback={<Check className="h-4 w-4 text-green-600 dark:text-green-400" />}
+                        />
                         <span className="text-sm font-medium">
                             {t("wizard.detected", { name: result?.handler_name })}
                         </span>

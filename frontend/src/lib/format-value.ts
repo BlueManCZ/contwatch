@@ -73,7 +73,8 @@ for (const family of UNIT_FAMILIES) {
 
 function roundValue(value: number, rounding?: number | null): string {
     if (rounding != null) {
-        return value.toFixed(rounding);
+        // Round to the requested precision, then drop unnecessary trailing zeros
+        return parseFloat(value.toFixed(rounding)).toString();
     }
     // Smart default: up to 2 decimal places, strip trailing zeros
     const rounded = Math.round(value * 100) / 100;

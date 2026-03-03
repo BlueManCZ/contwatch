@@ -4,7 +4,6 @@ import type { Locale } from "date-fns";
 import { formatDistanceToNow } from "date-fns";
 import { cs, enUS } from "date-fns/locale";
 import { Activity, Cable, History, TrendingDown, TrendingUp } from "lucide-react";
-import { DynamicIcon } from "lucide-react/dynamic";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useReorderAttributesApiAttributesReorderPut } from "@/api/generated/attributes/attributes";
@@ -28,8 +27,10 @@ import { HandlerWizard } from "@/components/handlers/handler-wizard";
 import { SortableAttributeList } from "@/components/handlers/sortable-attribute-list";
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
+import { SafeIcon } from "@/components/safe-icon";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { formatValue } from "@/lib/format-value";
 import { cn } from "@/lib/utils";
 import { useHandlerIndicatorStore } from "@/stores/handler-indicators";
@@ -43,10 +44,12 @@ export function HandlerList() {
     const reorderHandlers = useReorderHandlersApiHandlersReorderPut();
     const [selectedHandlerId, setSelectedHandlerId] = useState<number | null>(null);
     const [detailOpen, setDetailOpen] = useState(false);
+    const isMobile = useIsMobile();
 
     const handlers = (data?.data ?? []) as HandlerRead[];
     const handlerTypes = (typesData?.data ?? []) as HandlerTypeInfo[];
     const typeIconMap = new Map(handlerTypes.map((ht) => [ht.type, ht.icon]));
+    const typeNameMap = new Map(handlerTypes.map((ht) => [ht.type, ht.name]));
     const selectedHandler = handlers.find((h) => h.id === selectedHandlerId) ?? null;
 
     function handleHandlerReorder(reordered: HandlerRead[]) {
@@ -66,7 +69,7 @@ export function HandlerList() {
     }
 
     return (
-        <div className="space-y-6 pb-3 sm:pb-5">
+        <div className="space-y-6 md:space-y-0 md:flex md:flex-col md:flex-1 md:min-h-0 md:gap-6 pb-3 sm:pb-5">
             <PageHeader title={t("handlers.title")} actions={<HandlerWizard />} />
 
             {handlers.length === 0 ? (
@@ -76,14 +79,16 @@ export function HandlerList() {
                     description={t("handlers.noHandlersDescription")}
                 />
             ) : (
-                <div className="grid gap-3">
+                <div className="md:flex-1 md:min-h-0 md:columns-[480px] gap-3 md:[column-fill:auto] [&>*]:mb-3 [&>*]:break-inside-avoid">
                     <SortableAttributeList
                         items={handlers}
                         onReorder={handleHandlerReorder}
+                        multiColumn={!isMobile}
                         renderItem={(handler) => (
                             <HandlerCard
                                 handler={handler}
                                 icon={typeIconMap.get(handler.type)}
+                                typeName={typeNameMap.get(handler.type)}
                                 onOpenDetail={() => {
                                     setSelectedHandlerId(handler.id);
                                     setDetailOpen(true);
@@ -111,10 +116,12 @@ const indicatorColor: Record<string, string> = {
 function HandlerCard({
     handler,
     icon,
+    typeName,
     onOpenDetail,
 }: {
     handler: HandlerRead;
     icon: string | undefined;
+    typeName: string | undefined;
     onOpenDetail: () => void;
 }) {
     const { t, i18n } = useTranslation();
@@ -131,7 +138,7 @@ function HandlerCard({
     const isRunning = status?.running ?? false;
     const isConnected = status?.connected ?? false;
 
-    const label = handler.label || handler.type;
+    const label = handler.label || typeName || handler.type;
     const attrs = ((handler.attributes ?? []) as AttributeRead[]).filter((a) => a.enabled);
     const lastActiveText = status?.last_active
         ? formatDistanceToNow(new Date(status.last_active), {
@@ -184,24 +191,19 @@ function HandlerCard({
                                     className={cn("absolute h-full w-full rounded-full", aura.bg, aura.anim)}
                                 />
                             )}
-                            {icon ? (
-                                <DynamicIcon
-                                    // biome-ignore lint/suspicious/noExplicitAny: icon name is dynamic from backend
-                                    name={icon as any}
-                                    className={cn("relative h-5 w-5", statusColor)}
-                                />
-                            ) : (
-                                <Cable className={cn("relative h-5 w-5", statusColor)} />
-                            )}
+                            <SafeIcon
+                                name={icon}
+                                className={cn("relative h-5 w-5", statusColor)}
+                                fallback={<Cable className={cn("relative h-5 w-5", statusColor)} />}
+                            />
                         </span>
                         <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
                                 <h3 className="font-medium text-sm truncate">{label}</h3>
                                 {indicators?.map((ind) => (
                                     <span key={ind.icon} title={ind.tooltip}>
-                                        <DynamicIcon
-                                            // biome-ignore lint/suspicious/noExplicitAny: icon name is dynamic from backend
-                                            name={ind.icon as any}
+                                        <SafeIcon
+                                            name={ind.icon}
                                             className={cn("h-3.5 w-3.5 shrink-0", indicatorColor[ind.color])}
                                         />
                                     </span>
@@ -278,15 +280,11 @@ function AttributeRow({ attr, liveVal }: { attr: AttributeRead; liveVal: Attribu
                 navigate({ to: "/analytics", search: { attributes: String(attr.id) } });
             }}
         >
-            {attr.icon ? (
-                <DynamicIcon
-                    // biome-ignore lint/suspicious/noExplicitAny: icon name is dynamic from backend
-                    name={attr.icon as any}
-                    className="h-3.5 w-3.5 text-muted-foreground shrink-0"
-                />
-            ) : (
-                <Activity className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
-            )}
+            <SafeIcon
+                name={attr.icon}
+                className="h-3.5 w-3.5 text-muted-foreground shrink-0"
+                fallback={<Activity className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />}
+            />
 
             <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">

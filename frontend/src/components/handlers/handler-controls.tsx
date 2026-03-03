@@ -1,10 +1,10 @@
-import { DynamicIcon } from "lucide-react/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useExecuteActionApiActionsActionIdExecutePost } from "@/api/generated/actions/actions";
 import type { HandlerRead, ResolvedControl } from "@/api/generated/contWatchAPI.schemas";
 import { useHandlerControlsApiHandlersHandlerIdControlsGet } from "@/api/generated/handlers/handlers";
+import { SafeIcon } from "@/components/safe-icon";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
@@ -93,9 +93,8 @@ function ControlSwitch({ control }: { control: ResolvedControl }) {
             />
 
             {control.icon && (
-                <DynamicIcon
-                    // biome-ignore lint/suspicious/noExplicitAny: icon name is dynamic from backend
-                    name={control.icon as any}
+                <SafeIcon
+                    name={control.icon}
                     className={cn(
                         "h-4 w-4 shrink-0 transition-colors duration-300",
                         isOn ? "text-primary" : "text-muted-foreground",
@@ -199,11 +198,7 @@ function ControlSlider({ control }: { control: ResolvedControl }) {
 
             <div className="flex items-center gap-3">
                 {control.icon && (
-                    <DynamicIcon
-                        // biome-ignore lint/suspicious/noExplicitAny: icon name is dynamic from backend
-                        name={control.icon as any}
-                        className="h-4 w-4 text-primary/70 shrink-0"
-                    />
+                    <SafeIcon name={control.icon} className="h-4 w-4 text-primary/70 shrink-0" />
                 )}
                 <span className="text-sm font-medium flex-1 min-w-0 truncate">
                     {t(`controls.${control.key}`, control.label)}

@@ -222,26 +222,24 @@ class HandlerManager:
         self._attr_name_map[handler_id][name] = attribute_id
 
     async def start_handler(self, handler_id: int) -> None:
-        """Start a handler by DB id. Creates instance if needed."""
-        if handler_id in self._handlers:
-            handler = self._handlers[handler_id]
-            if handler.is_active:
+        """Start a handler by DB id. Recreates instance to pick up config changes."""
+        existing = self._handlers.get(handler_id)
+        if existing and existing.is_active:
+            return
+
+        async with self._session_factory() as session:
+            result = await session.execute(
+                select(Handler).where(Handler.id == handler_id).options(selectinload(Handler.attributes))
+            )
+            db_handler = result.scalar_one_or_none()
+            if not db_handler:
                 return
-            handler.start()
-        else:
-            async with self._session_factory() as session:
-                result = await session.execute(
-                    select(Handler).where(Handler.id == handler_id).options(selectinload(Handler.attributes))
-                )
-                db_handler = result.scalar_one_or_none()
-                if not db_handler:
-                    return
-                instance = self._create_handler_instance(db_handler)
-                if instance:
-                    for attr in db_handler.attributes:
-                        if attr.enabled:
-                            self._register_tracker(attr.id, db_handler.id, attr.name, rounding=attr.rounding)
-                    instance.start()
+            instance = self._create_handler_instance(db_handler)
+            if instance:
+                for attr in db_handler.attributes:
+                    if attr.enabled:
+                        self._register_tracker(attr.id, db_handler.id, attr.name, rounding=attr.rounding)
+                instance.start()
 
         self._last_connected_state[handler_id] = False
         await sio.emit("handler_status", {"handler_id": handler_id, "running": True, "connected": False})
