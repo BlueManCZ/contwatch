@@ -12,6 +12,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm build
 
-# Minimal output stage — just the static files
+# Minimal output stage — copy built files to the mounted volume at runtime
 FROM busybox:stable
-COPY --from=build /app/dist /app/dist
+COPY --from=build /app/dist /build
+CMD ["cp", "-r", "/build/.", "/app/dist/"]
