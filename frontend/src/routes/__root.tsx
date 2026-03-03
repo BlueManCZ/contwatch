@@ -1,6 +1,7 @@
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Toaster } from "sonner";
+import { NotFound } from "@/components/not-found";
 import { useSettingsStore } from "@/stores/settings";
 
 interface RouterContext {
@@ -24,4 +25,5 @@ function RootComponent() {
 
 export const Route = createRootRouteWithContext<RouterContext>()({
     component: RootComponent,
+    notFoundComponent: NotFound,
 });

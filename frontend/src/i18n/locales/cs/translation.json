@@ -331,6 +331,11 @@
         "removeSlider": "Toto odebere tento posuvn\u00edk z p\u0159ehledu.",
         "remove": "Odebrat"
     },
+    "notFound": {
+        "title": "Stránka nenalezena",
+        "description": "Stránka, kterou hledáte, neexistuje nebo byla přesunuta.",
+        "backHome": "Zpět na přehled"
+    },
     "admin": {
         "title": "Spr\u00e1va u\u017eivatel\u016f",
         "users": "U\u017eivatel\u00e9",

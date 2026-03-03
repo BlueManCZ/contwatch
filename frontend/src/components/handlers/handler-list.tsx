@@ -69,7 +69,7 @@ export function HandlerList() {
     }
 
     return (
-        <div className="space-y-6 md:space-y-0 md:flex md:flex-col md:flex-1 md:min-h-0 md:gap-6 pb-3 sm:pb-5">
+        <div className="space-y-6 md:space-y-0 md:flex md:flex-col md:flex-1 md:min-h-0 pb-3 sm:pb-5">
             <PageHeader title={t("handlers.title")} actions={<HandlerWizard />} />
 
             {handlers.length === 0 ? (
