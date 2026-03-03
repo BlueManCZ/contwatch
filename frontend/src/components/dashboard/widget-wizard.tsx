@@ -921,14 +921,20 @@ function ManualStep({
                                 <SelectTrigger>
                                     <SelectValue>
                                         {selectedTileAttr
-                                            ? selectedTileAttr.label || selectedTileAttr.name
+                                            ? t(
+                                                  `knownAttributes.${selectedTileAttr.name.replace(/[/:]/g, "_")}`,
+                                                  selectedTileAttr.label || selectedTileAttr.name,
+                                              )
                                             : t("dashboard.selectAttribute")}
                                     </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent alignItemWithTrigger={false}>
                                     {attributes.map((attr) => (
                                         <SelectItem key={attr.id} value={String(attr.id)}>
-                                            {attr.label || attr.name}
+                                            {t(
+                                                `knownAttributes.${attr.name.replace(/[/:]/g, "_")}`,
+                                                attr.label || attr.name,
+                                            )}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -952,14 +958,20 @@ function ManualStep({
                                 <SelectTrigger>
                                     <SelectValue>
                                         {selectedSwitchAttr
-                                            ? selectedSwitchAttr.label || selectedSwitchAttr.name
+                                            ? t(
+                                                  `knownAttributes.${selectedSwitchAttr.name.replace(/[/:]/g, "_")}`,
+                                                  selectedSwitchAttr.label || selectedSwitchAttr.name,
+                                              )
                                             : t("dashboard.selectAttribute")}
                                     </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent alignItemWithTrigger={false}>
                                     {attributes.map((attr) => (
                                         <SelectItem key={attr.id} value={String(attr.id)}>
-                                            {attr.label || attr.name}
+                                            {t(
+                                                `knownAttributes.${attr.name.replace(/[/:]/g, "_")}`,
+                                                attr.label || attr.name,
+                                            )}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -983,14 +995,20 @@ function ManualStep({
                                 <SelectTrigger>
                                     <SelectValue>
                                         {selectedSliderAttr
-                                            ? selectedSliderAttr.label || selectedSliderAttr.name
+                                            ? t(
+                                                  `knownAttributes.${selectedSliderAttr.name.replace(/[/:]/g, "_")}`,
+                                                  selectedSliderAttr.label || selectedSliderAttr.name,
+                                              )
                                             : t("dashboard.selectAttribute")}
                                     </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent alignItemWithTrigger={false}>
                                     {attributes.map((attr) => (
                                         <SelectItem key={attr.id} value={String(attr.id)}>
-                                            {attr.label || attr.name}
+                                            {t(
+                                                `knownAttributes.${attr.name.replace(/[/:]/g, "_")}`,
+                                                attr.label || attr.name,
+                                            )}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -1077,7 +1095,7 @@ function ManualStep({
                                         value={sliderActionId}
                                         onValueChange={(v) => setSliderActionId(v ?? "")}
                                     >
-                                        <SelectTrigger>
+                                        <SelectTrigger className="w-full">
                                             <SelectValue>
                                                 {sliderActionId
                                                     ? localizeAction(sliderActionId)

@@ -146,14 +146,20 @@ export function AddSwitchDialog({ open: controlledOpen, onOpenChange }: AddSwitc
                                 <SelectTrigger>
                                     <SelectValue>
                                         {selectedAttr
-                                            ? `${selectedAttr.label || selectedAttr.name}`
+                                            ? t(
+                                                  `knownAttributes.${selectedAttr.name.replace(/[/:]/g, "_")}`,
+                                                  selectedAttr.label || selectedAttr.name,
+                                              )
                                             : t("dashboard.selectAttribute")}
                                     </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent alignItemWithTrigger={false}>
                                     {attributes.map((attr) => (
                                         <SelectItem key={attr.id} value={String(attr.id)}>
-                                            {attr.label || attr.name}
+                                            {t(
+                                                `knownAttributes.${attr.name.replace(/[/:]/g, "_")}`,
+                                                attr.label || attr.name,
+                                            )}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

@@ -149,13 +149,20 @@ function SortableItem<T extends { id: number }>({
     const style: React.CSSProperties = {
         transform: CSS.Translate.toString(transform),
         transition,
+        touchAction: "manipulation",
         zIndex: isDragging ? 10 : undefined,
         position: isDragging ? "relative" : undefined,
         pointerEvents: dragging && !isDragging ? "none" : undefined,
     };
 
     return (
-        <div ref={setNodeRef} style={style} className="select-none" {...attributes} {...listeners}>
+        <div
+            ref={setNodeRef}
+            style={style}
+            className={`select-none ${isDragging ? "outline-2 outline-dashed outline-primary/50 -outline-offset-2 rounded-xl bg-background" : ""}`}
+            {...attributes}
+            {...listeners}
+        >
             {renderItem(item, isDragging)}
         </div>
     );

@@ -27,7 +27,7 @@ class ShellyPlugGen2Handler(HttpHandler):
         KnownAttribute(name="switch:0/output", label="Relay state"),
         KnownAttribute(name="switch:0/apower", label="Power", unit="W", rounding=0),
         KnownAttribute(name="switch:0/voltage", label="Voltage", unit="V", rounding=0),
-        KnownAttribute(name="switch:0/current", label="Current", unit="A", rounding=3),
+        KnownAttribute(name="switch:0/current", label="Current", unit="A", rounding=2),
         KnownAttribute(name="switch:0/aenergy/total", label="Total energy", unit="Wh", rounding=1),
         KnownAttribute(name="switch:0/temperature/tC", label="Temperature", unit="°C", rounding=1),
     ]
@@ -52,7 +52,6 @@ class ShellyPlugGen2Handler(HttpHandler):
             label="Relay",
             icon="plug",
             state_attribute="switch:0/output",
-            state_compare="true",
             action_on="Switch ON",
             action_off="Switch OFF",
         ),

@@ -56,7 +56,7 @@ def _normalize_config(config: dict) -> None:
         config["fetch_route"] = parts.path
         host = f"{parts.scheme}://{parts.netloc}"
 
-    config["host"] = host
+    config["host"] = host.rstrip("/")
 
 
 _HANDLER_LOAD_OPTIONS = [selectinload(Handler.attributes), selectinload(Handler.actions)]

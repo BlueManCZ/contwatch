@@ -106,9 +106,9 @@ export function formatValue(value: number, unit: string, rounding?: number | nul
         }
     }
 
-    // Special case: value is 0 — keep the configured unit
+    // Special case: value is 0 — keep the configured unit, skip rounding
     if (value === 0) {
-        return { value: roundValue(0, rounding), unit };
+        return { value: "0", unit };
     }
 
     const scaled = baseValue / best.factor;

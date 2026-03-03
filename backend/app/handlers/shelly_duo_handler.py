@@ -64,7 +64,6 @@ class ShellyDuoHandler(HttpHandler):
             label="Light",
             icon="lightbulb",
             state_attribute="lights/0/ison",
-            state_compare="true",
             action_on="Light ON",
             action_off="Light OFF",
         ),

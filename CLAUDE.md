@@ -35,6 +35,12 @@
 - Frontend components should import types from `@/api/generated/contWatchAPI.schemas` and hooks from `@/api/generated/<tag>/<tag>`.
 - **If you create Alembic migrations, always run `cd backend && uv run alembic upgrade head` before running `pnpm codegen`** — the backend must be able to start (which requires the DB schema to be up to date) for codegen to fetch the OpenAPI schema.
 
+## Code Reusability
+
+- **Strongly prioritize reusability.** If a pattern, helper, or logic appears (or would appear) in more than one place, extract it into shared code — a utility function, a custom hook, a shared component, etc.
+- Before writing new code, check if similar logic already exists elsewhere. Reuse and extend it rather than duplicating.
+- This applies to both frontend and backend: shared formatting functions, i18n patterns, API utilities, validation logic, etc.
+
 ## Code Quality
 
 - **Every task must finish with a clean build and lint — zero errors, zero warnings.** Run `pnpm typecheck` and `pnpm lint:fix` (frontend) or `make check` (backend) before considering work done. Always use `pnpm lint:fix` (not `pnpm lint`) so formatting issues are auto-fixed immediately.

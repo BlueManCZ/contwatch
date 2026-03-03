@@ -51,7 +51,6 @@ class ShellyPlugHandler(HttpHandler):
             label="Relay",
             icon="plug",
             state_attribute="relays/0/ison",
-            state_compare="true",
             action_on="Relay ON",
             action_off="Relay OFF",
         ),

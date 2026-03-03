@@ -658,7 +658,18 @@ function ReviewStep({
             <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
                 {detected ? (
                     <div className="flex items-center gap-2 rounded-md border border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950 px-3 py-2">
-                        <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        {result?.handler_icon ? (
+                            <DynamicIcon
+                                // biome-ignore lint/suspicious/noExplicitAny: icon name is dynamic from backend
+                                name={result.handler_icon as any}
+                                fallback={() => (
+                                    <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                )}
+                                className="h-4 w-4 text-green-600 dark:text-green-400"
+                            />
+                        ) : (
+                            <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        )}
                         <span className="text-sm font-medium">
                             {t("wizard.detected", { name: result?.handler_name })}
                         </span>
