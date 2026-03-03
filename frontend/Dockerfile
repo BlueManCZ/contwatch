@@ -10,7 +10,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
-RUN vite build
+RUN npx vite build
 
 # Minimal output stage — copy built files to the mounted volume at runtime
 FROM busybox:stable
