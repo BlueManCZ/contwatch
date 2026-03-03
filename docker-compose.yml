@@ -38,7 +38,6 @@ services:
     build: ./frontend
     volumes:
       - frontend_dist:/app/dist
-    profiles: ["build"]
 
 volumes:
   pgdata-v2:
