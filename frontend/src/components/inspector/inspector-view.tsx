@@ -82,8 +82,9 @@ export function InspectorView({ attributesParam, dateParam }: InspectorViewProps
                                 <button
                                     type="button"
                                     onClick={goToNextDay}
+                                    disabled={date === format(new Date(), "yyyy-MM-dd")}
                                     title={t("chart.nextDay")}
-                                    className="flex items-center justify-center h-full w-8 text-muted-foreground hover:text-foreground hover:bg-muted dark:hover:bg-input/50 transition-colors"
+                                    className="flex items-center justify-center h-full w-8 text-muted-foreground hover:text-foreground hover:bg-muted dark:hover:bg-input/50 transition-colors disabled:opacity-30 disabled:pointer-events-none"
                                 >
                                     <ChevronRight className="h-3.5 w-3.5" />
                                 </button>
