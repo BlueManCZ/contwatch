@@ -112,9 +112,10 @@ function HandlerInfo({
     const isRunning = status?.running ?? false;
     const isConnected = status?.connected ?? false;
 
-    const label = handler.label || handler.type;
     const handlerTypes = (typesData?.data ?? []) as HandlerTypeInfo[];
-    const icon = handlerTypes.find((ht) => ht.type === handler.type)?.icon;
+    const typeInfo = handlerTypes.find((ht) => ht.type === handler.type);
+    const label = handler.label || typeInfo?.name || handler.type;
+    const icon = typeInfo?.icon;
 
     const statusColor =
         isRunning && isConnected ? "text-success" : isRunning ? "text-warning" : "text-muted-foreground/50";

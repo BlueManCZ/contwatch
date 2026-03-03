@@ -458,10 +458,20 @@ class HandlerManager:
         return {hid: self.get_handler_status(hid) for hid in sorted(all_ids)}
 
     def get_available_attributes(self, handler_id: int) -> list[str]:
-        """Return linearized keys from last message that are NOT yet registered."""
+        """Return attribute names that are NOT yet registered.
+
+        Combines linearized keys from the last received message with
+        known attribute names defined on the handler class, so that
+        known attributes are available even before the first message.
+        """
         last = self._last_messages.get(handler_id, {})
         registered = set(self._attr_name_map.get(handler_id, {}).keys())
-        return sorted(k for k in last if k not in registered)
+        available = set(last.keys())
+        handler = self._handlers.get(handler_id)
+        if handler:
+            for ka in handler.known_attributes:
+                available.add(ka.name)
+        return sorted(k for k in available if k not in registered)
 
     def get_current_values(self) -> dict[int, dict]:
         """All tracked attribute values {attr_id: {value, trend}}."""
