@@ -2,12 +2,16 @@
 Migrate handlers, attributes, and data_units from the old ContWatch DB (Pony ORM)
 to the new v2 DB (SQLAlchemy + TimescaleDB).
 
-Old DB: 10.0.0.20  (production, still live)
-New DB: localhost   (v2)
-
 Usage:
     cd backend
-    uv run python migrate_old_db.py [--batch-size 50000] [--start-from "2020-01-01"]
+
+    # On Raspberry Pi (old DB on :5432, new v2 DB on :5433):
+    uv run python migrate_old_db.py
+
+    # From dev machine to remote Pi:
+    uv run python migrate_old_db.py \
+        --old-dsn "host=10.0.0.20 dbname=contwatch user=contwatch password=contwatch" \
+        --new-dsn "host=10.0.0.20 port=5433 dbname=contwatch user=contwatch password=contwatch"
 
 Data units are migrated oldest-first so the script can be re-run safely
 (it skips rows already present in the new DB).
@@ -24,8 +28,8 @@ from datetime import datetime, timezone
 import psycopg
 from psycopg.rows import dict_row
 
-OLD_DSN = "host=10.0.0.20 dbname=contwatch user=contwatch password=contwatch"
-NEW_DSN = "host=localhost dbname=contwatch user=contwatch password=contwatch"
+OLD_DSN = "host=localhost port=5432 dbname=contwatch user=contwatch password=contwatch"
+NEW_DSN = "host=localhost port=5433 dbname=contwatch user=contwatch password=contwatch"
 
 DEFAULT_BATCH_SIZE = 50_000
 TIMEZONE = "UTC"
@@ -246,6 +250,8 @@ def _insert_data_batch(new: psycopg.Connection, batch: list[tuple]) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Migrate old ContWatch DB to v2")
+    parser.add_argument("--old-dsn", type=str, default=OLD_DSN, help=f"Old DB connection string (default: {OLD_DSN})")
+    parser.add_argument("--new-dsn", type=str, default=NEW_DSN, help=f"New DB connection string (default: {NEW_DSN})")
     parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
     parser.add_argument(
         "--start-from",
@@ -270,11 +276,11 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    log("Connecting to old DB (10.0.0.20)...")
-    old = psycopg.connect(OLD_DSN, row_factory=dict_row)
+    log(f"Connecting to old DB ({args.old_dsn})...")
+    old = psycopg.connect(args.old_dsn, row_factory=dict_row)
 
-    log("Connecting to new DB (localhost)...")
-    new = psycopg.connect(NEW_DSN, row_factory=dict_row)
+    log(f"Connecting to new DB ({args.new_dsn})...")
+    new = psycopg.connect(args.new_dsn, row_factory=dict_row)
 
     try:
         if not args.skip_handlers:
