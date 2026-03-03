@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.ruff_cache/
+migrate_old_db.py
+tests/
+*.dump

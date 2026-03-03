@@ -1,19 +1,49 @@
 services:
-  db:
+  db-v2:
     image: timescale/timescaledb:latest-pg16
-    ports:
-      - "5432:5432"
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: contwatch
-      POSTGRES_PASSWORD: contwatch
-      POSTGRES_DB: contwatch
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5433:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata-v2:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U contwatch"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db-v2:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db-v2:5432/${POSTGRES_DB}
+    device_cgroup_rules:
+      - 'c 188:* rmw'   # /dev/ttyUSB*
+      - 'c 166:* rmw'   # /dev/ttyACM*
+    volumes:
+      - /dev:/dev
+
+  frontend-build:
+    build: ./frontend
+    volumes:
+      - frontend_dist:/app/dist
+    profiles: ["build"]
+
 volumes:
-  pgdata:
+  pgdata-v2:
+  frontend_dist:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${FRONTEND_DIST_PATH:-./frontend/dist}
