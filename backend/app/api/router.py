@@ -14,7 +14,6 @@ from app.api.workflow import router as workflow_router
 api_router = APIRouter()
 api_router.include_router(auth_router)
 api_router.include_router(handlers_router)
-api_router.include_router(handlers_router, prefix="/core")
 api_router.include_router(attributes_router)
 api_router.include_router(data_units_router)
 api_router.include_router(data_stats_router)
