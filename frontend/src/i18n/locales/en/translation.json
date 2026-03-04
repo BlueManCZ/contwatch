@@ -40,6 +40,7 @@
         "fullscreenPromptTitle": "Enter fullscreen?",
         "fullscreenPromptDescription": "Would you like to view this in fullscreen mode?",
         "enterFullscreen": "Enter Fullscreen",
+        "exitFullscreen": "Exit Fullscreen",
         "confirm": "Confirm"
     },
     "controls": {

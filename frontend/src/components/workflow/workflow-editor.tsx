@@ -548,6 +548,7 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
                 type="button"
                 className="absolute top-2 right-2 z-10 flex cursor-pointer items-center justify-center rounded-full border bg-card/80 backdrop-blur-sm p-2 shadow-sm"
                 onClick={toggleFullscreen}
+                title={isFullscreen ? t("common.exitFullscreen") : t("common.enterFullscreen")}
             >
                 {isFullscreen ? (
                     <Minimize className="h-4 w-4 text-muted-foreground" />

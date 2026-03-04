@@ -40,6 +40,7 @@
         "fullscreenPromptTitle": "Přejít na celou obrazovku?",
         "fullscreenPromptDescription": "Chcete zobrazit na celé obrazovce?",
         "enterFullscreen": "Celá obrazovka",
+        "exitFullscreen": "Ukončit celou obrazovku",
         "confirm": "Potvrdit"
     },
     "controls": {

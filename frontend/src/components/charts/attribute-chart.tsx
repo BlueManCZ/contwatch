@@ -382,6 +382,7 @@ export function AttributeChart({ attributeIds, date }: AttributeChartProps) {
                     type="button"
                     className="flex cursor-pointer items-center justify-center rounded-full border bg-card/80 backdrop-blur-sm p-2 shadow-sm"
                     onClick={toggleFullscreen}
+                    title={isFullscreen ? t("common.exitFullscreen") : t("common.enterFullscreen")}
                 >
                     {isFullscreen ? (
                         <Minimize className="h-4 w-4 text-muted-foreground" />

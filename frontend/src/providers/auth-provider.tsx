@@ -57,6 +57,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(meResponse.data);
     }, []);
 
+    // Listen for session-expired events from the 401 interceptor
+    useEffect(() => {
+        const handleExpired = () => setUser(null);
+        window.addEventListener("auth:session-expired", handleExpired);
+        return () => window.removeEventListener("auth:session-expired", handleExpired);
+    }, []);
+
     // On mount: attempt silent refresh to restore session from cookie
     useEffect(() => {
         const finish = () => {

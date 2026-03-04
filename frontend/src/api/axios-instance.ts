@@ -66,12 +66,10 @@ api.interceptors.response.use(
                 originalRequest.headers.Authorization = `Bearer ${newToken}`;
                 return api(originalRequest);
             } catch {
-                // Refresh failed — redirect to login
+                // Refresh failed — clear token and notify AuthProvider to clear user state.
+                // The router's auth guard will then redirect to /login.
                 setAccessToken(null);
-                const currentPath = window.location.pathname + window.location.search;
-                if (!currentPath.startsWith("/login")) {
-                    window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
-                }
+                window.dispatchEvent(new Event("auth:session-expired"));
                 return Promise.reject(error);
             }
         }
