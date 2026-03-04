@@ -2,6 +2,7 @@ import asyncio
 import contextlib
 import json
 import logging
+import time
 from typing import ClassVar
 
 import minimalmodbus
@@ -130,7 +131,8 @@ def _open_instrument(port: str, slave_address: int, timeout: float) -> minimalmo
 
 
 def _reg(instrument: minimalmodbus.Instrument, address: int) -> int:
-    """Read a single holding register (blocking)."""
+    """Read a single holding register (blocking), with inter-read delay."""
+    time.sleep(0.05)
     return instrument.read_register(address)
 
 
