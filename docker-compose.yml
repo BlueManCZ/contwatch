@@ -35,7 +35,10 @@ services:
       - /dev:/dev
 
   frontend-build:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY:-}
     volumes:
       - frontend_dist:/app/dist
 
