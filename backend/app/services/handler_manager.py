@@ -500,6 +500,10 @@ class HandlerManager:
                 }
         return result
 
+    def get_last_message(self, handler_id: int) -> dict:
+        """Return the last linearized raw message for a handler."""
+        return self._last_messages.get(handler_id, {})
+
     def get_handler_data_value(self, handler_id: int, key: str):
         """Read a raw value from a handler's last linearized message."""
         return self._last_messages.get(handler_id, {}).get(key)

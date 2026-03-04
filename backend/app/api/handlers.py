@@ -359,6 +359,11 @@ async def handler_status(handler_id: int, manager: HandlerManagerDep, _current_u
     return manager.get_handler_status(handler_id)
 
 
+@router.get("/{handler_id}/last", response_model=dict[str, Any])
+async def last_raw_message(handler_id: int, manager: HandlerManagerDep):
+    return manager.get_last_message(handler_id)
+
+
 @router.get("/{handler_id}/available-attributes", response_model=dict[str, Any])
 async def available_attributes(handler_id: int, manager: HandlerManagerDep, _current_user: CurrentUser):
     return manager.get_available_attributes(handler_id)
