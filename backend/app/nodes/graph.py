@@ -16,8 +16,6 @@ _PASCAL_TO_SNAKE_RE = re.compile(r"(?<=[a-z0-9])([A-Z])")
 
 logger = logging.getLogger(__name__)
 
-MAX_EXECUTION_DEPTH = 100
-
 
 class CycleDetectedError(Exception):
     def __init__(self, message: str, node_id: str):
@@ -123,19 +121,26 @@ class NodeGraph:
         visited: set[str] = set()
         in_stack: set[str] = set()
 
-        def dfs(node_id: str) -> None:
-            visited.add(node_id)
-            in_stack.add(node_id)
-            for neighbor in adj.get(node_id, []):
-                if neighbor in in_stack:
-                    raise CycleDetectedError(f"Cycle detected involving node '{neighbor}'", node_id=neighbor)
-                if neighbor not in visited:
-                    dfs(neighbor)
-            in_stack.discard(node_id)
-
-        for node_id in self._nodes:
-            if node_id not in visited:
-                dfs(node_id)
+        for start in self._nodes:
+            if start in visited:
+                continue
+            stack: list[tuple[str, int]] = [(start, 0)]
+            while stack:
+                node_id, idx = stack[-1]
+                if idx == 0:
+                    visited.add(node_id)
+                    in_stack.add(node_id)
+                neighbors = adj.get(node_id, [])
+                if idx < len(neighbors):
+                    stack[-1] = (node_id, idx + 1)
+                    neighbor = neighbors[idx]
+                    if neighbor in in_stack:
+                        raise CycleDetectedError(f"Cycle detected involving node '{neighbor}'", node_id=neighbor)
+                    if neighbor not in visited:
+                        stack.append((neighbor, 0))
+                else:
+                    in_stack.discard(node_id)
+                    stack.pop()
 
     async def execute_handler_listeners(self, handler_id: int) -> None:
         """Execute all HandlerListener nodes matching the given handler_id."""

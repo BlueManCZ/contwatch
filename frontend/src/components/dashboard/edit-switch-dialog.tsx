@@ -3,19 +3,17 @@ import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { useListActionsApiActionsGet } from "@/api/generated/actions/actions";
-import { useListAttributesApiAttributesGet } from "@/api/generated/attributes/attributes";
-import type { ActionRead, AttributeRead, DashboardSwitch } from "@/api/generated/contWatchAPI.schemas";
+import type { DashboardSwitch } from "@/api/generated/contWatchAPI.schemas";
 import {
     getListSwitchesApiWidgetsSwitchesGetQueryKey,
     useUpdateSwitchApiWidgetsSwitchesSwitchIdPatch,
 } from "@/api/generated/widgets/widgets";
+import { ActionSelect } from "@/components/dashboard/action-select";
+import { AttributeSelect } from "@/components/dashboard/attribute-select";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { localizeAttributeLabel } from "@/lib/localize-attribute";
 
 interface EditSwitchDialogProps {
     switch_: DashboardSwitch;
@@ -25,7 +23,7 @@ interface EditSwitchDialogProps {
 }
 
 export function EditSwitchDialog({ switch_, open, onOpenChange, onRemove }: EditSwitchDialogProps) {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const queryClient = useQueryClient();
     const [selectedAttrId, setSelectedAttrId] = useState<string>(String(switch_.attribute_id));
     const [attributeCompare, setAttributeCompare] = useState(switch_.attribute_compare ?? "");
@@ -35,13 +33,7 @@ export function EditSwitchDialog({ switch_, open, onOpenChange, onRemove }: Edit
     const [actionOffId, setActionOffId] = useState<string>(
         switch_.action_off_id ? String(switch_.action_off_id) : "",
     );
-
-    const { data: attrsData } = useListAttributesApiAttributesGet(undefined);
-    const { data: actionsData } = useListActionsApiActionsGet();
     const updateSwitch = useUpdateSwitchApiWidgetsSwitchesSwitchIdPatch();
-
-    const attributes = (attrsData?.data ?? []) as AttributeRead[];
-    const actions = (actionsData?.data ?? []) as ActionRead[];
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -68,8 +60,6 @@ export function EditSwitchDialog({ switch_, open, onOpenChange, onRemove }: Edit
         );
     }
 
-    const selectedAttr = attributes.find((a) => String(a.id) === selectedAttrId);
-
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
@@ -80,27 +70,7 @@ export function EditSwitchDialog({ switch_, open, onOpenChange, onRemove }: Edit
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
                             <Label>{t("dashboard.selectAttribute")}</Label>
-                            <Select value={selectedAttrId} onValueChange={(v) => setSelectedAttrId(v ?? "")}>
-                                <SelectTrigger>
-                                    <SelectValue>
-                                        {selectedAttr
-                                            ? localizeAttributeLabel(
-                                                  selectedAttr.name,
-                                                  selectedAttr.label,
-                                                  t,
-                                                  i18n,
-                                              )
-                                            : t("dashboard.selectAttribute")}
-                                    </SelectValue>
-                                </SelectTrigger>
-                                <SelectContent alignItemWithTrigger={false}>
-                                    {attributes.map((attr) => (
-                                        <SelectItem key={attr.id} value={String(attr.id)}>
-                                            {localizeAttributeLabel(attr.name, attr.label, t, i18n)}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <AttributeSelect value={selectedAttrId} onValueChange={setSelectedAttrId} />
                         </div>
 
                         <div className="space-y-2">
@@ -115,56 +85,11 @@ export function EditSwitchDialog({ switch_, open, onOpenChange, onRemove }: Edit
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-2">
                                 <Label>{t("dashboard.actionOn")}</Label>
-                                <Select value={actionOnId} onValueChange={(v) => setActionOnId(v ?? "")}>
-                                    <SelectTrigger>
-                                        <SelectValue>
-                                            {actionOnId
-                                                ? t(
-                                                      `knownActions.${actions.find((a) => String(a.id) === actionOnId)?.name?.replaceAll(" ", "_")}`,
-                                                      actions.find((a) => String(a.id) === actionOnId)
-                                                          ?.name ?? "",
-                                                  )
-                                                : t("dashboard.selectAction")}
-                                        </SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent alignItemWithTrigger={false}>
-                                        {actions.map((action) => (
-                                            <SelectItem key={action.id} value={String(action.id)}>
-                                                {t(
-                                                    `knownActions.${action.name.replaceAll(" ", "_")}`,
-                                                    action.name,
-                                                )}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <ActionSelect value={actionOnId} onValueChange={setActionOnId} />
                             </div>
-
                             <div className="space-y-2">
                                 <Label>{t("dashboard.actionOff")}</Label>
-                                <Select value={actionOffId} onValueChange={(v) => setActionOffId(v ?? "")}>
-                                    <SelectTrigger>
-                                        <SelectValue>
-                                            {actionOffId
-                                                ? t(
-                                                      `knownActions.${actions.find((a) => String(a.id) === actionOffId)?.name?.replaceAll(" ", "_")}`,
-                                                      actions.find((a) => String(a.id) === actionOffId)
-                                                          ?.name ?? "",
-                                                  )
-                                                : t("dashboard.selectAction")}
-                                        </SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent alignItemWithTrigger={false}>
-                                        {actions.map((action) => (
-                                            <SelectItem key={action.id} value={String(action.id)}>
-                                                {t(
-                                                    `knownActions.${action.name.replaceAll(" ", "_")}`,
-                                                    action.name,
-                                                )}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <ActionSelect value={actionOffId} onValueChange={setActionOffId} />
                             </div>
                         </div>
                     </div>
@@ -174,7 +99,7 @@ export function EditSwitchDialog({ switch_, open, onOpenChange, onRemove }: Edit
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                onClick={() => onRemove()}
+                                onClick={onRemove}
                                 className="text-muted-foreground hover:text-destructive-foreground"
                             >
                                 <Trash2 className="mr-1.5 h-3.5 w-3.5" />

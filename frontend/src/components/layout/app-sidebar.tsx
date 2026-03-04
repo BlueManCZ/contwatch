@@ -54,8 +54,12 @@ export function AppSidebar() {
 
     return (
         <Sidebar collapsible="icon" className="border-r-0">
-            <SidebarHeader className="px-4 py-5">
-                <Link to="/" className="flex items-center gap-2.5 group" onClick={closeMobile}>
+            <SidebarHeader className="px-4 py-5 group-data-[collapsible=icon]:px-0">
+                <Link
+                    to="/"
+                    className="flex items-center gap-2.5 group group-data-[collapsible=icon]:justify-center"
+                    onClick={closeMobile}
+                >
                     <ContwatchLogo className="h-5 w-5 shrink-0 text-primary" />
                     <span className="text-base font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
                         {t("common.appName")}
@@ -140,20 +144,20 @@ export function AppSidebar() {
 
             <SidebarSeparator />
 
-            <SidebarFooter className="px-3 py-3">
-                <div className="flex items-center justify-between gap-2">
+            <SidebarFooter className="px-3 py-3 group-data-[collapsible=icon]:px-0">
+                <div className="flex items-center justify-between gap-2 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-1">
                     <div className="flex items-center gap-2 min-w-0 group-data-[collapsible=icon]:hidden">
                         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-medium shrink-0">
                             {user?.username?.charAt(0).toUpperCase()}
                         </div>
                         <span className="text-sm text-muted-foreground truncate">{user?.username}</span>
                     </div>
-                    <div className="flex items-center gap-0.5">
+                    <div className="flex items-center gap-0.5 group-data-[collapsible=icon]:flex-col">
                         <ThemeToggle />
                         <button
                             type="button"
                             onClick={logout}
-                            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground/70 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent cursor-pointer transition-colors"
                             title={t("auth.logout")}
                         >
                             <LogOut className="h-4 w-4" />

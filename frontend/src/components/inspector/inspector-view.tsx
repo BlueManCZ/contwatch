@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { AttributeChart } from "@/components/charts/attribute-chart";
 import { AttributeSelector } from "@/components/inspector/attribute-selector";
 import { EmptyState } from "@/components/layout/empty-state";
-import { PageHeader } from "@/components/layout/page-header";
+import { PageContent, PageHeader } from "@/components/layout/page-header";
 
 interface InspectorViewProps {
     attributesParam?: string;
@@ -25,13 +25,14 @@ export function InspectorView({ attributesParam, dateParam }: InspectorViewProps
             .filter((n) => !Number.isNaN(n) && n > 0);
     }, [attributesParam]);
 
-    const date = dateParam || format(new Date(), "yyyy-MM-dd");
+    const today = format(new Date(), "yyyy-MM-dd");
+    const date = dateParam || today;
 
     function updateSearch(attrs: number[], d: string) {
         navigate({
             search: {
                 attributes: attrs.length > 0 ? attrs.join(",") : undefined,
-                date: d !== format(new Date(), "yyyy-MM-dd") ? d : undefined,
+                date: d !== today ? d : undefined,
             },
             replace: true,
         });
@@ -54,7 +55,7 @@ export function InspectorView({ attributesParam, dateParam }: InspectorViewProps
     }
 
     return (
-        <div className="flex flex-col min-h-0 flex-1">
+        <>
             <PageHeader
                 title={t("inspector.title")}
                 actions={
@@ -98,24 +99,26 @@ export function InspectorView({ attributesParam, dateParam }: InspectorViewProps
                 }
             />
 
-            {selectedIds.length > 0 ? (
-                <div className="flex flex-col min-h-0 flex-1 animate-fade-in">
-                    <AttributeChart attributeIds={selectedIds} date={date} />
-                </div>
-            ) : (
-                <EmptyState
-                    icon={LineChart}
-                    title={t("inspector.noAttributes")}
-                    description={t("inspector.noAttributesDescription")}
-                    action={
-                        <AttributeSelector
-                            selectedIds={selectedIds}
-                            onSelectionChange={handleSelectionChange}
-                            showLabel
-                        />
-                    }
-                />
-            )}
-        </div>
+            <PageContent className="flex flex-col">
+                {selectedIds.length > 0 ? (
+                    <div className="flex flex-col min-h-0 flex-1 animate-fade-in">
+                        <AttributeChart attributeIds={selectedIds} date={date} />
+                    </div>
+                ) : (
+                    <EmptyState
+                        icon={LineChart}
+                        title={t("inspector.noAttributes")}
+                        description={t("inspector.noAttributesDescription")}
+                        action={
+                            <AttributeSelector
+                                selectedIds={selectedIds}
+                                onSelectionChange={handleSelectionChange}
+                                showLabel
+                            />
+                        }
+                    />
+                )}
+            </PageContent>
+        </>
     );
 }

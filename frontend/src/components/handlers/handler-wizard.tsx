@@ -90,7 +90,7 @@ export function HandlerWizard() {
         const defaults: Record<string, string> = {};
         for (const field of cat.probe_fields) {
             const firstChoice = field.choices?.[0]?.value;
-            defaults[field.key] = firstChoice ?? String(field.default ?? "");
+            defaults[field.key] = firstChoice ?? "";
         }
         setProbeValues(defaults);
         setStep("connection");

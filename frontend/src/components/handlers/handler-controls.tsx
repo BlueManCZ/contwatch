@@ -89,6 +89,7 @@ function ControlSwitch({
         executeAction.mutate(
             { actionId, data: null },
             {
+                onSettled: () => setPendingChecked(null),
                 onSuccess: () => toast.success(boldName(t, "toast.actionExecuted", actionName ?? "")),
                 onError: () => toast.error(boldName(t, "toast.actionFailed", actionName ?? "")),
             },
@@ -227,6 +228,7 @@ function ControlSlider({
         executeAction.mutate(
             { actionId: control.action_id, data: { params: { [control.param_key]: val } } },
             {
+                onSettled: () => setPendingSliderVal(null),
                 onSuccess: () => {
                     const name = control.action_name
                         ? t(`knownActions.${control.action_name.replaceAll(" ", "_")}`, control.action_name)

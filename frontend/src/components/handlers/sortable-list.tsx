@@ -5,7 +5,6 @@ import {
     type DragOverEvent,
     DragOverlay,
     type DragStartEvent,
-    type DroppableContainer,
     KeyboardSensor,
     MouseSensor,
     TouchSensor,
@@ -24,7 +23,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { type ReactNode, useId, useRef, useState } from "react";
 
-interface SortableAttributeListProps<T extends { id: number }> {
+interface SortableListProps<T extends { id: number }> {
     items: T[];
     renderItem: (item: T, isDragging: boolean) => ReactNode;
     onReorder: (items: T[]) => void;
@@ -38,35 +37,13 @@ const DRAG_TOLERANCE = 8;
 /** No-op: let CSS columns handle positioning via live DOM reorder. */
 const columnsStrategy: SortingStrategy = () => null;
 
-/**
- * Only report a collision when the pointer is inside a droppable's rect.
- * Prevents false swaps after CSS columns reflow.
- */
-function pointerWithinCollision({
-    droppableContainers,
-    pointerCoordinates,
-}: {
-    droppableContainers: DroppableContainer[];
-    pointerCoordinates: { x: number; y: number } | null;
-}) {
-    if (!pointerCoordinates) return [];
-    const { x, y } = pointerCoordinates;
-    return droppableContainers
-        .filter((container) => {
-            const rect = container.rect.current;
-            if (!rect) return false;
-            return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
-        })
-        .map((container) => ({ id: container.id, data: { droppableContainer: container, value: 0 } }));
-}
-
-export function SortableAttributeList<T extends { id: number }>({
+export function SortableList<T extends { id: number }>({
     items,
     renderItem,
     onReorder,
     onLongPress,
     multiColumn,
-}: SortableAttributeListProps<T>) {
+}: SortableListProps<T>) {
     const dndId = useId();
     const [localOrder, setLocalOrder] = useState<number[]>(() => items.map((i) => i.id));
     const isLocalReorder = useRef(false);
@@ -121,12 +98,11 @@ export function SortableAttributeList<T extends { id: number }>({
         didReorder.current = true;
         setLocalOrder(arrayMove(localOrder, oldIdx, newIdx));
 
-        // Unlock after React render + CSS columns reflow + paint
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                reorderLock.current = false;
-            });
-        });
+        // Lock long enough for React render + CSS columns reflow + paint
+        // to prevent a second swap from firing on stale rects
+        setTimeout(() => {
+            reorderLock.current = false;
+        }, 250);
     }
 
     function handleDragEnd(e: DragEndEvent) {
@@ -168,7 +144,7 @@ export function SortableAttributeList<T extends { id: number }>({
         <DndContext
             id={dndId}
             sensors={sensors}
-            collisionDetection={multiColumn ? pointerWithinCollision : closestCenter}
+            collisionDetection={closestCenter}
             modifiers={multiColumn ? [] : [restrictToVerticalAxis, restrictToParentElement]}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}

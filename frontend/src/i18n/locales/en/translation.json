@@ -228,6 +228,7 @@
         "saving": "Saving...",
         "saved": "Saved",
         "error": "Failed to save workflow",
+        "cycleDetected": "Cycle detected in workflow — check the highlighted node",
         "nodes": {
             "handler_listener": {
                 "label": "Handler Listener",

@@ -5,9 +5,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useLongPress } from "@/hooks/use-long-press";
 import { formatValue } from "@/lib/format-value";
 import { localizeAttributeLabel } from "@/lib/localize-attribute";
+import type { WidgetStatus } from "@/lib/widget-status";
 import { useLiveValuesStore } from "@/stores/live-values";
 
-export type WidgetStatus = "online" | "warning" | "offline";
+export type { WidgetStatus } from "@/lib/widget-status";
 
 interface WidgetTileProps {
     tile: DashboardTile;

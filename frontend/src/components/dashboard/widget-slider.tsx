@@ -52,6 +52,7 @@ export function WidgetSlider({ slider, status = "online", onRemove, onEdit }: Wi
             setSlider.mutate(
                 { sliderId: slider.id, data: { value: v } },
                 {
+                    onSettled: () => setPendingCommitVal(null),
                     onSuccess: () => name && toast.success(boldName(t, "toast.actionExecuted", name)),
                     onError: () => toast.error(boldName(t, "toast.actionFailed", name ?? "")),
                 },

@@ -1,7 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import type { Locale } from "date-fns";
 import { formatDistanceToNow } from "date-fns";
-import { cs, enUS } from "date-fns/locale";
 import { Cable, ChevronDown, Pencil, Play, Plus, Square, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -39,6 +37,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { dateFnsLocales } from "@/lib/date-locale";
 import { formatValue } from "@/lib/format-value";
 import { localizeAttributeLabel } from "@/lib/localize-attribute";
 import { boldName, cn } from "@/lib/utils";
@@ -50,7 +49,7 @@ import { AddActionDialog } from "./add-action-dialog";
 import { AttributeEditDialog } from "./attribute-edit-dialog";
 import { HandlerConfigEditDialog } from "./handler-config-edit-dialog";
 import { HandlerControls } from "./handler-controls";
-import { SortableAttributeList } from "./sortable-attribute-list";
+import { SortableList } from "./sortable-list";
 
 interface HandlerDetailProps {
     handler: HandlerRead | null;
@@ -87,8 +86,6 @@ export function HandlerDetail({ handler, open, onOpenChange }: HandlerDetailProp
         </Sheet>
     );
 }
-
-const dateFnsLocales: Record<string, Locale> = { en: enUS, cs };
 
 function HandlerInfo({
     handler,
@@ -266,7 +263,7 @@ function RegisteredAttributes({ handler }: { handler: HandlerRead }) {
                 <p className="text-sm text-muted-foreground">{t("common.noData")}</p>
             ) : (
                 <div className="space-y-2">
-                    <SortableAttributeList
+                    <SortableList
                         items={attrs}
                         onReorder={handleReorder}
                         onLongPress={(attr) => setEditingAttribute(attr)}
@@ -444,6 +441,7 @@ function HandlerActions({ handler }: { handler: HandlerRead }) {
         executeAction.mutate(
             { actionId: action.id, data: null },
             {
+                onSettled: () => setPendingAction(null),
                 onSuccess: () => toast.success(boldName(t, "toast.actionExecuted", name)),
                 onError: () => toast.error(boldName(t, "toast.actionFailed", name)),
             },

@@ -52,7 +52,7 @@ function isAtFullExtent(chart: Chart): boolean {
     return xScale.min <= dataMin + tolerance && xScale.max >= dataMax - tolerance;
 }
 
-function resolveThemeColors(_theme?: string) {
+function resolveThemeColors() {
     const s = getComputedStyle(document.documentElement);
     return {
         background: s.getPropertyValue("--background").trim(),
@@ -89,8 +89,9 @@ export function AttributeChart({ attributeIds, date }: AttributeChartProps) {
     const resetBtnRef = useRef<HTMLDivElement>(null);
 
     const [themeColors, setThemeColors] = useState(() => resolveThemeColors());
+    // biome-ignore lint/correctness/useExhaustiveDependencies: theme triggers CSS variable re-read
     useEffect(() => {
-        setThemeColors(resolveThemeColors(theme));
+        setThemeColors(resolveThemeColors());
     }, [theme]);
 
     // One query per attribute — React Query caches each (attribute, date) pair

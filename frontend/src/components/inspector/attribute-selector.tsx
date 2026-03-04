@@ -74,7 +74,7 @@ export function AttributeSelector({ selectedIds, onSelectionChange, showLabel }:
                     {handlers.map((handler) => {
                         const attributes = handler.attributes ?? [];
                         if (attributes.length === 0) return null;
-                        const handlerLabel = (handler.options as { label?: string })?.label || handler.type;
+                        const handlerLabel = handler.label || handler.type;
                         return (
                             <div key={handler.id}>
                                 <h4 className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-widest">

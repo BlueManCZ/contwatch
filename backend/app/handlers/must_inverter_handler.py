@@ -5,7 +5,7 @@ from typing import ClassVar
 
 import minimalmodbus
 
-from app.handlers.base import AbstractHandler, KnownAttribute
+from app.handlers.base import AbstractHandler, ConfigField, KnownAttribute
 from app.handlers.registry import register_handler_type
 
 logger = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
     handler_icon = "solar-panel"
     handler_category = "serial"
     probe_priority: ClassVar[int] = 10
-    config_fields: ClassVar[list[dict]] = [
+    config_fields: ClassVar[list[ConfigField]] = [
         {"key": "port", "type": "string", "label": "Device port (e.g. /dev/ttyUSB0)", "default": ""},
         {"key": "slave_address", "type": "int", "label": "Slave address", "default": 4},
         {"key": "interval", "type": "int", "label": "Polling interval (s)", "default": 10},

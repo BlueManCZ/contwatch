@@ -130,6 +130,6 @@ register_category(
     default_handler_type="serial",
     default_label="Serial device",
     probe_fields=[
-        {"key": "port", "type": "string", "label": "Serial Port", "default": None, "choices": None},
+        {"key": "port", "type": "string", "label": "Serial Port", "choices": None},
     ],
 )

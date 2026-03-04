@@ -8,7 +8,7 @@ import type { LoggingMessageRead } from "@/api/generated/contWatchAPI.schemas";
 import { useListHandlersApiHandlersGet } from "@/api/generated/handlers/handlers";
 import { useClearLogsApiLogsDelete, useListLogsApiLogsGet } from "@/api/generated/logs/logs";
 import { EmptyState } from "@/components/layout/empty-state";
-import { PageHeader } from "@/components/layout/page-header";
+import { PageContent, PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -118,7 +118,7 @@ export function LogViewer() {
     }
 
     return (
-        <div className="space-y-6">
+        <>
             <PageHeader
                 title={t("logs.title")}
                 actions={
@@ -134,101 +134,102 @@ export function LogViewer() {
                     </Button>
                 }
             />
+            <PageContent className="space-y-6">
+                <div className="flex flex-wrap items-center gap-2">
+                    <Select value={level} onValueChange={(v) => setLevel(v ?? "")}>
+                        <SelectTrigger className="w-40" size="sm">
+                            <SelectValue placeholder={t("logs.allLevels")}>
+                                {level ? LEVEL_MAP[Number(level)] : t("logs.allLevels")}
+                            </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent alignItemWithTrigger={false}>
+                            {LEVEL_OPTIONS.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                    {opt.value === "" ? t("logs.allLevels") : opt.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
 
-            <div className="flex flex-wrap items-center gap-2">
-                <Select value={level} onValueChange={(v) => setLevel(v ?? "")}>
-                    <SelectTrigger className="w-40" size="sm">
-                        <SelectValue placeholder={t("logs.allLevels")}>
-                            {level ? LEVEL_MAP[Number(level)] : t("logs.allLevels")}
-                        </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent alignItemWithTrigger={false}>
-                        {LEVEL_OPTIONS.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                                {opt.value === "" ? t("logs.allLevels") : opt.label}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                    {sources.length > 1 && (
+                        <div className="flex flex-wrap items-center gap-1.5">
+                            {sources.map((s) => (
+                                <button
+                                    key={s}
+                                    type="button"
+                                    onClick={() => setSource(source === s ? "" : s)}
+                                    className={`cursor-pointer px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                                        source === s
+                                            ? "bg-primary text-primary-foreground"
+                                            : "bg-muted text-muted-foreground hover:bg-accent"
+                                    }`}
+                                >
+                                    {t(`logs.source_${s}`, s)}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
 
-                {sources.length > 1 && (
-                    <div className="flex flex-wrap items-center gap-1.5">
-                        {sources.map((s) => (
-                            <button
-                                key={s}
-                                type="button"
-                                onClick={() => setSource(source === s ? "" : s)}
-                                className={`cursor-pointer px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                                    source === s
-                                        ? "bg-primary text-primary-foreground"
-                                        : "bg-muted text-muted-foreground hover:bg-accent"
-                                }`}
-                            >
-                                {t(`logs.source_${s}`, s)}
-                            </button>
-                        ))}
-                    </div>
+                {logs.length === 0 ? (
+                    <EmptyState
+                        icon={ScrollText}
+                        title={t("logs.noLogs")}
+                        description={t("logs.noLogsDescription")}
+                    />
+                ) : (
+                    <>
+                        {/* Mobile: stacked list */}
+                        <div className="space-y-1.5 md:hidden">
+                            {logs.map((log) => (
+                                <LogCard key={log.id} log={log} handlerMap={handlerMap} />
+                            ))}
+                        </div>
+
+                        {/* Desktop: table */}
+                        <Card className="py-0 hidden md:block">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-44">{t("logs.time")}</TableHead>
+                                        <TableHead className="w-24">{t("logs.level")}</TableHead>
+                                        <TableHead className="w-32">{t("logs.source")}</TableHead>
+                                        <TableHead>{t("logs.message")}</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {logs.map((log) => (
+                                        <LogRow key={log.id} log={log} handlerMap={handlerMap} />
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </Card>
+                    </>
                 )}
-            </div>
 
-            {logs.length === 0 ? (
-                <EmptyState
-                    icon={ScrollText}
-                    title={t("logs.noLogs")}
-                    description={t("logs.noLogsDescription")}
-                />
-            ) : (
-                <>
-                    {/* Mobile: stacked list */}
-                    <div className="space-y-1.5 md:hidden">
-                        {logs.map((log) => (
-                            <LogCard key={log.id} log={log} handlerMap={handlerMap} />
-                        ))}
-                    </div>
-
-                    {/* Desktop: table */}
-                    <Card className="py-0 hidden md:block">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-44">{t("logs.time")}</TableHead>
-                                    <TableHead className="w-24">{t("logs.level")}</TableHead>
-                                    <TableHead className="w-32">{t("logs.source")}</TableHead>
-                                    <TableHead>{t("logs.message")}</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {logs.map((log) => (
-                                    <LogRow key={log.id} log={log} handlerMap={handlerMap} />
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </Card>
-                </>
-            )}
-
-            <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{t("logs.clear")}</DialogTitle>
-                    </DialogHeader>
-                    <p className="text-sm text-muted-foreground py-4">{t("logs.clearConfirm")}</p>
-                    <DialogFooter>
-                        <Button variant="outline" size="sm" onClick={() => setConfirmOpen(false)}>
-                            {t("common.cancel")}
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={handleClear}
-                            disabled={clearLogs.isPending}
-                        >
-                            {t("common.delete")}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </div>
+                <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>{t("logs.clear")}</DialogTitle>
+                        </DialogHeader>
+                        <p className="text-sm text-muted-foreground py-4">{t("logs.clearConfirm")}</p>
+                        <DialogFooter>
+                            <Button variant="outline" size="sm" onClick={() => setConfirmOpen(false)}>
+                                {t("common.cancel")}
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={handleClear}
+                                disabled={clearLogs.isPending}
+                            >
+                                {t("common.delete")}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </PageContent>
+        </>
     );
 }
 

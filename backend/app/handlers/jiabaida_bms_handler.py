@@ -6,15 +6,42 @@ from typing import ClassVar
 import serial_asyncio
 from serial import SerialException
 
-from app.handlers.base import AbstractHandler, Indicator, KnownAction, KnownAttribute, KnownControl
+from app.handlers.base import AbstractHandler, ConfigField, Indicator, KnownAction, KnownAttribute, KnownControl
 from app.handlers.registry import register_handler_type
 
 logger = logging.getLogger(__name__)
 
-# Protocol commands
-_CMD_BASIC_INFO = b"\xdd\xa5\x03\x00\xff\xfd\x77"
-_CMD_CELL_VOLTAGES = b"\xdd\xa5\x04\x00\xff\xfc\x77"
-_CMD_HARDWARE_VERSION = b"\xdd\xa5\x05\x00\xff\xfb\x77"
+# JBD BMS serial protocol (UART, 9600 baud, big-endian)
+# Spec: https://gitlab.com/bms-tools/bms-tools/-/raw/master/JBD_REGISTER_MAP.md
+
+# Read commands — frame format: DD A5 <register> 00 <checksum_hi> <checksum_lo> 77
+_CMD_BASIC_INFO = b"\xdd\xa5\x03\x00\xff\xfd\x77"  # Register 0x03
+_CMD_CELL_VOLTAGES = b"\xdd\xa5\x04\x00\xff\xfc\x77"  # Register 0x04
+_CMD_HARDWARE_VERSION = b"\xdd\xa5\x05\x00\xff\xfb\x77"  # Register 0x05
+
+# Frame markers
+_FRAME_START = 0xDD
+_FRAME_END = 0x77
+
+# Basic-info response (register 0x03) byte offsets into the data payload
+_OFF_VOLTAGE = 0  # uint16, /100 → V
+_OFF_CURRENT = 2  # uint16 (signed), /100 → A
+_OFF_CAPACITY = 4  # uint16, *10 → mAh
+_OFF_NOMINAL_CAPACITY = 6  # uint16, *10 → mAh
+_OFF_CYCLES = 8  # uint16
+_OFF_PRODUCTION_DATE = 10  # uint16, packed Y/M/D
+_OFF_BALANCE_LOW = 12  # uint16, cells 1-16 balance bits
+_OFF_BALANCE_HIGH = 14  # uint16, cells 17-32 balance bits
+_OFF_PROTECTION = 16  # uint16, protection status bits
+_OFF_SOFTWARE_VER = 18  # uint8, high nibble.low nibble
+_OFF_SOC = 19  # uint8, 0-100 %
+_OFF_MOS = 20  # uint8, bit0=charge, bit1=discharge (1=ON)
+_OFF_CELL_COUNT = 21  # uint8
+_OFF_TEMP_COUNT = 22  # uint8
+_OFF_TEMPS = 23  # uint16 each, in decikelvin
+
+# Conversion constants
+_DECIKELVIN_OFFSET = 2731  # NTC readings are in 0.1K; subtract to get 0.1°C
 
 # TODO: Additional write commands to implement
 # All writes use frame format: DD 5A <register> <len> <data> <checksum_hi> <checksum_lo> 77
@@ -76,7 +103,7 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
     handler_icon = "battery"
     handler_category = "serial"
     probe_priority: ClassVar[int] = 20
-    config_fields: ClassVar[list[dict]] = [
+    config_fields: ClassVar[list[ConfigField]] = [
         {"key": "port", "type": "string", "label": "Device port (e.g. /dev/ttyUSB0)", "default": ""},
         {"key": "interval", "type": "int", "label": "Polling interval (s)", "default": 10},
         {"key": "auto_reconnect", "type": "bool", "label": "Auto reconnect", "default": True},
@@ -164,7 +191,7 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
                 writer.write(_CMD_BASIC_INFO)
                 await writer.drain()
                 raw = await asyncio.wait_for(reader.readexactly(1), timeout=2)
-                return raw[0] == 0xDD
+                return raw[0] == _FRAME_START
             finally:
                 writer.close()
         except Exception:
@@ -186,7 +213,7 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
 
             # Response header: DD <cmd> <status> <length>
             header = await asyncio.wait_for(reader.readexactly(4), timeout=2)
-            if header[0] != 0xDD:
+            if header[0] != _FRAME_START:
                 raise OSError(f"Invalid start byte: 0x{header[0]:02X}")
 
             status = header[2]
@@ -198,7 +225,7 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
             checksum_received = tail[length] * 256 + tail[length + 1]
             end_marker = tail[length + 2]
 
-            if end_marker != 0x77:
+            if end_marker != _FRAME_END:
                 raise OSError(f"Invalid end marker: 0x{end_marker:02X}")
 
             # Checksum covers: length + data bytes
@@ -230,30 +257,31 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
         if not d1 or not d2:
             raise OSError("Missing data block from BMS")
 
-        raw_current = _uint16(d1, 2)
+        raw_current = _uint16(d1, _OFF_CURRENT)
         current = (raw_current / 100 if raw_current < 2**15 else (raw_current - 2**16) / 100) or 0
 
         # FET control state: bit0 = charge MOS (1=ON), bit1 = discharge MOS (1=ON)
-        mos_byte = d1[20]
+        mos_byte = d1[_OFF_MOS]
         charge_mos = bool(mos_byte & 0x01)
         discharge_mos = bool(mos_byte & 0x02)
         self._last_charge_mos = charge_mos
         self._last_discharge_mos = discharge_mos
 
+        sw_ver = d1[_OFF_SOFTWARE_VER]
         result: dict = {
-            "voltage": _uint16(d1, 0) / 100,
+            "voltage": _uint16(d1, _OFF_VOLTAGE) / 100,
             "current": current,
-            "capacity": _uint16(d1, 4) * 10,
-            "nominal_capacity": _uint16(d1, 6) * 10,
-            "cycles": _uint16(d1, 8),
-            "production_date": _parse_production_date(_uint16(d1, 10)),
-            "percentages": d1[19],
+            "capacity": _uint16(d1, _OFF_CAPACITY) * 10,
+            "nominal_capacity": _uint16(d1, _OFF_NOMINAL_CAPACITY) * 10,
+            "cycles": _uint16(d1, _OFF_CYCLES),
+            "production_date": _parse_production_date(_uint16(d1, _OFF_PRODUCTION_DATE)),
+            "percentages": d1[_OFF_SOC],
             "charge_mos": charge_mos,
             "discharge_mos": discharge_mos,
             # Keep raw mos_state for backward compatibility with existing attribute setups
             "mos_state": mos_byte,
-            "protection_bits": bin(_uint16(d1, 16))[2:].zfill(16),
-            "software_version": f"{d1[18] >> 4}.{d1[18] & 0x0F}",
+            "protection_bits": bin(_uint16(d1, _OFF_PROTECTION))[2:].zfill(16),
+            "software_version": f"{sw_ver >> 4}.{sw_ver & 0x0F}",
             "temperatures": {},
             "cells": {},
         }
@@ -261,12 +289,12 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
         if self._hardware_version is not None:
             result["hardware_version"] = self._hardware_version
 
-        temperatures_count = d1[22]
+        temperatures_count = d1[_OFF_TEMP_COUNT]
         for i in range(temperatures_count):
-            result["temperatures"][str(i + 1)] = (_uint16(d1, 23 + i * 2) - 2731) / 10
+            result["temperatures"][str(i + 1)] = (_uint16(d1, _OFF_TEMPS + i * 2) - _DECIKELVIN_OFFSET) / 10
 
-        cell_count = d1[21]
-        balancing = bin(_uint16(d1, 14))[2:].zfill(16) + bin(_uint16(d1, 12))[2:].zfill(16)
+        cell_count = d1[_OFF_CELL_COUNT]
+        balancing = bin(_uint16(d1, _OFF_BALANCE_HIGH))[2:].zfill(16) + bin(_uint16(d1, _OFF_BALANCE_LOW))[2:].zfill(16)
 
         for i in range(cell_count):
             result["cells"][str(i + 1)] = {

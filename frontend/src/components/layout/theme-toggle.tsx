@@ -1,19 +1,17 @@
 import { Moon, Sun } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useSettingsStore } from "@/stores/settings";
 
 export function ThemeToggle() {
     const { theme, toggleTheme } = useSettingsStore();
 
     return (
-        <Button
-            variant="ghost"
-            size="icon-sm"
+        <button
+            type="button"
             onClick={toggleTheme}
             aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground/70 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent cursor-pointer transition-colors"
         >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </Button>
+        </button>
     );
 }

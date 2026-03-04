@@ -4,7 +4,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, ClassVar
+from typing import Any, ClassVar, TypedDict
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +62,20 @@ class KnownControl:
     unit: str | None = None
 
 
+class _ConfigFieldOptional(TypedDict, total=False):
+    choices: list[dict[str, str]] | None  # [{"value": ..., "label": ...}]
+    row: int | None
+
+
+class ConfigField(_ConfigFieldOptional):
+    """Typed dict for handler config_fields entries."""
+
+    key: str
+    type: str
+    label: str
+    default: Any
+
+
 class AbstractHandler(ABC):
     """Base class for all IoT data handlers.
 
@@ -73,7 +87,7 @@ class AbstractHandler(ABC):
     handler_name: ClassVar[str] = "Unknown"
     handler_icon: ClassVar[str] = "default"
     handler_category: ClassVar[str] = ""
-    config_fields: ClassVar[list[dict]] = []
+    config_fields: ClassVar[list[ConfigField]] = []
     known_attributes: ClassVar[list[KnownAttribute]] = []
     known_actions: ClassVar[list[KnownAction]] = []
     known_controls: ClassVar[list[KnownControl]] = []

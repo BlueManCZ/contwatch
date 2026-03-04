@@ -1,8 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import type { Locale } from "date-fns";
 import { formatDistanceToNow } from "date-fns";
-import { cs, enUS } from "date-fns/locale";
 import { Activity, Cable, History, TrendingDown, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -24,13 +22,14 @@ import {
 import { AttributeEditDialog } from "@/components/handlers/attribute-edit-dialog";
 import { HandlerDetail } from "@/components/handlers/handler-detail";
 import { HandlerWizard } from "@/components/handlers/handler-wizard";
-import { SortableAttributeList } from "@/components/handlers/sortable-attribute-list";
+import { SortableList } from "@/components/handlers/sortable-list";
 import { EmptyState } from "@/components/layout/empty-state";
-import { PageHeader } from "@/components/layout/page-header";
+import { PageContent, PageHeader } from "@/components/layout/page-header";
 import { SafeIcon } from "@/components/safe-icon";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { dateFnsLocales } from "@/lib/date-locale";
 import { formatValue } from "@/lib/format-value";
 import { localizeAttributeLabel } from "@/lib/localize-attribute";
 import { cn } from "@/lib/utils";
@@ -70,42 +69,40 @@ export function HandlerList() {
     }
 
     return (
-        <div className="space-y-6 md:space-y-0 md:flex md:flex-col md:flex-1 md:min-h-0 pb-3 sm:pb-5">
+        <>
             <PageHeader title={t("handlers.title")} actions={<HandlerWizard />} />
-
-            {handlers.length === 0 ? (
-                <EmptyState
-                    icon={Cable}
-                    title={t("handlers.noHandlers")}
-                    description={t("handlers.noHandlersDescription")}
-                />
-            ) : (
-                <div className="md:flex-1 md:min-h-0 md:columns-[480px] gap-3 md:[column-fill:auto] [&>*]:mb-3 [&>*]:break-inside-avoid">
-                    <SortableAttributeList
-                        items={handlers}
-                        onReorder={handleHandlerReorder}
-                        multiColumn={!isMobile}
-                        renderItem={(handler) => (
-                            <HandlerCard
-                                handler={handler}
-                                icon={typeIconMap.get(handler.type)}
-                                typeName={typeNameMap.get(handler.type)}
-                                onOpenDetail={() => {
-                                    setSelectedHandlerId(handler.id);
-                                    setDetailOpen(true);
-                                }}
-                            />
-                        )}
+            <PageContent>
+                {handlers.length === 0 ? (
+                    <EmptyState
+                        icon={Cable}
+                        title={t("handlers.noHandlers")}
+                        description={t("handlers.noHandlersDescription")}
                     />
-                </div>
-            )}
-
-            <HandlerDetail handler={selectedHandler} open={detailOpen} onOpenChange={setDetailOpen} />
-        </div>
+                ) : (
+                    <div className="md:columns-[480px] gap-3 [&>*]:mb-3 [&>*]:break-inside-avoid">
+                        <SortableList
+                            items={handlers}
+                            onReorder={handleHandlerReorder}
+                            multiColumn={!isMobile}
+                            renderItem={(handler) => (
+                                <HandlerCard
+                                    handler={handler}
+                                    icon={typeIconMap.get(handler.type)}
+                                    typeName={typeNameMap.get(handler.type)}
+                                    onOpenDetail={() => {
+                                        setSelectedHandlerId(handler.id);
+                                        setDetailOpen(true);
+                                    }}
+                                />
+                            )}
+                        />
+                    </div>
+                )}
+                <HandlerDetail handler={selectedHandler} open={detailOpen} onOpenChange={setDetailOpen} />
+            </PageContent>
+        </>
     );
 }
-
-const dateFnsLocales: Record<string, Locale> = { en: enUS, cs };
 
 const indicatorColor: Record<string, string> = {
     success: "text-success",
@@ -228,7 +225,7 @@ function HandlerCard({
                     </div>
                     {attrs.length > 0 && (
                         <div className="mt-2.5 -mx-4 border-t border-border/50">
-                            <SortableAttributeList
+                            <SortableList
                                 items={attrs}
                                 onReorder={handleReorder}
                                 onLongPress={(attr) => setEditingAttribute(attr)}

@@ -3,7 +3,7 @@ from typing import ClassVar
 
 import httpx
 
-from app.handlers.base import Indicator, KnownAction, KnownAttribute, KnownControl
+from app.handlers.base import ConfigField, Indicator, KnownAction, KnownAttribute, KnownControl
 from app.handlers.http_handler import HttpHandler
 from app.handlers.registry import register_handler_type
 from app.handlers.shelly_utils import is_on, wifi_disconnected_indicator, wifi_indicator
@@ -18,7 +18,7 @@ class ShellyPlugGen2Handler(HttpHandler):
     handler_icon = "plug"
     handler_category = "http"
     probe_priority: ClassVar[int] = 15
-    config_fields: ClassVar[list[dict]] = [
+    config_fields: ClassVar[list[ConfigField]] = [
         {"key": "host", "type": "string", "label": "Device URL / IP", "default": ""},
         {"key": "fetch_route", "type": "string", "label": "Fetch route", "default": "/rpc/Shelly.GetStatus"},
         {"key": "interval", "type": "int", "label": "Interval (s)", "default": 10},

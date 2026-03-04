@@ -4,7 +4,7 @@ from typing import ClassVar
 
 import httpx
 
-from app.handlers.base import AbstractHandler
+from app.handlers.base import AbstractHandler, ConfigField
 from app.handlers.registry import register_handler_type
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ class HttpHandler(AbstractHandler):
     handler_icon = "globe"
     handler_category = "http"
     probe_priority: ClassVar[int] = 0
-    config_fields: ClassVar[list[dict]] = [
+    config_fields: ClassVar[list[ConfigField]] = [
         {"key": "host", "type": "string", "label": "Device URL / IP", "default": ""},
         {"key": "fetch_route", "type": "string", "label": "Fetch route", "default": "/"},
         {"key": "interval", "type": "int", "label": "Interval (s)", "default": 10},

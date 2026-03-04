@@ -6,8 +6,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
     return (
         <SidebarProvider className="!min-h-0 h-dvh">
             <AppSidebar />
-            <SidebarInset>
-                <main className="flex-1 flex flex-col min-h-0 p-3 sm:p-5 animate-fade-in">{children}</main>
+            <SidebarInset className="min-h-0 overflow-hidden">
+                <div className="flex-1 flex flex-col min-h-0 animate-fade-in">{children}</div>
             </SidebarInset>
         </SidebarProvider>
     );

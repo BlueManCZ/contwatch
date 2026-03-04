@@ -36,7 +36,6 @@ from app.schemas.handler import (
 )
 from app.socketio_app import sio
 from app.utils.linearize import linearize
-from app.utils.network import get_lan_ip
 
 logger = logging.getLogger(__name__)
 
@@ -93,11 +92,7 @@ async def list_handler_types(_current_user: CurrentUser):
 async def list_categories(_current_user: CurrentUser):
     categories = copy.deepcopy(get_categories())
     for cat in categories:
-        if cat["name"] == "http":
-            for field in cat["probe_fields"]:
-                if field["key"] == "host" and field.get("default") is None:
-                    field["default"] = get_lan_ip()
-        elif cat["name"] == "serial":
+        if cat["name"] == "serial":
             try:
                 from serial.tools.list_ports import comports
 

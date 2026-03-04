@@ -20,6 +20,7 @@ import type { AxiosError } from "axios";
 import { AlertCircle, Check, Circle, Loader2, Maximize, Minimize, Trash2 } from "lucide-react";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import type { NodeDefinition, WorkflowData } from "@/api/generated/contWatchAPI.schemas";
 import {
     getGetWorkflowApiActionsWorkflowGetQueryKey,
@@ -94,7 +95,9 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
     const queryClient = useQueryClient();
     const { data: defsResponse } = useGetNodeDefinitionsApiActionsWorkflowNodesGet();
     const { data: workflowResponse } = useGetWorkflowApiActionsWorkflowGet();
-    const saveMutation = useSaveWorkflowApiActionsWorkflowPut();
+    const saveMutation = useSaveWorkflowApiActionsWorkflowPut({
+        mutation: { meta: { skipGlobalErrorToast: true } },
+    });
 
     const [saveStatus, setSaveStatus] = useState<"idle" | "unsaved" | "saving" | "saved" | "error">("idle");
 
@@ -287,11 +290,14 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
                                 n.id === nodeId ? { ...n, data: { ...n.data, _error: true } } : n,
                             ),
                         );
+                        toast.error(t("workflow.cycleDetected"));
+                    } else {
+                        toast.error(t("workflow.error"));
                     }
                 },
             },
         );
-    }, [queryClient, setNodes]);
+    }, [queryClient, setNodes, t]);
 
     const clearErrorNodes = useCallback(() => {
         if (nodesRef.current.some((n) => n.data._error)) {

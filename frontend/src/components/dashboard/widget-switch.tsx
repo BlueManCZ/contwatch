@@ -47,6 +47,7 @@ export function WidgetSwitch({ switch_, status = "online", onRemove, onEdit }: W
         toggle.mutate(
             { switchId: switch_.id, data: { value: !isOn } },
             {
+                onSettled: () => setConfirmOpen(false),
                 onSuccess: () => name && toast.success(boldName(t, "toast.actionExecuted", name)),
                 onError: () => toast.error(boldName(t, "toast.actionFailed", name ?? "")),
             },

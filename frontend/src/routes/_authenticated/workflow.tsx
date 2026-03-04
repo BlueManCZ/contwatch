@@ -18,7 +18,7 @@ function WorkflowPage() {
     const definitions = (defsResponse?.data ?? []) as NodeDefinition[];
 
     return (
-        <div className="flex flex-col flex-1 min-h-0 bg-background">
+        <>
             <PageHeader
                 title={t("workflow.title")}
                 actions={
@@ -28,9 +28,9 @@ function WorkflowPage() {
                     />
                 }
             />
-            <div className="flex-1 min-h-0 -mt-3 sm:-mt-5 -mb-3 sm:-mb-5">
+            <div className="flex-1 min-h-0">
                 <WorkflowEditor ref={editorRef} />
             </div>
-        </div>
+        </>
     );
 }

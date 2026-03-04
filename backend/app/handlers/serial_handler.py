@@ -6,7 +6,7 @@ from typing import ClassVar
 import serial_asyncio
 from serial import SerialException
 
-from app.handlers.base import AbstractHandler
+from app.handlers.base import AbstractHandler, ConfigField
 from app.handlers.registry import register_handler_type
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ class SerialHandler(AbstractHandler):
     handler_icon = "usb"
     handler_category = "serial"
     probe_priority: ClassVar[int] = 0
-    config_fields: ClassVar[list[dict]] = [
+    config_fields: ClassVar[list[ConfigField]] = [
         {"key": "port", "type": "string", "label": "Device port (e.g. /dev/ttyUSB0)", "default": ""},
         {"key": "baudrate", "type": "int", "label": "Baudrate", "default": 9600},
         {"key": "auto_reconnect", "type": "bool", "label": "Auto reconnect", "default": True},

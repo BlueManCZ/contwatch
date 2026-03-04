@@ -117,6 +117,7 @@ export function UserManagement() {
                         { userId: pendingDeleteUser.id },
                         {
                             onSuccess: () => {
+                                setPendingDeleteUser(null);
                                 queryClient.invalidateQueries({
                                     queryKey: getListUsersApiAuthUsersGetQueryKey(),
                                 });

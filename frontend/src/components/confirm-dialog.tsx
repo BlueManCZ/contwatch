@@ -40,13 +40,7 @@ export function ConfirmDialog({
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-                    <AlertDialogAction
-                        variant={variant}
-                        onClick={() => {
-                            onConfirm();
-                            onOpenChange(false);
-                        }}
-                    >
+                    <AlertDialogAction variant={variant} onClick={onConfirm}>
                         {confirmLabel ?? t("common.delete")}
                     </AlertDialogAction>
                 </AlertDialogFooter>

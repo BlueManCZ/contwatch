@@ -33,14 +33,23 @@ export function LoginForm() {
             await login(username, password, turnstileToken);
             await navigate({ to: redirectTo || "/" });
         } catch (err) {
-            if (isAxiosError(err) && err.response?.status === 429) {
-                setError(t("auth.rateLimited"));
-            } else if (isAxiosError(err) && err.response?.status === 403) {
-                setError(t("auth.accountLocked"));
-            } else if (isAxiosError(err) && err.response?.status === 400) {
-                setError(t("auth.captchaFailed"));
-            } else if (isAxiosError(err) && err.response?.status === 401) {
-                setError(t("auth.invalidCredentials"));
+            if (isAxiosError(err)) {
+                switch (err.response?.status) {
+                    case 429:
+                        setError(t("auth.rateLimited"));
+                        break;
+                    case 403:
+                        setError(t("auth.accountLocked"));
+                        break;
+                    case 400:
+                        setError(t("auth.captchaFailed"));
+                        break;
+                    case 401:
+                        setError(t("auth.invalidCredentials"));
+                        break;
+                    default:
+                        setError(t("auth.serverUnavailable"));
+                }
             } else {
                 setError(t("auth.serverUnavailable"));
             }

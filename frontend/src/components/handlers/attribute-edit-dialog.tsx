@@ -1,11 +1,14 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
+    getListAttributesApiAttributesGetQueryKey,
     useDeleteAttributeApiAttributesAttributeIdDelete,
     useUpdateAttributeApiAttributesAttributeIdPatch,
 } from "@/api/generated/attributes/attributes";
 import type { AttributeRead, AttributeUpdate } from "@/api/generated/contWatchAPI.schemas";
+import { getListHandlersApiHandlersGetQueryKey } from "@/api/generated/handlers/handlers";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -20,6 +23,7 @@ interface AttributeEditDialogProps {
 
 export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogProps) {
     const { t, i18n } = useTranslation();
+    const queryClient = useQueryClient();
     const [label, setLabel] = useState("");
     const [unit, setUnit] = useState("");
     const [icon, setIcon] = useState("");
@@ -66,6 +70,8 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
             { attributeId: attribute.id, data },
             {
                 onSuccess: () => {
+                    queryClient.invalidateQueries({ queryKey: getListAttributesApiAttributesGetQueryKey() });
+                    queryClient.invalidateQueries({ queryKey: getListHandlersApiHandlersGetQueryKey() });
                     onClose();
                     toast.success(t("toast.attributeUpdated"));
                 },
@@ -130,6 +136,12 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
                         { attributeId: attribute.id },
                         {
                             onSuccess: () => {
+                                queryClient.invalidateQueries({
+                                    queryKey: getListAttributesApiAttributesGetQueryKey(),
+                                });
+                                queryClient.invalidateQueries({
+                                    queryKey: getListHandlersApiHandlersGetQueryKey(),
+                                });
                                 onClose();
                                 toast.success(t("toast.attributeDeleted"));
                             },

@@ -53,6 +53,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { localizeAttributeLabel } from "@/lib/localize-attribute";
 import { cn } from "@/lib/utils";
+import { getWidgetStatus } from "@/lib/widget-status";
 import { useHandlerStatusStore } from "@/stores/handler-status";
 
 type WizardStep = "device" | "widgets" | "manual";
@@ -142,14 +143,8 @@ function DeviceStep({
     const dashboard = dashboardData?.data as DashboardResponse | undefined;
     const handlerStatuses = useHandlerStatusStore((s) => s.statuses);
 
-    function getStatus(handler: HandlerRead) {
-        const live = handlerStatuses[handler.id];
-        const running = live?.running ?? handler.enabled;
-        const connected = live?.connected ?? false;
-        if (!running) return "offline" as const;
-        if (!connected) return "warning" as const;
-        return "online" as const;
-    }
+    const getStatus = (handler: HandlerRead) =>
+        getWidgetStatus(handlerStatuses[handler.id], handler.enabled, false);
 
     // Count how many attributes/actions a handler already has on the dashboard
     function getExistingCount(handler: HandlerRead) {
@@ -206,8 +201,8 @@ function DeviceStep({
                                 className={cn(
                                     "relative flex flex-col items-center gap-2.5 rounded-lg border border-l-2 p-4 text-center",
                                     "transition-all duration-200 hover:shadow-md hover:border-primary/50 cursor-pointer overflow-hidden",
-                                    status === "online" && "border-l-emerald-500",
-                                    status === "warning" && "border-l-amber-500",
+                                    status === "online" && "border-l-success",
+                                    status === "warning" && "border-l-warning",
                                     status === "offline" && "border-l-muted-foreground/20",
                                 )}
                                 onClick={() => onSelect(handler)}
@@ -218,7 +213,7 @@ function DeviceStep({
                                         className="absolute inset-0 pointer-events-none"
                                         style={{
                                             background:
-                                                "radial-gradient(ellipse at 50% 0%, var(--color-emerald-500) 0%, transparent 60%)",
+                                                "radial-gradient(ellipse at 50% 0%, var(--color-success) 0%, transparent 60%)",
                                             opacity: 0.04,
                                         }}
                                     />
@@ -249,8 +244,8 @@ function DeviceStep({
                                     <span
                                         className={cn(
                                             "h-1.5 w-1.5 rounded-full shrink-0",
-                                            status === "online" && "bg-emerald-500",
-                                            status === "warning" && "bg-amber-500",
+                                            status === "online" && "bg-success",
+                                            status === "warning" && "bg-warning",
                                             status === "offline" && "bg-muted-foreground/30",
                                         )}
                                     />

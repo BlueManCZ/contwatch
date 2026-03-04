@@ -128,8 +128,8 @@
         "addHandler": "Přidat zařízení",
         "noHandlers": "Žádná zařízení nejsou nakonfigurována.",
         "noHandlersDescription": "Přidejte handler pro sběr dat z vašich IoT zařízení.",
-        "createHandler": "Vytvořit handler",
-        "selectType": "Vyberte typ handleru",
+        "createHandler": "Vytvořit zařízení",
+        "selectType": "Vyberte typ zařízení",
         "type": "Typ",
         "status": "Stav",
         "attributes": "Atributy",
@@ -229,10 +229,11 @@
         "saving": "Ukládání...",
         "saved": "Uloženo",
         "error": "Nepodařilo se uložit workflow",
+        "cycleDetected": "Ve workflow byla detekována smyčka — zkontrolujte zvýrazněný uzel",
         "nodes": {
             "handler_listener": {
-                "label": "Naslouchač handleru",
-                "description": "Spustí se při příjmu dat z handleru"
+                "label": "Naslouchač zařízení",
+                "description": "Spustí se při příjmu dat z zařízení"
             },
             "attribute_reader_listener": {
                 "label": "Naslouchač atributu",
@@ -243,8 +244,8 @@
                 "description": "Přečte aktuální hodnotu atributu"
             },
             "handler_data_reader": {
-                "label": "Čtečka dat handleru",
-                "description": "Přečte surovou hodnotu z dat handleru podle klíče"
+                "label": "Čtečka dat zařízení",
+                "description": "Přečte surovou hodnotu z dat zařízení podle klíče"
             },
             "evaluator": { "label": "Vyhodnocovač", "description": "Porovná dvě hodnoty pomocí operátoru" },
             "aggregator": { "label": "Agregátor", "description": "Aplikuje agregační funkci na více hodnot" },
