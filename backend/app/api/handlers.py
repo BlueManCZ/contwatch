@@ -2,6 +2,7 @@ import asyncio
 import copy
 import json
 import logging
+from typing import Any
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, HTTPException, status
@@ -363,7 +364,7 @@ async def handler_status(handler_id: int, manager: HandlerManagerDep, _current_u
     return manager.get_handler_status(handler_id)
 
 
-@router.get("/{handler_id}/available-attributes", response_model=list[str])
+@router.get("/{handler_id}/available-attributes", response_model=dict[str, Any])
 async def available_attributes(handler_id: int, manager: HandlerManagerDep, _current_user: CurrentUser):
     return manager.get_available_attributes(handler_id)
 

@@ -159,8 +159,10 @@ export interface DashboardSwitch {
   icon?: string | null;
   attribute_id: number;
   handler_id: number;
+  handler_label?: string | null;
   handler_running?: boolean;
   handler_connected?: boolean;
+  confirm_actions?: boolean;
   attribute_compare?: string | null;
   action_on_id?: number | null;
   action_off_id?: number | null;
@@ -177,8 +179,10 @@ export interface DashboardSlider {
   icon?: string | null;
   attribute_id: number;
   handler_id: number;
+  handler_label?: string | null;
   handler_running?: boolean;
   handler_connected?: boolean;
+  confirm_actions?: boolean;
   action_id: number;
   action_name: string;
   param_key: string;
@@ -231,6 +235,7 @@ export interface HandlerCreate {
   label?: string | null;
   options?: HandlerCreateOptions;
   enabled?: boolean;
+  confirm_actions?: boolean;
 }
 
 export type HandlerReadOptions = { [key: string]: unknown };
@@ -242,6 +247,7 @@ export interface HandlerRead {
   options: HandlerReadOptions;
   enabled: boolean;
   order?: number | null;
+  confirm_actions?: boolean;
   description?: string;
   attributes?: AttributeRead[];
   actions?: ActionRead[];
@@ -309,6 +315,7 @@ export interface HandlerUpdate {
   label?: string | null;
   options?: HandlerUpdateOptions;
   enabled?: boolean | null;
+  confirm_actions?: boolean | null;
 }
 
 export interface KnownAttributeInfo {
@@ -333,6 +340,7 @@ export interface LoggingMessageRead {
 export interface LoginRequest {
   username: string;
   password: string;
+  turnstile_token?: string | null;
 }
 
 export interface PortOption {
@@ -434,6 +442,7 @@ export interface TokenResponse {
 export interface UserCreate {
   username: string;
   email: string;
+  /** @minLength 8 */
   password: string;
   role?: string;
 }
@@ -550,6 +559,8 @@ export interface WorkflowData {
 }
 
 export type AllHandlerStatusesApiHandlersStatusesGet200 = {[key: string]: HandlerStatus};
+
+export type AvailableAttributesApiHandlersHandlerIdAvailableAttributesGet200 = { [key: string]: unknown };
 
 export type ListAttributesApiAttributesGetParams = {
 handler_id?: number | null;

@@ -36,6 +36,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { localizeAttributeLabel } from "@/lib/localize-attribute";
 import { ConfigFieldInput, convertConfigValues } from "./config-field-input";
 
 type WizardStep = "category" | "connection" | "probing" | "review" | "manual";
@@ -624,7 +625,7 @@ function ReviewStep({
     onSubmit: () => void;
     isPending: boolean;
 }) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const result = probeState.result;
     const detected = result?.detected ?? false;
     const knownAttrs = result?.known_attributes ?? [];
@@ -710,12 +711,7 @@ function ReviewStep({
                                         />
                                         <div className="flex-1 min-w-0">
                                             <span className="text-sm">
-                                                {attr.label
-                                                    ? t(
-                                                          `knownAttributes.${attr.name.replace(/[/:]/g, "_")}`,
-                                                          attr.label,
-                                                      )
-                                                    : attr.name}
+                                                {localizeAttributeLabel(attr.name, attr.label, t, i18n)}
                                             </span>
                                             {attr.unit && (
                                                 <span className="text-xs text-muted-foreground ml-1">

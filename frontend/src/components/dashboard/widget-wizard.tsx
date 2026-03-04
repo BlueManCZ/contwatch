@@ -51,6 +51,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { localizeAttributeLabel } from "@/lib/localize-attribute";
 import { cn } from "@/lib/utils";
 import { useHandlerStatusStore } from "@/stores/handler-status";
 
@@ -134,8 +135,10 @@ function DeviceStep({
 }) {
     const { t } = useTranslation();
     const { data: handlersData } = useListHandlersApiHandlersGet();
+    const { data: typesData } = useListHandlerTypesApiHandlersTypesGet();
     const { data: dashboardData } = useDashboardApiWidgetsDashboardGet();
     const handlers = (handlersData?.data ?? []) as HandlerRead[];
+    const handlerTypes = (typesData?.data ?? []) as HandlerTypeInfo[];
     const dashboard = dashboardData?.data as DashboardResponse | undefined;
     const handlerStatuses = useHandlerStatusStore((s) => s.statuses);
 
@@ -235,10 +238,10 @@ function DeviceStep({
 
                                 <div className="space-y-0.5 min-w-0 w-full">
                                     <p className="text-sm font-medium truncate">
-                                        {handler.label || handler.type}
+                                        {getHandlerDisplayName(handler, handlerTypes)}
                                     </p>
                                     <p className="text-[11px] text-muted-foreground truncate">
-                                        {handler.description || handler.type}
+                                        {handler.description || getHandlerDisplayName(handler, handlerTypes)}
                                     </p>
                                 </div>
 
@@ -280,6 +283,13 @@ function DeviceStep({
     );
 }
 
+/** Resolve the best display name for a handler: label → type info name → raw type. */
+function getHandlerDisplayName(handler: HandlerRead, handlerTypes: HandlerTypeInfo[]): string {
+    if (handler.label) return handler.label;
+    const ht = handlerTypes.find((t) => t.type === handler.type);
+    return ht?.name ?? handler.type;
+}
+
 /** Best-effort icon for a handler based on its type string. */
 function guessHandlerIcon(handler: HandlerRead): string {
     const type = handler.type.toLowerCase();
@@ -303,7 +313,7 @@ interface WidgetStepProps {
 }
 
 function WidgetStep({ handler, onBack, onClose }: WidgetStepProps) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const queryClient = useQueryClient();
 
     // Data
@@ -312,6 +322,8 @@ function WidgetStep({ handler, onBack, onClose }: WidgetStepProps) {
     const controls = (controlsData?.data ?? []) as ResolvedControl[];
     const { data: dashboardData } = useDashboardApiWidgetsDashboardGet();
     const dashboard = dashboardData?.data as DashboardResponse | undefined;
+    const { data: typesData } = useListHandlerTypesApiHandlersTypesGet();
+    const handlerTypes = (typesData?.data ?? []) as HandlerTypeInfo[];
 
     // Mutations
     const createFromControl = useCreateWidgetFromControlApiWidgetsFromControlPost();
@@ -431,7 +443,7 @@ function WidgetStep({ handler, onBack, onClose }: WidgetStepProps) {
             <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                     <SafeIcon name={guessHandlerIcon(handler)} className="h-4 w-4 text-muted-foreground" />
-                    {handler.label || handler.type}
+                    {getHandlerDisplayName(handler, handlerTypes)}
                 </DialogTitle>
             </DialogHeader>
 
@@ -536,9 +548,12 @@ function WidgetStep({ handler, onBack, onClose }: WidgetStepProps) {
                                 .map((attr) => {
                                     const onDashboard = isAttrOnDashboard(attr.id);
                                     const checked = onDashboard || selectedAttrIds.has(attr.id);
-                                    const displayLabel = attr.label
-                                        ? t(`knownAttributes.${attr.name.replace(/[/:]/g, "_")}`, attr.label)
-                                        : attr.name;
+                                    const displayLabel = localizeAttributeLabel(
+                                        attr.name,
+                                        attr.label,
+                                        t,
+                                        i18n,
+                                    );
 
                                     return (
                                         <button
@@ -567,16 +582,6 @@ function WidgetStep({ handler, onBack, onClose }: WidgetStepProps) {
                                                     "h-4 w-4 shrink-0",
                                                     checked ? "text-primary" : "text-muted-foreground",
                                                 )}
-                                                fallback={
-                                                    <Gauge
-                                                        className={cn(
-                                                            "h-4 w-4 shrink-0",
-                                                            checked
-                                                                ? "text-primary"
-                                                                : "text-muted-foreground",
-                                                        )}
-                                                    />
-                                                }
                                             />
                                             <span className="text-sm flex-1 min-w-0 truncate">
                                                 {displayLabel}
@@ -656,7 +661,7 @@ function ManualStep({
     onBack: () => void;
     onClose: () => void;
 }) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const queryClient = useQueryClient();
     const [widgetType, setWidgetType] = useState<ManualWidgetType>("tile");
 
@@ -911,9 +916,11 @@ function ManualStep({
                                 <SelectTrigger>
                                     <SelectValue>
                                         {selectedTileAttr
-                                            ? t(
-                                                  `knownAttributes.${selectedTileAttr.name.replace(/[/:]/g, "_")}`,
-                                                  selectedTileAttr.label || selectedTileAttr.name,
+                                            ? localizeAttributeLabel(
+                                                  selectedTileAttr.name,
+                                                  selectedTileAttr.label,
+                                                  t,
+                                                  i18n,
                                               )
                                             : t("dashboard.selectAttribute")}
                                     </SelectValue>
@@ -921,10 +928,7 @@ function ManualStep({
                                 <SelectContent alignItemWithTrigger={false}>
                                     {attributes.map((attr) => (
                                         <SelectItem key={attr.id} value={String(attr.id)}>
-                                            {t(
-                                                `knownAttributes.${attr.name.replace(/[/:]/g, "_")}`,
-                                                attr.label || attr.name,
-                                            )}
+                                            {localizeAttributeLabel(attr.name, attr.label, t, i18n)}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -948,9 +952,11 @@ function ManualStep({
                                 <SelectTrigger>
                                     <SelectValue>
                                         {selectedSwitchAttr
-                                            ? t(
-                                                  `knownAttributes.${selectedSwitchAttr.name.replace(/[/:]/g, "_")}`,
-                                                  selectedSwitchAttr.label || selectedSwitchAttr.name,
+                                            ? localizeAttributeLabel(
+                                                  selectedSwitchAttr.name,
+                                                  selectedSwitchAttr.label,
+                                                  t,
+                                                  i18n,
                                               )
                                             : t("dashboard.selectAttribute")}
                                     </SelectValue>
@@ -958,10 +964,7 @@ function ManualStep({
                                 <SelectContent alignItemWithTrigger={false}>
                                     {attributes.map((attr) => (
                                         <SelectItem key={attr.id} value={String(attr.id)}>
-                                            {t(
-                                                `knownAttributes.${attr.name.replace(/[/:]/g, "_")}`,
-                                                attr.label || attr.name,
-                                            )}
+                                            {localizeAttributeLabel(attr.name, attr.label, t, i18n)}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -985,9 +988,11 @@ function ManualStep({
                                 <SelectTrigger>
                                     <SelectValue>
                                         {selectedSliderAttr
-                                            ? t(
-                                                  `knownAttributes.${selectedSliderAttr.name.replace(/[/:]/g, "_")}`,
-                                                  selectedSliderAttr.label || selectedSliderAttr.name,
+                                            ? localizeAttributeLabel(
+                                                  selectedSliderAttr.name,
+                                                  selectedSliderAttr.label,
+                                                  t,
+                                                  i18n,
                                               )
                                             : t("dashboard.selectAttribute")}
                                     </SelectValue>
@@ -995,10 +1000,7 @@ function ManualStep({
                                 <SelectContent alignItemWithTrigger={false}>
                                     {attributes.map((attr) => (
                                         <SelectItem key={attr.id} value={String(attr.id)}>
-                                            {t(
-                                                `knownAttributes.${attr.name.replace(/[/:]/g, "_")}`,
-                                                attr.label || attr.name,
-                                            )}
+                                            {localizeAttributeLabel(attr.name, attr.label, t, i18n)}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

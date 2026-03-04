@@ -75,8 +75,10 @@ class DashboardSwitch(BaseModel):
     icon: str | None = None
     attribute_id: int
     handler_id: int
+    handler_label: str | None = None
     handler_running: bool = True
     handler_connected: bool = True
+    confirm_actions: bool = False
     attribute_compare: str | None = None
     action_on_id: int | None = None
     action_off_id: int | None = None
@@ -133,8 +135,10 @@ class DashboardSlider(BaseModel):
     icon: str | None = None
     attribute_id: int
     handler_id: int
+    handler_label: str | None = None
     handler_running: bool = True
     handler_connected: bool = True
+    confirm_actions: bool = False
     action_id: int
     action_name: str
     param_key: str

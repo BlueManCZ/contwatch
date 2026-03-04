@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { localizeAttributeLabel } from "@/lib/localize-attribute";
 
 interface AttributeEditDialogProps {
     attribute: AttributeRead | null;
@@ -36,13 +37,7 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
 
     useEffect(() => {
         if (attribute) {
-            const i18nKey = `knownAttributes.${attribute.name.replace(/[/:]/g, "_")}`;
-            const englishDefault = i18n.exists(i18nKey) ? String(i18n.t(i18nKey, { lng: "en" })) : null;
-            const localizedLabel =
-                attribute.label && attribute.label === englishDefault
-                    ? String(t(i18nKey))
-                    : (attribute.label ?? "");
-            setLabel(localizedLabel);
+            setLabel(localizeAttributeLabel(attribute.name, attribute.label, t, i18n));
             setUnit(attribute.unit ?? "");
             setIcon(attribute.icon ?? "");
             setRounding(attribute.rounding != null ? String(attribute.rounding) : "");

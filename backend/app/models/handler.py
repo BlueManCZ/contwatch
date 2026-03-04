@@ -15,6 +15,7 @@ class Handler(Base):
     options: Mapped[dict] = mapped_column(JsonType, default=dict)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     order: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    confirm_actions: Mapped[bool] = mapped_column(Boolean, default=False)
     last_active: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     attributes: Mapped[list["Attribute"]] = relationship(  # noqa: F821

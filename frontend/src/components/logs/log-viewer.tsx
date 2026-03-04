@@ -1,9 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { ScrollText, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
+import { createElement, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { LoggingMessageRead } from "@/api/generated/contWatchAPI.schemas";
+import { useListHandlersApiHandlersGet } from "@/api/generated/handlers/handlers";
 import { useClearLogsApiLogsDelete, useListLogsApiLogsGet } from "@/api/generated/logs/logs";
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
@@ -54,6 +56,31 @@ function formatTimestamp(timestamp: string, locale: string): string {
     });
 }
 
+type HandlerMap = Record<number, string>;
+
+function localizeLogMessage(
+    log: LoggingMessageRead,
+    t: (key: string, opts?: Record<string, string>) => string,
+    handlerMap: HandlerMap,
+): ReactNode {
+    const payload = log.payload as Record<string, unknown> | null;
+    if (log.source !== "action" || !payload?.action_name) return log.message;
+
+    const actionName = payload.action_name as string;
+    const localizedAction = t(`knownActions.${actionName.replaceAll(" ", "_")}`, {
+        defaultValue: actionName,
+    });
+    const handlerId = payload.handler_id as number;
+    const device = handlerMap[handlerId] ?? `handler ${handlerId}`;
+    const source = t(`logs.source${(payload.source as string) === "workflow" ? "Workflow" : "Manual"}`);
+    const key = payload.success ? "logs.actionExecuted" : "logs.actionFailed";
+
+    const sentinel = "\x00";
+    const rendered = t(key, { name: sentinel, device, source });
+    const [before, after] = rendered.split(sentinel);
+    return createElement("span", null, before, createElement("b", null, localizedAction), after);
+}
+
 export function LogViewer() {
     const { t } = useTranslation();
     const queryClient = useQueryClient();
@@ -64,6 +91,15 @@ export function LogViewer() {
     const { data } = useListLogsApiLogsGet({
         level: level ? Number(level) : undefined,
     });
+
+    const { data: handlersData } = useListHandlersApiHandlersGet();
+    const handlerMap = useMemo<HandlerMap>(() => {
+        const map: HandlerMap = {};
+        for (const h of handlersData?.data ?? []) {
+            map[h.id] = h.label ?? `handler ${h.id}`;
+        }
+        return map;
+    }, [handlersData]);
 
     const clearLogs = useClearLogsApiLogsDelete();
 
@@ -122,13 +158,13 @@ export function LogViewer() {
                                 key={s}
                                 type="button"
                                 onClick={() => setSource(source === s ? "" : s)}
-                                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                                className={`cursor-pointer px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
                                     source === s
                                         ? "bg-primary text-primary-foreground"
                                         : "bg-muted text-muted-foreground hover:bg-accent"
                                 }`}
                             >
-                                {s}
+                                {t(`logs.source_${s}`, s)}
                             </button>
                         ))}
                     </div>
@@ -146,7 +182,7 @@ export function LogViewer() {
                     {/* Mobile: stacked list */}
                     <div className="space-y-1.5 md:hidden">
                         {logs.map((log) => (
-                            <LogCard key={log.id} log={log} />
+                            <LogCard key={log.id} log={log} handlerMap={handlerMap} />
                         ))}
                     </div>
 
@@ -163,7 +199,7 @@ export function LogViewer() {
                             </TableHeader>
                             <TableBody>
                                 {logs.map((log) => (
-                                    <LogRow key={log.id} log={log} />
+                                    <LogRow key={log.id} log={log} handlerMap={handlerMap} />
                                 ))}
                             </TableBody>
                         </Table>
@@ -196,9 +232,10 @@ export function LogViewer() {
     );
 }
 
-function LogCard({ log }: { log: LoggingMessageRead }) {
-    const { i18n } = useTranslation();
+function LogCard({ log, handlerMap }: { log: LoggingMessageRead; handlerMap: HandlerMap }) {
+    const { t, i18n } = useTranslation();
     const [expanded, setExpanded] = useState(false);
+    const message = localizeLogMessage(log, t, handlerMap);
 
     return (
         <Card
@@ -212,12 +249,14 @@ function LogCard({ log }: { log: LoggingMessageRead }) {
                 >
                     {getLevelName(log.level)}
                 </Badge>
-                <span className="text-[11px] font-mono text-muted-foreground">{log.source}</span>
+                <span className="text-[11px] font-mono text-muted-foreground">
+                    {t(`logs.source_${log.source}`, log.source)}
+                </span>
                 <span className="text-[11px] text-muted-foreground font-mono tabular-nums ml-auto">
                     {formatTimestamp(log.timestamp, i18n.language)}
                 </span>
             </div>
-            <p className="text-[13px] break-words">{log.message}</p>
+            <p className="text-[13px] break-words">{message}</p>
             {expanded && log.payload && (
                 <pre className="text-xs font-mono bg-muted/50 p-2.5 rounded-md overflow-x-auto mt-1.5">
                     {JSON.stringify(log.payload, null, 2)}
@@ -227,9 +266,10 @@ function LogCard({ log }: { log: LoggingMessageRead }) {
     );
 }
 
-function LogRow({ log }: { log: LoggingMessageRead }) {
-    const { i18n } = useTranslation();
+function LogRow({ log, handlerMap }: { log: LoggingMessageRead; handlerMap: HandlerMap }) {
+    const { t, i18n } = useTranslation();
     const [expanded, setExpanded] = useState(false);
+    const message = localizeLogMessage(log, t, handlerMap);
 
     return (
         <>
@@ -248,8 +288,10 @@ function LogRow({ log }: { log: LoggingMessageRead }) {
                         {getLevelName(log.level)}
                     </Badge>
                 </TableCell>
-                <TableCell className="text-xs font-mono">{log.source}</TableCell>
-                <TableCell className="text-sm">{log.message}</TableCell>
+                <TableCell className="text-xs font-mono">
+                    {t(`logs.source_${log.source}`, log.source)}
+                </TableCell>
+                <TableCell className="text-sm">{message}</TableCell>
             </TableRow>
             {expanded && log.payload && (
                 <TableRow>

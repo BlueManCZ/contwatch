@@ -2,6 +2,7 @@ import asyncio
 import contextlib
 import datetime
 import logging
+from typing import Any
 
 from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -108,11 +109,23 @@ class HandlerManager:
                     # Detect connection state changes
                     connected = handler.is_connected
                     prev = self._last_connected_state.get(handler_id)
-                    if prev is not None and connected != prev:
-                        await sio.emit(
-                            "handler_status",
-                            {"handler_id": handler_id, "running": True, "connected": connected},
-                        )
+                    if prev is None or connected != prev:
+                        if prev is not None:
+                            await sio.emit(
+                                "handler_status",
+                                {"handler_id": handler_id, "running": True, "connected": connected},
+                            )
+                        if not connected:
+                            indicators = handler.disconnected_indicators()
+                            if indicators:
+                                indicator_dicts = [
+                                    {"icon": ind.icon, "color": ind.color, "tooltip": ind.tooltip} for ind in indicators
+                                ]
+                                self._last_indicators[handler_id] = indicator_dicts
+                                await sio.emit(
+                                    "handler_indicators",
+                                    {"handler_id": handler_id, "indicators": indicator_dicts},
+                                )
                     self._last_connected_state[handler_id] = connected
                 await asyncio.sleep(0.05)
         except asyncio.CancelledError:
@@ -153,7 +166,7 @@ class HandlerManager:
                 for unit_data in result.data_units:
                     session.add(DataUnit(**unit_data))
 
-                if result.data_units or result.type_corrected:
+                if result.data_units or result.type_corrected or result.stats_reset:
                     stats = tracker.daily_stats
                     last_changed = tracker.last_changed
                     await sio.emit(
@@ -319,7 +332,7 @@ class HandlerManager:
             source="action",
             level=level,
             message=f"{action_name} {status} (handler {handler_id}, {source})",
-            payload={"handler_id": handler_id, "source": source, "success": success},
+            payload={"handler_id": handler_id, "action_name": action_name, "source": source, "success": success},
             timestamp=now,
         )
         try:
@@ -457,12 +470,13 @@ class HandlerManager:
         all_ids = set(self._handlers) | set(self._last_active) | set(self._attr_name_map)
         return {hid: self.get_handler_status(hid) for hid in sorted(all_ids)}
 
-    def get_available_attributes(self, handler_id: int) -> list[str]:
-        """Return attribute names that are NOT yet registered.
+    def get_available_attributes(self, handler_id: int) -> dict[str, Any]:
+        """Return available attribute names with their current values.
 
         Combines linearized keys from the last received message with
         known attribute names defined on the handler class, so that
         known attributes are available even before the first message.
+        Returns {name: value} where value is None if no data yet.
         """
         last = self._last_messages.get(handler_id, {})
         registered = set(self._attr_name_map.get(handler_id, {}).keys())
@@ -471,7 +485,7 @@ class HandlerManager:
         if handler:
             for ka in handler.known_attributes:
                 available.add(ka.name)
-        return sorted(k for k in available if k not in registered)
+        return {k: last.get(k) for k in sorted(available) if k not in registered}
 
     def get_current_values(self) -> dict[int, dict]:
         """All tracked attribute values {attr_id: {value, trend}}."""

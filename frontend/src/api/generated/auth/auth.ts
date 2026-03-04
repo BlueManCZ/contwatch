@@ -129,6 +129,182 @@ export const useLoginApiAuthLoginPost = <TError = HTTPValidationError,
       return useMutation(getLoginApiAuthLoginPostMutationOptions(options), queryClient);
     }
     /**
+ * @summary Refresh
+ */
+export type refreshApiAuthRefreshPostResponse200 = {
+  data: TokenResponse
+  status: 200
+}
+
+export type refreshApiAuthRefreshPostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type refreshApiAuthRefreshPostResponseSuccess = (refreshApiAuthRefreshPostResponse200) & {
+  headers: Headers;
+};
+export type refreshApiAuthRefreshPostResponseError = (refreshApiAuthRefreshPostResponse422) & {
+  headers: Headers;
+};
+
+export type refreshApiAuthRefreshPostResponse = (refreshApiAuthRefreshPostResponseSuccess | refreshApiAuthRefreshPostResponseError)
+
+export const getRefreshApiAuthRefreshPostUrl = () => {
+
+
+  
+
+  return `/api/auth/refresh`
+}
+
+export const refreshApiAuthRefreshPost = async ( options?: RequestInit): Promise<refreshApiAuthRefreshPostResponse> => {
+  
+  return axiosInstance<refreshApiAuthRefreshPostResponse>(getRefreshApiAuthRefreshPostUrl(),
+  {      
+    ...options,
+    method: 'POST'
+    
+    
+  }
+);}
+  
+
+
+
+export const getRefreshApiAuthRefreshPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshApiAuthRefreshPost>>, TError,void, TContext>, request?: SecondParameter<typeof axiosInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof refreshApiAuthRefreshPost>>, TError,void, TContext> => {
+
+const mutationKey = ['refreshApiAuthRefreshPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof refreshApiAuthRefreshPost>>, void> = () => {
+          
+
+          return  refreshApiAuthRefreshPost(requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RefreshApiAuthRefreshPostMutationResult = NonNullable<Awaited<ReturnType<typeof refreshApiAuthRefreshPost>>>
+    
+    export type RefreshApiAuthRefreshPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Refresh
+ */
+export const useRefreshApiAuthRefreshPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshApiAuthRefreshPost>>, TError,void, TContext>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof refreshApiAuthRefreshPost>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getRefreshApiAuthRefreshPostMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Logout
+ */
+export type logoutApiAuthLogoutPostResponse204 = {
+  data: void
+  status: 204
+}
+
+export type logoutApiAuthLogoutPostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type logoutApiAuthLogoutPostResponseSuccess = (logoutApiAuthLogoutPostResponse204) & {
+  headers: Headers;
+};
+export type logoutApiAuthLogoutPostResponseError = (logoutApiAuthLogoutPostResponse422) & {
+  headers: Headers;
+};
+
+export type logoutApiAuthLogoutPostResponse = (logoutApiAuthLogoutPostResponseSuccess | logoutApiAuthLogoutPostResponseError)
+
+export const getLogoutApiAuthLogoutPostUrl = () => {
+
+
+  
+
+  return `/api/auth/logout`
+}
+
+export const logoutApiAuthLogoutPost = async ( options?: RequestInit): Promise<logoutApiAuthLogoutPostResponse> => {
+  
+  return axiosInstance<logoutApiAuthLogoutPostResponse>(getLogoutApiAuthLogoutPostUrl(),
+  {      
+    ...options,
+    method: 'POST'
+    
+    
+  }
+);}
+  
+
+
+
+export const getLogoutApiAuthLogoutPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logoutApiAuthLogoutPost>>, TError,void, TContext>, request?: SecondParameter<typeof axiosInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof logoutApiAuthLogoutPost>>, TError,void, TContext> => {
+
+const mutationKey = ['logoutApiAuthLogoutPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof logoutApiAuthLogoutPost>>, void> = () => {
+          
+
+          return  logoutApiAuthLogoutPost(requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LogoutApiAuthLogoutPostMutationResult = NonNullable<Awaited<ReturnType<typeof logoutApiAuthLogoutPost>>>
+    
+    export type LogoutApiAuthLogoutPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Logout
+ */
+export const useLogoutApiAuthLogoutPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logoutApiAuthLogoutPost>>, TError,void, TContext>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof logoutApiAuthLogoutPost>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getLogoutApiAuthLogoutPostMutationOptions(options), queryClient);
+    }
+    /**
  * @summary Me
  */
 export type meApiAuthMeGetResponse200 = {

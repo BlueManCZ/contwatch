@@ -30,6 +30,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/providers/auth-provider";
 
+const MIN_PASSWORD_LENGTH = 8;
+
 export function UserManagement() {
     const { t } = useTranslation();
     const queryClient = useQueryClient();
@@ -195,8 +197,14 @@ function AddUserDialog() {
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                minLength={MIN_PASSWORD_LENGTH}
                                 required
                             />
+                            {password && password.length < MIN_PASSWORD_LENGTH && (
+                                <p className="text-xs text-destructive">
+                                    {t("admin.passwordMinLength", { count: MIN_PASSWORD_LENGTH })}
+                                </p>
+                            )}
                         </div>
                         <div className="space-y-2">
                             <Label>{t("admin.role")}</Label>
@@ -312,8 +320,15 @@ function EditUserDialog({ user, onClose }: { user: UserRead | null; onClose: () 
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                minLength={MIN_PASSWORD_LENGTH}
                             />
-                            <p className="text-xs text-muted-foreground">{t("admin.passwordHint")}</p>
+                            {password && password.length < MIN_PASSWORD_LENGTH ? (
+                                <p className="text-xs text-destructive">
+                                    {t("admin.passwordMinLength", { count: MIN_PASSWORD_LENGTH })}
+                                </p>
+                            ) : (
+                                <p className="text-xs text-muted-foreground">{t("admin.passwordHint")}</p>
+                            )}
                         </div>
                     </div>
                     <DialogFooter>

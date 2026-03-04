@@ -11,10 +11,12 @@ import type {
     KnownControlInfo,
 } from "@/api/generated/contWatchAPI.schemas";
 import { useListHandlerTypesApiHandlersTypesGet } from "@/api/generated/handlers/handlers";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
+import { boldName } from "@/lib/utils";
 import { useLiveValuesStore } from "@/stores/live-values";
 
 interface ActionParamPopoverProps {
@@ -26,7 +28,9 @@ interface ActionParamPopoverProps {
 
 export function ActionParamPopover({ action, params, handler, children }: ActionParamPopoverProps) {
     const { t } = useTranslation();
-    const executeAction = useExecuteActionApiActionsActionIdExecutePost();
+    const executeAction = useExecuteActionApiActionsActionIdExecutePost({
+        mutation: { meta: { skipGlobalErrorToast: true } },
+    });
     const [open, setOpen] = useState(false);
     const { data: typesData } = useListHandlerTypesApiHandlersTypesGet();
     const handlerTypes = (typesData?.data ?? []) as HandlerTypeInfo[];
@@ -73,91 +77,116 @@ export function ActionParamPopover({ action, params, handler, children }: Action
         }
     }, [open, paramAttrIds, params]);
 
+    const [confirmOpen, setConfirmOpen] = useState(false);
     const localizedName = t(`knownActions.${action.name.replaceAll(" ", "_")}`, action.name);
 
-    function handleSubmit() {
+    function doExecute() {
         executeAction.mutate(
             { actionId: action.id, data: { params: values } },
             {
                 onSuccess: () => {
-                    toast.success(t("toast.actionExecuted", { name: localizedName }));
+                    toast.success(boldName(t, "toast.actionExecuted", localizedName));
                     setOpen(false);
                 },
-                onError: () => toast.error(t("toast.actionFailed", { name: localizedName })),
+                onError: () => toast.error(boldName(t, "toast.actionFailed", localizedName)),
             },
         );
     }
 
-    return (
-        <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger render={children as React.ReactElement} />
-            <PopoverContent side="bottom" align="start" sideOffset={8} className="w-72">
-                <div className="space-y-4">
-                    {params.map((p) => {
-                        const val = values[p.key];
-                        const minVal = p.min ?? 0;
-                        const maxVal = p.max ?? 100;
-                        const range = maxVal - minVal;
-                        const fillPercent = range > 0 ? ((val - minVal) / range) * 100 : 0;
+    function handleSubmit() {
+        if (handler.confirm_actions) {
+            setOpen(false);
+            setConfirmOpen(true);
+        } else {
+            doExecute();
+        }
+    }
 
-                        return (
-                            <div key={p.key} className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <Label className="text-xs">{t(`actionParams.${p.key}`, p.label)}</Label>
-                                    <span className="text-sm font-semibold tabular-nums leading-none">
-                                        {val}
-                                        {p.unit && (
-                                            <span className="text-xs text-muted-foreground ml-0.5 font-medium">
-                                                {p.unit}
-                                            </span>
-                                        )}
-                                    </span>
-                                </div>
-                                <div className="relative py-0.5">
-                                    <div
-                                        className="absolute top-1/2 left-0 -translate-y-1/2 h-5 rounded-full blur-md pointer-events-none transition-all duration-150"
-                                        style={{
-                                            width: `${fillPercent}%`,
-                                            background: "var(--primary)",
-                                            opacity: 0.18,
-                                        }}
-                                    />
-                                    <div className="relative [&_[data-slot=slider-track]]:h-2 [&_[data-slot=slider-thumb]]:size-5 [&_[data-slot=slider-thumb]]:border-2 [&_[data-slot=slider-thumb]]:shadow-md">
-                                        <Slider
-                                            value={[val]}
-                                            onValueChange={(value) => {
-                                                const v = Array.isArray(value) ? value[0] : value;
-                                                setValues((prev) => ({ ...prev, [p.key]: v }));
+    return (
+        <>
+            <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger render={children as React.ReactElement} />
+                <PopoverContent side="bottom" align="start" sideOffset={8} className="w-72">
+                    <div className="space-y-4">
+                        {params.map((p) => {
+                            const val = values[p.key];
+                            const minVal = p.min ?? 0;
+                            const maxVal = p.max ?? 100;
+                            const range = maxVal - minVal;
+                            const fillPercent = range > 0 ? ((val - minVal) / range) * 100 : 0;
+
+                            return (
+                                <div key={p.key} className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <Label className="text-xs">
+                                            {t(`actionParams.${p.key}`, p.label)}
+                                        </Label>
+                                        <span className="text-sm font-semibold tabular-nums leading-none">
+                                            {val}
+                                            {p.unit && (
+                                                <span className="text-xs text-muted-foreground ml-0.5 font-medium">
+                                                    {p.unit}
+                                                </span>
+                                            )}
+                                        </span>
+                                    </div>
+                                    <div className="relative py-0.5">
+                                        <div
+                                            className="absolute top-1/2 left-0 -translate-y-1/2 h-5 rounded-full blur-md pointer-events-none transition-all duration-150"
+                                            style={{
+                                                width: `${fillPercent}%`,
+                                                background: "var(--primary)",
+                                                opacity: 0.18,
                                             }}
-                                            min={minVal}
-                                            max={maxVal}
-                                            step={p.step ?? 1}
                                         />
+                                        <div className="relative [&_[data-slot=slider-track]]:h-2 [&_[data-slot=slider-thumb]]:size-5 [&_[data-slot=slider-thumb]]:border-2 [&_[data-slot=slider-thumb]]:shadow-md">
+                                            <Slider
+                                                value={[val]}
+                                                onValueChange={(value) => {
+                                                    const v = Array.isArray(value) ? value[0] : value;
+                                                    setValues((prev) => ({ ...prev, [p.key]: v }));
+                                                }}
+                                                min={minVal}
+                                                max={maxVal}
+                                                step={p.step ?? 1}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between text-[10px] text-muted-foreground">
+                                        <span>
+                                            {minVal}
+                                            {p.unit && ` ${p.unit}`}
+                                        </span>
+                                        <span>
+                                            {maxVal}
+                                            {p.unit && ` ${p.unit}`}
+                                        </span>
                                     </div>
                                 </div>
-                                <div className="flex justify-between text-[10px] text-muted-foreground">
-                                    <span>
-                                        {minVal}
-                                        {p.unit && ` ${p.unit}`}
-                                    </span>
-                                    <span>
-                                        {maxVal}
-                                        {p.unit && ` ${p.unit}`}
-                                    </span>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-                <Button
-                    size="sm"
-                    className="w-full"
-                    onClick={handleSubmit}
-                    disabled={executeAction.isPending}
-                >
-                    {t("handlers.executeAction")}
-                </Button>
-            </PopoverContent>
-        </Popover>
+                            );
+                        })}
+                    </div>
+                    <Button
+                        size="sm"
+                        className="w-full"
+                        onClick={handleSubmit}
+                        disabled={executeAction.isPending}
+                    >
+                        {t("handlers.executeAction")}
+                    </Button>
+                </PopoverContent>
+            </Popover>
+            <ConfirmDialog
+                open={confirmOpen}
+                onOpenChange={setConfirmOpen}
+                onConfirm={doExecute}
+                description={t("confirm.executeAction", {
+                    action: localizedName,
+                    device: handler.label || handler.description || handler.type,
+                })}
+                confirmLabel={t("common.confirm")}
+                variant="default"
+            />
+        </>
     );
 }

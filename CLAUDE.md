@@ -55,6 +55,10 @@
 
 - **All clickable elements must have `cursor-pointer`.** Buttons, icon buttons, clickable cards, and any other interactive elements should always show a pointer cursor on hover.
 
+## Package Management
+
+- **Backend uses `uv`, frontend uses `pnpm`. Never use `pip` or `npm`.** To add a backend dependency use `uv add <package>`. To add a frontend dependency use `pnpm add <package>`.
+
 ## Common Pitfalls
 
 - **Always invalidate React Query cache after mutations.** Every mutation's `onSuccess` must call `queryClient.invalidateQueries()` for the affected query keys. Do not rely solely on Socket.IO `mutate` events for cache invalidation — explicit invalidation ensures the UI updates immediately.

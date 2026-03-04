@@ -20,7 +20,10 @@
         "loginSubtitle": "IoT monitoring & control platform",
         "invalidCredentials": "Invalid credentials",
         "userInactive": "User account is inactive",
-        "serverUnavailable": "Server is unavailable"
+        "serverUnavailable": "Server is unavailable",
+        "rateLimited": "Too many login attempts. Please try again later.",
+        "accountLocked": "Account temporarily locked. Please try again later.",
+        "captchaFailed": "CAPTCHA verification failed. Please try again."
     },
     "common": {
         "underConstruction": "This page is under construction.",
@@ -36,7 +39,8 @@
         "no": "No",
         "fullscreenPromptTitle": "Enter fullscreen?",
         "fullscreenPromptDescription": "Would you like to view this in fullscreen mode?",
-        "enterFullscreen": "Enter Fullscreen"
+        "enterFullscreen": "Enter Fullscreen",
+        "confirm": "Confirm"
     },
     "controls": {
         "relay": "Relay",
@@ -164,7 +168,9 @@
         "controls": "Controls",
         "allActions": "All Actions",
         "addToDashboard": "Add to Dashboard",
-        "controlUnresolved": "Missing attribute or action"
+        "controlUnresolved": "Missing attribute or action",
+        "confirmActions": "Confirm actions",
+        "confirmActionsDescription": "Ask for confirmation before executing actions"
     },
     "dashboard": {
         "title": "Dashboard",
@@ -275,7 +281,8 @@
         "resetZoom": "Reset Zoom",
         "previousDay": "Previous Day",
         "nextDay": "Next Day",
-        "openInAnalytics": "Open in Analytics"
+        "openInAnalytics": "Open in Analytics",
+        "beginAtZero": "Begin Y axis at zero"
     },
     "inspector": {
         "title": "Analytics",
@@ -296,7 +303,13 @@
         "message": "Message",
         "time": "Time",
         "allLevels": "All Levels",
-        "allSources": "All sources"
+        "allSources": "All sources",
+        "actionExecuted": "Action {{name}} executed ({{device}}, {{source}})",
+        "actionFailed": "Action {{name}} failed ({{device}}, {{source}})",
+        "source_action": "action",
+        "source_workflow": "workflow",
+        "sourceManual": "manual",
+        "sourceWorkflow": "workflow"
     },
     "toast": {
         "handlerCreated": "Device handler created",
@@ -310,8 +323,8 @@
         "actionCreated": "Action created",
         "actionUpdated": "Action updated",
         "actionDeleted": "Action deleted",
-        "actionExecuted": "{{name}} executed",
-        "actionFailed": "{{name}} failed",
+        "actionExecuted": "Action {{name}} executed",
+        "actionFailed": "Action {{name}} failed",
         "userCreated": "User created",
         "userUpdated": "User updated",
         "userDeleted": "User deleted",
@@ -383,7 +396,8 @@
         "removeTile": "This will remove this tile from the dashboard.",
         "removeSwitch": "This will remove this switch from the dashboard.",
         "removeSlider": "This will remove this slider from the dashboard.",
-        "remove": "Remove"
+        "remove": "Remove",
+        "executeAction": "Execute \"{{action}}\" on {{device}}?"
     },
     "notFound": {
         "title": "Page not found",
@@ -405,6 +419,7 @@
         "createUser": "Create User",
         "password": "Password",
         "passwordHint": "Leave empty to keep current password",
+        "passwordMinLength": "Password must be at least {{count}} characters",
         "cannotDeleteSelf": "You cannot delete your own account.",
         "adminOnly": "This page is only accessible to administrators.",
         "roleAdmin": "Admin",

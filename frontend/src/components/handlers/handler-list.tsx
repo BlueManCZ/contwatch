@@ -32,6 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatValue } from "@/lib/format-value";
+import { localizeAttributeLabel } from "@/lib/localize-attribute";
 import { cn } from "@/lib/utils";
 import { useHandlerIndicatorStore } from "@/stores/handler-indicators";
 import { useLiveValuesStore } from "@/stores/live-values";
@@ -245,13 +246,7 @@ function HandlerCard({
 function AttributeRow({ attr, liveVal }: { attr: AttributeRead; liveVal: AttributeValue | undefined }) {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
-    const i18nKey = `knownAttributes.${attr.name.replace(/[/:]/g, "_")}`;
-    const englishDefault = i18n.exists(i18nKey) ? String(i18n.t(i18nKey, { lng: "en" })) : null;
-    const localizedLabel = attr.label
-        ? attr.label === englishDefault
-            ? String(t(i18nKey))
-            : attr.label
-        : undefined;
+    const localizedLabel = attr.label ? localizeAttributeLabel(attr.name, attr.label, t, i18n) : undefined;
     const raw = liveVal?.value;
     const formatted =
         raw != null && typeof raw === "number" && attr.unit

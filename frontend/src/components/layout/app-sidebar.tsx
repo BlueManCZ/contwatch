@@ -1,6 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { Activity, Cable, Gauge, LogOut, ScrollText, Settings, Workflow } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Badge } from "@/components/ui/badge";
 import {
     Sidebar,
     SidebarContent,
@@ -59,6 +60,11 @@ export function AppSidebar() {
                     <span className="text-base font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
                         {t("common.appName")}
                     </span>
+                    {import.meta.env.DEV && (
+                        <Badge className="group-data-[collapsible=icon]:hidden text-[10px] font-bold px-1.5 py-0 bg-primary text-primary-foreground">
+                            DEV
+                        </Badge>
+                    )}
                 </Link>
             </SidebarHeader>
 

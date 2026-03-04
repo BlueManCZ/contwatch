@@ -1,29 +1,81 @@
 import axios from "axios";
 
+// ---------------------------------------------------------------------------
+// In-memory access token (never stored in localStorage)
+// ---------------------------------------------------------------------------
+let accessToken: string | null = null;
+
+export function getAccessToken(): string | null {
+    return accessToken;
+}
+
+export function setAccessToken(token: string | null): void {
+    accessToken = token;
+}
+
+// ---------------------------------------------------------------------------
+// Axios instance
+// ---------------------------------------------------------------------------
 export const api = axios.create({
     baseURL: "/api",
 });
 
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("access_token");
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+    if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
 });
 
+// ---------------------------------------------------------------------------
+// Silent refresh on 401
+// ---------------------------------------------------------------------------
+let refreshPromise: Promise<string> | null = null;
+
+async function silentRefresh(): Promise<string> {
+    const response = await axios.post("/api/auth/refresh", null, {
+        withCredentials: true,
+        headers: { "X-Requested-With": "contwatch" },
+    });
+    const newToken: string = response.data.access_token;
+    setAccessToken(newToken);
+    return newToken;
+}
+
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
-        if (error.response?.status === 401) {
-            // Skip hard redirect for /auth/me — the AuthProvider handles that flow
-            const url = error.config?.url ?? "";
-            if (!url.endsWith("/auth/me")) {
-                localStorage.removeItem("access_token");
+    async (error) => {
+        const originalRequest = error.config;
+
+        // Only attempt refresh on 401, and not for the refresh endpoint itself
+        if (
+            error.response?.status === 401 &&
+            !originalRequest._retry &&
+            !originalRequest.url?.endsWith("/auth/refresh")
+        ) {
+            originalRequest._retry = true;
+
+            try {
+                // Coalesce concurrent refresh attempts
+                if (!refreshPromise) {
+                    refreshPromise = silentRefresh().finally(() => {
+                        refreshPromise = null;
+                    });
+                }
+                const newToken = await refreshPromise;
+                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                return api(originalRequest);
+            } catch {
+                // Refresh failed — redirect to login
+                setAccessToken(null);
                 const currentPath = window.location.pathname + window.location.search;
-                window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+                if (!currentPath.startsWith("/login")) {
+                    window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+                }
+                return Promise.reject(error);
             }
         }
+
         return Promise.reject(error);
     },
 );

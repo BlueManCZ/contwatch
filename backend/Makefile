@@ -4,7 +4,7 @@ dev:
 	uv run uvicorn app.main:sio_asgi_app --reload
 
 test:
-	uv run pytest -v
+	uv run python -m pytest -v
 
 lint:
 	uv run ruff check .

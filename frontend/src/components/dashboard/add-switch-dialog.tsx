@@ -31,6 +31,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { localizeAttributeLabel } from "@/lib/localize-attribute";
 
 interface AddSwitchDialogProps {
     open?: boolean;
@@ -38,7 +39,7 @@ interface AddSwitchDialogProps {
 }
 
 export function AddSwitchDialog({ open: controlledOpen, onOpenChange }: AddSwitchDialogProps = {}) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const queryClient = useQueryClient();
     const [internalOpen, setInternalOpen] = useState(false);
     const open = controlledOpen ?? internalOpen;
@@ -146,9 +147,11 @@ export function AddSwitchDialog({ open: controlledOpen, onOpenChange }: AddSwitc
                                 <SelectTrigger>
                                     <SelectValue>
                                         {selectedAttr
-                                            ? t(
-                                                  `knownAttributes.${selectedAttr.name.replace(/[/:]/g, "_")}`,
-                                                  selectedAttr.label || selectedAttr.name,
+                                            ? localizeAttributeLabel(
+                                                  selectedAttr.name,
+                                                  selectedAttr.label,
+                                                  t,
+                                                  i18n,
                                               )
                                             : t("dashboard.selectAttribute")}
                                     </SelectValue>
@@ -156,10 +159,7 @@ export function AddSwitchDialog({ open: controlledOpen, onOpenChange }: AddSwitc
                                 <SelectContent alignItemWithTrigger={false}>
                                     {attributes.map((attr) => (
                                         <SelectItem key={attr.id} value={String(attr.id)}>
-                                            {t(
-                                                `knownAttributes.${attr.name.replace(/[/:]/g, "_")}`,
-                                                attr.label || attr.name,
-                                            )}
+                                            {localizeAttributeLabel(attr.name, attr.label, t, i18n)}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

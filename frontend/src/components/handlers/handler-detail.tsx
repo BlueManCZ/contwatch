@@ -40,7 +40,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatValue } from "@/lib/format-value";
-import { cn } from "@/lib/utils";
+import { localizeAttributeLabel } from "@/lib/localize-attribute";
+import { boldName, cn } from "@/lib/utils";
 import { useLiveValuesStore } from "@/stores/live-values";
 import { ActionEditDialog } from "./action-edit-dialog";
 import { ActionParamPopover } from "./action-param-dialog";
@@ -294,13 +295,7 @@ function DetailAttributeRow({
     onEdit: () => void;
 }) {
     const { t, i18n } = useTranslation();
-    const i18nKey = `knownAttributes.${attr.name.replace(/[/:]/g, "_")}`;
-    const englishDefault = i18n.exists(i18nKey) ? String(i18n.t(i18nKey, { lng: "en" })) : null;
-    const localizedLabel = attr.label
-        ? attr.label === englishDefault
-            ? String(t(i18nKey))
-            : attr.label
-        : undefined;
+    const localizedLabel = attr.label ? localizeAttributeLabel(attr.name, attr.label, t, i18n) : undefined;
 
     const raw = liveVal?.value;
     const formatted =
@@ -343,7 +338,8 @@ function AvailableAttributes({ handler }: { handler: HandlerRead }) {
     });
     const createAttribute = useCreateAttributeApiAttributesPost();
 
-    const available = (availData?.data ?? []) as string[];
+    const available = (availData?.data ?? {}) as Record<string, unknown>;
+    const entries = Object.entries(available);
 
     function handleAdd(name: string) {
         createAttribute.mutate(
@@ -357,7 +353,7 @@ function AvailableAttributes({ handler }: { handler: HandlerRead }) {
         );
     }
 
-    if (available.length === 0) return null;
+    if (entries.length === 0) return null;
 
     return (
         <div>
@@ -366,21 +362,27 @@ function AvailableAttributes({ handler }: { handler: HandlerRead }) {
                 {t("handlers.availableAttributes")}
             </h4>
             <div className="space-y-1">
-                {available.map((name) => (
+                {entries.map(([name, value]) => (
                     <div
                         key={name}
-                        className="flex items-center justify-between py-1.5 px-2 rounded-md hover:bg-accent transition-colors"
+                        className="flex items-center justify-between gap-3 py-1.5 px-2 rounded-md hover:bg-accent transition-colors"
                     >
-                        <span className="font-mono text-xs">{name}</span>
-                        <Button
-                            size="xs"
-                            variant="ghost"
-                            onClick={() => handleAdd(name)}
-                            disabled={createAttribute.isPending}
-                        >
-                            <Plus className="h-3 w-3 mr-1" />
-                            {t("common.add")}
-                        </Button>
+                        <span className="font-mono text-xs truncate min-w-0">{name}</span>
+                        <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-xs text-muted-foreground tabular-nums">
+                                {value != null ? String(value) : "-"}
+                            </span>
+                            <Button
+                                size="xs"
+                                variant="ghost"
+                                className="cursor-pointer"
+                                onClick={() => handleAdd(name)}
+                                disabled={createAttribute.isPending}
+                            >
+                                <Plus className="h-3 w-3 mr-1" />
+                                {t("common.add")}
+                            </Button>
+                        </div>
                     </div>
                 ))}
             </div>
@@ -423,7 +425,10 @@ function HandlerActions({ handler }: { handler: HandlerRead }) {
     const actions = (handler.actions ?? []) as ActionRead[];
     const [editingAction, setEditingAction] = useState<ActionRead | null>(null);
     const [addOpen, setAddOpen] = useState(false);
-    const executeAction = useExecuteActionApiActionsActionIdExecutePost();
+    const [pendingAction, setPendingAction] = useState<ActionRead | null>(null);
+    const executeAction = useExecuteActionApiActionsActionIdExecutePost({
+        mutation: { meta: { skipGlobalErrorToast: true } },
+    });
     const { data: typesData } = useListHandlerTypesApiHandlersTypesGet();
     const handlerTypes = (typesData?.data ?? []) as HandlerTypeInfo[];
 
@@ -434,24 +439,23 @@ function HandlerActions({ handler }: { handler: HandlerRead }) {
         return ka?.params && ka.params.length > 0 ? ka.params : undefined;
     }
 
-    function handleExecute(action: ActionRead) {
+    function doExecute(action: ActionRead) {
+        const name = t(`knownActions.${action.name.replaceAll(" ", "_")}`, action.name);
         executeAction.mutate(
             { actionId: action.id, data: null },
             {
-                onSuccess: () =>
-                    toast.success(
-                        t("toast.actionExecuted", {
-                            name: t(`knownActions.${action.name.replaceAll(" ", "_")}`, action.name),
-                        }),
-                    ),
-                onError: () =>
-                    toast.error(
-                        t("toast.actionFailed", {
-                            name: t(`knownActions.${action.name.replaceAll(" ", "_")}`, action.name),
-                        }),
-                    ),
+                onSuccess: () => toast.success(boldName(t, "toast.actionExecuted", name)),
+                onError: () => toast.error(boldName(t, "toast.actionFailed", name)),
             },
         );
+    }
+
+    function handleExecute(action: ActionRead) {
+        if (handler.confirm_actions) {
+            setPendingAction(action);
+        } else {
+            doExecute(action);
+        }
     }
 
     return (
@@ -484,6 +488,21 @@ function HandlerActions({ handler }: { handler: HandlerRead }) {
             )}
             <ActionEditDialog action={editingAction} onClose={() => setEditingAction(null)} />
             <AddActionDialog handler={handler} open={addOpen} onOpenChange={setAddOpen} />
+            <ConfirmDialog
+                open={pendingAction !== null}
+                onOpenChange={(open) => !open && setPendingAction(null)}
+                onConfirm={() => {
+                    if (pendingAction) doExecute(pendingAction);
+                }}
+                description={t("confirm.executeAction", {
+                    action: pendingAction
+                        ? t(`knownActions.${pendingAction.name.replaceAll(" ", "_")}`, pendingAction.name)
+                        : "",
+                    device: handler.label || handler.description || handler.type,
+                })}
+                confirmLabel={t("common.confirm")}
+                variant="default"
+            />
         </div>
     );
 }

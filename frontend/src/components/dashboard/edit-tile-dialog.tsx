@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { localizeAttributeLabel } from "@/lib/localize-attribute";
 
 interface EditTileDialogProps {
     tile: DashboardTile;
@@ -21,7 +22,7 @@ interface EditTileDialogProps {
 }
 
 export function EditTileDialog({ tile, open, onOpenChange, onRemove }: EditTileDialogProps) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const queryClient = useQueryClient();
     const [selectedAttrId, setSelectedAttrId] = useState<string>(String(tile.attribute_id));
 
@@ -61,17 +62,14 @@ export function EditTileDialog({ tile, open, onOpenChange, onRemove }: EditTileD
                             <SelectTrigger>
                                 <SelectValue>
                                     {selectedAttr
-                                        ? `${t(`knownAttributes.${selectedAttr.name.replace(/[/:]/g, "_")}`, selectedAttr.label || selectedAttr.name)}${selectedAttr.unit ? ` (${selectedAttr.unit})` : ""}`
+                                        ? `${localizeAttributeLabel(selectedAttr.name, selectedAttr.label, t, i18n)}${selectedAttr.unit ? ` (${selectedAttr.unit})` : ""}`
                                         : t("dashboard.selectAttribute")}
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent alignItemWithTrigger={false}>
                                 {attributes.map((attr) => (
                                     <SelectItem key={attr.id} value={String(attr.id)}>
-                                        {t(
-                                            `knownAttributes.${attr.name.replace(/[/:]/g, "_")}`,
-                                            attr.label || attr.name,
-                                        )}
+                                        {localizeAttributeLabel(attr.name, attr.label, t, i18n)}
                                         {attr.unit ? ` (${attr.unit})` : ""}
                                     </SelectItem>
                                 ))}

@@ -4,6 +4,7 @@ import type { DashboardTile } from "@/api/generated/contWatchAPI.schemas";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLongPress } from "@/hooks/use-long-press";
 import { formatValue } from "@/lib/format-value";
+import { localizeAttributeLabel } from "@/lib/localize-attribute";
 import { useLiveValuesStore } from "@/stores/live-values";
 
 export type WidgetStatus = "online" | "warning" | "offline";
@@ -21,13 +22,7 @@ export function WidgetTile({ tile, status = "online", onRemove, onEdit, onClick 
     const liveVal = useLiveValuesStore((s) => s.values[tile.attribute_id]);
     const longPress = useLongPress({ onLongPress: () => onEdit?.(), disabled: !onEdit });
 
-    const i18nKey = `knownAttributes.${tile.name.replace(/[/:]/g, "_")}`;
-    const englishDefault = i18n.exists(i18nKey) ? String(i18n.t(i18nKey, { lng: "en" })) : null;
-    const displayLabel = tile.label
-        ? tile.label === englishDefault
-            ? String(t(i18nKey))
-            : tile.label
-        : String(t(i18nKey, tile.name));
+    const displayLabel = localizeAttributeLabel(tile.name, tile.label, t, i18n);
 
     const value = liveVal?.value ?? tile.value;
     const trend = liveVal?.trend ?? tile.trend ?? 0;

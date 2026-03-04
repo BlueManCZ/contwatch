@@ -25,6 +25,7 @@ import type {
 
 import type {
   AllHandlerStatusesApiHandlersStatusesGet200,
+  AvailableAttributesApiHandlersHandlerIdAvailableAttributesGet200,
   CategoryInfo,
   HTTPValidationError,
   HandlerCreate,
@@ -1545,7 +1546,7 @@ export function useHandlerStatusApiHandlersHandlerIdStatusGet<TData = Awaited<Re
  * @summary Available Attributes
  */
 export type availableAttributesApiHandlersHandlerIdAvailableAttributesGetResponse200 = {
-  data: string[]
+  data: AvailableAttributesApiHandlersHandlerIdAvailableAttributesGet200
   status: 200
 }
 

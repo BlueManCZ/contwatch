@@ -1,6 +1,7 @@
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { useNavigate } from "@tanstack/react-router";
 import { isAxiosError } from "axios";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ContwatchLogo } from "@/components/layout/contwatch-logo";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/providers/auth-provider";
 import { Route } from "@/routes/login";
+
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
 
 export function LoginForm() {
     const { t } = useTranslation();
@@ -19,22 +22,29 @@ export function LoginForm() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+    const turnstileRef = useRef<TurnstileInstance>(null);
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         setError("");
         setIsSubmitting(true);
         try {
-            await login(username, password);
+            await login(username, password, turnstileToken);
             await navigate({ to: redirectTo || "/" });
         } catch (err) {
-            if (isAxiosError(err) && err.response?.status === 403) {
-                setError(t("auth.userInactive"));
+            if (isAxiosError(err) && err.response?.status === 429) {
+                setError(t("auth.rateLimited"));
+            } else if (isAxiosError(err) && err.response?.status === 403) {
+                setError(t("auth.accountLocked"));
+            } else if (isAxiosError(err) && err.response?.status === 400) {
+                setError(t("auth.captchaFailed"));
             } else if (isAxiosError(err) && err.response?.status === 401) {
                 setError(t("auth.invalidCredentials"));
             } else {
                 setError(t("auth.serverUnavailable"));
             }
+            turnstileRef.current?.reset();
         } finally {
             setIsSubmitting(false);
         }
@@ -86,6 +96,14 @@ export function LoginForm() {
                                     className="bg-background/50"
                                 />
                             </div>
+                            {TURNSTILE_SITE_KEY && (
+                                <Turnstile
+                                    ref={turnstileRef}
+                                    siteKey={TURNSTILE_SITE_KEY}
+                                    onSuccess={setTurnstileToken}
+                                    options={{ theme: "dark", size: "flexible" }}
+                                />
+                            )}
                             {error && (
                                 <p className="text-sm text-destructive-foreground bg-destructive/10 rounded-md px-3 py-2">
                                     {error}

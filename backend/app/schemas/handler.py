@@ -15,6 +15,7 @@ class HandlerRead(OrmBase, BaseModel):
     options: dict
     enabled: bool
     order: int | None = None
+    confirm_actions: bool = False
     description: str = ""
     attributes: list[AttributeRead] = []
     actions: list[ActionRead] = []
@@ -25,6 +26,7 @@ class HandlerCreate(BaseModel):
     label: str | None = None
     options: dict = {}
     enabled: bool = True
+    confirm_actions: bool = False
 
 
 class HandlerUpdate(BaseModel):
@@ -32,6 +34,7 @@ class HandlerUpdate(BaseModel):
     label: str | None = None
     options: dict | None = None
     enabled: bool | None = None
+    confirm_actions: bool | None = None
 
 
 class FieldChoice(BaseModel):

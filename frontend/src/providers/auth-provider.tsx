@@ -1,5 +1,6 @@
+import axios from "axios";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { api } from "@/api/axios-instance";
+import { api, setAccessToken } from "@/api/axios-instance";
 
 interface User {
     id: number;
@@ -11,10 +12,10 @@ interface User {
 
 interface AuthContextType {
     user: User | null;
-    token: string | null;
+    isAuthenticated: boolean;
     isLoading: boolean;
-    login: (username: string, password: string) => Promise<void>;
-    logout: () => void;
+    login: (username: string, password: string, turnstileToken?: string | null) => Promise<void>;
+    logout: () => Promise<void>;
     waitUntilReady: () => Promise<void>;
 }
 
@@ -22,9 +23,10 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
-    const [token, setToken] = useState<string | null>(() => localStorage.getItem("access_token"));
     const [isLoading, setIsLoading] = useState(true);
     const readyResolversRef = useRef<Array<() => void>>([]);
+
+    const isAuthenticated = user !== null;
 
     const waitUntilReady = useCallback(() => {
         if (!isLoading) return Promise.resolve();
@@ -33,22 +35,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
     }, [isLoading]);
 
-    const logout = useCallback(() => {
-        localStorage.removeItem("access_token");
-        setToken(null);
+    const logout = useCallback(async () => {
+        try {
+            await axios.post("/api/auth/logout", null, { withCredentials: true });
+        } catch {
+            // Best-effort — cookie may already be gone
+        }
+        setAccessToken(null);
         setUser(null);
     }, []);
 
-    const login = useCallback(async (username: string, password: string) => {
-        const response = await api.post("/auth/login", { username, password });
-        const accessToken = response.data.access_token;
-        localStorage.setItem("access_token", accessToken);
-        setToken(accessToken);
+    const login = useCallback(async (username: string, password: string, turnstileToken?: string | null) => {
+        const response = await api.post(
+            "/auth/login",
+            { username, password, turnstile_token: turnstileToken ?? undefined },
+            { withCredentials: true },
+        );
+        setAccessToken(response.data.access_token);
 
         const meResponse = await api.get("/auth/me");
         setUser(meResponse.data);
     }, []);
 
+    // On mount: attempt silent refresh to restore session from cookie
     useEffect(() => {
         const finish = () => {
             setIsLoading(false);
@@ -56,19 +65,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             readyResolversRef.current = [];
         };
 
-        if (!token) {
-            finish();
-            return;
-        }
-
-        api.get("/auth/me")
-            .then((response) => setUser(response.data))
-            .catch(() => logout())
+        axios
+            .post("/api/auth/refresh", null, {
+                withCredentials: true,
+                headers: { "X-Requested-With": "contwatch" },
+            })
+            .then((response) => {
+                setAccessToken(response.data.access_token);
+                return api.get("/auth/me");
+            })
+            .then((meResponse) => setUser(meResponse.data))
+            .catch(() => {
+                setAccessToken(null);
+                setUser(null);
+            })
             .finally(finish);
-    }, [token, logout]);
+    }, []);
 
     return (
-        <AuthContext.Provider value={{ user, token, isLoading, login, logout, waitUntilReady }}>
+        <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, logout, waitUntilReady }}>
             {children}
         </AuthContext.Provider>
     );

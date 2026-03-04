@@ -6,7 +6,7 @@ import httpx
 from app.handlers.base import Indicator, KnownAction, KnownAttribute, KnownControl
 from app.handlers.http_handler import HttpHandler
 from app.handlers.registry import register_handler_type
-from app.handlers.shelly_utils import is_on, wifi_indicator
+from app.handlers.shelly_utils import is_on, wifi_disconnected_indicator, wifi_indicator
 
 
 @register_handler_type
@@ -72,6 +72,9 @@ class ShellyPlugHandler(HttpHandler):
         if rssi is not None:
             indicators.append(wifi_indicator(int(rssi)))
         return indicators
+
+    def disconnected_indicators(self) -> list[Indicator]:
+        return [wifi_disconnected_indicator()]
 
     @classmethod
     async def probe(cls, config: dict) -> bool:

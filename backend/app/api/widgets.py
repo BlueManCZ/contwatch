@@ -326,7 +326,9 @@ async def dashboard(db: DbSession, manager: HandlerManagerDep, _current_user: Cu
     values = manager.get_current_values()
     daily_stats = manager.get_daily_stats()
 
-    # Cache handler statuses to avoid redundant lookups per widget
+    # Cache handler data to avoid redundant lookups per widget
+    handler_result = await db.execute(select(Handler))
+    handler_map = {h.id: h for h in handler_result.scalars().all()}
     status_cache: dict[int, dict] = {}
 
     def get_cached_status(handler_id: int) -> dict:
@@ -376,6 +378,7 @@ async def dashboard(db: DbSession, manager: HandlerManagerDep, _current_user: Cu
         attr = switch.attribute
         val = values.get(attr.id, {})
         h_status = get_cached_status(attr.handler_id)
+        db_handler = handler_map.get(attr.handler_id)
         dashboard_switches.append(
             DashboardSwitch(
                 id=switch.id,
@@ -383,8 +386,10 @@ async def dashboard(db: DbSession, manager: HandlerManagerDep, _current_user: Cu
                 icon=switch.icon,
                 attribute_id=attr.id,
                 handler_id=attr.handler_id,
+                handler_label=db_handler.label if db_handler else None,
                 handler_running=h_status["running"],
                 handler_connected=h_status["connected"],
+                confirm_actions=db_handler.confirm_actions if db_handler else False,
                 attribute_compare=switch.attribute_compare,
                 action_on_id=switch.action_on_id,
                 action_off_id=switch.action_off_id,
@@ -410,6 +415,7 @@ async def dashboard(db: DbSession, manager: HandlerManagerDep, _current_user: Cu
         attr = slider.attribute
         val = values.get(attr.id, {})
         h_status = get_cached_status(attr.handler_id)
+        db_handler = handler_map.get(attr.handler_id)
         dashboard_sliders.append(
             DashboardSlider(
                 id=slider.id,
@@ -417,8 +423,10 @@ async def dashboard(db: DbSession, manager: HandlerManagerDep, _current_user: Cu
                 icon=slider.icon,
                 attribute_id=attr.id,
                 handler_id=attr.handler_id,
+                handler_label=db_handler.label if db_handler else None,
                 handler_running=h_status["running"],
                 handler_connected=h_status["connected"],
+                confirm_actions=db_handler.confirm_actions if db_handler else False,
                 action_id=slider.action_id,
                 action_name=slider.action.name,
                 param_key=slider.param_key,

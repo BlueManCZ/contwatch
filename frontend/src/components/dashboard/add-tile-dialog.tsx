@@ -19,6 +19,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { localizeAttributeLabel } from "@/lib/localize-attribute";
 
 interface AddTileDialogProps {
     open?: boolean;
@@ -26,7 +27,7 @@ interface AddTileDialogProps {
 }
 
 export function AddTileDialog({ open: controlledOpen, onOpenChange }: AddTileDialogProps = {}) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const queryClient = useQueryClient();
     const [internalOpen, setInternalOpen] = useState(false);
     const open = controlledOpen ?? internalOpen;
@@ -80,17 +81,14 @@ export function AddTileDialog({ open: controlledOpen, onOpenChange }: AddTileDia
                             <SelectTrigger>
                                 <SelectValue>
                                     {selectedAttr
-                                        ? `${t(`knownAttributes.${selectedAttr.name.replace(/[/:]/g, "_")}`, selectedAttr.label || selectedAttr.name)}${selectedAttr.unit ? ` (${selectedAttr.unit})` : ""}`
+                                        ? `${localizeAttributeLabel(selectedAttr.name, selectedAttr.label, t, i18n)}${selectedAttr.unit ? ` (${selectedAttr.unit})` : ""}`
                                         : t("dashboard.selectAttribute")}
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent alignItemWithTrigger={false}>
                                 {attributes.map((attr) => (
                                     <SelectItem key={attr.id} value={String(attr.id)}>
-                                        {t(
-                                            `knownAttributes.${attr.name.replace(/[/:]/g, "_")}`,
-                                            attr.label || attr.name,
-                                        )}
+                                        {localizeAttributeLabel(attr.name, attr.label, t, i18n)}
                                         {attr.unit ? ` (${attr.unit})` : ""}
                                     </SelectItem>
                                 ))}

@@ -10,6 +10,7 @@ class ProcessResult:
 
     data_units: list[dict] = field(default_factory=list)
     type_corrected: bool = False
+    stats_reset: bool = False
 
 
 class AttributeTracker:
@@ -122,18 +123,22 @@ class AttributeTracker:
 
         if isinstance(value, (int, float)):
             self._history.append(value)
-            self._update_daily_stats(value, now.date())
+            if self._update_daily_stats(value, now.date()):
+                result.stats_reset = True
 
         return result
 
-    def _update_daily_stats(self, value: float, today: datetime.date) -> None:
-        """Compare value against in-memory min/max, reset on date rollover."""
+    def _update_daily_stats(self, value: float, today: datetime.date) -> bool:
+        """Compare value against in-memory min/max, reset on date rollover.
+
+        Returns True if stats were reset due to a new day.
+        """
         # Date rollover — reset stats
         if self._stat_date != today:
             self._stat_date = today
             self._daily_min = value
             self._daily_max = value
-            return
+            return True
 
         # Check for new min
         if self._daily_min is None or value < self._daily_min:
@@ -142,6 +147,8 @@ class AttributeTracker:
         # Check for new max
         if self._daily_max is None or value > self._daily_max:
             self._daily_max = value
+
+        return False
 
     def _make_unit(self, value: Any, timestamp: datetime.datetime) -> dict:
         numeric = value if isinstance(value, (int, float)) else 0.0

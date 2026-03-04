@@ -165,6 +165,10 @@ class AbstractHandler(ABC):
         """Override to extract status indicators from raw device data."""
         return []
 
+    def disconnected_indicators(self) -> list[Indicator]:
+        """Override to provide indicators shown when the handler loses connection."""
+        return []
+
     # --- Config helpers ---
 
     def get_config(self) -> dict:

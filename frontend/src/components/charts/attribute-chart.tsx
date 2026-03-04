@@ -1,7 +1,7 @@
 import "@/lib/chart-setup";
 import { useQueries } from "@tanstack/react-query";
 import type { Chart, ChartData, ChartOptions } from "chart.js";
-import { Maximize, Minimize, RotateCcw } from "lucide-react";
+import { ArrowDownToLine, Maximize, Minimize, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Line } from "react-chartjs-2";
 import { useTranslation } from "react-i18next";
@@ -141,6 +141,21 @@ export function AttributeChart({ attributeIds, date }: AttributeChartProps) {
     }
 
     const [hiddenDatasets, setHiddenDatasets] = useState<Set<number>>(() => new Set());
+    const [beginAtZero, setBeginAtZero] = useState(false);
+
+    // Auto-enable beginAtZero when a % unit dataset is added
+    const hasPercentUnit = datasets.some((ds) => ds.unit === "%");
+    const allPercentUnit = datasets.length > 0 && datasets.every((ds) => ds.unit === "%");
+    const prevHasPercentRef = useRef(false);
+    useEffect(() => {
+        if (hasPercentUnit && !prevHasPercentRef.current) {
+            setBeginAtZero(true);
+        }
+        prevHasPercentRef.current = hasPercentUnit;
+    }, [hasPercentUnit]);
+
+    // Cap Y axis at 100 when viewing only % datasets with beginAtZero active
+    const yMax = allPercentUnit && beginAtZero ? 100 : undefined;
 
     const toggleDataset = useCallback((index: number) => {
         const chart = chartRef.current;
@@ -220,6 +235,8 @@ export function AttributeChart({ attributeIds, date }: AttributeChartProps) {
                     ticks: { font: { family: "'IBM Plex Mono', monospace", size: 10 } },
                 },
                 y: {
+                    beginAtZero,
+                    max: yMax,
                     title: { display: false },
                     grid: { color: gridColor },
                     ticks: { font: { family: "'IBM Plex Mono', monospace", size: 10 } },
@@ -288,7 +305,7 @@ export function AttributeChart({ attributeIds, date }: AttributeChartProps) {
             },
         }),
         // Only recompute on theme change — never on data change
-        [gridColor, fgColor, bgColor, syncZoomState],
+        [gridColor, fgColor, bgColor, syncZoomState, beginAtZero, yMax],
     );
 
     if (isLoading) {
@@ -351,6 +368,16 @@ export function AttributeChart({ attributeIds, date }: AttributeChartProps) {
                         <RotateCcw className="h-4 w-4 text-muted-foreground" />
                     </button>
                 </div>
+                <button
+                    type="button"
+                    className={`flex cursor-pointer items-center justify-center rounded-full border backdrop-blur-sm p-2 shadow-sm transition-colors ${beginAtZero ? "border-primary bg-card/80" : "bg-card/80"}`}
+                    onClick={() => setBeginAtZero((prev) => !prev)}
+                    title={t("chart.beginAtZero")}
+                >
+                    <ArrowDownToLine
+                        className={`h-4 w-4 ${beginAtZero ? "text-primary" : "text-muted-foreground"}`}
+                    />
+                </button>
                 <button
                     type="button"
                     className="flex cursor-pointer items-center justify-center rounded-full border bg-card/80 backdrop-blur-sm p-2 shadow-sm"

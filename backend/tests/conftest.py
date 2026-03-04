@@ -1,6 +1,9 @@
 import asyncio
+import os
 from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock
+
+os.environ["TESTING"] = "1"
 
 import pytest
 from httpx import ASGITransport, AsyncClient

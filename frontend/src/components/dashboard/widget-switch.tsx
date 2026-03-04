@@ -1,11 +1,16 @@
 import { History, Pencil, X } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import type { DashboardSwitch } from "@/api/generated/contWatchAPI.schemas";
 import { useToggleSwitchApiWidgetsSwitchesSwitchIdTogglePost } from "@/api/generated/widgets/widgets";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import type { WidgetStatus } from "@/components/dashboard/widget-tile";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useLongPress } from "@/hooks/use-long-press";
+import { localizeAttributeLabel } from "@/lib/localize-attribute";
+import { boldName } from "@/lib/utils";
 import { useLiveValuesStore } from "@/stores/live-values";
 
 interface WidgetSwitchProps {
@@ -18,8 +23,11 @@ interface WidgetSwitchProps {
 export function WidgetSwitch({ switch_, status = "online", onRemove, onEdit }: WidgetSwitchProps) {
     const { t, i18n } = useTranslation();
     const liveVal = useLiveValuesStore((s) => s.values[switch_.attribute_id]);
-    const toggle = useToggleSwitchApiWidgetsSwitchesSwitchIdTogglePost();
+    const toggle = useToggleSwitchApiWidgetsSwitchesSwitchIdTogglePost({
+        mutation: { meta: { skipGlobalErrorToast: true } },
+    });
     const longPress = useLongPress({ onLongPress: () => onEdit?.(), disabled: !onEdit });
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
     const currentValue = liveVal?.value ?? switch_.value;
 
@@ -29,16 +37,28 @@ export function WidgetSwitch({ switch_, status = "online", onRemove, onEdit }: W
 
     const lastChanged = liveVal?.last_changed;
 
-    const i18nKey = `knownAttributes.${switch_.attribute_name.replace(/[/:]/g, "_")}`;
-    const englishDefault = i18n.exists(i18nKey) ? String(i18n.t(i18nKey, { lng: "en" })) : null;
-    const label = switch_.attribute_label
-        ? switch_.attribute_label === englishDefault
-            ? String(t(i18nKey))
-            : switch_.attribute_label
-        : String(t(i18nKey, switch_.attribute_name));
+    const label = localizeAttributeLabel(switch_.attribute_name, switch_.attribute_label, t, i18n);
+
+    function doToggle() {
+        const actionName = !isOn ? switch_.action_on_name : switch_.action_off_name;
+        const name = actionName
+            ? t(`knownActions.${actionName.replaceAll(" ", "_")}`, actionName)
+            : undefined;
+        toggle.mutate(
+            { switchId: switch_.id, data: { value: !isOn } },
+            {
+                onSuccess: () => name && toast.success(boldName(t, "toast.actionExecuted", name)),
+                onError: () => toast.error(boldName(t, "toast.actionFailed", name ?? "")),
+            },
+        );
+    }
 
     function handleToggle() {
-        toggle.mutate({ switchId: switch_.id, data: { value: !isOn } });
+        if (switch_.confirm_actions) {
+            setConfirmOpen(true);
+        } else {
+            doToggle();
+        }
     }
 
     return (
@@ -142,6 +162,20 @@ export function WidgetSwitch({ switch_, status = "online", onRemove, onEdit }: W
                     )}
                 </div>
             )}
+            <ConfirmDialog
+                open={confirmOpen}
+                onOpenChange={setConfirmOpen}
+                onConfirm={doToggle}
+                description={t("confirm.executeAction", {
+                    action: (() => {
+                        const name = isOn ? switch_.action_off_name : switch_.action_on_name;
+                        return name ? t(`knownActions.${name.replaceAll(" ", "_")}`, name) : "";
+                    })(),
+                    device: switch_.handler_label ?? switch_.attribute_name,
+                })}
+                confirmLabel={t("common.confirm")}
+                variant="default"
+            />
         </Card>
     );
 }

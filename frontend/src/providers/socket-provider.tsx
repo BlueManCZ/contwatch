@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { io } from "socket.io-client";
+import { getAccessToken } from "@/api/axios-instance";
 import type { AttributeValue } from "@/api/generated/contWatchAPI.schemas";
 import { getAllHandlerStatusesApiHandlersStatusesGetQueryKey } from "@/api/generated/handlers/handlers";
 import { useAuth } from "@/providers/auth-provider";
@@ -10,12 +11,15 @@ import { useLiveValuesStore } from "@/stores/live-values";
 
 export function useSocketMutationInvalidation() {
     const queryClient = useQueryClient();
-    const { token } = useAuth();
+    const { isAuthenticated } = useAuth();
     const setAttributeValue = useLiveValuesStore((s) => s.setAttributeValue);
     const setHandlerStatus = useHandlerStatusStore((s) => s.setStatus);
     const setIndicators = useHandlerIndicatorStore((s) => s.setIndicators);
 
     useEffect(() => {
+        if (!isAuthenticated) return;
+
+        const token = getAccessToken();
         if (!token) return;
 
         const socket = io("/", {
@@ -57,5 +61,5 @@ export function useSocketMutationInvalidation() {
         return () => {
             socket.disconnect();
         };
-    }, [token, queryClient, setAttributeValue, setHandlerStatus, setIndicators]);
+    }, [isAuthenticated, queryClient, setAttributeValue, setHandlerStatus, setIndicators]);
 }

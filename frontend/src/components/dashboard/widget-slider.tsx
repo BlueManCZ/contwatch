@@ -1,13 +1,17 @@
 import { Pencil, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import type { DashboardSlider } from "@/api/generated/contWatchAPI.schemas";
 import { useSetSliderApiWidgetsSlidersSliderIdSetPost } from "@/api/generated/widgets/widgets";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import type { WidgetStatus } from "@/components/dashboard/widget-tile";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { useLongPress } from "@/hooks/use-long-press";
 import { formatValue } from "@/lib/format-value";
+import { localizeAttributeLabel } from "@/lib/localize-attribute";
+import { boldName } from "@/lib/utils";
 import { useLiveValuesStore } from "@/stores/live-values";
 
 interface WidgetSliderProps {
@@ -20,12 +24,15 @@ interface WidgetSliderProps {
 export function WidgetSlider({ slider, status = "online", onRemove, onEdit }: WidgetSliderProps) {
     const { t, i18n } = useTranslation();
     const liveVal = useLiveValuesStore((s) => s.values[slider.attribute_id]);
-    const setSlider = useSetSliderApiWidgetsSlidersSliderIdSetPost();
+    const setSlider = useSetSliderApiWidgetsSlidersSliderIdSetPost({
+        mutation: { meta: { skipGlobalErrorToast: true } },
+    });
     const longPress = useLongPress({ onLongPress: () => onEdit?.(), disabled: !onEdit });
 
     const isDragging = useRef(false);
     const [localValue, setLocalValue] = useState<number | null>(null);
     const [active, setActive] = useState(false);
+    const [pendingCommitVal, setPendingCommitVal] = useState<number | null>(null);
 
     const liveNumber = liveVal?.value != null ? Number(liveVal.value) : null;
     const displayValue = localValue ?? liveNumber ?? slider.min;
@@ -36,6 +43,22 @@ export function WidgetSlider({ slider, status = "online", onRemove, onEdit }: Wi
             setLocalValue(null);
         }
     }, [liveNumber]);
+
+    const doCommit = useCallback(
+        (v: number) => {
+            const name = slider.action_name
+                ? t(`knownActions.${slider.action_name.replaceAll(" ", "_")}`, slider.action_name)
+                : undefined;
+            setSlider.mutate(
+                { sliderId: slider.id, data: { value: v } },
+                {
+                    onSuccess: () => name && toast.success(boldName(t, "toast.actionExecuted", name)),
+                    onError: () => toast.error(boldName(t, "toast.actionFailed", name ?? "")),
+                },
+            );
+        },
+        [setSlider, slider.id, slider.action_name, t],
+    );
 
     const handleValueChange = useCallback((value: number | readonly number[]) => {
         isDragging.current = true;
@@ -50,18 +73,16 @@ export function WidgetSlider({ slider, status = "online", onRemove, onEdit }: Wi
             setActive(false);
             const v = Array.isArray(value) ? value[0] : value;
             setLocalValue(v);
-            setSlider.mutate({ sliderId: slider.id, data: { value: v } });
+            if (slider.confirm_actions) {
+                setPendingCommitVal(v);
+            } else {
+                doCommit(v);
+            }
         },
-        [setSlider, slider.id],
+        [slider.confirm_actions, doCommit],
     );
 
-    const i18nKey = `knownAttributes.${slider.attribute_name.replace(/[/:]/g, "_")}`;
-    const englishDefault = i18n.exists(i18nKey) ? String(i18n.t(i18nKey, { lng: "en" })) : null;
-    const label = slider.attribute_label
-        ? slider.attribute_label === englishDefault
-            ? String(t(i18nKey))
-            : slider.attribute_label
-        : String(t(i18nKey, slider.attribute_name));
+    const label = localizeAttributeLabel(slider.attribute_name, slider.attribute_label, t, i18n);
     const range = slider.max - slider.min;
     const fillPercent = range > 0 ? ((displayValue - slider.min) / range) * 100 : 0;
 
@@ -185,6 +206,26 @@ export function WidgetSlider({ slider, status = "online", onRemove, onEdit }: Wi
                     )}
                 </div>
             )}
+            <ConfirmDialog
+                open={pendingCommitVal !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setLocalValue(null);
+                        setPendingCommitVal(null);
+                    }
+                }}
+                onConfirm={() => {
+                    if (pendingCommitVal !== null) doCommit(pendingCommitVal);
+                }}
+                description={t("confirm.executeAction", {
+                    action: slider.action_name
+                        ? t(`knownActions.${slider.action_name.replaceAll(" ", "_")}`, slider.action_name)
+                        : "",
+                    device: slider.handler_label ?? slider.attribute_name,
+                })}
+                confirmLabel={t("common.confirm")}
+                variant="default"
+            />
         </Card>
     );
 }

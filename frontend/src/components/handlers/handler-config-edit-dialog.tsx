@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { ConfigFieldInput, convertConfigValues } from "./config-field-input";
 
 interface HandlerConfigEditDialogProps {
@@ -23,6 +24,7 @@ export function HandlerConfigEditDialog({ handler, onClose }: HandlerConfigEditD
     const { t } = useTranslation();
     const queryClient = useQueryClient();
     const [label, setLabel] = useState("");
+    const [confirmActions, setConfirmActions] = useState(false);
     const [configValues, setConfigValues] = useState<Record<string, string>>({});
     const { data: typesData } = useListHandlerTypesApiHandlersTypesGet();
     const updateHandler = useUpdateHandlerApiHandlersHandlerIdPatch();
@@ -41,6 +43,7 @@ export function HandlerConfigEditDialog({ handler, onClose }: HandlerConfigEditD
     useEffect(() => {
         if (handler) {
             setLabel(handler.label ?? "");
+            setConfirmActions(handler.confirm_actions ?? false);
             const currentConfig = (handler.options?.config ?? {}) as Record<string, unknown>;
             const stringValues: Record<string, string> = {};
             for (const field of configFields) {
@@ -59,7 +62,11 @@ export function HandlerConfigEditDialog({ handler, onClose }: HandlerConfigEditD
         updateHandler.mutate(
             {
                 handlerId: handler.id,
-                data: { label: label || undefined, options: { ...handler.options, config } },
+                data: {
+                    label: label || undefined,
+                    confirm_actions: confirmActions,
+                    options: { ...handler.options, config },
+                },
             },
             {
                 onSuccess: () => {
@@ -88,6 +95,19 @@ export function HandlerConfigEditDialog({ handler, onClose }: HandlerConfigEditD
                                 value={label}
                                 onChange={(e) => setLabel(e.target.value)}
                                 placeholder={t("handlers.label")}
+                            />
+                        </div>
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="space-y-0.5">
+                                <Label htmlFor="confirm-actions">{t("handlers.confirmActions")}</Label>
+                                <p className="text-xs text-muted-foreground">
+                                    {t("handlers.confirmActionsDescription")}
+                                </p>
+                            </div>
+                            <Switch
+                                id="confirm-actions"
+                                checked={confirmActions}
+                                onCheckedChange={setConfirmActions}
                             />
                         </div>
                         {configFields.map((field: HandlerConfigField) => (

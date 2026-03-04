@@ -4,6 +4,7 @@ from app.models.base import Base
 from app.models.data_unit import DataUnit
 from app.models.handler import Handler
 from app.models.logging_message import LoggingMessage
+from app.models.refresh_token import RefreshToken
 from app.models.settings import Settings
 from app.models.unit import Unit
 from app.models.user import User
@@ -18,6 +19,7 @@ __all__ = [
     "DataUnit",
     "Handler",
     "LoggingMessage",
+    "RefreshToken",
     "Settings",
     "Unit",
     "User",
