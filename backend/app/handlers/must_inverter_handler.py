@@ -129,71 +129,60 @@ def _open_instrument(port: str, slave_address: int, timeout: float) -> minimalmo
     return instrument
 
 
-def _read_all_data(instrument: minimalmodbus.Instrument) -> dict:
-    """Read charger + inverter registers in small batch calls (blocking).
+def _reg(instrument: minimalmodbus.Instrument, address: int) -> int:
+    """Read a single holding register (blocking)."""
+    return instrument.read_register(address)
 
-    Splits reads into <=20 register chunks — many MUST inverters reject
-    larger Modbus frames.
+
+def _read_all_data(instrument: minimalmodbus.Instrument) -> dict:
+    """Read all charger + inverter registers individually (blocking).
+
+    Uses single-register reads because MUST inverters do not reliably
+    support multi-register Modbus frames.
     """
     instrument.serial.reset_input_buffer()
 
-    # --- Charger: 15201-15217 (17 registers) ---
-    ch = instrument.read_registers(15201, 17)
-
-    # --- Inverter block 1: 25201-25216 (16 registers) ---
-    inv1 = instrument.read_registers(25201, 16)
-    # --- Inverter block 2: 25225-25236 (12 registers) ---
-    inv2 = instrument.read_registers(25225, 12)
-    # --- Inverter block 3: 25261-25265 (5 registers) ---
-    inv3 = instrument.read_registers(25261, 5)
-    # --- Inverter block 4: 25273-25274 (2 registers) ---
-    inv4 = instrument.read_registers(25273, 2)
-
-    # --- Charger decoding (offsets from 15201) ---
+    # --- Charger ---
     charger: dict[str, object] = {
-        "workstate": ch[0],  # 15201
-        "mppt_state": ch[1],  # 15202
-        "charging_state": ch[2],  # 15203
-        "pv_voltage": ch[4] / 10,  # 15205
-        "battery_voltage": ch[5] / 10,  # 15206
-        "current": ch[6] / 10,  # 15207
-        "power": ch[7],  # 15208
-        "radiator_temp": _signed(ch[9]),  # 15210
-        "external_temp": _signed(ch[10]),  # 15211
-        "accumulated_energy": ch[15] * 1000 + ch[16] / 10,  # 15216 high + 15217 low
-        "_error": ch[12],  # 15213
-        "_warning": ch[13],  # 15214
+        "workstate": _reg(instrument, 15201),
+        "mppt_state": _reg(instrument, 15202),
+        "charging_state": _reg(instrument, 15203),
+        "pv_voltage": _reg(instrument, 15205) / 10,
+        "battery_voltage": _reg(instrument, 15206) / 10,
+        "current": _reg(instrument, 15207) / 10,
+        "power": _reg(instrument, 15208),
+        "radiator_temp": _signed(_reg(instrument, 15210)),
+        "external_temp": _signed(_reg(instrument, 15211)),
+        "_error": _reg(instrument, 15213),
+        "_warning": _reg(instrument, 15214),
+        "accumulated_energy": _reg(instrument, 15216) * 1000 + _reg(instrument, 15217) / 10,
     }
 
-    # --- Inverter decoding ---
+    # --- Inverter ---
     inverter: dict[str, object] = {
-        # Block 1 (offsets from 25201)
-        "workstate": inv1[0],  # 25201
-        "battery_voltage": inv1[4] / 10,  # 25205
-        "inverter_voltage": inv1[5] / 10,  # 25206
-        "grid_voltage": inv1[6] / 10,  # 25207
-        "bus_voltage": inv1[7] / 10,  # 25208
-        "control_current": inv1[8] / 10,  # 25209
-        "inverter_current": inv1[9] / 10,  # 25210
-        "grid_current": inv1[10] / 10,  # 25211
-        "load_current": inv1[11] / 10,  # 25212
-        "power": inv1[12],  # 25213
-        "power_grid": _signed(inv1[13]),  # 25214
-        "power_load": inv1[14],  # 25215
-        "load_percent": inv1[15],  # 25216
-        # Block 2 (offsets from 25225)
-        "frequency": inv2[0] / 100,  # 25225
-        "grid_frequency": inv2[1] / 100,  # 25226
-        "inverter_dc_temp": _signed(inv2[9]),  # 25234
-        "inverter_ac_temp": _signed(inv2[10]),  # 25235
-        "transformer_temp": _signed(inv2[11]),  # 25236
-        # Block 3 (offsets from 25261)
-        "_error1": inv3[0],  # 25261
-        "_error2": inv3[1],  # 25262
-        "_warning": inv3[4],  # 25265
-        # Block 4 (offsets from 25273)
-        "battery_current": _signed(inv4[0]) / 10,  # 25273
-        "battery_power": _signed(inv4[1]),  # 25274
+        "workstate": _reg(instrument, 25201),
+        "battery_voltage": _reg(instrument, 25205) / 10,
+        "inverter_voltage": _reg(instrument, 25206) / 10,
+        "grid_voltage": _reg(instrument, 25207) / 10,
+        "bus_voltage": _reg(instrument, 25208) / 10,
+        "control_current": _reg(instrument, 25209) / 10,
+        "inverter_current": _reg(instrument, 25210) / 10,
+        "grid_current": _reg(instrument, 25211) / 10,
+        "load_current": _reg(instrument, 25212) / 10,
+        "power": _reg(instrument, 25213),
+        "power_grid": _signed(_reg(instrument, 25214)),
+        "power_load": _reg(instrument, 25215),
+        "load_percent": _reg(instrument, 25216),
+        "frequency": _reg(instrument, 25225) / 100,
+        "grid_frequency": _reg(instrument, 25226) / 100,
+        "inverter_dc_temp": _signed(_reg(instrument, 25234)),
+        "inverter_ac_temp": _signed(_reg(instrument, 25235)),
+        "transformer_temp": _signed(_reg(instrument, 25236)),
+        "_error1": _reg(instrument, 25261),
+        "_error2": _reg(instrument, 25262),
+        "_warning": _reg(instrument, 25265),
+        "battery_current": _signed(_reg(instrument, 25273)) / 10,
+        "battery_power": _signed(_reg(instrument, 25274)),
     }
 
     return {"charger": charger, "inverter": inverter}
