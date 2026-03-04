@@ -318,18 +318,15 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
     def extract_indicators(self, data: dict) -> list[Indicator]:
         indicators: list[Indicator] = []
 
-        charger = data.get("charger", {})
-        inverter = data.get("inverter", {})
-
         # Charger workstate
-        ch_ws = charger.get("workstate")
+        ch_ws = data.get("charger/workstate")
         if ch_ws is not None:
             label = _CHARGER_WORKSTATE.get(int(ch_ws), f"Unknown ({ch_ws})")
             color = "success" if int(ch_ws) == 2 else "muted"
             indicators.append(Indicator(icon="sun", color=color, tooltip=f"Charger: {label}"))
 
         # Inverter workstate
-        inv_ws = inverter.get("workstate")
+        inv_ws = data.get("inverter/workstate")
         if inv_ws is not None:
             ws_int = int(inv_ws)
             label = _INVERTER_WORKSTATE.get(ws_int, f"Unknown ({inv_ws})")
@@ -337,26 +334,25 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
             indicators.append(Indicator(icon="zap", color=color, tooltip=f"Inverter: {label}"))
 
         # Charger errors / warnings
-        # Charger errors / warnings
-        for msg in _decode_bitmask(int(charger.get("_error", 0)), _CHARGER_ERROR_BITS):
+        for msg in _decode_bitmask(int(data.get("charger/_error", 0)), _CHARGER_ERROR_BITS):
             indicators.append(
                 Indicator(icon="alert-triangle", color="destructive", tooltip=f"Charger error: {msg}")
             )
-        for msg in _decode_bitmask(int(charger.get("_warning", 0)), _CHARGER_WARNING_BITS):
+        for msg in _decode_bitmask(int(data.get("charger/_warning", 0)), _CHARGER_WARNING_BITS):
             indicators.append(
                 Indicator(icon="alert-triangle", color="warning", tooltip=f"Charger warning: {msg}")
             )
 
         # Inverter errors / warnings
-        for msg in _decode_bitmask(int(inverter.get("_error1", 0)), _INVERTER_ERROR1_BITS):
+        for msg in _decode_bitmask(int(data.get("inverter/_error1", 0)), _INVERTER_ERROR1_BITS):
             indicators.append(
                 Indicator(icon="alert-triangle", color="destructive", tooltip=f"Inverter error: {msg}")
             )
-        for msg in _decode_bitmask(int(inverter.get("_error2", 0)), _INVERTER_ERROR2_BITS):
+        for msg in _decode_bitmask(int(data.get("inverter/_error2", 0)), _INVERTER_ERROR2_BITS):
             indicators.append(
                 Indicator(icon="alert-triangle", color="destructive", tooltip=f"Inverter error: {msg}")
             )
-        for msg in _decode_bitmask(int(inverter.get("_warning", 0)), _INVERTER_WARNING_BITS):
+        for msg in _decode_bitmask(int(data.get("inverter/_warning", 0)), _INVERTER_WARNING_BITS):
             indicators.append(
                 Indicator(icon="alert-triangle", color="warning", tooltip=f"Inverter warning: {msg}")
             )
