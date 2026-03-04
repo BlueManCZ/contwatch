@@ -46,16 +46,12 @@ _CHARGER_CHARGING_STATE = {
 # ---------------------------------------------------------------------------
 _INVERTER_WORKSTATE = {
     0: "Power on",
-    1: "Standby",
-    2: "Initialization",
-    3: "Soft start",
-    4: "Grid running",
-    5: "Grid generation",
-    6: "Grid charge",
-    7: "Off-grid running",
-    8: "Off-grid charge",
-    9: "Fault",
-    10: "Bypass running",
+    1: "Self-test",
+    2: "Off-grid",
+    3: "Grid-tie",
+    4: "Bypass",
+    5: "Stop",
+    6: "Grid charging",
 }
 
 # ---------------------------------------------------------------------------
@@ -330,7 +326,7 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
         if inv_ws is not None:
             ws_int = int(inv_ws)
             label = _INVERTER_WORKSTATE.get(ws_int, f"Unknown ({inv_ws})")
-            color = "success" if ws_int in (4, 5, 6, 7, 8) else ("destructive" if ws_int == 9 else "muted")
+            color = "success" if ws_int in (2, 3, 6) else "muted"
             indicators.append(Indicator(icon="zap", color=color, tooltip=f"Inverter: {label}"))
 
         # Charger errors / warnings
