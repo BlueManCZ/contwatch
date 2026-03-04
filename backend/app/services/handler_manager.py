@@ -470,22 +470,32 @@ class HandlerManager:
         all_ids = set(self._handlers) | set(self._last_active) | set(self._attr_name_map)
         return {hid: self.get_handler_status(hid) for hid in sorted(all_ids)}
 
-    def get_available_attributes(self, handler_id: int) -> dict[str, Any]:
-        """Return available attribute names with their current values.
+    def get_available_attributes(self, handler_id: int) -> list[dict[str, Any]]:
+        """Return available attributes with current values and known metadata.
 
         Combines linearized keys from the last received message with
         known attribute names defined on the handler class, so that
         known attributes are available even before the first message.
-        Returns {name: value} where value is None if no data yet.
         """
         last = self._last_messages.get(handler_id, {})
         registered = set(self._attr_name_map.get(handler_id, {}).keys())
         available = set(last.keys())
+
+        # Build lookup from known attributes
+        ka_map: dict[str, tuple[str | None, str | None]] = {}
         handler = self._handlers.get(handler_id)
         if handler:
             for ka in handler.known_attributes:
                 available.add(ka.name)
-        return {k: last.get(k) for k in sorted(available) if k not in registered}
+                ka_map[ka.name] = (ka.label, ka.unit)
+
+        result: list[dict[str, Any]] = []
+        for name in sorted(available):
+            if name in registered:
+                continue
+            label, unit = ka_map.get(name, (None, None))
+            result.append({"name": name, "value": last.get(name), "label": label, "unit": unit})
+        return result
 
     def get_current_values(self) -> dict[int, dict]:
         """All tracked attribute values {attr_id: {value, trend}}."""

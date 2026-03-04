@@ -85,6 +85,13 @@ export interface AttributeValue {
   last_changed?: string | null;
 }
 
+export interface AvailableAttributeItem {
+  name: string;
+  value?: unknown;
+  label?: string | null;
+  unit?: string | null;
+}
+
 export interface FieldChoice {
   value: string;
   label: string;
@@ -560,7 +567,7 @@ export interface WorkflowData {
 
 export type AllHandlerStatusesApiHandlersStatusesGet200 = {[key: string]: HandlerStatus};
 
-export type AvailableAttributesApiHandlersHandlerIdAvailableAttributesGet200 = { [key: string]: unknown };
+export type LastRawMessageApiHandlersHandlerIdLastGet200 = { [key: string]: unknown };
 
 export type ListAttributesApiAttributesGetParams = {
 handler_id?: number | null;

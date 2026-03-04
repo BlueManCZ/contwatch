@@ -59,6 +59,13 @@ class KnownAttributeInfo(BaseModel):
     rounding: int | None = None
 
 
+class AvailableAttributeItem(BaseModel):
+    name: str
+    value: Any = None
+    label: str | None = None
+    unit: str | None = None
+
+
 class ActionParamInfo(BaseModel):
     key: str
     label: str

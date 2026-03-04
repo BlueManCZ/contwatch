@@ -21,6 +21,7 @@ from app.models.action import Action
 from app.models.attribute import Attribute
 from app.models.handler import Handler
 from app.schemas.handler import (
+    AvailableAttributeItem,
     CategoryInfo,
     HandlerCreate,
     HandlerRead,
@@ -364,7 +365,7 @@ async def last_raw_message(handler_id: int, manager: HandlerManagerDep):
     return manager.get_last_message(handler_id)
 
 
-@router.get("/{handler_id}/available-attributes", response_model=dict[str, Any])
+@router.get("/{handler_id}/available-attributes", response_model=list[AvailableAttributeItem])
 async def available_attributes(handler_id: int, manager: HandlerManagerDep, _current_user: CurrentUser):
     return manager.get_available_attributes(handler_id)
 

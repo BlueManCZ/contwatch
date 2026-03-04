@@ -25,7 +25,7 @@ import type {
 
 import type {
   AllHandlerStatusesApiHandlersStatusesGet200,
-  AvailableAttributesApiHandlersHandlerIdAvailableAttributesGet200,
+  AvailableAttributeItem,
   CategoryInfo,
   HTTPValidationError,
   HandlerCreate,
@@ -34,6 +34,7 @@ import type {
   HandlerStatus,
   HandlerTypeInfo,
   HandlerUpdate,
+  LastRawMessageApiHandlersHandlerIdLastGet200,
   ProbeRequest,
   ProbeResult,
   ResolvedControl,
@@ -1543,10 +1544,127 @@ export function useHandlerStatusApiHandlersHandlerIdStatusGet<TData = Awaited<Re
 
 
 /**
+ * @summary Last Raw Message
+ */
+export type lastRawMessageApiHandlersHandlerIdLastGetResponse200 = {
+  data: LastRawMessageApiHandlersHandlerIdLastGet200
+  status: 200
+}
+
+export type lastRawMessageApiHandlersHandlerIdLastGetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type lastRawMessageApiHandlersHandlerIdLastGetResponseSuccess = (lastRawMessageApiHandlersHandlerIdLastGetResponse200) & {
+  headers: Headers;
+};
+export type lastRawMessageApiHandlersHandlerIdLastGetResponseError = (lastRawMessageApiHandlersHandlerIdLastGetResponse422) & {
+  headers: Headers;
+};
+
+export type lastRawMessageApiHandlersHandlerIdLastGetResponse = (lastRawMessageApiHandlersHandlerIdLastGetResponseSuccess | lastRawMessageApiHandlersHandlerIdLastGetResponseError)
+
+export const getLastRawMessageApiHandlersHandlerIdLastGetUrl = (handlerId: number,) => {
+
+
+  
+
+  return `/api/handlers/${handlerId}/last`
+}
+
+export const lastRawMessageApiHandlersHandlerIdLastGet = async (handlerId: number, options?: RequestInit): Promise<lastRawMessageApiHandlersHandlerIdLastGetResponse> => {
+  
+  return axiosInstance<lastRawMessageApiHandlersHandlerIdLastGetResponse>(getLastRawMessageApiHandlersHandlerIdLastGetUrl(handlerId),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getLastRawMessageApiHandlersHandlerIdLastGetQueryKey = (handlerId: number,) => {
+    return [
+    `/api/handlers/${handlerId}/last`
+    ] as const;
+    }
+
+    
+export const getLastRawMessageApiHandlersHandlerIdLastGetQueryOptions = <TData = Awaited<ReturnType<typeof lastRawMessageApiHandlersHandlerIdLastGet>>, TError = HTTPValidationError>(handlerId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lastRawMessageApiHandlersHandlerIdLastGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getLastRawMessageApiHandlersHandlerIdLastGetQueryKey(handlerId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof lastRawMessageApiHandlersHandlerIdLastGet>>> = ({ signal }) => lastRawMessageApiHandlersHandlerIdLastGet(handlerId, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(handlerId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof lastRawMessageApiHandlersHandlerIdLastGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type LastRawMessageApiHandlersHandlerIdLastGetQueryResult = NonNullable<Awaited<ReturnType<typeof lastRawMessageApiHandlersHandlerIdLastGet>>>
+export type LastRawMessageApiHandlersHandlerIdLastGetQueryError = HTTPValidationError
+
+
+export function useLastRawMessageApiHandlersHandlerIdLastGet<TData = Awaited<ReturnType<typeof lastRawMessageApiHandlersHandlerIdLastGet>>, TError = HTTPValidationError>(
+ handlerId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof lastRawMessageApiHandlersHandlerIdLastGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof lastRawMessageApiHandlersHandlerIdLastGet>>,
+          TError,
+          Awaited<ReturnType<typeof lastRawMessageApiHandlersHandlerIdLastGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLastRawMessageApiHandlersHandlerIdLastGet<TData = Awaited<ReturnType<typeof lastRawMessageApiHandlersHandlerIdLastGet>>, TError = HTTPValidationError>(
+ handlerId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lastRawMessageApiHandlersHandlerIdLastGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof lastRawMessageApiHandlersHandlerIdLastGet>>,
+          TError,
+          Awaited<ReturnType<typeof lastRawMessageApiHandlersHandlerIdLastGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLastRawMessageApiHandlersHandlerIdLastGet<TData = Awaited<ReturnType<typeof lastRawMessageApiHandlersHandlerIdLastGet>>, TError = HTTPValidationError>(
+ handlerId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lastRawMessageApiHandlersHandlerIdLastGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Last Raw Message
+ */
+
+export function useLastRawMessageApiHandlersHandlerIdLastGet<TData = Awaited<ReturnType<typeof lastRawMessageApiHandlersHandlerIdLastGet>>, TError = HTTPValidationError>(
+ handlerId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lastRawMessageApiHandlersHandlerIdLastGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getLastRawMessageApiHandlersHandlerIdLastGetQueryOptions(handlerId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
  * @summary Available Attributes
  */
 export type availableAttributesApiHandlersHandlerIdAvailableAttributesGetResponse200 = {
-  data: AvailableAttributesApiHandlersHandlerIdAvailableAttributesGet200
+  data: AvailableAttributeItem[]
   status: 200
 }
 

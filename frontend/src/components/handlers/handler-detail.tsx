@@ -328,15 +328,15 @@ function DetailAttributeRow({
 }
 
 function AvailableAttributes({ handler }: { handler: HandlerRead }) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const queryClient = useQueryClient();
     const { data: availData } = useAvailableAttributesApiHandlersHandlerIdAvailableAttributesGet(handler.id, {
         query: { refetchInterval: 5000 },
     });
     const createAttribute = useCreateAttributeApiAttributesPost();
 
-    const available = (availData?.data ?? {}) as Record<string, unknown>;
-    const entries = Object.entries(available);
+    const raw = availData?.data;
+    const items = Array.isArray(raw) ? raw : [];
 
     function handleAdd(name: string) {
         createAttribute.mutate(
@@ -350,7 +350,7 @@ function AvailableAttributes({ handler }: { handler: HandlerRead }) {
         );
     }
 
-    if (entries.length === 0) return null;
+    if (items.length === 0) return null;
 
     return (
         <div>
@@ -359,29 +359,40 @@ function AvailableAttributes({ handler }: { handler: HandlerRead }) {
                 {t("handlers.availableAttributes")}
             </h4>
             <div className="space-y-1">
-                {entries.map(([name, value]) => (
-                    <div
-                        key={name}
-                        className="flex items-center justify-between gap-3 py-1.5 px-2 rounded-md hover:bg-accent transition-colors"
-                    >
-                        <span className="font-mono text-xs truncate min-w-0">{name}</span>
-                        <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-xs text-muted-foreground tabular-nums">
-                                {value != null ? String(value) : "-"}
-                            </span>
-                            <Button
-                                size="xs"
-                                variant="ghost"
-                                className="cursor-pointer"
-                                onClick={() => handleAdd(name)}
-                                disabled={createAttribute.isPending}
-                            >
-                                <Plus className="h-3 w-3 mr-1" />
-                                {t("common.add")}
-                            </Button>
+                {items.map((item) => {
+                    const displayLabel = localizeAttributeLabel(item.name, item.label, t, i18n);
+                    const isLocalized = displayLabel !== item.name;
+                    return (
+                        <div
+                            key={item.name}
+                            className="flex items-center justify-between gap-3 py-1.5 px-2 rounded-md hover:bg-accent transition-colors"
+                        >
+                            <div className="min-w-0">
+                                <span className="text-xs truncate">{displayLabel}</span>
+                                {isLocalized && (
+                                    <div className="text-[10px] font-mono text-muted-foreground truncate">
+                                        {item.name}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-xs text-muted-foreground tabular-nums">
+                                    {item.value != null ? String(item.value) : "-"}
+                                    {item.value != null && item.unit ? ` ${item.unit}` : ""}
+                                </span>
+                                <Button
+                                    size="icon-xs"
+                                    variant="ghost"
+                                    className="cursor-pointer"
+                                    onClick={() => handleAdd(item.name)}
+                                    disabled={createAttribute.isPending}
+                                >
+                                    <Plus className="h-3.5 w-3.5" />
+                                </Button>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );
