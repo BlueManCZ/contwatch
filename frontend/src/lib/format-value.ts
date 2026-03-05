@@ -115,3 +115,10 @@ export function formatValue(value: number, unit: string, rounding?: number | nul
     const scaled = baseValue / best.factor;
     return { value: roundValue(scaled, rounding), unit: best.unit };
 }
+
+/** Format a stat value (daily min/max) with its unit as a single string. */
+export function formatStat(v: number, unit?: string | null, rounding?: number | null): string {
+    if (!unit) return String(v);
+    const f = formatValue(v, unit, rounding);
+    return `${f.value} ${f.unit}`;
+}

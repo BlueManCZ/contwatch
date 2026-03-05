@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 import asyncio
 import contextlib
 import logging
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, ClassVar, TypedDict
+from typing import TYPE_CHECKING, Any, ClassVar, TypedDict
+
+if TYPE_CHECKING:
+    import httpx
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +105,7 @@ class AbstractHandler(ABC):
         return cls.handler_name
 
     @classmethod
-    async def probe(cls, config: dict) -> bool:
+    async def probe(cls, config: dict, client: httpx.AsyncClient | None = None) -> bool:
         """Attempt to detect this handler type from the given config. Returns True if detected."""
         return False
 

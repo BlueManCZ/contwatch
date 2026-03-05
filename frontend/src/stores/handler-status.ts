@@ -3,6 +3,7 @@ import { create } from "zustand";
 interface HandlerStatus {
     running: boolean;
     connected: boolean;
+    last_active?: string | null;
 }
 
 interface HandlerStatusState {

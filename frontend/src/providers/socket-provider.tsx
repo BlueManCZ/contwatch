@@ -47,12 +47,21 @@ export function useSocketMutationInvalidation() {
             setAttributeValue(data);
         });
 
-        socket.on("handler_status", (data: { handler_id: number; running: boolean; connected: boolean }) => {
-            setHandlerStatus(data.handler_id, {
-                running: data.running,
-                connected: data.connected,
-            });
-        });
+        socket.on(
+            "handler_status",
+            (data: {
+                handler_id: number;
+                running: boolean;
+                connected: boolean;
+                last_active?: string | null;
+            }) => {
+                setHandlerStatus(data.handler_id, {
+                    running: data.running,
+                    connected: data.connected,
+                    last_active: data.last_active ?? null,
+                });
+            },
+        );
 
         socket.on("handler_indicators", (data: { handler_id: number; indicators: Indicator[] }) => {
             setIndicators(data.handler_id, data.indicators);

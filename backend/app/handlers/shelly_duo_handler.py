@@ -116,16 +116,15 @@ class ShellyDuoHandler(HttpHandler):
         return [wifi_disconnected_indicator()]
 
     @classmethod
-    async def probe(cls, config: dict) -> bool:
+    async def probe(cls, config: dict, client: httpx.AsyncClient | None = None) -> bool:
         host = cls._normalize_host(config.get("host", ""))
         if not host:
             return False
         url = f"{host.rstrip('/')}/shelly"
         try:
-            async with httpx.AsyncClient(timeout=5) as client:
-                resp = await client.get(url)
-                resp.raise_for_status()
-                data = resp.json()
-                return str(data.get("type", "")).startswith("SHBDUO")
+            resp = await (client or httpx.AsyncClient(timeout=5)).get(url)
+            resp.raise_for_status()
+            data = resp.json()
+            return str(data.get("type", "")).startswith("SHBDUO")
         except Exception:
             return False

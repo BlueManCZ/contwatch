@@ -128,20 +128,21 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
     const [loaded, setLoaded] = useState(false);
 
-    const nodeTypesRef = useRef<NodeTypes>({});
-
     const definitionsMap = useMemo(() => {
         const map = new Map<string, NodeDefinition>();
         for (const def of definitions) {
             map.set(def.type, def);
-            if (!nodeTypesRef.current[def.type]) {
-                nodeTypesRef.current[def.type] = createWorkflowNode(def);
-            }
         }
         return map;
     }, [definitions]);
 
-    const nodeTypes = nodeTypesRef.current;
+    const nodeTypes = useMemo(() => {
+        const types: NodeTypes = {};
+        for (const def of definitions) {
+            types[def.type] = createWorkflowNode(def);
+        }
+        return types;
+    }, [definitions]);
 
     const getEdgeStyle = useCallback(
         (sourceNodeType: string, sourceHandle: string | null | undefined) => {
@@ -532,7 +533,7 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
     }, [flushSave]);
 
     return (
-        <div className="relative h-full touch-none -mx-3 sm:-mx-5 bg-background" ref={reactFlowWrapper}>
+        <div className="relative h-full touch-none bg-background" ref={reactFlowWrapper}>
             {saveStatus !== "idle" && (
                 <div
                     className={`absolute top-2 left-2 z-10 flex items-center gap-1.5 rounded-full bg-card/80 backdrop-blur-sm border px-2.5 py-1 shadow-sm transition-opacity duration-300 ${saveStatus === "saved" ? "opacity-80" : ""}`}

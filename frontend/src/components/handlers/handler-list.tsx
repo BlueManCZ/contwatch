@@ -9,12 +9,10 @@ import type {
     AttributeRead,
     AttributeValue,
     HandlerRead,
-    HandlerStatus,
     HandlerTypeInfo,
 } from "@/api/generated/contWatchAPI.schemas";
 import {
     getListHandlersApiHandlersGetQueryKey,
-    useHandlerStatusApiHandlersHandlerIdStatusGet,
     useListHandlersApiHandlersGet,
     useListHandlerTypesApiHandlersTypesGet,
     useReorderHandlersApiHandlersReorderPut,
@@ -29,10 +27,11 @@ import { SafeIcon } from "@/components/safe-icon";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { dateFnsLocales } from "@/lib/date-locale";
-import { formatValue } from "@/lib/format-value";
+import { formatStat, formatValue } from "@/lib/format-value";
 import { localizeAttributeLabel } from "@/lib/localize-attribute";
 import { cn } from "@/lib/utils";
 import { INDICATOR_COLOR, useHandlerIndicatorStore } from "@/stores/handler-indicators";
+import { useHandlerStatusStore } from "@/stores/handler-status";
 import { useLiveValuesStore } from "@/stores/live-values";
 
 export function HandlerList() {
@@ -116,15 +115,12 @@ function HandlerCard({
 }) {
     const { t, i18n } = useTranslation();
     const queryClient = useQueryClient();
-    const { data: statusData } = useHandlerStatusApiHandlersHandlerIdStatusGet(handler.id, {
-        query: { refetchInterval: 5000 },
-    });
+    const status = useHandlerStatusStore((s) => s.statuses[handler.id]);
     const reorder = useReorderAttributesApiAttributesReorderPut();
     const values = useLiveValuesStore((s) => s.values);
     const indicators = useHandlerIndicatorStore((s) => s.indicators[handler.id]);
     const [editingAttribute, setEditingAttribute] = useState<AttributeRead | null>(null);
 
-    const status = statusData?.data as HandlerStatus | undefined;
     const isRunning = status?.running ?? false;
     const isConnected = status?.connected ?? false;
 
@@ -266,11 +262,6 @@ function AttributeRow({ attr, liveVal }: { attr: AttributeRead; liveVal: Attribu
     const displayUnit = formatted?.unit ?? attr.unit;
 
     const trend = liveVal?.trend ?? 0;
-    const formatStat = (v: number): string => {
-        if (!attr.unit) return String(v);
-        const f = formatValue(v, attr.unit, attr.rounding);
-        return `${f.value} ${f.unit}`;
-    };
 
     const value = liveVal?.value;
     const isBooleanValue = value === true || value === false || value === "true" || value === "false";
@@ -322,13 +313,14 @@ function AttributeRow({ attr, liveVal }: { attr: AttributeRead; liveVal: Attribu
                         <div className="flex items-center gap-2 mt-0.5">
                             {liveVal?.daily_min != null && (
                                 <span className="text-[10px] text-muted-foreground tabular-nums">
-                                    <span className="text-info">&#8595;</span> {formatStat(liveVal.daily_min)}
+                                    <span className="text-info">&#8595;</span>{" "}
+                                    {formatStat(liveVal.daily_min, attr.unit, attr.rounding)}
                                 </span>
                             )}
                             {liveVal?.daily_max != null && (
                                 <span className="text-[10px] text-muted-foreground tabular-nums">
                                     <span className="text-destructive-foreground">&#8593;</span>{" "}
-                                    {formatStat(liveVal.daily_max)}
+                                    {formatStat(liveVal.daily_max, attr.unit, attr.rounding)}
                                 </span>
                             )}
                         </div>

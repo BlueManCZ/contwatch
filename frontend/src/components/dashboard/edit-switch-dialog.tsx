@@ -93,7 +93,7 @@ export function EditSwitchDialog({ switch_, open, onOpenChange, onRemove }: Edit
                             </div>
                         </div>
                     </div>
-                    <DialogFooter className="flex-row justify-between sm:justify-between">
+                    <DialogFooter className="flex-row justify-between">
                         {onRemove ? (
                             <Button
                                 type="button"

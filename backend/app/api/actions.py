@@ -37,7 +37,9 @@ async def create_action(body: ActionCreate, db: DbSession, _current_user: Curren
 
 
 @router.patch("/{action_id}", response_model=ActionRead)
-async def update_action(action_id: int, body: ActionUpdate, db: DbSession, _current_user: CurrentUser):
+async def update_action(
+    action_id: int, body: ActionUpdate, db: DbSession, manager: HandlerManagerDep, _current_user: CurrentUser
+):
     result = await db.execute(select(Action).where(Action.id == action_id))
     action = result.scalar_one_or_none()
     if not action:
@@ -46,19 +48,21 @@ async def update_action(action_id: int, body: ActionUpdate, db: DbSession, _curr
         setattr(action, field, value)
     await db.commit()
     await db.refresh(action)
+    manager.invalidate_action_cache(action_id)
     await sio.emit("mutate", {"entity": "actions"})
     await sio.emit("mutate", {"entity": "handlers"})
     return action
 
 
 @router.delete("/{action_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_action(action_id: int, db: DbSession, _current_user: CurrentUser):
+async def delete_action(action_id: int, db: DbSession, manager: HandlerManagerDep, _current_user: CurrentUser):
     result = await db.execute(select(Action).where(Action.id == action_id))
     action = result.scalar_one_or_none()
     if not action:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Action not found")
     await db.delete(action)
     await db.commit()
+    manager.invalidate_action_cache(action_id)
     await sio.emit("mutate", {"entity": "actions"})
     await sio.emit("mutate", {"entity": "handlers"})
 

@@ -112,7 +112,7 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
                             <Input value={color} onChange={(e) => setColor(e.target.value)} />
                         </div>
                     </div>
-                    <DialogFooter className="flex-row justify-between sm:justify-between">
+                    <DialogFooter className="flex-row justify-between">
                         <Button
                             type="button"
                             variant="destructive"

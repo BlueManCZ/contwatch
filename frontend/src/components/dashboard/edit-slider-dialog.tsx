@@ -102,7 +102,7 @@ export function EditSliderDialog({ slider, open, onOpenChange, onRemove }: EditS
                             </div>
                         </div>
                     </div>
-                    <DialogFooter className="flex-row justify-between sm:justify-between">
+                    <DialogFooter className="flex-row justify-between">
                         {onRemove ? (
                             <Button
                                 type="button"

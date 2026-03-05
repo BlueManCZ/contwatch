@@ -17,7 +17,6 @@ import type {
     ActionRead,
     AttributeRead,
     HandlerRead,
-    HandlerStatus,
     HandlerTypeInfo,
     KnownActionInfo,
     ResolvedControl,
@@ -26,7 +25,6 @@ import {
     useAvailableAttributesApiHandlersHandlerIdAvailableAttributesGet,
     useDeleteHandlerApiHandlersHandlerIdDelete,
     useHandlerControlsApiHandlersHandlerIdControlsGet,
-    useHandlerStatusApiHandlersHandlerIdStatusGet,
     useListHandlerTypesApiHandlersTypesGet,
     useStartHandlerApiHandlersHandlerIdStartPost,
     useStopHandlerApiHandlersHandlerIdStopPost,
@@ -41,6 +39,7 @@ import { formatValue } from "@/lib/format-value";
 import { localizeAttributeLabel } from "@/lib/localize-attribute";
 import { boldName, cn } from "@/lib/utils";
 import { INDICATOR_COLOR, useHandlerIndicatorStore } from "@/stores/handler-indicators";
+import { useHandlerStatusStore } from "@/stores/handler-status";
 import { useLiveValuesStore } from "@/stores/live-values";
 import { ActionEditDialog } from "./action-edit-dialog";
 import { ActionParamPopover } from "./action-param-dialog";
@@ -107,14 +106,11 @@ function HandlerInfo({
 }) {
     const { t, i18n } = useTranslation();
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
-    const { data: statusData } = useHandlerStatusApiHandlersHandlerIdStatusGet(handler.id, {
-        query: { refetchInterval: 5000 },
-    });
+    const status = useHandlerStatusStore((s) => s.statuses[handler.id]);
     const { data: typesData } = useListHandlerTypesApiHandlersTypesGet();
     const startHandler = useStartHandlerApiHandlersHandlerIdStartPost();
     const stopHandler = useStopHandlerApiHandlersHandlerIdStopPost();
     const deleteHandler = useDeleteHandlerApiHandlersHandlerIdDelete();
-    const status = statusData?.data as HandlerStatus | undefined;
 
     const isRunning = status?.running ?? false;
     const isConnected = status?.connected ?? false;

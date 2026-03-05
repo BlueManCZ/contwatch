@@ -21,7 +21,7 @@ import {
     verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { type ReactNode, useId, useRef, useState } from "react";
+import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from "react";
 
 interface SortableListProps<T extends { id: number }> {
     items: T[];
@@ -54,15 +54,14 @@ export function SortableList<T extends { id: number }>({
     const wasMoved = useRef(false);
     const reorderLock = useRef(false);
 
-    const propIds = items.map((i) => i.id).join(",");
-    const localIds = localOrder.join(",");
-    if (propIds !== localIds) {
+    const propIds = useMemo(() => items.map((i) => i.id), [items]);
+    useEffect(() => {
         if (!isLocalReorder.current) {
-            setLocalOrder(items.map((i) => i.id));
+            setLocalOrder(propIds);
+        } else {
+            isLocalReorder.current = false;
         }
-    } else {
-        isLocalReorder.current = false;
-    }
+    }, [propIds]);
 
     const itemMap = new Map(items.map((i) => [i.id, i]));
     const displayItems = localOrder.map((id) => itemMap.get(id)).filter((i): i is T => i != null);
@@ -137,7 +136,7 @@ export function SortableList<T extends { id: number }>({
     function handleDragCancel() {
         setActiveId(null);
         isLocalReorder.current = false;
-        setLocalOrder(items.map((i) => i.id));
+        setLocalOrder(propIds);
     }
 
     const activeItem = activeId != null ? itemMap.get(activeId) : null;

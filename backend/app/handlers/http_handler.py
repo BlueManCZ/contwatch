@@ -36,18 +36,17 @@ class HttpHandler(AbstractHandler):
         return host or cls.handler_name
 
     @classmethod
-    async def probe(cls, config: dict) -> bool:
+    async def probe(cls, config: dict, client: httpx.AsyncClient | None = None) -> bool:
         host = cls._normalize_host(config.get("host", ""))
         fetch_route = config.get("fetch_route", "/")
         if not host:
             return False
         url = f"{host.rstrip('/')}/{fetch_route.lstrip('/')}"
         try:
-            async with httpx.AsyncClient(timeout=5) as client:
-                resp = await client.get(url)
-                resp.raise_for_status()
-                resp.json()
-                return True
+            resp = await (client or httpx.AsyncClient(timeout=5)).get(url)
+            resp.raise_for_status()
+            resp.json()
+            return True
         except Exception:
             return False
 
@@ -84,7 +83,7 @@ class HttpHandler(AbstractHandler):
         except httpx.HTTPStatusError as e:
             logger.warning("Handler %s action HTTP error: %s", self.handler_id, e.response.status_code)
             return False
-        except httpx.RequestError as e:
+        except (httpx.RequestError, ValueError) as e:
             logger.warning("Handler %s action request error: %s", self.handler_id, e)
             return False
 

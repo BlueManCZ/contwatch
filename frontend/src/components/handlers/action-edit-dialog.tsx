@@ -78,7 +78,7 @@ export function ActionEditDialog({ action, onClose }: ActionEditDialogProps) {
                         </div>
                         <ActionMessageEditor value={message} onChange={setMessage} />
                     </div>
-                    <DialogFooter className="flex-row justify-between sm:justify-between">
+                    <DialogFooter className="flex-row justify-between">
                         <Button
                             type="button"
                             variant="destructive"

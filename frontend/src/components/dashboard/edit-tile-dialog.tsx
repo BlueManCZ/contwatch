@@ -52,7 +52,7 @@ export function EditTileDialog({ tile, open, onOpenChange, onRemove }: EditTileD
                     <div className="py-4">
                         <AttributeSelect value={selectedAttrId} onValueChange={setSelectedAttrId} showUnit />
                     </div>
-                    <DialogFooter className="flex-row justify-between sm:justify-between">
+                    <DialogFooter className="flex-row justify-between">
                         {onRemove ? (
                             <Button
                                 type="button"

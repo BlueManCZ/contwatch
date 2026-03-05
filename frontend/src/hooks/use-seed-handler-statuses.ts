@@ -10,10 +10,17 @@ export function useSeedHandlerStatuses() {
 
     useEffect(() => {
         if (data?.data) {
-            const normalized: Record<number, { running: boolean; connected: boolean }> = {};
+            const normalized: Record<
+                number,
+                { running: boolean; connected: boolean; last_active?: string | null }
+            > = {};
             for (const [key, val] of Object.entries(data.data)) {
                 const id = Number(key);
-                normalized[id] = { running: val.running, connected: val.connected };
+                normalized[id] = {
+                    running: val.running,
+                    connected: val.connected,
+                    last_active: val.last_active ?? null,
+                };
                 if (val.indicators?.length) {
                     setIndicators(id, val.indicators);
                 }

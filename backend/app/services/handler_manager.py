@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
 import datetime
+import json
 import logging
 from typing import Any
 
@@ -35,8 +36,10 @@ class HandlerManager:
         self._last_active: dict[int, datetime.datetime] = {}  # handler_id -> last message time
         self._last_connected_state: dict[int, bool] = {}  # handler_id -> last known connected flag
         self._last_indicators: dict[int, list[dict]] = {}  # handler_id -> last indicators
+        self._last_status_emit: dict[int, float] = {}  # handler_id -> monotonic time of last periodic emit
         self._processor_task: asyncio.Task | None = None
         self._workflow_graph: NodeGraph | None = None
+        self._action_cache: dict[int, tuple[str, str, int | None]] = {}  # action_id -> (name, message, handler_id)
 
     async def startup(self) -> None:
         """Load handlers from DB, register trackers, and start enabled ones."""
@@ -92,6 +95,16 @@ class HandlerManager:
         await self._persist_last_active()
         logger.info("HandlerManager shut down")
 
+    def _status_payload(self, handler_id: int, *, running: bool, connected: bool) -> dict:
+        """Build a handler_status event payload including last_active."""
+        la = self._last_active.get(handler_id)
+        return {
+            "handler_id": handler_id,
+            "running": running,
+            "connected": connected,
+            "last_active": la.isoformat() if la else None,
+        }
+
     # --- Message processing ---
 
     async def _message_processor(self) -> None:
@@ -113,7 +126,7 @@ class HandlerManager:
                         if prev is not None:
                             await sio.emit(
                                 "handler_status",
-                                {"handler_id": handler_id, "running": True, "connected": connected},
+                                self._status_payload(handler_id, running=True, connected=connected),
                             )
                         if not connected:
                             indicators = handler.disconnected_indicators()
@@ -133,6 +146,20 @@ class HandlerManager:
                                     {"handler_id": handler_id, "indicators": indicator_dicts},
                                 )
                     self._last_connected_state[handler_id] = connected
+
+                # Periodic last_active broadcast for running handlers (~5s)
+                now_mono = asyncio.get_event_loop().time()
+                for handler_id, handler in list(self._handlers.items()):
+                    if not handler.is_active:
+                        continue
+                    last_emit = self._last_status_emit.get(handler_id, 0.0)
+                    if now_mono - last_emit >= 5.0 and handler_id in self._last_active:
+                        self._last_status_emit[handler_id] = now_mono
+                        await sio.emit(
+                            "handler_status",
+                            self._status_payload(handler_id, running=True, connected=handler.is_connected),
+                        )
+
                 await asyncio.sleep(0.05)
         except asyncio.CancelledError:
             pass
@@ -274,7 +301,7 @@ class HandlerManager:
                 instance.start()
 
         self._last_connected_state[handler_id] = False
-        await sio.emit("handler_status", {"handler_id": handler_id, "running": True, "connected": False})
+        await sio.emit("handler_status", self._status_payload(handler_id, running=True, connected=False))
         await sio.emit("mutate", {"entity": "handlers"})
 
     async def stop_handler(self, handler_id: int) -> None:
@@ -282,7 +309,7 @@ class HandlerManager:
         if handler:
             await handler.stop()
             self._last_connected_state.pop(handler_id, None)
-            await sio.emit("handler_status", {"handler_id": handler_id, "running": False, "connected": False})
+            await sio.emit("handler_status", self._status_payload(handler_id, running=False, connected=False))
             await sio.emit("mutate", {"entity": "handlers"})
 
     async def remove_handler(self, handler_id: int) -> None:
@@ -317,7 +344,7 @@ class HandlerManager:
                 instance.start()
 
         self._last_connected_state[handler_id] = False
-        await sio.emit("handler_status", {"handler_id": handler_id, "running": True, "connected": False})
+        await sio.emit("handler_status", self._status_payload(handler_id, running=True, connected=False))
         await sio.emit("mutate", {"entity": "handlers"})
 
     # --- Action execution ---
@@ -339,19 +366,61 @@ class HandlerManager:
             logger.warning("Cannot execute action: handler %d not active", handler_id)
             return False
         success = await handler.execute_action(message)
-        await self._log_action(action_name or message, handler_id, source, success)
+        await self._log_action(action_name or message, handler_id, source, success, message=message)
         return success
 
-    async def _log_action(self, action_name: str, handler_id: int, source: str, success: bool) -> None:
+    async def execute_action_by_id(
+        self,
+        handler_id: int,
+        action_id: int,
+        *,
+        source: str = "workflow",
+    ) -> bool:
+        """Resolve an action by ID (cached) and execute it."""
+        cached = self._action_cache.get(action_id)
+        if cached:
+            name, message, _ = cached
+        else:
+            async with self._session_factory() as session:
+                from app.models.action import Action
+
+                result = await session.execute(select(Action).where(Action.id == action_id))
+                action = result.scalar_one_or_none()
+                if not action:
+                    logger.warning("Cannot execute action: action %d not found", action_id)
+                    return False
+                name, message = action.name, action.message
+                self._action_cache[action_id] = (name, message, action.handler_id)
+
+        return await self.execute_action(handler_id, message, action_name=name, source=source)
+
+    def invalidate_action_cache(self, action_id: int) -> None:
+        """Remove a cached action entry (call after action update/delete)."""
+        self._action_cache.pop(action_id, None)
+
+    async def _log_action(
+        self, action_name: str, handler_id: int, source: str, success: bool, *, message: str | None = None
+    ) -> None:
         """Persist an action execution record to the logging_messages table."""
         now = datetime.datetime.now(datetime.UTC)
         level = logging.INFO if success else logging.WARNING
         status = "executed" if success else "failed"
+        payload: dict[str, Any] = {
+            "handler_id": handler_id,
+            "action_name": action_name,
+            "source": source,
+            "success": success,
+        }
+        if message is not None:
+            try:
+                payload["message"] = json.loads(message)
+            except (json.JSONDecodeError, TypeError):
+                payload["message"] = message
         record = LoggingMessage(
             source="action",
             level=level,
             message=f"{action_name} {status} (handler {handler_id}, {source})",
-            payload={"handler_id": handler_id, "action_name": action_name, "source": source, "success": success},
+            payload=payload,
             timestamp=now,
         )
         try:

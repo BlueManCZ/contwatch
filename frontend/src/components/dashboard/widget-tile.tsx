@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import type { DashboardTile } from "@/api/generated/contWatchAPI.schemas";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLongPress } from "@/hooks/use-long-press";
-import { formatValue } from "@/lib/format-value";
+import { formatStat, formatValue } from "@/lib/format-value";
 import { localizeAttributeLabel } from "@/lib/localize-attribute";
 import type { WidgetStatus } from "@/lib/widget-status";
 import { useLiveValuesStore } from "@/stores/live-values";
@@ -39,12 +39,6 @@ export function WidgetTile({ tile, status = "online", onRemove, onEdit, onClick 
         typeof value === "number" && tile.unit ? formatValue(value, tile.unit, tile.rounding) : null;
     const displayValue = value != null ? (isBooleanValue ? null : (formatted?.value ?? String(value))) : "-";
     const displayUnit = formatted?.unit ?? tile.unit;
-
-    const formatStat = (v: number): string => {
-        if (!tile.unit) return String(v);
-        const f = formatValue(v, tile.unit, tile.rounding);
-        return `${f.value} ${f.unit}`;
-    };
 
     return (
         <Card
@@ -122,7 +116,8 @@ export function WidgetTile({ tile, status = "online", onRemove, onEdit, onClick 
                                         className="text-[11px] text-muted-foreground data-value"
                                         title={t("dashboard.min")}
                                     >
-                                        <span className="text-info">&#8595;</span> {formatStat(dailyMin)}
+                                        <span className="text-info">&#8595;</span>{" "}
+                                        {formatStat(dailyMin, tile.unit, tile.rounding)}
                                     </span>
                                 )}
                                 {dailyMax != null && (
@@ -131,7 +126,7 @@ export function WidgetTile({ tile, status = "online", onRemove, onEdit, onClick 
                                         title={t("dashboard.max")}
                                     >
                                         <span className="text-destructive-foreground">&#8593;</span>{" "}
-                                        {formatStat(dailyMax)}
+                                        {formatStat(dailyMax, tile.unit, tile.rounding)}
                                     </span>
                                 )}
                             </>

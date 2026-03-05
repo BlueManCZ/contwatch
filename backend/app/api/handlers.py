@@ -5,6 +5,7 @@ import logging
 from typing import Any
 from urllib.parse import urlsplit
 
+import httpx
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -135,64 +136,22 @@ async def probe_handler(body: ProbeRequest, _current_user: CurrentUser):
     cat = get_category(body.category)
     default_type = cat["default_handler_type"] if cat else None
 
-    for cls in handlers:
-        if cls.handler_type == default_type:
-            continue
-        try:
-            detected = await asyncio.wait_for(cls.probe(body.config), timeout=10)
-        except Exception:
-            logger.debug("Probe failed for %s", cls.handler_type, exc_info=True)
-            detected = False
-
-        if detected:
-            return ProbeResult(
-                detected=True,
-                handler_type=cls.handler_type,
-                handler_name=cls.handler_name,
-                handler_icon=cls.handler_icon,
-                config_fields=[
-                    {
-                        "key": f["key"],
-                        "type": f["type"],
-                        "label": f["label"],
-                        "default": body.config.get(f["key"], f.get("default")),
-                    }
-                    for f in cls.config_fields
-                ],
-                known_attributes=[
-                    {
-                        "name": a.name,
-                        "label": a.label,
-                        "unit": a.unit,
-                        "icon": a.icon,
-                        "rounding": a.rounding,
-                    }
-                    for a in cls.known_attributes
-                ],
-                known_actions=[{"name": a.name, "message": a.message} for a in cls.known_actions],
-            )
-
-    # Generic HTTP fallback: try to fetch the URL and discover attributes from JSON
-    if body.category == "http":
-        host = body.config.get("host", "")
-        fetch_route = body.config.get("fetch_route", "/")
-        if host:
-            url = f"{host.rstrip('/')}/{fetch_route.lstrip('/')}"
+    async with httpx.AsyncClient(timeout=5) as client:
+        for cls in handlers:
+            if cls.handler_type == default_type:
+                continue
             try:
-                import httpx
+                detected = await asyncio.wait_for(cls.probe(body.config, client), timeout=10)
+            except Exception:
+                logger.debug("Probe failed for %s", cls.handler_type, exc_info=True)
+                detected = False
 
-                async with httpx.AsyncClient(timeout=5) as client:
-                    resp = await client.get(url)
-                    resp.raise_for_status()
-                    data = resp.json()
-
-                flat = linearize(data)
-                default_cls = get_handler_class(default_type) if default_type else None
+            if detected:
                 return ProbeResult(
                     detected=True,
-                    handler_type=default_type or "http",
-                    handler_name=default_cls.handler_name if default_cls else "HTTP API",
-                    handler_icon=default_cls.handler_icon if default_cls else "globe",
+                    handler_type=cls.handler_type,
+                    handler_name=cls.handler_name,
+                    handler_icon=cls.handler_icon,
                     config_fields=[
                         {
                             "key": f["key"],
@@ -200,12 +159,52 @@ async def probe_handler(body: ProbeRequest, _current_user: CurrentUser):
                             "label": f["label"],
                             "default": body.config.get(f["key"], f.get("default")),
                         }
-                        for f in (default_cls.config_fields if default_cls else [])
+                        for f in cls.config_fields
                     ],
-                    known_attributes=[{"name": key, "label": key} for key in flat],
+                    known_attributes=[
+                        {
+                            "name": a.name,
+                            "label": a.label,
+                            "unit": a.unit,
+                            "icon": a.icon,
+                            "rounding": a.rounding,
+                        }
+                        for a in cls.known_attributes
+                    ],
+                    known_actions=[{"name": a.name, "message": a.message} for a in cls.known_actions],
                 )
-            except Exception:
-                logger.debug("Generic HTTP probe failed for %s", url, exc_info=True)
+
+        # Generic HTTP fallback: try to fetch the URL and discover attributes from JSON
+        if body.category == "http":
+            host = body.config.get("host", "")
+            fetch_route = body.config.get("fetch_route", "/")
+            if host:
+                url = f"{host.rstrip('/')}/{fetch_route.lstrip('/')}"
+                try:
+                    resp = await client.get(url)
+                    resp.raise_for_status()
+                    data = resp.json()
+
+                    flat = linearize(data)
+                    default_cls = get_handler_class(default_type) if default_type else None
+                    return ProbeResult(
+                        detected=True,
+                        handler_type=default_type or "http",
+                        handler_name=default_cls.handler_name if default_cls else "HTTP API",
+                        handler_icon=default_cls.handler_icon if default_cls else "globe",
+                        config_fields=[
+                            {
+                                "key": f["key"],
+                                "type": f["type"],
+                                "label": f["label"],
+                                "default": body.config.get(f["key"], f.get("default")),
+                            }
+                            for f in (default_cls.config_fields if default_cls else [])
+                        ],
+                        known_attributes=[{"name": key, "label": key} for key in flat],
+                    )
+                except Exception:
+                    logger.debug("Generic HTTP probe failed for %s", url, exc_info=True)
 
     return ProbeResult(detected=False)
 
