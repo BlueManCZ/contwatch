@@ -24,4 +24,6 @@ class Handler(Base):
         order_by="Attribute.order.asc().nullslast(), Attribute.id.asc()",
     )
     actions: Mapped[list["Action"]] = relationship(back_populates="handler", cascade="all, delete-orphan")  # noqa: F821
-    data_units: Mapped[list["DataUnit"]] = relationship(back_populates="handler", cascade="all, delete-orphan")  # noqa: F821
+    data_units: Mapped[list["DataUnit"]] = relationship(  # noqa: F821
+        back_populates="handler", cascade="all, delete-orphan", passive_deletes=True
+    )

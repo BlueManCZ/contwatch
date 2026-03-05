@@ -19,7 +19,9 @@ class Attribute(Base):
     color: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     handler: Mapped["Handler"] = relationship(back_populates="attributes")  # noqa: F821
-    data_units: Mapped[list["DataUnit"]] = relationship(back_populates="attribute", cascade="all, delete-orphan")  # noqa: F821
+    data_units: Mapped[list["DataUnit"]] = relationship(  # noqa: F821
+        back_populates="attribute", cascade="all, delete-orphan", passive_deletes=True
+    )
     widget_tiles: Mapped[list["WidgetTile"]] = relationship(back_populates="attribute", cascade="all, delete-orphan")  # noqa: F821
     widget_switches: Mapped[list["WidgetSwitch"]] = relationship(  # noqa: F821
         back_populates="attribute", cascade="all, delete-orphan"

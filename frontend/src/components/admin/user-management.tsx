@@ -111,6 +111,7 @@ export function UserManagement() {
                 onOpenChange={(open) => {
                     if (!open) setPendingDeleteUser(null);
                 }}
+                isPending={deleteUser.isPending}
                 onConfirm={() => {
                     if (!pendingDeleteUser) return;
                     deleteUser.mutate(

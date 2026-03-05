@@ -172,6 +172,7 @@ export function DashboardGrid() {
                     onOpenChange={(open) => {
                         if (!open) setPendingDelete(null);
                     }}
+                    isPending={deleteTile.isPending || deleteSwitch.isPending || deleteSlider.isPending}
                     onConfirm={() => {
                         if (!pendingDelete) return;
                         const { type, id } = pendingDelete;

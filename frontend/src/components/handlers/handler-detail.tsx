@@ -214,6 +214,7 @@ function HandlerInfo({
             <ConfirmDialog
                 open={confirmDeleteOpen}
                 onOpenChange={setConfirmDeleteOpen}
+                isPending={deleteHandler.isPending}
                 onConfirm={() =>
                     deleteHandler.mutate(
                         { handlerId: handler.id },
