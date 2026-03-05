@@ -136,6 +136,7 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
                         { attributeId: attribute.id },
                         {
                             onSuccess: () => {
+                                setConfirmDeleteOpen(false);
                                 queryClient.invalidateQueries({
                                     queryKey: getListAttributesApiAttributesGetQueryKey(),
                                 });

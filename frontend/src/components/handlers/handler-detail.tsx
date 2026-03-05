@@ -219,6 +219,7 @@ function HandlerInfo({
                         { handlerId: handler.id },
                         {
                             onSuccess: () => {
+                                setConfirmDeleteOpen(false);
                                 toast.success(t("toast.handlerDeleted"));
                                 onClose();
                             },

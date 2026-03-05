@@ -102,6 +102,7 @@ export function ActionEditDialog({ action, onClose }: ActionEditDialogProps) {
                         { actionId: action.id },
                         {
                             onSuccess: () => {
+                                setConfirmDeleteOpen(false);
                                 queryClient.invalidateQueries({
                                     queryKey: getListHandlersApiHandlersGetQueryKey(),
                                 });
