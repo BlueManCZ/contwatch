@@ -41,6 +41,7 @@ async def all_attribute_values(manager: HandlerManagerDep, _current_user: Curren
                 trend=data["trend"],
                 daily_min=stats.get("min"),
                 daily_max=stats.get("max"),
+                stats_stale=stats.get("stale", False),
                 last_changed=data.get("last_changed"),
             )
         )
@@ -54,6 +55,7 @@ async def all_attribute_values(manager: HandlerManagerDep, _current_user: Curren
                     trend=0,
                     daily_min=stats.get("min"),
                     daily_max=stats.get("max"),
+                    stats_stale=stats.get("stale", False),
                 )
             )
     return result

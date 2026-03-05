@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Activity, Cable, Gauge, LogOut, ScrollText, Settings, Workflow } from "lucide-react";
+import { Activity, BarChart3, Cable, Gauge, LogOut, ScrollText, Settings, Workflow } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -32,6 +32,7 @@ const managementItems = [
 
 const systemItems = [
     { to: "/logs", icon: ScrollText, labelKey: "nav.logs" },
+    { to: "/stats", icon: BarChart3, labelKey: "nav.stats" },
     { to: "/settings", icon: Settings, labelKey: "nav.settings", adminOnly: true },
 ] as const;
 

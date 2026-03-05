@@ -28,7 +28,7 @@ export function HandlerControls({ handler }: HandlerControlsProps) {
 
     return (
         <div>
-            <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
+            <h4 className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest mb-2.5">
                 {t("handlers.controls")}
             </h4>
             <div className="space-y-2">

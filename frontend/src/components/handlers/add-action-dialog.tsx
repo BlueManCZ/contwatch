@@ -88,18 +88,18 @@ export function AddActionDialog({ handler, open, onOpenChange }: AddActionDialog
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
+            <DialogContent className="max-h-[85dvh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle>{t("handlers.addAction")}</DialogTitle>
                 </DialogHeader>
 
                 {knownActions.length > 0 && (
                     <>
-                        <div className="space-y-2">
-                            <Label className="text-xs text-muted-foreground uppercase tracking-widest">
+                        <div className="space-y-2 min-h-0 flex flex-col">
+                            <Label className="text-xs text-muted-foreground uppercase tracking-widest shrink-0">
                                 {t("handlers.presets")}
                             </Label>
-                            <div className="space-y-1.5">
+                            <div className="space-y-1.5 overflow-y-auto min-h-0">
                                 {knownActions.map((ka) => {
                                     const added = existingNames.has(ka.name);
                                     const selected = name === ka.name && message === ka.message;

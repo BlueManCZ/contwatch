@@ -41,7 +41,8 @@ class KnownAction:
 class Indicator:
     icon: str  # lucide icon name, e.g. "wifi", "battery-low"
     color: str  # "success" | "warning" | "destructive" | "muted"
-    tooltip: str  # "WiFi: -80 dBm"
+    tooltip_key: str  # i18n key, e.g. "indicators.wifi"
+    tooltip_params: dict[str, str] | None = None  # e.g. {"rssi": "-80"}
 
 
 @dataclass(frozen=True)

@@ -359,6 +359,7 @@ async def dashboard(db: DbSession, manager: HandlerManagerDep, _current_user: Cu
                 trend=val.get("trend", 0),
                 daily_min=stats.get("min"),
                 daily_max=stats.get("max"),
+                stats_stale=stats.get("stale", False),
                 last_changed=val.get("last_changed"),
             )
         )

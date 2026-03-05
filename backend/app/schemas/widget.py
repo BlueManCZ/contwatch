@@ -37,6 +37,7 @@ class DashboardTile(BaseModel):
     trend: int = 0
     daily_min: float | None = None
     daily_max: float | None = None
+    stats_stale: bool = False
     last_changed: datetime.datetime | None = None
 
 

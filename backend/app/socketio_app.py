@@ -32,8 +32,10 @@ async def connect(sid, environ, auth):
 
     await sio.save_session(sid, {"user_id": user_id})
     logger.info("Socket.IO client connected: %s (user_id=%s)", sid, user_id)
+    await sio.emit("mutate", {"entity": "system"})
 
 
 @sio.event
 async def disconnect(sid):
     logger.info("Socket.IO client disconnected: %s", sid)
+    await sio.emit("mutate", {"entity": "system"})

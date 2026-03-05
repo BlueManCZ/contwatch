@@ -66,7 +66,7 @@ class ShellyPlugGen2Handler(HttpHandler):
                 Indicator(
                     icon="power" if on else "power-off",
                     color="success" if on else "muted",
-                    tooltip=f"Relay: {'ON' if on else 'OFF'}",
+                    tooltip_key="indicators.relayOn" if on else "indicators.relayOff",
                 )
             )
         rssi = data.get("wifi/rssi")

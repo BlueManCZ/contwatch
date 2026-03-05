@@ -27,8 +27,9 @@ export function WidgetTile({ tile, status = "online", onRemove, onEdit, onClick 
 
     const value = liveVal?.value ?? tile.value;
     const trend = liveVal?.trend ?? tile.trend ?? 0;
-    const dailyMin = liveVal?.daily_min ?? tile.daily_min;
-    const dailyMax = liveVal?.daily_max ?? tile.daily_max;
+    const statsStale = liveVal?.stats_stale ?? tile.stats_stale ?? false;
+    const dailyMin = statsStale ? null : (liveVal?.daily_min ?? tile.daily_min);
+    const dailyMax = statsStale ? null : (liveVal?.daily_max ?? tile.daily_max);
     const lastChanged = liveVal?.last_changed ?? tile.last_changed;
 
     const isBooleanValue = value === true || value === false || value === "true" || value === "false";
@@ -108,24 +109,32 @@ export function WidgetTile({ tile, status = "online", onRemove, onEdit, onClick 
                     </div>
                 )}
 
-                {typeof value === "number" && (dailyMin != null || dailyMax != null) && (
+                {typeof value === "number" && (statsStale || dailyMin != null || dailyMax != null) && (
                     <div className="flex items-center gap-3 mt-2.5">
-                        {dailyMin != null && (
-                            <span
-                                className="text-[11px] text-muted-foreground data-value"
-                                title={t("dashboard.min")}
-                            >
-                                <span className="text-info">&#8595;</span> {formatStat(dailyMin)}
+                        {statsStale ? (
+                            <span className="text-[11px] text-muted-foreground/60">
+                                {t("handlers.statsStale")}
                             </span>
-                        )}
-                        {dailyMax != null && (
-                            <span
-                                className="text-[11px] text-muted-foreground data-value"
-                                title={t("dashboard.max")}
-                            >
-                                <span className="text-destructive-foreground">&#8593;</span>{" "}
-                                {formatStat(dailyMax)}
-                            </span>
+                        ) : (
+                            <>
+                                {dailyMin != null && (
+                                    <span
+                                        className="text-[11px] text-muted-foreground data-value"
+                                        title={t("dashboard.min")}
+                                    >
+                                        <span className="text-info">&#8595;</span> {formatStat(dailyMin)}
+                                    </span>
+                                )}
+                                {dailyMax != null && (
+                                    <span
+                                        className="text-[11px] text-muted-foreground data-value"
+                                        title={t("dashboard.max")}
+                                    >
+                                        <span className="text-destructive-foreground">&#8593;</span>{" "}
+                                        {formatStat(dailyMax)}
+                                    </span>
+                                )}
+                            </>
                         )}
                         <TrendIcon trend={trend} className="ml-auto" />
                     </div>

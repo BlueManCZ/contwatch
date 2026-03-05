@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { Cable, ChevronDown, Pencil, Play, Plus, Square, Trash2 } from "lucide-react";
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -32,15 +33,14 @@ import {
 } from "@/api/generated/handlers/handlers";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { SafeIcon } from "@/components/safe-icon";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { dateFnsLocales } from "@/lib/date-locale";
 import { formatValue } from "@/lib/format-value";
 import { localizeAttributeLabel } from "@/lib/localize-attribute";
 import { boldName, cn } from "@/lib/utils";
+import { INDICATOR_COLOR, useHandlerIndicatorStore } from "@/stores/handler-indicators";
 import { useLiveValuesStore } from "@/stores/live-values";
 import { ActionEditDialog } from "./action-edit-dialog";
 import { ActionParamPopover } from "./action-param-dialog";
@@ -50,6 +50,17 @@ import { AttributeEditDialog } from "./attribute-edit-dialog";
 import { HandlerConfigEditDialog } from "./handler-config-edit-dialog";
 import { HandlerControls } from "./handler-controls";
 import { SortableList } from "./sortable-list";
+
+function SectionHeader({ title, action }: { title: string; action?: ReactNode }) {
+    return (
+        <div className="flex items-center justify-between mb-3">
+            <h4 className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">
+                {title}
+            </h4>
+            {action}
+        </div>
+    );
+}
 
 interface HandlerDetailProps {
     handler: HandlerRead | null;
@@ -66,18 +77,16 @@ export function HandlerDetail({ handler, open, onOpenChange }: HandlerDetailProp
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent className="w-full sm:max-w-xl">
-                <SheetHeader>
-                    <SheetTitle>{t("handlers.details")}</SheetTitle>
+                <SheetHeader className="pb-0">
+                    <SheetTitle className="leading-8">{t("handlers.details")}</SheetTitle>
                 </SheetHeader>
-                <div className="flex-1 min-h-0 overflow-y-auto space-y-6 px-4 pb-4">
+                <div className="flex-1 min-h-0 overflow-y-auto space-y-5 px-4 pb-4">
                     <HandlerInfo
                         handler={handler}
                         onEditConfig={() => setEditConfigHandler(handler)}
                         onClose={() => onOpenChange(false)}
                     />
-                    <Separator />
                     <HandlerControlsAndActions handler={handler} />
-                    <Separator />
                     <RegisteredAttributes handler={handler} />
                     <AvailableAttributes handler={handler} />
                 </div>
@@ -124,6 +133,16 @@ function HandlerInfo({
               ? { bg: "bg-warning", anim: "animate-ping-slow opacity-30" }
               : undefined;
 
+    const statusDotColor =
+        isRunning && isConnected ? "bg-success" : isRunning ? "bg-warning" : "bg-muted-foreground/40";
+    const statusLabel = !isRunning
+        ? t("handlers.stopped")
+        : isConnected
+          ? t("handlers.connected")
+          : t("handlers.disconnected");
+
+    const indicators = useHandlerIndicatorStore((s) => s.indicators[handler.id]);
+
     const lastActiveText = status?.last_active
         ? formatDistanceToNow(new Date(status.last_active), {
               addSuffix: true,
@@ -132,84 +151,119 @@ function HandlerInfo({
         : null;
 
     return (
-        <div className="space-y-3">
-            <div className="flex items-center gap-3">
-                <span className="relative flex shrink-0 h-6 w-6 items-center justify-center">
-                    {aura && (
-                        <span className={cn("absolute h-full w-full rounded-full", aura.bg, aura.anim)} />
-                    )}
-                    <SafeIcon
-                        name={icon}
-                        className={cn("relative h-6 w-6", statusColor)}
-                        fallback={<Cable className={cn("relative h-6 w-6", statusColor)} />}
-                    />
-                </span>
-                <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium truncate">{label}</p>
-                        {isRunning && !isConnected && (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                                {t("handlers.disconnected")}
-                            </Badge>
+        <div>
+            {/* ── Identity card ── */}
+            <div className="relative overflow-hidden rounded-xl border border-border/60 bg-card/50">
+                <div className="p-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <span className="relative flex shrink-0 h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-background/50">
+                            {aura && (
+                                <span
+                                    className={cn(
+                                        "absolute inset-0 m-auto h-5 w-5 rounded-full",
+                                        aura.bg,
+                                        aura.anim,
+                                    )}
+                                />
+                            )}
+                            <SafeIcon
+                                name={icon}
+                                className={cn("relative h-5 w-5", statusColor)}
+                                fallback={<Cable className={cn("relative h-5 w-5", statusColor)} />}
+                            />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold truncate leading-tight">{label}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5 data-value truncate">
+                                {handler.description}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3 mt-2.5 ml-12 text-[11px]">
+                        <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                            <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", statusDotColor)} />
+                            {statusLabel}
+                        </span>
+                        {isRunning && !isConnected && lastActiveText && (
+                            <span className="text-muted-foreground/60">{lastActiveText}</span>
                         )}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                        {handler.description}
-                        {isRunning && !isConnected && lastActiveText && (
-                            <>
-                                <span className="mx-1.5 opacity-40">&#183;</span>
-                                {lastActiveText}
-                            </>
-                        )}
-                    </p>
+
+                    {/* ── Indicators ── */}
+                    {isRunning && indicators && indicators.length > 0 && (
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 pt-3 border-t border-border/40">
+                            {indicators.map((ind) => (
+                                <span key={ind.icon} className="inline-flex items-center gap-1.5 text-[11px]">
+                                    <SafeIcon
+                                        name={ind.icon}
+                                        className={cn("h-3 w-3 shrink-0", INDICATOR_COLOR[ind.color])}
+                                    />
+                                    <span className={INDICATOR_COLOR[ind.color]}>
+                                        {t(ind.tooltip_key, ind.tooltip_params ?? {})}
+                                    </span>
+                                </span>
+                            ))}
+                        </div>
+                    )}
                 </div>
-            </div>
-            <div className="flex items-center gap-1.5">
-                <Button variant="outline" size="sm" className="flex-1" onClick={onEditConfig}>
-                    <Pencil className="h-3.5 w-3.5 mr-1.5" />
-                    {t("handlers.configure")}
-                </Button>
-                {isRunning ? (
-                    <Button
-                        variant="outline"
-                        size="icon-sm"
-                        onClick={() =>
-                            stopHandler.mutate(
-                                { handlerId: handler.id },
-                                { onSuccess: () => toast.success(t("toast.handlerStopped")) },
-                            )
-                        }
-                        disabled={stopHandler.isPending}
-                        title={t("handlers.stop")}
+
+                {/* ── Toolbar ── */}
+                <div className="flex items-center gap-px border-t border-border/40 bg-background/30">
+                    <button
+                        type="button"
+                        className="flex flex-1 items-center justify-center gap-1.5 py-3 sm:py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors cursor-pointer"
+                        onClick={onEditConfig}
+                        title={t("handlers.configure")}
                     >
-                        <Square className="h-3.5 w-3.5" />
-                    </Button>
-                ) : (
-                    <Button
-                        variant="outline"
-                        size="icon-sm"
-                        onClick={() =>
-                            startHandler.mutate(
-                                { handlerId: handler.id },
-                                { onSuccess: () => toast.success(t("toast.handlerStarted")) },
-                            )
-                        }
-                        disabled={startHandler.isPending}
-                        title={t("handlers.start")}
+                        <Pencil className="h-4.5 w-4.5 sm:h-3 sm:w-3" />
+                        <span className="hidden sm:inline">{t("handlers.configure")}</span>
+                    </button>
+                    <span className="w-px h-4 bg-border/40" />
+                    {isRunning ? (
+                        <button
+                            type="button"
+                            className="flex flex-1 items-center justify-center gap-1.5 py-3 sm:py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-default"
+                            onClick={() =>
+                                stopHandler.mutate(
+                                    { handlerId: handler.id },
+                                    { onSuccess: () => toast.success(t("toast.handlerStopped")) },
+                                )
+                            }
+                            disabled={stopHandler.isPending}
+                            title={t("handlers.stop")}
+                        >
+                            <Square className="h-4.5 w-4.5 sm:h-3 sm:w-3" />
+                            <span className="hidden sm:inline">{t("handlers.stop")}</span>
+                        </button>
+                    ) : (
+                        <button
+                            type="button"
+                            className="flex flex-1 items-center justify-center gap-1.5 py-3 sm:py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-default"
+                            onClick={() =>
+                                startHandler.mutate(
+                                    { handlerId: handler.id },
+                                    { onSuccess: () => toast.success(t("toast.handlerStarted")) },
+                                )
+                            }
+                            disabled={startHandler.isPending}
+                            title={t("handlers.start")}
+                        >
+                            <Play className="h-4.5 w-4.5 sm:h-3 sm:w-3" />
+                            <span className="hidden sm:inline">{t("handlers.start")}</span>
+                        </button>
+                    )}
+                    <span className="w-px h-4 bg-border/40" />
+                    <button
+                        type="button"
+                        className="flex flex-1 items-center justify-center gap-1.5 py-3 sm:py-2 text-xs text-muted-foreground hover:text-destructive-foreground hover:bg-destructive/10 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-default"
+                        onClick={() => setConfirmDeleteOpen(true)}
+                        disabled={deleteHandler.isPending}
+                        title={t("common.delete")}
                     >
-                        <Play className="h-3.5 w-3.5" />
-                    </Button>
-                )}
-                <Button
-                    variant="outline"
-                    size="icon-sm"
-                    onClick={() => setConfirmDeleteOpen(true)}
-                    disabled={deleteHandler.isPending}
-                    className="text-muted-foreground hover:text-destructive-foreground"
-                    title={t("common.delete")}
-                >
-                    <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                        <Trash2 className="h-4.5 w-4.5 sm:h-3 sm:w-3" />
+                        <span className="hidden sm:inline">{t("common.delete")}</span>
+                    </button>
+                </div>
             </div>
             <ConfirmDialog
                 open={confirmDeleteOpen}
@@ -258,24 +312,18 @@ function RegisteredAttributes({ handler }: { handler: HandlerRead }) {
 
     return (
         <div>
-            <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
-                {t("handlers.registeredAttributes")}
-            </h4>
+            <SectionHeader title={t("handlers.registeredAttributes")} />
             {attrs.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t("common.noData")}</p>
+                <div className="flex items-center justify-center rounded-lg border border-dashed border-border/60 py-4">
+                    <p className="text-xs text-muted-foreground/50">{t("common.noData")}</p>
+                </div>
             ) : (
-                <div className="space-y-2">
+                <div className="rounded-xl border border-border overflow-hidden [&>[role=button]+[role=button]]:border-t [&>[role=button]+[role=button]]:border-border/60">
                     <SortableList
                         items={attrs}
                         onReorder={handleReorder}
-                        onLongPress={(attr) => setEditingAttribute(attr)}
-                        renderItem={(attr) => (
-                            <DetailAttributeRow
-                                attr={attr}
-                                liveVal={values[attr.id]}
-                                onEdit={() => setEditingAttribute(attr)}
-                            />
-                        )}
+                        onItemClick={(attr) => setEditingAttribute(attr)}
+                        renderItem={(attr) => <DetailAttributeRow attr={attr} liveVal={values[attr.id]} />}
                     />
                 </div>
             )}
@@ -287,14 +335,12 @@ function RegisteredAttributes({ handler }: { handler: HandlerRead }) {
 function DetailAttributeRow({
     attr,
     liveVal,
-    onEdit,
 }: {
     attr: AttributeRead;
     liveVal: { value: unknown } | undefined;
-    onEdit: () => void;
 }) {
     const { t, i18n } = useTranslation();
-    const localizedLabel = attr.label ? localizeAttributeLabel(attr.name, attr.label, t, i18n) : undefined;
+    const localizedLabel = localizeAttributeLabel(attr.name, attr.label, t, i18n);
 
     const raw = liveVal?.value;
     const formatted =
@@ -305,25 +351,16 @@ function DetailAttributeRow({
     const displayUnit = formatted?.unit ?? attr.unit;
 
     return (
-        <div className="flex items-center justify-between gap-3 rounded-md border px-3 py-2 cursor-grab">
+        <div className="flex items-center justify-between gap-3 px-3 py-2.5 cursor-pointer hover:bg-accent/30 transition-colors">
             <div className="min-w-0 flex-1">
-                <p className="text-xs truncate">{localizedLabel || attr.name}</p>
-                {localizedLabel && (
-                    <p className="font-mono text-xs text-muted-foreground truncate">{attr.name}</p>
+                <p className="text-xs truncate">{localizedLabel}</p>
+                {localizedLabel !== attr.name && (
+                    <p className="font-mono text-xs text-muted-foreground/60 truncate">{attr.name}</p>
                 )}
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-                <span className="data-value text-sm font-medium tabular-nums">{displayValue}</span>
-                {displayUnit && <span className="text-xs text-muted-foreground">{displayUnit}</span>}
-                <Button
-                    variant="ghost"
-                    size="icon-xs"
-                    onClick={onEdit}
-                    title={t("handlers.editAttribute")}
-                    className="cursor-pointer hover:bg-accent"
-                >
-                    <Pencil className="h-3 w-3 text-muted-foreground group-hover/button:text-foreground" />
-                </Button>
+            <div className="flex items-baseline gap-1.5 shrink-0">
+                <span className="data-value text-sm font-semibold">{displayValue}</span>
+                {displayUnit && <span className="text-xs text-muted-foreground/70">{displayUnit}</span>}
             </div>
         </div>
     );
@@ -336,6 +373,7 @@ function AvailableAttributes({ handler }: { handler: HandlerRead }) {
         query: { refetchInterval: 5000 },
     });
     const createAttribute = useCreateAttributeApiAttributesPost();
+    const [confirmName, setConfirmName] = useState<string | null>(null);
 
     const raw = availData?.data;
     const items = Array.isArray(raw) ? raw : [];
@@ -345,6 +383,7 @@ function AvailableAttributes({ handler }: { handler: HandlerRead }) {
             { data: { name, handler_id: handler.id, enabled: true } },
             {
                 onSuccess: () => {
+                    setConfirmName(null);
                     queryClient.invalidateQueries({ queryKey: getListAttributesApiAttributesGetQueryKey() });
                     toast.success(t("toast.attributeAdded"));
                 },
@@ -354,87 +393,124 @@ function AvailableAttributes({ handler }: { handler: HandlerRead }) {
 
     if (items.length === 0) return null;
 
+    const confirmItem = items.find((i) => i.name === confirmName);
+    const confirmLabel = confirmItem
+        ? localizeAttributeLabel(confirmItem.name, confirmItem.label, t, i18n)
+        : "";
+
     return (
         <div>
-            <Separator className="mb-6" />
-            <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
-                {t("handlers.availableAttributes")}
-            </h4>
-            <div className="space-y-1">
+            <SectionHeader title={t("handlers.availableAttributes")} />
+            <div className="rounded-xl border border-dashed border-border overflow-hidden divide-y divide-border/60">
                 {items.map((item) => {
                     const displayLabel = localizeAttributeLabel(item.name, item.label, t, i18n);
                     const isLocalized = displayLabel !== item.name;
                     return (
-                        <div
+                        <button
+                            type="button"
                             key={item.name}
-                            className="flex items-center justify-between gap-3 py-1.5 px-2 rounded-md hover:bg-accent transition-colors"
+                            className="flex w-full items-center justify-between gap-3 py-2.5 px-3 hover:bg-accent/30 transition-colors cursor-pointer text-left"
+                            onClick={() => setConfirmName(item.name)}
                         >
-                            <div className="min-w-0">
-                                <span className="text-xs truncate">{displayLabel}</span>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-xs truncate">{displayLabel}</p>
                                 {isLocalized && (
-                                    <div className="text-[10px] font-mono text-muted-foreground truncate">
+                                    <p className="font-mono text-xs text-muted-foreground/60 truncate">
                                         {item.name}
-                                    </div>
+                                    </p>
                                 )}
                             </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                                <span className="text-xs text-muted-foreground tabular-nums">
+                            <div className="flex items-baseline gap-1.5 shrink-0">
+                                <span className="data-value text-sm font-semibold">
                                     {item.value != null ? String(item.value) : "-"}
-                                    {item.value != null && item.unit ? ` ${item.unit}` : ""}
                                 </span>
-                                <Button
-                                    size="icon-xs"
-                                    variant="ghost"
-                                    className="cursor-pointer"
-                                    onClick={() => handleAdd(item.name)}
-                                    disabled={createAttribute.isPending}
-                                >
-                                    <Plus className="h-3.5 w-3.5" />
-                                </Button>
+                                {item.unit && (
+                                    <span className="text-xs text-muted-foreground/70">{item.unit}</span>
+                                )}
                             </div>
-                        </div>
+                        </button>
                     );
                 })}
             </div>
+            <ConfirmDialog
+                open={confirmName !== null}
+                onOpenChange={(open) => !open && setConfirmName(null)}
+                onConfirm={() => confirmName && handleAdd(confirmName)}
+                title={t("confirm.registerAttributeTitle")}
+                description={t("confirm.registerAttribute", { name: confirmLabel })}
+                confirmLabel={t("common.add")}
+                variant="default"
+                isPending={createAttribute.isPending}
+            />
         </div>
     );
 }
 
 function HandlerControlsAndActions({ handler }: { handler: HandlerRead }) {
     const { t } = useTranslation();
+    const [addOpen, setAddOpen] = useState(false);
+    const [actionsExpanded, setActionsExpanded] = useState(false);
     const { data: controlsData } = useHandlerControlsApiHandlersHandlerIdControlsGet(handler.id, {
         query: { refetchInterval: 5000 },
     });
     const controls = (controlsData?.data ?? []) as ResolvedControl[];
     const hasControls = controls.length > 0;
 
+    const addButton = (
+        <Button
+            size="xs"
+            variant="ghost"
+            className="text-muted-foreground/70 hover:text-foreground cursor-pointer -my-1"
+            onClick={() => setAddOpen(true)}
+        >
+            <Plus className="h-3.5 w-3.5" />
+            {t("common.add")}
+        </Button>
+    );
+
     if (!hasControls) {
-        return <HandlerActions handler={handler} />;
+        return (
+            <>
+                <HandlerActions handler={handler} addButton={addButton} />
+                <AddActionDialog handler={handler} open={addOpen} onOpenChange={setAddOpen} />
+            </>
+        );
     }
 
     return (
         <div className="space-y-4">
             <HandlerControls handler={handler} />
-            <Collapsible>
-                <CollapsibleTrigger className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-widest cursor-pointer hover:text-foreground transition-colors group">
-                    <ChevronDown className="h-3 w-3 transition-transform group-data-[panel-open]:rotate-180" />
-                    {t("handlers.allActions")}
-                </CollapsibleTrigger>
+            <Collapsible onOpenChange={setActionsExpanded}>
+                <div className="flex items-center justify-between">
+                    <CollapsibleTrigger className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest cursor-pointer hover:text-foreground transition-colors group">
+                        <ChevronDown className="h-3 w-3 transition-transform group-data-[panel-open]:rotate-180" />
+                        {t("handlers.allActions")}
+                    </CollapsibleTrigger>
+                    {actionsExpanded && addButton}
+                </div>
                 <CollapsibleContent>
-                    <div className="pt-3">
-                        <HandlerActions handler={handler} />
+                    <div className="pt-2">
+                        <HandlerActions handler={handler} showHeader={false} addButton={null} />
                     </div>
                 </CollapsibleContent>
             </Collapsible>
+            <AddActionDialog handler={handler} open={addOpen} onOpenChange={setAddOpen} />
         </div>
     );
 }
 
-function HandlerActions({ handler }: { handler: HandlerRead }) {
+function HandlerActions({
+    handler,
+    showHeader = true,
+    addButton,
+}: {
+    handler: HandlerRead;
+    showHeader?: boolean;
+    addButton: ReactNode;
+}) {
     const { t } = useTranslation();
     const actions = (handler.actions ?? []) as ActionRead[];
     const [editingAction, setEditingAction] = useState<ActionRead | null>(null);
-    const [addOpen, setAddOpen] = useState(false);
     const [pendingAction, setPendingAction] = useState<ActionRead | null>(null);
     const executeAction = useExecuteActionApiActionsActionIdExecutePost({
         mutation: { meta: { skipGlobalErrorToast: true } },
@@ -471,19 +547,13 @@ function HandlerActions({ handler }: { handler: HandlerRead }) {
 
     return (
         <div>
-            <div className="flex items-center justify-between mb-3">
-                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
-                    {t("handlers.actions")}
-                </h4>
-                <Button size="xs" variant="outline" onClick={() => setAddOpen(true)}>
-                    <Plus className="h-3 w-3 mr-1" />
-                    {t("common.add")}
-                </Button>
-            </div>
+            {showHeader && <SectionHeader title={t("handlers.actions")} action={addButton} />}
             {actions.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t("handlers.noActions")}</p>
+                <div className="flex items-center justify-center rounded-lg border border-dashed border-border/60 py-4">
+                    <p className="text-xs text-muted-foreground/50">{t("handlers.noActions")}</p>
+                </div>
             ) : (
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                     {actions.map((action) => (
                         <ActionCard
                             key={action.id}
@@ -498,7 +568,6 @@ function HandlerActions({ handler }: { handler: HandlerRead }) {
                 </div>
             )}
             <ActionEditDialog action={editingAction} onClose={() => setEditingAction(null)} />
-            <AddActionDialog handler={handler} open={addOpen} onOpenChange={setAddOpen} />
             <ConfirmDialog
                 open={pendingAction !== null}
                 onOpenChange={(open) => !open && setPendingAction(null)}
@@ -535,43 +604,55 @@ function ActionCard({
 }) {
     const { t } = useTranslation();
 
+    const executeButton = (
+        <Button
+            variant="ghost"
+            size="icon"
+            className="shrink-0 cursor-pointer bg-primary/10 hover:bg-primary/20"
+            onClick={(e) => {
+                e.stopPropagation();
+                if (!params) onExecute(action);
+            }}
+            disabled={isPending}
+            title={t(`knownActions.${action.name.replaceAll(" ", "_")}`, action.name)}
+        >
+            <Play className="h-3.5 w-3.5 text-primary" />
+        </Button>
+    );
+
     const card = (
-        <div className="flex items-center rounded-md border transition-colors hover:bg-accent/50">
-            <button
-                type="button"
-                className="flex flex-1 items-center gap-2 px-3 py-2 text-left cursor-pointer disabled:opacity-50 disabled:cursor-default"
-                onClick={params ? undefined : () => onExecute(action)}
-                disabled={isPending}
-            >
-                <Play className="h-3.5 w-3.5 shrink-0 text-primary" />
-                <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium">
-                        {t(`knownActions.${action.name.replaceAll(" ", "_")}`, action.name)}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                        {formatActionMessage(action.message)}
-                    </p>
-                </div>
-            </button>
-            <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={onEdit}
-                title={t("handlers.editAction")}
-                className="shrink-0 mr-2 cursor-pointer hover:bg-accent"
-            >
-                <Pencil className="h-3 w-3 text-muted-foreground group-hover/button:text-foreground" />
-            </Button>
+        // biome-ignore lint/a11y/useSemanticElements: row acts as both drag handle and edit trigger
+        <div
+            className="flex items-center gap-2.5 rounded-lg border border-border px-2 py-1.5 transition-colors hover:bg-accent/30 cursor-pointer"
+            onClick={onEdit}
+            onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onEdit();
+                }
+            }}
+            role="button"
+            tabIndex={0}
+        >
+            {params ? (
+                <ActionParamPopover action={action} params={params} handler={handler}>
+                    {executeButton}
+                </ActionParamPopover>
+            ) : (
+                executeButton
+            )}
+            <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium">
+                    {t(`knownActions.${action.name.replaceAll(" ", "_")}`, action.name)}
+                </p>
+                <p className="text-[10px] text-muted-foreground/60 truncate">
+                    {formatActionMessage(action.message)}
+                </p>
+            </div>
         </div>
     );
 
-    if (params) {
-        return (
-            <ActionParamPopover action={action} params={params} handler={handler}>
-                {card}
-            </ActionParamPopover>
-        );
-    }
+    // No longer need to wrap the whole card in ActionParamPopover
 
     return card;
 }

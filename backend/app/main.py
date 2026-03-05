@@ -1,5 +1,6 @@
 import logging
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 
 import socketio
 from fastapi import FastAPI, Request, Response
@@ -26,6 +27,7 @@ async def lifespan(app: FastAPI):
     manager = HandlerManager(async_session_factory)
     app.state.handler_manager = manager
     await manager.startup()
+    app.state.started_at = datetime.now(UTC)
 
     yield
 

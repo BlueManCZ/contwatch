@@ -1,28 +1,20 @@
-import { Activity } from "lucide-react";
-import { DynamicIcon } from "lucide-react/dynamic";
-import { Component, type ReactNode } from "react";
+import { icons, type LucideProps } from "lucide-react";
+import type { ComponentType, ReactNode } from "react";
 
-/** Error boundary that catches failed dynamic icon imports and renders a fallback. */
-class IconErrorBoundary extends Component<
-    { fallback: ReactNode; children: ReactNode },
-    { hasError: boolean }
-> {
-    state = { hasError: false };
+function toPascalCase(name: string): string {
+    return name
+        .split("-")
+        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+        .join("");
+}
 
-    static getDerivedStateFromError() {
-        return { hasError: true };
-    }
-
-    render() {
-        return this.state.hasError ? this.props.fallback : this.props.children;
-    }
+function resolveIcon(name: string): ComponentType<LucideProps> | undefined {
+    return (icons as Record<string, ComponentType<LucideProps> | undefined>)[toPascalCase(name)];
 }
 
 /**
- * A DynamicIcon wrapper that gracefully falls back when the icon name is
- * missing, misspelled, or otherwise not found in the lucide-react library.
- *
- * Use this instead of `DynamicIcon` whenever the icon name comes from the DB.
+ * A safe icon component that resolves lucide icons by name.
+ * Renders the fallback when the name is missing or invalid.
  */
 export function SafeIcon({
     name,
@@ -31,21 +23,12 @@ export function SafeIcon({
 }: {
     name: string | null | undefined;
     className?: string;
-    /** Static fallback element. Defaults to `<Activity>` with reduced opacity. */
+    /** Static fallback element. Defaults to invisible placeholder. */
     fallback?: ReactNode;
 }) {
-    const fb = fallback ?? <Activity className={className} style={{ opacity: 0.4 }} />;
+    const Icon = name ? resolveIcon(name) : undefined;
 
-    if (!name) return <>{fb}</>;
+    if (!Icon) return <>{fallback ?? <span className={className} />}</>;
 
-    return (
-        <IconErrorBoundary fallback={fb}>
-            <DynamicIcon
-                // biome-ignore lint/suspicious/noExplicitAny: icon name is dynamic from backend
-                name={name as any}
-                fallback={() => fb}
-                className={className}
-            />
-        </IconErrorBoundary>
-    );
+    return <Icon className={className} />;
 }

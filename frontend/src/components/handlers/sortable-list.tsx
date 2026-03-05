@@ -28,6 +28,7 @@ interface SortableListProps<T extends { id: number }> {
     renderItem: (item: T, isDragging: boolean) => ReactNode;
     onReorder: (items: T[]) => void;
     onLongPress?: (item: T) => void;
+    onItemClick?: (item: T) => void;
     /** Use DragOverlay + live reorder for CSS columns layouts. */
     multiColumn?: boolean;
 }
@@ -42,6 +43,7 @@ export function SortableList<T extends { id: number }>({
     renderItem,
     onReorder,
     onLongPress,
+    onItemClick,
     multiColumn,
 }: SortableListProps<T>) {
     const dndId = useId();
@@ -168,6 +170,7 @@ export function SortableList<T extends { id: number }>({
                         item={item}
                         dragging={activeId != null}
                         useOverlay={multiColumn}
+                        onItemClick={onItemClick ? () => onItemClick(item) : undefined}
                     />
                 ))}
             </SortableContext>
@@ -187,17 +190,20 @@ function SortableItem<T extends { id: number }>({
     renderItem,
     dragging,
     useOverlay,
+    onItemClick,
 }: {
     id: number;
     item: T;
     renderItem: (item: T, isDragging: boolean) => ReactNode;
     dragging: boolean;
     useOverlay?: boolean;
+    onItemClick?: () => void;
 }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id,
         animateLayoutChanges: () => false,
     });
+    const clickPosRef = useRef<{ x: number; y: number } | null>(null);
 
     const style: React.CSSProperties = useOverlay
         ? {
@@ -215,6 +221,7 @@ function SortableItem<T extends { id: number }>({
           };
 
     return (
+        // biome-ignore lint/a11y/noStaticElementInteractions: role is provided by dnd-kit attributes spread
         <div
             ref={setNodeRef}
             style={style}
@@ -225,6 +232,25 @@ function SortableItem<T extends { id: number }>({
             } ${isDragging && useOverlay ? "outline-2 outline-dashed outline-primary/30 -outline-offset-2 rounded-xl" : ""}`}
             {...attributes}
             {...listeners}
+            onPointerDown={(e) => {
+                clickPosRef.current = { x: e.clientX, y: e.clientY };
+                listeners?.onPointerDown?.(e);
+            }}
+            onClick={(e) => {
+                if (!onItemClick || !clickPosRef.current) return;
+                const dx = Math.abs(e.clientX - clickPosRef.current.x);
+                const dy = Math.abs(e.clientY - clickPosRef.current.y);
+                if (dx < DRAG_TOLERANCE && dy < DRAG_TOLERANCE) {
+                    onItemClick();
+                }
+                clickPosRef.current = null;
+            }}
+            onKeyDown={(e) => {
+                if (onItemClick && (e.key === "Enter" || e.key === " ")) {
+                    e.preventDefault();
+                    onItemClick();
+                }
+            }}
         >
             {renderItem(item, isDragging)}
         </div>

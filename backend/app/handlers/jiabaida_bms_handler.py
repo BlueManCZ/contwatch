@@ -173,11 +173,13 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
         pct = data.get("percentages")
         if pct is not None:
             pct = int(pct)
+            params = {"pct": str(pct)}
+            key = "indicators.battery"
             if pct >= 60:
-                return [Indicator(icon="battery-full", color="success", tooltip=f"Battery: {pct}%")]
+                return [Indicator(icon="battery-full", color="success", tooltip_key=key, tooltip_params=params)]
             if pct >= 30:
-                return [Indicator(icon="battery-medium", color="warning", tooltip=f"Battery: {pct}%")]
-            return [Indicator(icon="battery-low", color="destructive", tooltip=f"Battery: {pct}%")]
+                return [Indicator(icon="battery-medium", color="warning", tooltip_key=key, tooltip_params=params)]
+            return [Indicator(icon="battery-low", color="destructive", tooltip_key=key, tooltip_params=params)]
         return []
 
     @classmethod

@@ -62,11 +62,14 @@ class AttributeTracker:
         return 0
 
     @property
-    def daily_stats(self) -> dict[str, float | None]:
-        """Return min/max values (today's if available, otherwise last known)."""
+    def daily_stats(self) -> dict[str, float | None | bool]:
+        """Return min/max values only if they are from today."""
+        if self._stat_date is not None and self._stat_date != datetime.date.today():
+            return {"min": None, "max": None, "stale": True}
         if self._stat_date is None:
-            return {"min": None, "max": None}
-        return {"min": self._daily_min, "max": self._daily_max}
+            # No today's stats — stale if we have a value (i.e. historical data exists)
+            return {"min": None, "max": None, "stale": self._current_value is not None}
+        return {"min": self._daily_min, "max": self._daily_max, "stale": False}
 
     def seed_value(self, value: Any, last_changed: datetime.datetime | None = None) -> None:
         """Seed the current value from the database on startup."""

@@ -170,10 +170,10 @@
 @keyframes breathe {
     0%,
     100% {
-        transform: scale(1.5);
+        transform: scale(1.4);
     }
     50% {
-        transform: scale(1.7);
+        transform: scale(1.8);
     }
 }
 

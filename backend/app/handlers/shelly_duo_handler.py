@@ -104,7 +104,7 @@ class ShellyDuoHandler(HttpHandler):
                 Indicator(
                     icon="power" if on else "power-off",
                     color="success" if on else "muted",
-                    tooltip=f"Light: {'ON' if on else 'OFF'}",
+                    tooltip_key="indicators.lightOn" if on else "indicators.lightOff",
                 )
             )
         rssi = data.get("wifi_sta/rssi")

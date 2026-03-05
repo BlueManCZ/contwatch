@@ -1,4 +1,20 @@
 {
+    "indicators": {
+        "wifi": "WiFi: {{rssi}} dBm",
+        "disconnected": "Odpojeno",
+        "relayOn": "Relé: ZAP",
+        "relayOff": "Relé: VYP",
+        "lightOn": "Světlo: ZAP",
+        "lightOff": "Světlo: VYP",
+        "battery": "Baterie: {{pct}} %",
+        "charger": "Nabíječka: {{label}}",
+        "inverter": "Střídač: {{label}}",
+        "chargerError": "Chyba nabíječky: {{msg}}",
+        "chargerWarning": "Varování nabíječky: {{msg}}",
+        "inverterError": "Chyba střídače: {{msg}}",
+        "inverterWarning": "Varování střídače: {{msg}}",
+        "modbusDisconnected": "Modbus odpojen"
+    },
     "nav": {
         "dashboard": "Přehled",
         "analytics": "Analytika",
@@ -6,6 +22,7 @@
         "workflow": "Workflow",
         "settings": "Nastavení",
         "logs": "Logy",
+        "stats": "Statistiky",
         "monitoring": "Monitoring",
         "management": "Správa",
         "system": "Systém",
@@ -47,7 +64,9 @@
         "relay": "Relé",
         "light": "Světlo",
         "brightness": "Jas",
-        "color_temp": "Teplota barev"
+        "color_temp": "Teplota barev",
+        "charge": "Nabíjení",
+        "discharge": "Vybíjení"
     },
     "actionParams": {
         "brightness": "Jas",
@@ -163,10 +182,10 @@
         "running": "Běží",
         "stopped": "Zastaveno",
         "connected": "Připojeno",
-        "disconnected": "Odpojeno",
+        "disconnected": "Nedostupné",
         "configure": "Nastavení",
         "details": "Detail zařízení",
-        "registeredAttributes": "Registrované atributy",
+        "registeredAttributes": "Sledované atributy",
         "availableAttributes": "Dostupné atributy",
         "noAvailableAttributes": "Žádné dostupné atributy.",
         "name": "Název",
@@ -192,9 +211,10 @@
         "controls": "Ovládací prvky",
         "allActions": "Všechny akce",
         "addToDashboard": "Přidat na přehled",
-        "controlUnresolved": "Chybí atribut nebo akce",
+        "controlUnresolved": "Chybí akce",
         "confirmActions": "Potvrzovat akce",
-        "confirmActionsDescription": "Vyžadovat potvrzení před provedením akce"
+        "confirmActionsDescription": "Vyžadovat potvrzení před provedením akce",
+        "statsStale": "Dnes bez dat"
     },
     "dashboard": {
         "title": "Přehled",
@@ -404,6 +424,43 @@
         "addFailed": "Nepodařilo se přidat widgety",
         "manualSetup": "Ruční nastavení"
     },
+    "stats": {
+        "title": "Systémové statistiky",
+        "uptime": "Doba běhu serveru",
+        "runningSince": "Běží od",
+        "days_one": "{{count}} den",
+        "days_few": "{{count}} dny",
+        "days_other": "{{count}} dní",
+        "hours_one": "{{count}} hodina",
+        "hours_few": "{{count}} hodiny",
+        "hours_other": "{{count}} hodin",
+        "minutes_one": "{{count}} minuta",
+        "minutes_few": "{{count}} minuty",
+        "minutes_other": "{{count}} minut",
+        "seconds_one": "{{count}} sekunda",
+        "seconds_few": "{{count}} sekundy",
+        "seconds_other": "{{count}} sekund",
+        "version": "Verze",
+        "sectionHost": "Hostitel",
+        "hostname": "Název hostitele",
+        "hostIp": "IP adresa",
+        "os": "Operační systém",
+        "arch": "Architektura",
+        "cpu": "Využití CPU",
+        "memory": "Využití paměti",
+        "dbSize": "Velikost databáze",
+        "socketioClients": "Připojení klienti",
+        "dataPointsTotal": "Celkem datových bodů",
+        "dataPointsToday": "Datové body dnes",
+        "ingestionRate": "Rychlost příjmu",
+        "oldestDataPoint": "Nejstarší datový bod",
+        "sectionSystem": "Systém",
+        "sectionData": "Data",
+        "sectionHandlers": "Zařízení",
+        "handlersConnected": "Připojená zařízení",
+        "attributes": "Atributy",
+        "lastMessage": "Poslední zpráva"
+    },
     "settings": {
         "language": "Jazyk",
         "languageDescription": "Zvolte jazyk rozhraní."
@@ -418,7 +475,9 @@
         "removeSwitch": "Toto odebere tento přepínač z přehledu.",
         "removeSlider": "Toto odebere tento posuvník z přehledu.",
         "remove": "Odebrat",
-        "executeAction": "Provést \"{{action}}\" na {{device}}?"
+        "executeAction": "Provést \"{{action}}\" na {{device}}?",
+        "registerAttributeTitle": "Registrovat atribut",
+        "registerAttribute": "Registrovat \"{{name}}\" jako sledovaný atribut?"
     },
     "notFound": {
         "title": "Stránka nenalezena",

@@ -82,6 +82,7 @@ export interface AttributeValue {
   trend: number;
   daily_min?: number | null;
   daily_max?: number | null;
+  stats_stale?: boolean;
   last_changed?: string | null;
 }
 
@@ -157,6 +158,7 @@ export interface DashboardTile {
   trend?: number;
   daily_min?: number | null;
   daily_max?: number | null;
+  stats_stale?: boolean;
   last_changed?: string | null;
 }
 
@@ -269,10 +271,13 @@ export interface HandlerReorderRequest {
   items: HandlerReorderItem[];
 }
 
+export type IndicatorInfoTooltipParams = {[key: string]: string} | null;
+
 export interface IndicatorInfo {
   icon: string;
   color: string;
-  tooltip: string;
+  tooltip_key: string;
+  tooltip_params?: IndicatorInfoTooltipParams;
 }
 
 export interface HandlerStatus {
@@ -439,6 +444,29 @@ export interface SliderSetRequest {
 
 export interface SwitchToggleRequest {
   value: boolean;
+}
+
+export interface SystemStats {
+  started_at: string;
+  uptime_seconds: number;
+  version: string;
+  host_ip: string;
+  hostname: string;
+  os_info: string;
+  arch: string;
+  python_version: string;
+  cpu_percent: number;
+  memory_bytes: number;
+  db_size_bytes: number;
+  socketio_clients: number;
+  data_points_total: number;
+  data_points_today: number;
+  oldest_data_point: string | null;
+  handlers_running: number;
+  handlers_connected: number;
+  handlers_total: number;
+  attributes_total: number;
+  last_message_at: string | null;
 }
 
 export interface TokenResponse {

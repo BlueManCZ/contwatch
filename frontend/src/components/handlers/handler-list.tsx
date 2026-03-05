@@ -26,14 +26,13 @@ import { SortableList } from "@/components/handlers/sortable-list";
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageContent, PageHeader } from "@/components/layout/page-header";
 import { SafeIcon } from "@/components/safe-icon";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { dateFnsLocales } from "@/lib/date-locale";
 import { formatValue } from "@/lib/format-value";
 import { localizeAttributeLabel } from "@/lib/localize-attribute";
 import { cn } from "@/lib/utils";
-import { useHandlerIndicatorStore } from "@/stores/handler-indicators";
+import { INDICATOR_COLOR, useHandlerIndicatorStore } from "@/stores/handler-indicators";
 import { useLiveValuesStore } from "@/stores/live-values";
 
 export function HandlerList() {
@@ -104,13 +103,6 @@ export function HandlerList() {
     );
 }
 
-const indicatorColor: Record<string, string> = {
-    success: "text-success",
-    warning: "text-warning",
-    destructive: "text-destructive-foreground",
-    muted: "text-muted-foreground",
-};
-
 function HandlerCard({
     handler,
     icon,
@@ -136,14 +128,16 @@ function HandlerCard({
     const isRunning = status?.running ?? false;
     const isConnected = status?.connected ?? false;
 
+    const lastActiveText =
+        isRunning && !isConnected && status?.last_active
+            ? formatDistanceToNow(new Date(status.last_active), {
+                  addSuffix: true,
+                  locale: dateFnsLocales[i18n.language],
+              })
+            : null;
+
     const label = handler.label || typeName || handler.type;
     const attrs = ((handler.attributes ?? []) as AttributeRead[]).filter((a) => a.enabled);
-    const lastActiveText = status?.last_active
-        ? formatDistanceToNow(new Date(status.last_active), {
-              addSuffix: true,
-              locale: dateFnsLocales[i18n.language],
-          })
-        : null;
 
     const statusColor =
         isRunning && isConnected ? "text-success" : isRunning ? "text-warning" : "text-muted-foreground/50";
@@ -175,6 +169,14 @@ function HandlerCard({
         reorder.mutate({ data: { items } });
     }
 
+    const statusDotColor =
+        isRunning && isConnected ? "bg-success" : isRunning ? "bg-warning" : "bg-muted-foreground/40";
+    const statusLabel = !isRunning
+        ? t("handlers.stopped")
+        : isConnected
+          ? t("handlers.connected")
+          : t("handlers.disconnected");
+
     return (
         <>
             <Card
@@ -183,10 +185,14 @@ function HandlerCard({
             >
                 <CardContent className={cn("px-4 py-2", attrs.length > 0 && "pb-0")}>
                     <div className="flex items-center gap-3 min-w-0">
-                        <span className="relative flex shrink-0 h-5 w-5 items-center justify-center">
+                        <span className="relative flex shrink-0 h-9 w-9 -ml-2 items-center justify-center rounded-full border border-border/60 bg-background/50">
                             {aura && (
                                 <span
-                                    className={cn("absolute h-full w-full rounded-full", aura.bg, aura.anim)}
+                                    className={cn(
+                                        "absolute inset-0 m-auto h-5 w-5 rounded-full",
+                                        aura.bg,
+                                        aura.anim,
+                                    )}
                                 />
                             )}
                             <SafeIcon
@@ -197,34 +203,41 @@ function HandlerCard({
                         </span>
                         <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
-                                <h3 className="font-medium text-sm truncate">{label}</h3>
-                                {indicators?.map((ind) => (
-                                    <span key={ind.icon} title={ind.tooltip}>
-                                        <SafeIcon
-                                            name={ind.icon}
-                                            className={cn("h-3.5 w-3.5 shrink-0", indicatorColor[ind.color])}
-                                        />
+                                <h3 className="font-semibold text-sm truncate">{label}</h3>
+                                {isRunning &&
+                                    indicators?.map((ind) => (
+                                        <span
+                                            key={ind.icon}
+                                            title={t(ind.tooltip_key, ind.tooltip_params ?? {})}
+                                        >
+                                            <SafeIcon
+                                                name={ind.icon}
+                                                className={cn(
+                                                    "h-3.5 w-3.5 shrink-0",
+                                                    INDICATOR_COLOR[ind.color],
+                                                )}
+                                            />
+                                        </span>
+                                    ))}
+                            </div>
+                            <div className="flex items-center gap-2 mt-0.5 min-w-0">
+                                <p className="text-xs text-muted-foreground data-value truncate">
+                                    {handler.description}
+                                </p>
+                                {(!isRunning || !isConnected) && (
+                                    <span className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground shrink-0">
+                                        <span className={cn("h-1.5 w-1.5 rounded-full", statusDotColor)} />
+                                        {statusLabel}
+                                        {lastActiveText && (
+                                            <span className="text-muted-foreground/60">{lastActiveText}</span>
+                                        )}
                                     </span>
-                                ))}
-                                {isRunning && !isConnected && (
-                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                                        {t("handlers.disconnected")}
-                                    </Badge>
                                 )}
                             </div>
-                            <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                                {handler.description}
-                                {isRunning && !isConnected && lastActiveText && (
-                                    <>
-                                        <span className="mx-1.5 opacity-40">&#183;</span>
-                                        {lastActiveText}
-                                    </>
-                                )}
-                            </p>
                         </div>
                     </div>
                     {attrs.length > 0 && (
-                        <div className="mt-2.5 -mx-4 border-t border-border/50">
+                        <div className="mt-2 -mx-4 border-t border-border/50">
                             <SortableList
                                 items={attrs}
                                 onReorder={handleReorder}
@@ -243,7 +256,7 @@ function HandlerCard({
 function AttributeRow({ attr, liveVal }: { attr: AttributeRead; liveVal: AttributeValue | undefined }) {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
-    const localizedLabel = attr.label ? localizeAttributeLabel(attr.name, attr.label, t, i18n) : undefined;
+    const localizedLabel = localizeAttributeLabel(attr.name, attr.label, t, i18n);
     const raw = liveVal?.value;
     const formatted =
         raw != null && typeof raw === "number" && attr.unit
@@ -286,36 +299,41 @@ function AttributeRow({ attr, liveVal }: { attr: AttributeRead; liveVal: Attribu
                         <TrendingDown className="h-3 w-3 text-destructive-foreground shrink-0" />
                     )}
                 </div>
-                {isBooleanValue
-                    ? liveVal?.last_changed && (
-                          <div className="flex items-center gap-1 mt-0.5">
-                              <History
-                                  className={`h-3 w-3 ${booleanOn ? "text-info" : "text-destructive-foreground"}`}
-                              />
-                              <span className="text-[10px] text-muted-foreground tabular-nums">
-                                  {new Date(liveVal.last_changed).toLocaleTimeString([], {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                  })}
-                              </span>
-                          </div>
-                      )
-                    : (liveVal?.daily_min != null || liveVal?.daily_max != null) && (
-                          <div className="flex items-center gap-2 mt-0.5">
-                              {liveVal?.daily_min != null && (
-                                  <span className="text-[10px] text-muted-foreground tabular-nums">
-                                      <span className="text-info">&#8595;</span>{" "}
-                                      {formatStat(liveVal.daily_min)}
-                                  </span>
-                              )}
-                              {liveVal?.daily_max != null && (
-                                  <span className="text-[10px] text-muted-foreground tabular-nums">
-                                      <span className="text-destructive-foreground">&#8593;</span>{" "}
-                                      {formatStat(liveVal.daily_max)}
-                                  </span>
-                              )}
-                          </div>
-                      )}
+                {isBooleanValue ? (
+                    liveVal?.last_changed && (
+                        <div className="flex items-center gap-1 mt-0.5">
+                            <History
+                                className={`h-3 w-3 ${booleanOn ? "text-info" : "text-destructive-foreground"}`}
+                            />
+                            <span className="text-[10px] text-muted-foreground tabular-nums">
+                                {new Date(liveVal.last_changed).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                })}
+                            </span>
+                        </div>
+                    )
+                ) : !liveVal || liveVal.stats_stale ? (
+                    <span className="text-[10px] text-muted-foreground/60 mt-0.5">
+                        {t("handlers.statsStale")}
+                    </span>
+                ) : (
+                    (liveVal?.daily_min != null || liveVal?.daily_max != null) && (
+                        <div className="flex items-center gap-2 mt-0.5">
+                            {liveVal?.daily_min != null && (
+                                <span className="text-[10px] text-muted-foreground tabular-nums">
+                                    <span className="text-info">&#8595;</span> {formatStat(liveVal.daily_min)}
+                                </span>
+                            )}
+                            {liveVal?.daily_max != null && (
+                                <span className="text-[10px] text-muted-foreground tabular-nums">
+                                    <span className="text-destructive-foreground">&#8593;</span>{" "}
+                                    {formatStat(liveVal.daily_max)}
+                                </span>
+                            )}
+                        </div>
+                    )
+                )}
             </div>
 
             <div className="flex items-baseline gap-1 shrink-0">

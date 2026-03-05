@@ -319,7 +319,14 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
         if ch_ws is not None:
             label = _CHARGER_WORKSTATE.get(int(ch_ws), f"Unknown ({ch_ws})")
             color = "success" if int(ch_ws) == 2 else "muted"
-            indicators.append(Indicator(icon="sun", color=color, tooltip=f"Charger: {label}"))
+            indicators.append(
+                Indicator(
+                    icon="sun",
+                    color=color,
+                    tooltip_key="indicators.charger",
+                    tooltip_params={"label": label},
+                )
+            )
 
         # Inverter workstate
         inv_ws = data.get("inverter/workstate")
@@ -327,36 +334,68 @@ class MustPVPHInverterModbusHandler(AbstractHandler):
             ws_int = int(inv_ws)
             label = _INVERTER_WORKSTATE.get(ws_int, f"Unknown ({inv_ws})")
             color = "success" if ws_int in (2, 3, 6) else "muted"
-            indicators.append(Indicator(icon="zap", color=color, tooltip=f"Inverter: {label}"))
+            indicators.append(
+                Indicator(
+                    icon="zap",
+                    color=color,
+                    tooltip_key="indicators.inverter",
+                    tooltip_params={"label": label},
+                )
+            )
 
         # Charger errors / warnings
         for msg in _decode_bitmask(int(data.get("charger/_error", 0)), _CHARGER_ERROR_BITS):
             indicators.append(
-                Indicator(icon="alert-triangle", color="destructive", tooltip=f"Charger error: {msg}")
+                Indicator(
+                    icon="alert-triangle",
+                    color="destructive",
+                    tooltip_key="indicators.chargerError",
+                    tooltip_params={"msg": msg},
+                )
             )
         for msg in _decode_bitmask(int(data.get("charger/_warning", 0)), _CHARGER_WARNING_BITS):
             indicators.append(
-                Indicator(icon="alert-triangle", color="warning", tooltip=f"Charger warning: {msg}")
+                Indicator(
+                    icon="alert-triangle",
+                    color="warning",
+                    tooltip_key="indicators.chargerWarning",
+                    tooltip_params={"msg": msg},
+                )
             )
 
         # Inverter errors / warnings
         for msg in _decode_bitmask(int(data.get("inverter/_error1", 0)), _INVERTER_ERROR1_BITS):
             indicators.append(
-                Indicator(icon="alert-triangle", color="destructive", tooltip=f"Inverter error: {msg}")
+                Indicator(
+                    icon="alert-triangle",
+                    color="destructive",
+                    tooltip_key="indicators.inverterError",
+                    tooltip_params={"msg": msg},
+                )
             )
         for msg in _decode_bitmask(int(data.get("inverter/_error2", 0)), _INVERTER_ERROR2_BITS):
             indicators.append(
-                Indicator(icon="alert-triangle", color="destructive", tooltip=f"Inverter error: {msg}")
+                Indicator(
+                    icon="alert-triangle",
+                    color="destructive",
+                    tooltip_key="indicators.inverterError",
+                    tooltip_params={"msg": msg},
+                )
             )
         for msg in _decode_bitmask(int(data.get("inverter/_warning", 0)), _INVERTER_WARNING_BITS):
             indicators.append(
-                Indicator(icon="alert-triangle", color="warning", tooltip=f"Inverter warning: {msg}")
+                Indicator(
+                    icon="alert-triangle",
+                    color="warning",
+                    tooltip_key="indicators.inverterWarning",
+                    tooltip_params={"msg": msg},
+                )
             )
 
         return indicators
 
     def disconnected_indicators(self) -> list[Indicator]:
-        return [Indicator(icon="unplug", color="destructive", tooltip="Modbus disconnected")]
+        return [Indicator(icon="unplug", color="destructive", tooltip_key="indicators.modbusDisconnected")]
 
     # ------------------------------------------------------------------
     # Actions

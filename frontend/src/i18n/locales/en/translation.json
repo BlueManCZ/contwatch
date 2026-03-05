@@ -1,4 +1,20 @@
 {
+    "indicators": {
+        "wifi": "WiFi: {{rssi}} dBm",
+        "disconnected": "Disconnected",
+        "relayOn": "Relay: ON",
+        "relayOff": "Relay: OFF",
+        "lightOn": "Light: ON",
+        "lightOff": "Light: OFF",
+        "battery": "Battery: {{pct}}%",
+        "charger": "Charger: {{label}}",
+        "inverter": "Inverter: {{label}}",
+        "chargerError": "Charger error: {{msg}}",
+        "chargerWarning": "Charger warning: {{msg}}",
+        "inverterError": "Inverter error: {{msg}}",
+        "inverterWarning": "Inverter warning: {{msg}}",
+        "modbusDisconnected": "Modbus disconnected"
+    },
     "nav": {
         "dashboard": "Dashboard",
         "analytics": "Analytics",
@@ -6,6 +22,7 @@
         "workflow": "Workflow",
         "settings": "Settings",
         "logs": "Logs",
+        "stats": "Stats",
         "monitoring": "Monitoring",
         "management": "Management",
         "system": "System",
@@ -47,7 +64,9 @@
         "relay": "Relay",
         "light": "Light",
         "brightness": "Brightness",
-        "color_temp": "Color Temperature"
+        "color_temp": "Color Temperature",
+        "charge": "Charge",
+        "discharge": "Discharge"
     },
     "actionParams": {
         "brightness": "Brightness",
@@ -162,10 +181,10 @@
         "running": "Running",
         "stopped": "Stopped",
         "connected": "Connected",
-        "disconnected": "Disconnected",
+        "disconnected": "Unavailable",
         "configure": "Configure",
         "details": "Device Details",
-        "registeredAttributes": "Registered Attributes",
+        "registeredAttributes": "Tracked Attributes",
         "availableAttributes": "Available Attributes",
         "noAvailableAttributes": "No available attributes.",
         "name": "Name",
@@ -191,9 +210,10 @@
         "controls": "Controls",
         "allActions": "All Actions",
         "addToDashboard": "Add to Dashboard",
-        "controlUnresolved": "Missing attribute or action",
+        "controlUnresolved": "Missing action",
         "confirmActions": "Confirm actions",
-        "confirmActionsDescription": "Ask for confirmation before executing actions"
+        "confirmActionsDescription": "Ask for confirmation before executing actions",
+        "statsStale": "No data today"
     },
     "dashboard": {
         "title": "Dashboard",
@@ -407,6 +427,39 @@
         "addFailed": "Failed to add widgets",
         "manualSetup": "Manual setup"
     },
+    "stats": {
+        "title": "System Statistics",
+        "uptime": "Server Uptime",
+        "runningSince": "Running since",
+        "days_one": "{{count}} day",
+        "days_other": "{{count}} days",
+        "hours_one": "{{count}} hour",
+        "hours_other": "{{count}} hours",
+        "minutes_one": "{{count}} minute",
+        "minutes_other": "{{count}} minutes",
+        "seconds_one": "{{count}} second",
+        "seconds_other": "{{count}} seconds",
+        "version": "Version",
+        "sectionHost": "Host",
+        "hostname": "Hostname",
+        "hostIp": "Host IP",
+        "os": "Operating System",
+        "arch": "Architecture",
+        "cpu": "CPU Usage",
+        "memory": "Memory Usage",
+        "dbSize": "Database Size",
+        "socketioClients": "Connected Clients",
+        "dataPointsTotal": "Total Data Points",
+        "dataPointsToday": "Data Points Today",
+        "ingestionRate": "Ingestion Rate",
+        "oldestDataPoint": "Oldest Data Point",
+        "sectionSystem": "System",
+        "sectionData": "Data",
+        "sectionHandlers": "Handlers",
+        "handlersConnected": "Handlers Connected",
+        "attributes": "Attributes",
+        "lastMessage": "Last Message"
+    },
     "settings": {
         "language": "Language",
         "languageDescription": "Choose the display language for the interface."
@@ -421,7 +474,9 @@
         "removeSwitch": "This will remove this switch from the dashboard.",
         "removeSlider": "This will remove this slider from the dashboard.",
         "remove": "Remove",
-        "executeAction": "Execute \"{{action}}\" on {{device}}?"
+        "executeAction": "Execute \"{{action}}\" on {{device}}?",
+        "registerAttributeTitle": "Register attribute",
+        "registerAttribute": "Register \"{{name}}\" as a tracked attribute?"
     },
     "notFound": {
         "title": "Page not found",

@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFullscreen } from "@/hooks/use-fullscreen";
-import { formatValue } from "@/lib/format-value";
 import { useLiveValuesStore } from "@/stores/live-values";
 import { useSettingsStore } from "@/stores/settings";
 
@@ -255,9 +254,8 @@ export function AttributeChart({ attributeIds, date }: AttributeChartProps) {
                         label(ctx) {
                             const ds = datasetsRef.current[ctx.datasetIndex];
                             const val = ctx.parsed.y;
-                            if (!ds?.unit || val == null) return `${ds?.label}: ${val}`;
-                            const f = formatValue(val, ds.unit);
-                            return `${ds.label}: ${f.value} ${f.unit}`;
+                            const unit = ds?.unit ? ` ${ds.unit}` : "";
+                            return `${ds?.label}: ${val}${unit}`;
                         },
                     },
                 },

@@ -20,7 +20,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  GetHostIpApiSystemIpGet200
+  GetHostIpApiSystemIpGet200,
+  SystemStats
 } from '../contWatchAPI.schemas';
 
 import { axiosInstance } from '../../axios-instance';
@@ -131,6 +132,116 @@ export function useGetHostIpApiSystemIpGet<TData = Awaited<ReturnType<typeof get
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetHostIpApiSystemIpGetQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * @summary Get System Stats
+ */
+export type getSystemStatsApiSystemStatsGetResponse200 = {
+  data: SystemStats
+  status: 200
+}
+
+export type getSystemStatsApiSystemStatsGetResponseSuccess = (getSystemStatsApiSystemStatsGetResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getSystemStatsApiSystemStatsGetResponse = (getSystemStatsApiSystemStatsGetResponseSuccess)
+
+export const getGetSystemStatsApiSystemStatsGetUrl = () => {
+
+
+  
+
+  return `/api/system/stats`
+}
+
+export const getSystemStatsApiSystemStatsGet = async ( options?: RequestInit): Promise<getSystemStatsApiSystemStatsGetResponse> => {
+  
+  return axiosInstance<getSystemStatsApiSystemStatsGetResponse>(getGetSystemStatsApiSystemStatsGetUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getGetSystemStatsApiSystemStatsGetQueryKey = () => {
+    return [
+    `/api/system/stats`
+    ] as const;
+    }
+
+    
+export const getGetSystemStatsApiSystemStatsGetQueryOptions = <TData = Awaited<ReturnType<typeof getSystemStatsApiSystemStatsGet>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSystemStatsApiSystemStatsGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSystemStatsApiSystemStatsGetQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSystemStatsApiSystemStatsGet>>> = ({ signal }) => getSystemStatsApiSystemStatsGet({ signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSystemStatsApiSystemStatsGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSystemStatsApiSystemStatsGetQueryResult = NonNullable<Awaited<ReturnType<typeof getSystemStatsApiSystemStatsGet>>>
+export type GetSystemStatsApiSystemStatsGetQueryError = unknown
+
+
+export function useGetSystemStatsApiSystemStatsGet<TData = Awaited<ReturnType<typeof getSystemStatsApiSystemStatsGet>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSystemStatsApiSystemStatsGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSystemStatsApiSystemStatsGet>>,
+          TError,
+          Awaited<ReturnType<typeof getSystemStatsApiSystemStatsGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSystemStatsApiSystemStatsGet<TData = Awaited<ReturnType<typeof getSystemStatsApiSystemStatsGet>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSystemStatsApiSystemStatsGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSystemStatsApiSystemStatsGet>>,
+          TError,
+          Awaited<ReturnType<typeof getSystemStatsApiSystemStatsGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSystemStatsApiSystemStatsGet<TData = Awaited<ReturnType<typeof getSystemStatsApiSystemStatsGet>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSystemStatsApiSystemStatsGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get System Stats
+ */
+
+export function useGetSystemStatsApiSystemStatsGet<TData = Awaited<ReturnType<typeof getSystemStatsApiSystemStatsGet>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSystemStatsApiSystemStatsGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSystemStatsApiSystemStatsGetQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

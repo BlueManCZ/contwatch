@@ -113,7 +113,8 @@ class HandlerTypeInfo(BaseModel):
 class IndicatorInfo(BaseModel):
     icon: str
     color: str
-    tooltip: str
+    tooltip_key: str
+    tooltip_params: dict[str, str] | None = None
 
 
 class HandlerStatus(BaseModel):

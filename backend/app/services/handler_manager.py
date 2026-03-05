@@ -119,7 +119,13 @@ class HandlerManager:
                             indicators = handler.disconnected_indicators()
                             if indicators:
                                 indicator_dicts = [
-                                    {"icon": ind.icon, "color": ind.color, "tooltip": ind.tooltip} for ind in indicators
+                                    {
+                                        "icon": ind.icon,
+                                        "color": ind.color,
+                                        "tooltip_key": ind.tooltip_key,
+                                        "tooltip_params": ind.tooltip_params,
+                                    }
+                                    for ind in indicators
                                 ]
                                 self._last_indicators[handler_id] = indicator_dicts
                                 await sio.emit(
@@ -142,7 +148,15 @@ class HandlerManager:
         if handler:
             indicators = handler.extract_indicators(flat)
             if indicators:
-                indicator_dicts = [{"icon": ind.icon, "color": ind.color, "tooltip": ind.tooltip} for ind in indicators]
+                indicator_dicts = [
+                    {
+                        "icon": ind.icon,
+                        "color": ind.color,
+                        "tooltip_key": ind.tooltip_key,
+                        "tooltip_params": ind.tooltip_params,
+                    }
+                    for ind in indicators
+                ]
                 self._last_indicators[handler_id] = indicator_dicts
                 await sio.emit(
                     "handler_indicators",
@@ -178,6 +192,7 @@ class HandlerManager:
                             "trend": tracker.trend,
                             "daily_min": stats["min"],
                             "daily_max": stats["max"],
+                            "stats_stale": stats["stale"],
                             "last_changed": last_changed.isoformat() if last_changed else None,
                         },
                     )
@@ -249,9 +264,13 @@ class HandlerManager:
                 return
             instance = self._create_handler_instance(db_handler)
             if instance:
+                registered_attr_ids = []
                 for attr in db_handler.attributes:
                     if attr.enabled:
                         self._register_tracker(attr.id, db_handler.id, attr.name, rounding=attr.rounding)
+                        registered_attr_ids.append(attr.id)
+                await self._seed_last_values(registered_attr_ids)
+                await self._seed_daily_stats(registered_attr_ids)
                 instance.start()
 
         self._last_connected_state[handler_id] = False
@@ -345,11 +364,14 @@ class HandlerManager:
 
     # --- Value & stats seeding ---
 
-    async def _seed_last_values(self) -> None:
+    async def _seed_last_values(self, attr_ids: list[int] | None = None) -> None:
         """Load the most recent data unit per attribute and seed tracker values."""
-        if not self._trackers:
+        if attr_ids is None:
+            if not self._trackers:
+                return
+            attr_ids = list(self._trackers.keys())
+        if not attr_ids:
             return
-        attr_ids = list(self._trackers.keys())
         try:
             async with self._session_factory() as session:
                 result = await session.execute(
@@ -386,58 +408,40 @@ class HandlerManager:
         except Exception:
             logger.debug("Could not refresh daily_stats continuous aggregate, skipping")
 
-    async def _seed_daily_stats(self) -> None:
-        """Refresh the continuous aggregate, then seed in-memory trackers.
-
-        First loads today's stats. For attributes without today's data,
-        falls back to the most recent available stats.
-        """
-        await self._refresh_continuous_aggregate()
+    async def _seed_daily_stats(self, attr_ids: list[int] | None = None) -> None:
+        """Refresh the continuous aggregate, then seed today's stats into trackers."""
+        if attr_ids is None:
+            await self._refresh_continuous_aggregate()
+            target_ids = list(self._trackers.keys())
+        else:
+            target_ids = attr_ids
+        if not target_ids:
+            return
 
         today = datetime.datetime.now(datetime.UTC).date()
         try:
             async with self._session_factory() as session:
-                # Today's stats
                 result = await session.execute(
-                    text("SELECT attribute_id, min_value, max_value FROM daily_stats WHERE bucket::date = :date"),
-                    {"date": today},
+                    text(
+                        "SELECT attribute_id, min_value, max_value FROM daily_stats "
+                        "WHERE bucket::date = :date AND attribute_id = ANY(:ids)"
+                    ),
+                    {"date": today, "ids": target_ids},
                 )
-                rows = result.mappings().all()
-
-                seeded: set[int] = set()
-                for row in rows:
+                for row in result.mappings().all():
                     tracker = self._trackers.get(row["attribute_id"])
-                    if not tracker:
-                        continue
-                    tracker.seed_stats(date=today, min_val=row["min_value"], max_val=row["max_value"])
-                    seeded.add(row["attribute_id"])
-
-                # For remaining trackers, fetch the most recent stats
-                remaining = [aid for aid in self._trackers if aid not in seeded]
-                if remaining:
-                    result = await session.execute(
-                        text(
-                            "SELECT DISTINCT ON (attribute_id) attribute_id, bucket::date AS day, "
-                            "min_value, max_value FROM daily_stats "
-                            "WHERE attribute_id = ANY(:ids) "
-                            "ORDER BY attribute_id, bucket DESC"
-                        ),
-                        {"ids": remaining},
-                    )
-                    for row in result.mappings().all():
-                        tracker = self._trackers.get(row["attribute_id"])
-                        if tracker:
-                            tracker.seed_stats(date=row["day"], min_val=row["min_value"], max_val=row["max_value"])
+                    if tracker:
+                        tracker.seed_stats(date=today, min_val=row["min_value"], max_val=row["max_value"])
         except Exception:
             # Continuous aggregate may not exist (e.g. tests with SQLite)
             logger.debug("Could not query daily_stats continuous aggregate, skipping seed")
 
     def get_daily_stats(self) -> dict[int, dict[str, float | None]]:
-        """Return daily stats for all tracked attributes {attr_id: {min, max}}."""
+        """Return daily stats for all tracked attributes {attr_id: {min, max, stale}}."""
         result = {}
         for attr_id, tracker in self._trackers.items():
             stats = tracker.daily_stats
-            if stats["min"] is not None or stats["max"] is not None:
+            if stats["min"] is not None or stats["max"] is not None or stats["stale"]:
                 result[attr_id] = stats
         return result
 

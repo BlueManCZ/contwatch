@@ -1,14 +1,13 @@
 import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ConfirmDialogProps {
     open: boolean;
@@ -24,29 +23,31 @@ interface ConfirmDialogProps {
 export function ConfirmDialog({
     open,
     onOpenChange,
-    onConfirm,
     title,
     description,
     confirmLabel,
     variant = "destructive",
     isPending,
+    onConfirm,
 }: ConfirmDialogProps) {
     const { t } = useTranslation();
 
     return (
-        <AlertDialog open={open} onOpenChange={isPending ? undefined : onOpenChange}>
-            <AlertDialogContent size="sm">
-                <AlertDialogHeader>
-                    <AlertDialogTitle>{title ?? t("confirm.title")}</AlertDialogTitle>
-                    <AlertDialogDescription>{description}</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel disabled={isPending}>{t("common.cancel")}</AlertDialogCancel>
-                    <AlertDialogAction variant={variant} onClick={onConfirm} disabled={isPending}>
+        <Dialog open={open} onOpenChange={isPending ? undefined : onOpenChange}>
+            <DialogContent showCloseButton={false}>
+                <DialogHeader>
+                    <DialogTitle>{title ?? t("confirm.title")}</DialogTitle>
+                    <DialogDescription>{description}</DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <Button variant="outline" disabled={isPending} onClick={() => onOpenChange(false)}>
+                        {t("common.cancel")}
+                    </Button>
+                    <Button variant={variant} onClick={onConfirm} disabled={isPending}>
                         {confirmLabel ?? t("common.delete")}
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }
