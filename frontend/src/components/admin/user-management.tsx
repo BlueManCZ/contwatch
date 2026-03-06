@@ -111,6 +111,8 @@ export function UserManagement() {
                 onOpenChange={(open) => {
                     if (!open) setPendingDeleteUser(null);
                 }}
+                variant="destructive"
+                confirmLabel={t("common.delete")}
                 isPending={deleteUser.isPending}
                 onConfirm={() => {
                     if (!pendingDeleteUser) return;

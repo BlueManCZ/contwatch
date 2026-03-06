@@ -184,8 +184,6 @@ export function ActionParamPopover({ action, params, handler, children }: Action
                     action: localizedName,
                     device: handler.label || handler.description || handler.type,
                 })}
-                confirmLabel={t("common.confirm")}
-                variant="default"
             />
         </>
     );

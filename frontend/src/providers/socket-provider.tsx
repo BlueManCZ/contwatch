@@ -5,6 +5,7 @@ import { getAccessToken } from "@/api/axios-instance";
 import type { AttributeValue } from "@/api/generated/contWatchAPI.schemas";
 import { getAllHandlerStatusesApiHandlersStatusesGetQueryKey } from "@/api/generated/handlers/handlers";
 import { useAuth } from "@/providers/auth-provider";
+import { type HandlerDataValue, useHandlerDataValuesStore } from "@/stores/handler-data-values";
 import { type Indicator, useHandlerIndicatorStore } from "@/stores/handler-indicators";
 import { useHandlerStatusStore } from "@/stores/handler-status";
 import { useLiveValuesStore } from "@/stores/live-values";
@@ -13,6 +14,7 @@ export function useSocketMutationInvalidation() {
     const queryClient = useQueryClient();
     const { isAuthenticated } = useAuth();
     const setAttributeValue = useLiveValuesStore((s) => s.setAttributeValue);
+    const setHandlerDataValue = useHandlerDataValuesStore((s) => s.set);
     const setHandlerStatus = useHandlerStatusStore((s) => s.setStatus);
     const setIndicators = useHandlerIndicatorStore((s) => s.setIndicators);
 
@@ -47,6 +49,10 @@ export function useSocketMutationInvalidation() {
             setAttributeValue(data);
         });
 
+        socket.on("handler_data_value", (data: HandlerDataValue) => {
+            setHandlerDataValue(data);
+        });
+
         socket.on(
             "handler_status",
             (data: {
@@ -70,5 +76,12 @@ export function useSocketMutationInvalidation() {
         return () => {
             socket.disconnect();
         };
-    }, [isAuthenticated, queryClient, setAttributeValue, setHandlerStatus, setIndicators]);
+    }, [
+        isAuthenticated,
+        queryClient,
+        setAttributeValue,
+        setHandlerDataValue,
+        setHandlerStatus,
+        setIndicators,
+    ]);
 }

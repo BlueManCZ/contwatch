@@ -54,13 +54,12 @@ export function AddActionDialog({ handler, open, onOpenChange }: AddActionDialog
     const [message, setMessage] = useState("{}");
 
     // Reset state when dialog opens (handlerType may not be loaded on first mount)
-    // biome-ignore lint/correctness/useExhaustiveDependencies: only reset on open change
     useEffect(() => {
         if (open) {
             setName("");
             setMessage(defaultMessage(knownActions, handlerType?.category));
         }
-    }, [open]);
+    }, [open, knownActions, handlerType?.category]);
 
     function handlePresetClick(presetName: string, presetMessage: string) {
         setName(presetName);

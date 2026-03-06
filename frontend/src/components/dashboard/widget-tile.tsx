@@ -1,8 +1,7 @@
 import { History, Minus, Pencil, TrendingDown, TrendingUp, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { DashboardTile } from "@/api/generated/contWatchAPI.schemas";
+import type { DashboardWidget } from "@/api/generated/contWatchAPI.schemas";
 import { Card, CardContent } from "@/components/ui/card";
-import { useLongPress } from "@/hooks/use-long-press";
 import { formatStat, formatValue } from "@/lib/format-value";
 import { localizeAttributeLabel } from "@/lib/localize-attribute";
 import type { WidgetStatus } from "@/lib/widget-status";
@@ -11,19 +10,19 @@ import { useLiveValuesStore } from "@/stores/live-values";
 export type { WidgetStatus } from "@/lib/widget-status";
 
 interface WidgetTileProps {
-    tile: DashboardTile;
+    widget: DashboardWidget;
     status?: WidgetStatus;
     onRemove?: () => void;
     onEdit?: () => void;
     onClick?: () => void;
 }
 
-export function WidgetTile({ tile, status = "online", onRemove, onEdit, onClick }: WidgetTileProps) {
+export function WidgetTile({ widget: tile, status = "online", onRemove, onEdit, onClick }: WidgetTileProps) {
     const { t, i18n } = useTranslation();
-    const liveVal = useLiveValuesStore((s) => s.values[tile.attribute_id]);
-    const longPress = useLongPress({ onLongPress: () => onEdit?.(), disabled: !onEdit });
+    const liveVal = useLiveValuesStore((s) => (tile.attribute_id ? s.values[tile.attribute_id] : undefined));
 
-    const displayLabel = localizeAttributeLabel(tile.name, tile.label, t, i18n);
+    const displayLabel =
+        tile.name || localizeAttributeLabel(tile.attribute_name ?? "", tile.attribute_label, t, i18n);
 
     const value = liveVal?.value ?? tile.value;
     const trend = liveVal?.trend ?? tile.trend ?? 0;
@@ -43,14 +42,7 @@ export function WidgetTile({ tile, status = "online", onRemove, onEdit, onClick 
     return (
         <Card
             className={`relative group overflow-hidden py-0 h-full transition-all duration-200 select-none${status === "offline" ? " opacity-40 grayscale" : status === "warning" ? " opacity-70" : ""}${onClick ? " cursor-pointer hover:shadow-lg hover:border-primary/30" : ""}`}
-            onClick={(e) => {
-                longPress.onClick(e);
-                if (!e.defaultPrevented) onClick?.();
-            }}
-            onPointerDown={longPress.onPointerDown}
-            onPointerMove={longPress.onPointerMove}
-            onPointerUp={longPress.onPointerUp}
-            onPointerCancel={longPress.onPointerCancel}
+            onClick={onClick}
         >
             {/* Accent strip */}
             {status === "warning" ? (
@@ -61,9 +53,9 @@ export function WidgetTile({ tile, status = "online", onRemove, onEdit, onClick 
                 )
             )}
 
-            <CardContent className="p-4 pl-5 h-full flex flex-col">
+            <CardContent className="p-3 pl-4 sm:p-4 sm:pl-5 h-full flex flex-col">
                 <div className="space-y-1.5 min-w-0">
-                    <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-widest truncate">
+                    <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider sm:tracking-widest line-clamp-2">
                         {displayLabel}
                     </p>
                     {isBooleanValue ? (
@@ -77,7 +69,7 @@ export function WidgetTile({ tile, status = "online", onRemove, onEdit, onClick 
                         </div>
                     ) : (
                         <div className="flex items-baseline gap-1.5">
-                            <span className="text-3xl font-semibold data-value leading-none">
+                            <span className="text-2xl sm:text-3xl font-semibold data-value leading-none">
                                 {displayValue}
                             </span>
                             {displayUnit && (
@@ -104,7 +96,7 @@ export function WidgetTile({ tile, status = "online", onRemove, onEdit, onClick 
                 )}
 
                 {typeof value === "number" && (statsStale || dailyMin != null || dailyMax != null) && (
-                    <div className="flex items-center gap-3 mt-2.5">
+                    <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-2.5">
                         {statsStale ? (
                             <span className="text-[11px] text-muted-foreground/60">
                                 {t("handlers.statsStale")}

@@ -130,6 +130,8 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
             <ConfirmDialog
                 open={confirmDeleteOpen}
                 onOpenChange={setConfirmDeleteOpen}
+                variant="destructive"
+                confirmLabel={t("common.delete")}
                 isPending={deleteAttribute.isPending}
                 onConfirm={() => {
                     if (!attribute) return;

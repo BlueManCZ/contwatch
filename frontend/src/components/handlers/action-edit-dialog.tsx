@@ -96,6 +96,8 @@ export function ActionEditDialog({ action, onClose }: ActionEditDialogProps) {
             <ConfirmDialog
                 open={confirmDeleteOpen}
                 onOpenChange={setConfirmDeleteOpen}
+                variant="destructive"
+                confirmLabel={t("common.delete")}
                 isPending={deleteAction.isPending}
                 onConfirm={() => {
                     if (!action) return;

@@ -93,6 +93,12 @@ export interface AvailableAttributeItem {
   unit?: string | null;
 }
 
+export type ButtonExecuteRequestParams = {[key: string]: string} | null;
+
+export interface ButtonExecuteRequest {
+  params?: ButtonExecuteRequestParams;
+}
+
 export interface FieldChoice {
   value: string;
   label: string;
@@ -142,72 +148,40 @@ export interface DailyStatRead {
   max_value: number | null;
 }
 
-export interface DashboardTile {
+export interface DashboardWidget {
   id: number;
-  attribute_id: number;
-  handler_id: number;
+  type: string;
+  order: number;
+  name?: string | null;
+  icon?: string | null;
+  handler_id?: number | null;
+  handler_label?: string | null;
   handler_running?: boolean;
   handler_connected?: boolean;
-  name: string;
-  label?: string | null;
+  confirm_actions?: boolean;
+  attribute_id?: number | null;
+  attribute_name?: string | null;
+  attribute_label?: string | null;
+  value?: unknown;
   unit?: string | null;
-  icon?: string | null;
   color?: string | null;
   rounding?: number | null;
-  value?: unknown;
   trend?: number;
   daily_min?: number | null;
   daily_max?: number | null;
   stats_stale?: boolean;
   last_changed?: string | null;
-}
-
-export interface DashboardSwitch {
-  id: number;
-  name?: string | null;
-  icon?: string | null;
-  attribute_id: number;
-  handler_id: number;
-  handler_label?: string | null;
-  handler_running?: boolean;
-  handler_connected?: boolean;
-  confirm_actions?: boolean;
   attribute_compare?: string | null;
   action_on_id?: number | null;
   action_off_id?: number | null;
-  attribute_name: string;
-  attribute_label?: string | null;
   action_on_name?: string | null;
   action_off_name?: string | null;
-  value?: unknown;
-}
-
-export interface DashboardSlider {
-  id: number;
-  name?: string | null;
-  icon?: string | null;
-  attribute_id: number;
-  handler_id: number;
-  handler_label?: string | null;
-  handler_running?: boolean;
-  handler_connected?: boolean;
-  confirm_actions?: boolean;
-  action_id: number;
-  action_name: string;
-  param_key: string;
-  min: number;
-  max: number;
-  step: number;
-  unit?: string | null;
-  attribute_name: string;
-  attribute_label?: string | null;
-  value?: unknown;
-}
-
-export interface DashboardResponse {
-  tiles: DashboardTile[];
-  switches: DashboardSwitch[];
-  sliders?: DashboardSlider[];
+  action_id?: number | null;
+  action_name?: string | null;
+  param_key?: string | null;
+  min?: number | null;
+  max?: number | null;
+  step?: number | null;
 }
 
 export interface DataUnitRead {
@@ -452,6 +426,7 @@ export interface SystemStats {
   version: string;
   host_ip: string;
   hostname: string;
+  is_docker: boolean;
   os_info: string;
   arch: string;
   python_version: string;
@@ -497,76 +472,54 @@ export interface UserUpdate {
   password?: string | null;
 }
 
-export interface WidgetSliderCreate {
-  icon?: string | null;
-  attribute_id: number;
-  action_id: number;
-  param_key: string;
-  min?: number;
-  max?: number;
-  step?: number;
-}
+export type WidgetCreateType = typeof WidgetCreateType[keyof typeof WidgetCreateType];
 
-export interface WidgetSliderRead {
-  id: number;
+
+export const WidgetCreateType = {
+  tile: 'tile',
+  switch: 'switch',
+  slider: 'slider',
+  button: 'button',
+} as const;
+
+export type WidgetCreateConfig = { [key: string]: unknown };
+
+export interface WidgetCreate {
+  type: WidgetCreateType;
   name?: string | null;
   icon?: string | null;
-  attribute_id: number;
-  action_id: number;
-  param_key: string;
-  min: number;
-  max: number;
-  step: number;
-  unit?: string | null;
+  attribute_id?: number | null;
+  config?: WidgetCreateConfig;
 }
 
-export interface WidgetSliderUpdate {
-  icon?: string | null;
-  attribute_id: number;
-  action_id: number;
-  param_key: string;
-  min?: number;
-  max?: number;
-  step?: number;
-}
+export type WidgetReadConfig = { [key: string]: unknown };
 
-export interface WidgetSwitchCreate {
-  icon?: string | null;
-  attribute_id: number;
-  attribute_compare?: string | null;
-  action_on_id?: number | null;
-  action_off_id?: number | null;
-}
-
-export interface WidgetSwitchRead {
+export interface WidgetRead {
   id: number;
+  type: string;
+  order: number;
   name?: string | null;
   icon?: string | null;
-  attribute_id: number;
-  attribute_compare?: string | null;
-  action_on_id?: number | null;
-  action_off_id?: number | null;
+  attribute_id?: number | null;
+  config?: WidgetReadConfig;
 }
 
-export interface WidgetSwitchUpdate {
-  icon?: string | null;
-  attribute_id: number;
-  attribute_compare?: string | null;
-  action_on_id?: number | null;
-  action_off_id?: number | null;
-}
-
-export interface WidgetTileCreate {
-  attribute_id: number;
-}
-
-export interface WidgetTileRead {
+export interface WidgetReorderItem {
   id: number;
-  attribute_id: number;
+  order: number;
 }
 
-export interface WidgetTileUpdate {
-  attribute_id: number;
+export interface WidgetReorderRequest {
+  items: WidgetReorderItem[];
+}
+
+export type WidgetUpdateConfig = { [key: string]: unknown } | null;
+
+export interface WidgetUpdate {
+  name?: string | null;
+  icon?: string | null;
+  attribute_id?: number | null;
+  config?: WidgetUpdateConfig;
 }
 
 export type WorkflowNodePosition = { [key: string]: unknown };

@@ -252,7 +252,14 @@
         "paramKey": "Parameter key",
         "sliderMin": "Min",
         "sliderMax": "Max",
-        "sliderStep": "Step"
+        "sliderStep": "Step",
+        "namePlaceholder": "Leave empty for default",
+        "widgetName": "Name",
+        "addButton": "Add Button",
+        "editButton": "Edit Button",
+        "removeButton": "Remove Button",
+        "button": "Button",
+        "iconName": "Icon"
     },
     "actions": {
         "message": "Message",
@@ -381,6 +388,9 @@
         "sliderAdded": "Slider added",
         "sliderUpdated": "Slider updated",
         "sliderRemoved": "Slider removed",
+        "widgetAdded": "Widget added",
+        "widgetUpdated": "Widget updated",
+        "widgetRemoved": "Widget removed",
         "logsCleared": "Logs cleared"
     },
     "wizard": {
@@ -473,6 +483,7 @@
         "removeTile": "This will remove this tile from the dashboard.",
         "removeSwitch": "This will remove this switch from the dashboard.",
         "removeSlider": "This will remove this slider from the dashboard.",
+        "removeWidget": "This will remove this widget from the dashboard.",
         "remove": "Remove",
         "executeAction": "Execute \"{{action}}\" on {{device}}?",
         "registerAttributeTitle": "Register attribute",

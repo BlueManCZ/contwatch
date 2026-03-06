@@ -161,8 +161,6 @@ function ControlSwitch({
                     action: localizeAction(pendingChecked ? control.action_on_name : control.action_off_name),
                     device: handlerLabel,
                 })}
-                confirmLabel={t("common.confirm")}
-                variant="default"
             />
         </>
     );
@@ -320,8 +318,6 @@ function ControlSlider({
                         : "",
                     device: handlerLabel,
                 })}
-                confirmLabel={t("common.confirm")}
-                variant="default"
             />
         </div>
     );

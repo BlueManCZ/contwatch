@@ -14,6 +14,7 @@ import {
 import { restrictToParentElement, restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import {
     arrayMove,
+    rectSortingStrategy,
     SortableContext,
     type SortingStrategy,
     sortableKeyboardCoordinates,
@@ -31,6 +32,7 @@ interface SortableListProps<T extends { id: number }> {
     onItemClick?: (item: T) => void;
     /** Use DragOverlay + live reorder for CSS columns layouts. */
     multiColumn?: boolean;
+    className?: string;
 }
 
 const DRAG_TOLERANCE = 8;
@@ -45,6 +47,7 @@ export function SortableList<T extends { id: number }>({
     onLongPress,
     onItemClick,
     multiColumn,
+    className,
 }: SortableListProps<T>) {
     const dndId = useId();
     const [localOrder, setLocalOrder] = useState<number[]>(() => items.map((i) => i.id));
@@ -141,6 +144,25 @@ export function SortableList<T extends { id: number }>({
 
     const activeItem = activeId != null ? itemMap.get(activeId) : null;
 
+    const useOverlay = !!multiColumn;
+    const strategy = multiColumn
+        ? className
+            ? rectSortingStrategy
+            : columnsStrategy
+        : verticalListSortingStrategy;
+
+    const sortableItems = displayItems.map((item) => (
+        <SortableItem
+            key={item.id}
+            id={item.id}
+            renderItem={renderItem}
+            item={item}
+            dragging={activeId != null}
+            useOverlay={useOverlay}
+            onItemClick={onItemClick ? () => onItemClick(item) : undefined}
+        />
+    ));
+
     return (
         <DndContext
             id={dndId}
@@ -157,24 +179,11 @@ export function SortableList<T extends { id: number }>({
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
         >
-            <SortableContext
-                items={localOrder}
-                strategy={multiColumn ? columnsStrategy : verticalListSortingStrategy}
-            >
-                {displayItems.map((item) => (
-                    <SortableItem
-                        key={item.id}
-                        id={item.id}
-                        renderItem={renderItem}
-                        item={item}
-                        dragging={activeId != null}
-                        useOverlay={multiColumn}
-                        onItemClick={onItemClick ? () => onItemClick(item) : undefined}
-                    />
-                ))}
+            <SortableContext items={localOrder} strategy={strategy}>
+                {className ? <div className={className}>{sortableItems}</div> : sortableItems}
             </SortableContext>
 
-            {multiColumn && (
+            {useOverlay && (
                 <DragOverlay dropAnimation={null}>
                     {activeItem ? renderItem(activeItem, true) : null}
                 </DragOverlay>
@@ -203,6 +212,7 @@ function SortableItem<T extends { id: number }>({
         animateLayoutChanges: () => false,
     });
     const clickPosRef = useRef<{ x: number; y: number } | null>(null);
+    const nativeClickFired = useRef(false);
 
     const style: React.CSSProperties = useOverlay
         ? {
@@ -219,6 +229,14 @@ function SortableItem<T extends { id: number }>({
               pointerEvents: dragging && !isDragging ? "none" : undefined,
           };
 
+    function isTap(x: number, y: number) {
+        if (!clickPosRef.current) return false;
+        return (
+            Math.abs(x - clickPosRef.current.x) < DRAG_TOLERANCE &&
+            Math.abs(y - clickPosRef.current.y) < DRAG_TOLERANCE
+        );
+    }
+
     return (
         // biome-ignore lint/a11y/noStaticElementInteractions: role is provided by dnd-kit attributes spread
         <div
@@ -233,13 +251,27 @@ function SortableItem<T extends { id: number }>({
             {...listeners}
             onPointerDown={(e) => {
                 clickPosRef.current = { x: e.clientX, y: e.clientY };
+                nativeClickFired.current = false;
                 listeners?.onPointerDown?.(e);
             }}
+            onPointerUp={(e) => {
+                if (!isTap(e.clientX, e.clientY)) {
+                    clickPosRef.current = null;
+                    return;
+                }
+                // dnd-kit sensors may suppress native click events.
+                // Wait a frame; if no native click fires, call onItemClick directly.
+                requestAnimationFrame(() => {
+                    if (!nativeClickFired.current && onItemClick) {
+                        onItemClick();
+                    }
+                    clickPosRef.current = null;
+                });
+            }}
             onClick={(e) => {
+                nativeClickFired.current = true;
                 if (!onItemClick || !clickPosRef.current) return;
-                const dx = Math.abs(e.clientX - clickPosRef.current.x);
-                const dy = Math.abs(e.clientY - clickPosRef.current.y);
-                if (dx < DRAG_TOLERANCE && dy < DRAG_TOLERANCE) {
+                if (isTap(e.clientX, e.clientY)) {
                     onItemClick();
                 }
                 clickPosRef.current = null;

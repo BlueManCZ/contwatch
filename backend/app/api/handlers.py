@@ -91,7 +91,7 @@ async def list_handler_types(_current_user: CurrentUser):
 
 
 @router.get("/categories", response_model=list[CategoryInfo])
-async def list_categories(_current_user: CurrentUser):
+async def list_categories(db: DbSession, _current_user: CurrentUser):
     categories = copy.deepcopy(get_categories())
     for cat in categories:
         if cat["name"] == "serial":
@@ -99,9 +99,20 @@ async def list_categories(_current_user: CurrentUser):
                 from serial.tools.list_ports import comports
 
                 all_ports = await asyncio.to_thread(comports)
+
+                # Collect serial ports already used by existing handlers
+                result = await db.execute(select(Handler))
+                used_ports = {
+                    h.options.get("config", {}).get("port")
+                    for h in result.scalars().all()
+                    if isinstance(h.options, dict)
+                }
+
                 choices = []
                 for p in all_ports:
                     if p.hwid == "n/a":
+                        continue
+                    if p.device in used_ports:
                         continue
                     has_desc = p.description and p.description != "n/a"
                     label = f"{p.device} — {p.description}" if has_desc else p.device
@@ -391,7 +402,7 @@ async def handler_controls(handler_id: int, db: DbSession, manager: HandlerManag
         live_val = values.get(attr_id, {}).get("value") if attr_id else None
         # Fall back to last raw message if attribute is not registered in the DB
         if live_val is None and kc.state_attribute:
-            live_val = manager.get_handler_data_value(handler_id, kc.state_attribute)
+            live_val = manager.get_handler_data_value(handler_id, kc.state_attribute)["value"]
 
         if kc.type == "switch":
             act_on = actions_by_name.get(kc.action_on) if kc.action_on else None

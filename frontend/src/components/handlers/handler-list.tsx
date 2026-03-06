@@ -82,15 +82,15 @@ export function HandlerList() {
                             items={handlers}
                             onReorder={handleHandlerReorder}
                             multiColumn={!isMobile}
+                            onItemClick={(handler) => {
+                                setSelectedHandlerId(handler.id);
+                                setDetailOpen(true);
+                            }}
                             renderItem={(handler) => (
                                 <HandlerCard
                                     handler={handler}
                                     icon={typeIconMap.get(handler.type)}
                                     typeName={typeNameMap.get(handler.type)}
-                                    onOpenDetail={() => {
-                                        setSelectedHandlerId(handler.id);
-                                        setDetailOpen(true);
-                                    }}
                                 />
                             )}
                         />
@@ -106,12 +106,10 @@ function HandlerCard({
     handler,
     icon,
     typeName,
-    onOpenDetail,
 }: {
     handler: HandlerRead;
     icon: string | undefined;
     typeName: string | undefined;
-    onOpenDetail: () => void;
 }) {
     const { t, i18n } = useTranslation();
     const queryClient = useQueryClient();
@@ -175,10 +173,7 @@ function HandlerCard({
 
     return (
         <>
-            <Card
-                className="py-0 transition-all duration-200 hover:shadow-md cursor-pointer"
-                onClick={onOpenDetail}
-            >
+            <Card className="py-0 transition-all duration-200 hover:shadow-md cursor-pointer">
                 <CardContent className={cn("px-4 py-2", attrs.length > 0 && "pb-0")}>
                     <div className="flex items-center gap-3 min-w-0">
                         <span className="relative flex shrink-0 h-9 w-9 -ml-2 items-center justify-center rounded-full border border-border/60 bg-background/50">

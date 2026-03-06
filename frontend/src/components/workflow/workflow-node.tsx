@@ -49,11 +49,20 @@ function FilteredSelect({
     disabled?: boolean;
     filterPrefix?: string;
 }) {
+    const { t } = useTranslation();
     const options = useMemo(() => {
         const raw = port.options ?? [];
         if (!filterPrefix) return raw;
         return raw.filter((o) => o.group === filterPrefix);
     }, [port.options, filterPrefix]);
+
+    const localizeLabel = useCallback(
+        (label: string) => {
+            if (port.type === "action") return t(`knownActions.${label.replaceAll(" ", "_")}`, label);
+            return label;
+        },
+        [port.type, t],
+    );
 
     return (
         <select
@@ -65,7 +74,7 @@ function FilteredSelect({
             <option value="">—</option>
             {options.map((opt) => (
                 <option key={opt.value} value={opt.value}>
-                    {opt.label}
+                    {localizeLabel(opt.label)}
                 </option>
             ))}
         </select>

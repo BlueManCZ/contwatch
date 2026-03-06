@@ -1,6 +1,7 @@
 import platform
 import socket
 from datetime import UTC, datetime
+from pathlib import Path
 
 import psutil
 from fastapi import APIRouter, Request
@@ -14,6 +15,16 @@ from app.utils.network import get_lan_ip
 router = APIRouter(prefix="/system", tags=["system"])
 
 _process = psutil.Process()
+_is_docker = Path("/.dockerenv").exists()
+_host_hostname_file = Path("/etc/host_hostname")
+
+
+def _get_hostname() -> str:
+    if _is_docker and _host_hostname_file.is_file():
+        name = _host_hostname_file.read_text().strip()
+        if name:
+            return name
+    return socket.gethostname()
 
 
 class SystemStats(BaseModel):
@@ -22,6 +33,7 @@ class SystemStats(BaseModel):
     version: str
     host_ip: str
     hostname: str
+    is_docker: bool
     os_info: str
     arch: str
     python_version: str
@@ -89,7 +101,8 @@ async def get_system_stats(
         uptime_seconds=int(uptime.total_seconds()),
         version=request.app.version,
         host_ip=get_lan_ip(),
-        hostname=socket.gethostname(),
+        hostname=_get_hostname(),
+        is_docker=_is_docker,
         os_info=f"{platform.system()} {platform.release()}",
         arch=platform.machine(),
         python_version=platform.python_version(),

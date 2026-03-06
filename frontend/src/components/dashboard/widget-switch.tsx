@@ -2,42 +2,50 @@ import { History, Pencil, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import type { DashboardSwitch } from "@/api/generated/contWatchAPI.schemas";
-import { useToggleSwitchApiWidgetsSwitchesSwitchIdTogglePost } from "@/api/generated/widgets/widgets";
+import type { DashboardWidget } from "@/api/generated/contWatchAPI.schemas";
+import { useToggleSwitchApiWidgetsWidgetIdTogglePost } from "@/api/generated/widgets/widgets";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import type { WidgetStatus } from "@/components/dashboard/widget-tile";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { useLongPress } from "@/hooks/use-long-press";
 import { localizeAttributeLabel } from "@/lib/localize-attribute";
 import { boldName } from "@/lib/utils";
+import type { WidgetStatus } from "@/lib/widget-status";
+import { useHandlerDataValuesStore } from "@/stores/handler-data-values";
 import { useLiveValuesStore } from "@/stores/live-values";
 
 interface WidgetSwitchProps {
-    switch_: DashboardSwitch;
+    widget: DashboardWidget;
     status?: WidgetStatus;
     onRemove?: () => void;
     onEdit?: () => void;
 }
 
-export function WidgetSwitch({ switch_, status = "online", onRemove, onEdit }: WidgetSwitchProps) {
+export function WidgetSwitch({ widget: switch_, status = "online", onRemove, onEdit }: WidgetSwitchProps) {
     const { t, i18n } = useTranslation();
-    const liveVal = useLiveValuesStore((s) => s.values[switch_.attribute_id]);
-    const toggle = useToggleSwitchApiWidgetsSwitchesSwitchIdTogglePost({
+    const liveVal = useLiveValuesStore((s) =>
+        switch_.attribute_id ? s.values[switch_.attribute_id] : undefined,
+    );
+    const rawVal = useHandlerDataValuesStore((s) =>
+        !switch_.attribute_id && switch_.handler_id && switch_.attribute_name
+            ? s.values[`${switch_.handler_id}:${switch_.attribute_name}`]
+            : undefined,
+    );
+    const toggle = useToggleSwitchApiWidgetsWidgetIdTogglePost({
         mutation: { meta: { skipGlobalErrorToast: true } },
     });
-    const longPress = useLongPress({ onLongPress: () => onEdit?.(), disabled: !onEdit });
     const [confirmOpen, setConfirmOpen] = useState(false);
 
-    const currentValue = liveVal?.value ?? switch_.value;
+    const currentValue = liveVal?.value ?? rawVal?.value ?? switch_.value;
 
     const isOn = switch_.attribute_compare
         ? String(currentValue) === switch_.attribute_compare
         : Boolean(currentValue);
 
-    const lastChanged = liveVal?.last_changed;
+    const lastChanged = liveVal?.last_changed ?? rawVal?.last_changed ?? switch_.last_changed;
 
-    const label = localizeAttributeLabel(switch_.attribute_name, switch_.attribute_label, t, i18n);
+    const label =
+        switch_.name ||
+        localizeAttributeLabel(switch_.attribute_name ?? "", switch_.attribute_label, t, i18n);
 
     function doToggle() {
         const actionName = !isOn ? switch_.action_on_name : switch_.action_off_name;
@@ -45,7 +53,7 @@ export function WidgetSwitch({ switch_, status = "online", onRemove, onEdit }: W
             ? t(`knownActions.${actionName.replaceAll(" ", "_")}`, actionName)
             : undefined;
         toggle.mutate(
-            { switchId: switch_.id, data: { value: !isOn } },
+            { widgetId: switch_.id, data: { value: !isOn } },
             {
                 onSettled: () => setConfirmOpen(false),
                 onSuccess: () => name && toast.success(boldName(t, "toast.actionExecuted", name)),
@@ -65,14 +73,7 @@ export function WidgetSwitch({ switch_, status = "online", onRemove, onEdit }: W
     return (
         <Card
             className={`relative overflow-hidden group py-0 h-full transition-all duration-300 select-none${status === "offline" ? " opacity-40 grayscale cursor-default" : status === "warning" ? " opacity-70 cursor-default" : " cursor-pointer hover:shadow-lg hover:border-primary/30"}`}
-            onClick={(e) => {
-                longPress.onClick(e);
-                if (!e.defaultPrevented && status === "online") handleToggle();
-            }}
-            onPointerDown={longPress.onPointerDown}
-            onPointerMove={longPress.onPointerMove}
-            onPointerUp={longPress.onPointerUp}
-            onPointerCancel={longPress.onPointerCancel}
+            onClick={() => status === "online" && handleToggle()}
         >
             {/* Left accent strip — dynamic based on state */}
             {status === "warning" ? (
@@ -92,10 +93,10 @@ export function WidgetSwitch({ switch_, status = "online", onRemove, onEdit }: W
                 }}
             />
 
-            <CardContent className="p-4 pl-5 h-full flex gap-4">
+            <CardContent className="p-3 pl-4 sm:p-4 sm:pl-5 h-full flex gap-3 sm:gap-4">
                 {/* Text — stretched full height: label top, status middle, timestamp bottom */}
                 <div className="flex-1 min-w-0 flex flex-col gap-2">
-                    <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-widest truncate">
+                    <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider sm:tracking-widest line-clamp-2">
                         {label}
                     </p>
                     <div className="flex-1 flex items-center">
@@ -174,8 +175,6 @@ export function WidgetSwitch({ switch_, status = "online", onRemove, onEdit }: W
                     })(),
                     device: switch_.handler_label ?? switch_.attribute_name,
                 })}
-                confirmLabel={t("common.confirm")}
-                variant="default"
             />
         </Card>
     );

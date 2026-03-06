@@ -253,7 +253,14 @@
         "paramKey": "Klíč parametru",
         "sliderMin": "Min",
         "sliderMax": "Max",
-        "sliderStep": "Krok"
+        "sliderStep": "Krok",
+        "namePlaceholder": "Ponechte prázdné pro výchozí",
+        "widgetName": "Název",
+        "addButton": "Přidat tlačítko",
+        "editButton": "Upravit tlačítko",
+        "removeButton": "Odebrat tlačítko",
+        "button": "Tlačítko",
+        "iconName": "Ikona"
     },
     "actions": {
         "message": "Zpráva",
@@ -376,6 +383,9 @@
         "sliderAdded": "Posuvník přidán",
         "sliderUpdated": "Posuvník upraven",
         "sliderRemoved": "Posuvník odebrán",
+        "widgetAdded": "Widget přidán",
+        "widgetUpdated": "Widget upraven",
+        "widgetRemoved": "Widget odebrán",
         "logsCleared": "Logy vymazány"
     },
     "wizard": {
@@ -474,6 +484,7 @@
         "removeTile": "Toto odebere tuto dlaždici z přehledu.",
         "removeSwitch": "Toto odebere tento přepínač z přehledu.",
         "removeSlider": "Toto odebere tento posuvník z přehledu.",
+        "removeWidget": "Toto odebere tento widget z přehledu.",
         "remove": "Odebrat",
         "executeAction": "Provést \"{{action}}\" na {{device}}?",
         "registerAttributeTitle": "Registrovat atribut",

@@ -353,34 +353,10 @@ function ManualStep({
         );
     }, [configValues.host, configValues.port, existingHandlers]);
 
-    // Populate config defaults when initialType is provided and handler types are loaded,
-    // then overlay any values carried over from the connection step (e.g. host, port)
-    const initializedRef = useRef(false);
-    useEffect(() => {
-        if (initialType && handlerTypes.length > 0 && !initializedRef.current) {
-            initializedRef.current = true;
-            const info = handlerTypes.find((ht) => ht.type === initialType);
-            if (info) {
-                const defaults: Record<string, string> = {};
-                for (const field of info.config_fields) {
-                    defaults[field.key] = String(field.default ?? "");
-                }
-                if (initialValues) {
-                    for (const [key, val] of Object.entries(initialValues)) {
-                        if (val && key in defaults) {
-                            defaults[key] = val;
-                        }
-                    }
-                }
-                setConfigValues(defaults);
-            }
-        }
-    }, [initialType, initialValues, handlerTypes]);
-
-    function handleTypeChange(value: string) {
-        setSelectedType(value);
-        const info = handlerTypes.find((ht) => ht.type === value);
-        if (info) {
+    const buildConfigDefaults = useCallback(
+        (type: string) => {
+            const info = handlerTypes.find((ht) => ht.type === type);
+            if (!info) return null;
             const defaults: Record<string, string> = {};
             for (const field of info.config_fields) {
                 defaults[field.key] = String(field.default ?? "");
@@ -392,8 +368,28 @@ function ManualStep({
                     }
                 }
             }
-            setConfigValues(defaults);
+            return defaults;
+        },
+        [handlerTypes, initialValues],
+    );
+
+    // Populate config defaults when initialType is provided and handler types are loaded,
+    // then overlay any values carried over from the connection step (e.g. host, port)
+    const initializedRef = useRef(false);
+    useEffect(() => {
+        if (initialType && !initializedRef.current) {
+            const defaults = buildConfigDefaults(initialType);
+            if (defaults) {
+                initializedRef.current = true;
+                setConfigValues(defaults);
+            }
         }
+    }, [initialType, buildConfigDefaults]);
+
+    function handleTypeChange(value: string) {
+        setSelectedType(value);
+        const defaults = buildConfigDefaults(value);
+        if (defaults) setConfigValues(defaults);
     }
 
     function handleCreate() {

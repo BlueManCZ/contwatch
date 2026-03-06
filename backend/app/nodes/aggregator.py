@@ -34,7 +34,7 @@ class Aggregator(AbstractNode):
             val = node.evaluate()
             if val is not None:
                 with contextlib.suppress(ValueError, TypeError):
-                    values.append(float(val))
+                    values.append(float(str(val).replace(",", ".")))
 
         if not values:
             return None

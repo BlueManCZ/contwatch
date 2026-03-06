@@ -2,40 +2,47 @@ import { Pencil, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import type { DashboardSlider } from "@/api/generated/contWatchAPI.schemas";
-import { useSetSliderApiWidgetsSlidersSliderIdSetPost } from "@/api/generated/widgets/widgets";
+import type { DashboardWidget } from "@/api/generated/contWatchAPI.schemas";
+import { useSetSliderApiWidgetsWidgetIdSetPost } from "@/api/generated/widgets/widgets";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import type { WidgetStatus } from "@/components/dashboard/widget-tile";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
-import { useLongPress } from "@/hooks/use-long-press";
 import { formatValue } from "@/lib/format-value";
 import { localizeAttributeLabel } from "@/lib/localize-attribute";
 import { boldName } from "@/lib/utils";
+import type { WidgetStatus } from "@/lib/widget-status";
+import { useHandlerDataValuesStore } from "@/stores/handler-data-values";
 import { useLiveValuesStore } from "@/stores/live-values";
 
 interface WidgetSliderProps {
-    slider: DashboardSlider;
+    widget: DashboardWidget;
     status?: WidgetStatus;
     onRemove?: () => void;
     onEdit?: () => void;
 }
 
-export function WidgetSlider({ slider, status = "online", onRemove, onEdit }: WidgetSliderProps) {
+export function WidgetSlider({ widget: slider, status = "online", onRemove, onEdit }: WidgetSliderProps) {
     const { t, i18n } = useTranslation();
-    const liveVal = useLiveValuesStore((s) => s.values[slider.attribute_id]);
-    const setSlider = useSetSliderApiWidgetsSlidersSliderIdSetPost({
+    const liveVal = useLiveValuesStore((s) =>
+        slider.attribute_id ? s.values[slider.attribute_id] : undefined,
+    );
+    const rawVal = useHandlerDataValuesStore((s) =>
+        !slider.attribute_id && slider.handler_id && slider.attribute_name
+            ? s.values[`${slider.handler_id}:${slider.attribute_name}`]
+            : undefined,
+    );
+    const setSlider = useSetSliderApiWidgetsWidgetIdSetPost({
         mutation: { meta: { skipGlobalErrorToast: true } },
     });
-    const longPress = useLongPress({ onLongPress: () => onEdit?.(), disabled: !onEdit });
 
     const isDragging = useRef(false);
     const [localValue, setLocalValue] = useState<number | null>(null);
     const [active, setActive] = useState(false);
     const [pendingCommitVal, setPendingCommitVal] = useState<number | null>(null);
 
-    const liveNumber = liveVal?.value != null ? Number(liveVal.value) : null;
-    const displayValue = localValue ?? liveNumber ?? slider.min;
+    const liveNumber =
+        liveVal?.value != null ? Number(liveVal.value) : rawVal?.value != null ? Number(rawVal.value) : null;
+    const displayValue = localValue ?? liveNumber ?? slider.min ?? 0;
 
     // Sync live value when not dragging
     useEffect(() => {
@@ -50,7 +57,7 @@ export function WidgetSlider({ slider, status = "online", onRemove, onEdit }: Wi
                 ? t(`knownActions.${slider.action_name.replaceAll(" ", "_")}`, slider.action_name)
                 : undefined;
             setSlider.mutate(
-                { sliderId: slider.id, data: { value: v } },
+                { widgetId: slider.id, data: { value: v } },
                 {
                     onSettled: () => setPendingCommitVal(null),
                     onSuccess: () => name && toast.success(boldName(t, "toast.actionExecuted", name)),
@@ -83,14 +90,18 @@ export function WidgetSlider({ slider, status = "online", onRemove, onEdit }: Wi
         [slider.confirm_actions, doCommit],
     );
 
-    const label = localizeAttributeLabel(slider.attribute_name, slider.attribute_label, t, i18n);
-    const range = slider.max - slider.min;
-    const fillPercent = range > 0 ? ((displayValue - slider.min) / range) * 100 : 0;
+    const label =
+        slider.name || localizeAttributeLabel(slider.attribute_name ?? "", slider.attribute_label, t, i18n);
+    const sliderMin = slider.min ?? 0;
+    const sliderMax = slider.max ?? 100;
+    const sliderStep = slider.step ?? 1;
+    const range = sliderMax - sliderMin;
+    const fillPercent = range > 0 ? ((displayValue - sliderMin) / range) * 100 : 0;
 
     const rawFormatted =
-        slider.step >= 1
+        sliderStep >= 1
             ? Math.round(displayValue)
-            : Number(displayValue.toFixed(String(slider.step).split(".")[1]?.length ?? 1));
+            : Number(displayValue.toFixed(String(sliderStep).split(".")[1]?.length ?? 1));
     const scaled = slider.unit ? formatValue(rawFormatted, slider.unit) : null;
     const formattedValue = scaled?.value ?? String(rawFormatted);
     const formattedUnit = scaled?.unit ?? slider.unit;
@@ -100,10 +111,6 @@ export function WidgetSlider({ slider, status = "online", onRemove, onEdit }: Wi
             className={`relative overflow-hidden group py-0 h-full transition-all duration-300 select-none${
                 status === "offline" ? " opacity-40 grayscale" : status === "warning" ? " opacity-70" : ""
             }${active ? " shadow-lg" : ""}`}
-            onPointerDown={longPress.onPointerDown}
-            onPointerMove={longPress.onPointerMove}
-            onPointerUp={longPress.onPointerUp}
-            onPointerCancel={longPress.onPointerCancel}
         >
             {/* Left accent strip */}
             {status === "warning" ? (
@@ -121,14 +128,14 @@ export function WidgetSlider({ slider, status = "online", onRemove, onEdit }: Wi
                 }}
             />
 
-            <CardContent className="p-4 pl-5 h-full flex flex-col gap-2">
+            <CardContent className="p-3 pl-4 sm:p-4 sm:pl-5 h-full flex flex-col gap-2">
                 {/* Header: label + value on same row */}
                 <div className="flex items-start justify-between gap-2">
-                    <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-widest truncate">
+                    <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider sm:tracking-widest line-clamp-2">
                         {label}
                     </p>
                     <div className="flex items-baseline gap-1.5 shrink-0">
-                        <span className="text-2xl font-semibold data-value leading-none">
+                        <span className="text-xl sm:text-2xl font-semibold data-value leading-none">
                             {formattedValue}
                         </span>
                         {formattedUnit && (
@@ -155,9 +162,9 @@ export function WidgetSlider({ slider, status = "online", onRemove, onEdit }: Wi
                                 value={[displayValue]}
                                 onValueChange={handleValueChange}
                                 onValueCommitted={handleValueCommit}
-                                min={slider.min}
-                                max={slider.max}
-                                step={slider.step}
+                                min={sliderMin}
+                                max={sliderMax}
+                                step={sliderStep}
                                 disabled={status !== "online" || setSlider.isPending}
                             />
                         </div>
@@ -166,11 +173,11 @@ export function WidgetSlider({ slider, status = "online", onRemove, onEdit }: Wi
                     {/* Range labels */}
                     <div className="flex justify-between text-[10px] text-muted-foreground/60 tabular-nums">
                         <span>
-                            {slider.min}
+                            {sliderMin}
                             {slider.unit && ` ${slider.unit}`}
                         </span>
                         <span>
-                            {slider.max}
+                            {sliderMax}
                             {slider.unit && ` ${slider.unit}`}
                         </span>
                     </div>
@@ -224,8 +231,6 @@ export function WidgetSlider({ slider, status = "online", onRemove, onEdit }: Wi
                         : "",
                     device: slider.handler_label ?? slider.attribute_name,
                 })}
-                confirmLabel={t("common.confirm")}
-                variant="default"
             />
         </Card>
     );

@@ -33,6 +33,7 @@ services:
       - 'c 166:* rmw'   # /dev/ttyACM*
     volumes:
       - /dev:/dev
+      - /etc/hostname:/etc/host_hostname:ro
 
   frontend-build:
     build:

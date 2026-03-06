@@ -264,6 +264,8 @@ function HandlerInfo({
             <ConfirmDialog
                 open={confirmDeleteOpen}
                 onOpenChange={setConfirmDeleteOpen}
+                variant="destructive"
+                confirmLabel={t("common.delete")}
                 isPending={deleteHandler.isPending}
                 onConfirm={() =>
                     deleteHandler.mutate(
@@ -435,7 +437,6 @@ function AvailableAttributes({ handler }: { handler: HandlerRead }) {
                 title={t("confirm.registerAttributeTitle")}
                 description={t("confirm.registerAttribute", { name: confirmLabel })}
                 confirmLabel={t("common.add")}
-                variant="default"
                 isPending={createAttribute.isPending}
             />
         </div>
@@ -576,8 +577,6 @@ function HandlerActions({
                         : "",
                     device: handler.label || handler.description || handler.type,
                 })}
-                confirmLabel={t("common.confirm")}
-                variant="default"
             />
         </div>
     );

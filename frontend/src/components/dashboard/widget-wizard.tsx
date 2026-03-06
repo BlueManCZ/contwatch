@@ -6,6 +6,7 @@ import {
     Gauge,
     LayoutGrid,
     Loader2,
+    Play,
     Plus,
     Settings2,
     SlidersHorizontal,
@@ -17,7 +18,7 @@ import { toast } from "sonner";
 import { useListActionsApiActionsGet } from "@/api/generated/actions/actions";
 import type {
     ActionRead,
-    DashboardResponse,
+    DashboardWidget,
     HandlerRead,
     HandlerTypeInfo,
     ResolvedControl,
@@ -29,9 +30,7 @@ import {
 } from "@/api/generated/handlers/handlers";
 import {
     getDashboardApiWidgetsDashboardGetQueryKey,
-    useCreateSliderApiWidgetsSlidersPost,
-    useCreateSwitchApiWidgetsSwitchesPost,
-    useCreateTileApiWidgetsTilesPost,
+    useCreateWidgetApiWidgetsPost,
     useCreateWidgetFromControlApiWidgetsFromControlPost,
     useDashboardApiWidgetsDashboardGet,
 } from "@/api/generated/widgets/widgets";
@@ -140,25 +139,19 @@ function DeviceStep({
     const { data: dashboardData } = useDashboardApiWidgetsDashboardGet();
     const handlers = (handlersData?.data ?? []) as HandlerRead[];
     const handlerTypes = (typesData?.data ?? []) as HandlerTypeInfo[];
-    const dashboard = dashboardData?.data as DashboardResponse | undefined;
+    const widgets = (dashboardData?.data ?? []) as DashboardWidget[];
     const handlerStatuses = useHandlerStatusStore((s) => s.statuses);
 
     const getStatus = (handler: HandlerRead) =>
         getWidgetStatus(handlerStatuses[handler.id], handler.enabled, false);
 
-    // Count how many attributes/actions a handler already has on the dashboard
+    // Count how many widgets a handler already has on the dashboard
     function getExistingCount(handler: HandlerRead) {
-        if (!dashboard) return 0;
         const attrIds = new Set((handler.attributes ?? []).map((a) => a.id));
         let count = 0;
-        for (const tile of dashboard.tiles) {
-            if (attrIds.has(tile.attribute_id)) count++;
-        }
-        for (const sw of dashboard.switches) {
-            if (attrIds.has(sw.attribute_id)) count++;
-        }
-        for (const sl of dashboard.sliders ?? []) {
-            if (attrIds.has(sl.attribute_id)) count++;
+        for (const w of widgets) {
+            if (w.attribute_id && attrIds.has(w.attribute_id)) count++;
+            if (w.handler_id === handler.id && w.type === "button") count++;
         }
         return count;
     }
@@ -316,43 +309,41 @@ function WidgetStep({ handler, onBack, onClose }: WidgetStepProps) {
         useHandlerControlsApiHandlersHandlerIdControlsGet(handler.id);
     const controls = (controlsData?.data ?? []) as ResolvedControl[];
     const { data: dashboardData } = useDashboardApiWidgetsDashboardGet();
-    const dashboard = dashboardData?.data as DashboardResponse | undefined;
+    const widgets = (dashboardData?.data ?? []) as DashboardWidget[];
     const { data: typesData } = useListHandlerTypesApiHandlersTypesGet();
     const handlerTypes = (typesData?.data ?? []) as HandlerTypeInfo[];
 
     // Mutations
     const createFromControl = useCreateWidgetFromControlApiWidgetsFromControlPost();
-    const createTile = useCreateTileApiWidgetsTilesPost();
+    const createWidget = useCreateWidgetApiWidgetsPost();
 
     // Selection state
     const [selectedControlKeys, setSelectedControlKeys] = useState<Set<string>>(new Set());
     const [selectedAttrIds, setSelectedAttrIds] = useState<Set<number>>(new Set());
     const [isCreating, setIsCreating] = useState(false);
 
-    // Already-on-dashboard checks
-    const existingTileAttrIds = useMemo(() => {
-        if (!dashboard) return new Set<number>();
-        return new Set(dashboard.tiles.map((t) => t.attribute_id));
-    }, [dashboard]);
-
-    const existingSwitchAttrIds = useMemo(() => {
-        if (!dashboard) return new Set<number>();
-        return new Set(dashboard.switches.map((s) => s.attribute_id));
-    }, [dashboard]);
-
-    const existingSliderAttrIds = useMemo(() => {
-        if (!dashboard) return new Set<number>();
-        return new Set((dashboard.sliders ?? []).map((s) => s.attribute_id));
-    }, [dashboard]);
+    // Already-on-dashboard checks — group by type
+    const existingByType = useMemo(() => {
+        const tiles = new Set<number>();
+        const switches = new Set<number>();
+        const sliders = new Set<number>();
+        for (const w of widgets) {
+            if (!w.attribute_id) continue;
+            if (w.type === "tile") tiles.add(w.attribute_id);
+            else if (w.type === "switch") switches.add(w.attribute_id);
+            else if (w.type === "slider") sliders.add(w.attribute_id);
+        }
+        return { tiles, switches, sliders };
+    }, [widgets]);
 
     function isControlOnDashboard(control: ResolvedControl) {
         if (!control.attribute_id) return false;
-        if (control.type === "switch") return existingSwitchAttrIds.has(control.attribute_id);
-        return existingSliderAttrIds.has(control.attribute_id);
+        if (control.type === "switch") return existingByType.switches.has(control.attribute_id);
+        return existingByType.sliders.has(control.attribute_id);
     }
 
     function isAttrOnDashboard(attrId: number) {
-        return existingTileAttrIds.has(attrId);
+        return existingByType.tiles.has(attrId);
     }
 
     function toggleControl(key: string) {
@@ -396,7 +387,7 @@ function WidgetStep({ handler, onBack, onClose }: WidgetStepProps) {
 
             // Create tiles
             for (const attrId of selectedAttrIds) {
-                await createTile.mutateAsync({ data: { attribute_id: attrId } });
+                await createWidget.mutateAsync({ data: { type: "tile", attribute_id: attrId } });
             }
 
             queryClient.invalidateQueries({
@@ -639,12 +630,13 @@ function WidgetStep({ handler, onBack, onClose }: WidgetStepProps) {
 
 /* ─── Step 3: Manual Setup ──────────────────────────────────────── */
 
-type ManualWidgetType = "tile" | "switch" | "slider";
+type ManualWidgetType = "tile" | "switch" | "slider" | "button";
 
 const WIDGET_TYPE_OPTIONS: { type: ManualWidgetType; icon: typeof LayoutGrid; labelKey: string }[] = [
     { type: "tile", icon: LayoutGrid, labelKey: "dashboard.addTile" },
     { type: "switch", icon: ToggleLeft, labelKey: "dashboard.addSwitch" },
     { type: "slider", icon: SlidersHorizontal, labelKey: "dashboard.addSlider" },
+    { type: "button", icon: Play, labelKey: "dashboard.addButton" },
 ];
 
 function ManualStep({
@@ -703,6 +695,9 @@ function ManualStep({
     const [max, setMax] = useState("100");
     const [step, setStep] = useState("1");
 
+    // Button state
+    const [buttonActionId, setButtonActionId] = useState("");
+
     // Reset form fields when handler changes
     function resetFields() {
         setTileAttrId("");
@@ -716,6 +711,7 @@ function ManualStep({
         setMin("0");
         setMax("100");
         setStep("1");
+        setButtonActionId("");
     }
 
     function handleHandlerChange(val: string) {
@@ -723,12 +719,10 @@ function ManualStep({
         resetFields();
     }
 
-    // Mutations
-    const createTile = useCreateTileApiWidgetsTilesPost();
-    const createSwitch = useCreateSwitchApiWidgetsSwitchesPost();
-    const createSlider = useCreateSliderApiWidgetsSlidersPost();
+    // Mutation
+    const createWidget = useCreateWidgetApiWidgetsPost();
 
-    const isPending = createTile.isPending || createSwitch.isPending || createSlider.isPending;
+    const isPending = createWidget.isPending;
 
     // Auto-fill for switch
     const tryAutoFillSwitch = useCallback(
@@ -776,6 +770,7 @@ function ManualStep({
     }
 
     function canSubmit() {
+        if (widgetType === "button") return !!buttonActionId;
         if (!handlerId) return false;
         if (widgetType === "tile") return !!tileAttrId;
         if (widgetType === "switch") return !!switchAttrId;
@@ -786,56 +781,44 @@ function ManualStep({
         const invalidate = () =>
             queryClient.invalidateQueries({ queryKey: getDashboardApiWidgetsDashboardGetQueryKey() });
 
+        const config: Record<string, unknown> = {};
+        let attributeId: number | undefined;
+
         if (widgetType === "tile") {
-            createTile.mutate(
-                { data: { attribute_id: Number(tileAttrId) } },
-                {
-                    onSuccess: () => {
-                        invalidate();
-                        toast.success(t("toast.tileAdded"));
-                        onClose();
-                    },
-                },
-            );
+            attributeId = Number(tileAttrId);
         } else if (widgetType === "switch") {
-            createSwitch.mutate(
-                {
-                    data: {
-                        attribute_id: Number(switchAttrId),
-                        attribute_compare: attributeCompare || undefined,
-                        action_on_id: actionOnId ? Number(actionOnId) : undefined,
-                        action_off_id: actionOffId ? Number(actionOffId) : undefined,
-                    },
-                },
-                {
-                    onSuccess: () => {
-                        invalidate();
-                        toast.success(t("toast.switchAdded"));
-                        onClose();
-                    },
-                },
-            );
+            attributeId = Number(switchAttrId);
+            if (attributeCompare) config.attribute_compare = attributeCompare;
+            if (actionOnId) config.action_on_id = Number(actionOnId);
+            if (actionOffId) config.action_off_id = Number(actionOffId);
+        } else if (widgetType === "slider") {
+            attributeId = Number(sliderAttrId);
+            config.action_id = Number(sliderActionId);
+            config.param_key = paramKey;
+            config.min = Number(min);
+            config.max = Number(max);
+            config.step = Number(step);
         } else {
-            createSlider.mutate(
-                {
-                    data: {
-                        attribute_id: Number(sliderAttrId),
-                        action_id: Number(sliderActionId),
-                        param_key: paramKey,
-                        min: Number(min),
-                        max: Number(max),
-                        step: Number(step),
-                    },
-                },
-                {
-                    onSuccess: () => {
-                        invalidate();
-                        toast.success(t("toast.sliderAdded"));
-                        onClose();
-                    },
-                },
-            );
+            config.action_id = Number(buttonActionId);
+            if (handlerId) config.handler_id = Number(handlerId);
         }
+
+        createWidget.mutate(
+            {
+                data: {
+                    type: widgetType,
+                    attribute_id: attributeId,
+                    config: Object.keys(config).length > 0 ? config : undefined,
+                },
+            },
+            {
+                onSuccess: () => {
+                    invalidate();
+                    toast.success(t("toast.widgetAdded"));
+                    onClose();
+                },
+            },
+        );
     }
 
     // Find selected attributes for display in select triggers
@@ -877,135 +860,137 @@ function ManualStep({
 
                 <Separator />
 
-                {/* Handler + attribute row */}
-                <div className="flex flex-col sm:flex-row gap-3 [&_[data-slot=select-trigger]]:w-full">
-                    <div className="space-y-2 flex-1 min-w-0">
-                        <Label>{t("widgetWizard.chooseDevice")}</Label>
-                        <Select value={handlerId} onValueChange={(v) => handleHandlerChange(v ?? "")}>
-                            <SelectTrigger>
-                                <SelectValue>
-                                    {selectedHandler
-                                        ? (selectedHandler.label ?? selectedHandler.type)
-                                        : t("widgetWizard.chooseDevice")}
-                                </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent alignItemWithTrigger={false}>
-                                {handlers.map((h) => (
-                                    <SelectItem key={h.id} value={String(h.id)}>
-                                        {h.label ?? h.type}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                {/* Handler + attribute row (not for button type) */}
+                {widgetType !== "button" && (
+                    <div className="flex flex-col sm:flex-row gap-3 [&_[data-slot=select-trigger]]:w-full">
+                        <div className="space-y-2 flex-1 min-w-0">
+                            <Label>{t("widgetWizard.chooseDevice")}</Label>
+                            <Select value={handlerId} onValueChange={(v) => handleHandlerChange(v ?? "")}>
+                                <SelectTrigger>
+                                    <SelectValue>
+                                        {selectedHandler
+                                            ? (selectedHandler.label ?? selectedHandler.type)
+                                            : t("widgetWizard.chooseDevice")}
+                                    </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent alignItemWithTrigger={false}>
+                                    {handlers.map((h) => (
+                                        <SelectItem key={h.id} value={String(h.id)}>
+                                            {h.label ?? h.type}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Tile attribute */}
+                        {widgetType === "tile" && (
+                            <div className="space-y-2 flex-1 min-w-0">
+                                <Label>{t("dashboard.selectAttribute")}</Label>
+                                <Select
+                                    value={tileAttrId}
+                                    onValueChange={(v) => setTileAttrId(v ?? "")}
+                                    disabled={!handlerId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue>
+                                            {selectedTileAttr
+                                                ? localizeAttributeLabel(
+                                                      selectedTileAttr.name,
+                                                      selectedTileAttr.label,
+                                                      t,
+                                                      i18n,
+                                                  )
+                                                : t("dashboard.selectAttribute")}
+                                        </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent alignItemWithTrigger={false}>
+                                        {attributes.map((attr) => (
+                                            <SelectItem key={attr.id} value={String(attr.id)}>
+                                                {localizeAttributeLabel(attr.name, attr.label, t, i18n)}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+
+                        {/* Switch attribute */}
+                        {widgetType === "switch" && (
+                            <div className="space-y-2 flex-1 min-w-0">
+                                <Label>{t("dashboard.selectAttribute")}</Label>
+                                <Select
+                                    value={switchAttrId}
+                                    onValueChange={(v) => {
+                                        const val = v ?? "";
+                                        setSwitchAttrId(val);
+                                        tryAutoFillSwitch(val);
+                                    }}
+                                    disabled={!handlerId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue>
+                                            {selectedSwitchAttr
+                                                ? localizeAttributeLabel(
+                                                      selectedSwitchAttr.name,
+                                                      selectedSwitchAttr.label,
+                                                      t,
+                                                      i18n,
+                                                  )
+                                                : t("dashboard.selectAttribute")}
+                                        </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent alignItemWithTrigger={false}>
+                                        {attributes.map((attr) => (
+                                            <SelectItem key={attr.id} value={String(attr.id)}>
+                                                {localizeAttributeLabel(attr.name, attr.label, t, i18n)}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+
+                        {/* Slider attribute */}
+                        {widgetType === "slider" && (
+                            <div className="space-y-2 flex-1 min-w-0">
+                                <Label>{t("dashboard.selectAttribute")}</Label>
+                                <Select
+                                    value={sliderAttrId}
+                                    onValueChange={(v) => {
+                                        const val = v ?? "";
+                                        setSliderAttrId(val);
+                                        tryAutoFillSlider(val);
+                                    }}
+                                    disabled={!handlerId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue>
+                                            {selectedSliderAttr
+                                                ? localizeAttributeLabel(
+                                                      selectedSliderAttr.name,
+                                                      selectedSliderAttr.label,
+                                                      t,
+                                                      i18n,
+                                                  )
+                                                : t("dashboard.selectAttribute")}
+                                        </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent alignItemWithTrigger={false}>
+                                        {attributes.map((attr) => (
+                                            <SelectItem key={attr.id} value={String(attr.id)}>
+                                                {localizeAttributeLabel(attr.name, attr.label, t, i18n)}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
                     </div>
+                )}
 
-                    {/* Tile attribute */}
-                    {widgetType === "tile" && (
-                        <div className="space-y-2 flex-1 min-w-0">
-                            <Label>{t("dashboard.selectAttribute")}</Label>
-                            <Select
-                                value={tileAttrId}
-                                onValueChange={(v) => setTileAttrId(v ?? "")}
-                                disabled={!handlerId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue>
-                                        {selectedTileAttr
-                                            ? localizeAttributeLabel(
-                                                  selectedTileAttr.name,
-                                                  selectedTileAttr.label,
-                                                  t,
-                                                  i18n,
-                                              )
-                                            : t("dashboard.selectAttribute")}
-                                    </SelectValue>
-                                </SelectTrigger>
-                                <SelectContent alignItemWithTrigger={false}>
-                                    {attributes.map((attr) => (
-                                        <SelectItem key={attr.id} value={String(attr.id)}>
-                                            {localizeAttributeLabel(attr.name, attr.label, t, i18n)}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
-
-                    {/* Switch attribute */}
-                    {widgetType === "switch" && (
-                        <div className="space-y-2 flex-1 min-w-0">
-                            <Label>{t("dashboard.selectAttribute")}</Label>
-                            <Select
-                                value={switchAttrId}
-                                onValueChange={(v) => {
-                                    const val = v ?? "";
-                                    setSwitchAttrId(val);
-                                    tryAutoFillSwitch(val);
-                                }}
-                                disabled={!handlerId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue>
-                                        {selectedSwitchAttr
-                                            ? localizeAttributeLabel(
-                                                  selectedSwitchAttr.name,
-                                                  selectedSwitchAttr.label,
-                                                  t,
-                                                  i18n,
-                                              )
-                                            : t("dashboard.selectAttribute")}
-                                    </SelectValue>
-                                </SelectTrigger>
-                                <SelectContent alignItemWithTrigger={false}>
-                                    {attributes.map((attr) => (
-                                        <SelectItem key={attr.id} value={String(attr.id)}>
-                                            {localizeAttributeLabel(attr.name, attr.label, t, i18n)}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
-
-                    {/* Slider attribute */}
-                    {widgetType === "slider" && (
-                        <div className="space-y-2 flex-1 min-w-0">
-                            <Label>{t("dashboard.selectAttribute")}</Label>
-                            <Select
-                                value={sliderAttrId}
-                                onValueChange={(v) => {
-                                    const val = v ?? "";
-                                    setSliderAttrId(val);
-                                    tryAutoFillSlider(val);
-                                }}
-                                disabled={!handlerId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue>
-                                        {selectedSliderAttr
-                                            ? localizeAttributeLabel(
-                                                  selectedSliderAttr.name,
-                                                  selectedSliderAttr.label,
-                                                  t,
-                                                  i18n,
-                                              )
-                                            : t("dashboard.selectAttribute")}
-                                    </SelectValue>
-                                </SelectTrigger>
-                                <SelectContent alignItemWithTrigger={false}>
-                                    {attributes.map((attr) => (
-                                        <SelectItem key={attr.id} value={String(attr.id)}>
-                                            {localizeAttributeLabel(attr.name, attr.label, t, i18n)}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
-                </div>
-
-                {/* Additional fields — only show once handler is selected */}
-                {handlerId && (
+                {/* Additional fields — only show once handler is selected (or for button type) */}
+                {(handlerId || widgetType === "button") && (
                     <>
                         {/* Switch extra fields */}
                         {widgetType === "switch" && (
@@ -1136,6 +1121,35 @@ function ManualStep({
                                     </div>
                                 </div>
                             </>
+                        )}
+
+                        {/* Button extra fields */}
+                        {widgetType === "button" && (
+                            <div className="space-y-2 [&_[data-slot=select-trigger]]:w-full">
+                                <Label>{t("dashboard.selectAction")}</Label>
+                                <Select
+                                    value={buttonActionId}
+                                    onValueChange={(v) => setButtonActionId(v ?? "")}
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue>
+                                            {buttonActionId
+                                                ? localizeAction(buttonActionId)
+                                                : t("dashboard.selectAction")}
+                                        </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent alignItemWithTrigger={false}>
+                                        {allActions.map((action) => (
+                                            <SelectItem key={action.id} value={String(action.id)}>
+                                                {t(
+                                                    `knownActions.${action.name.replaceAll(" ", "_")}`,
+                                                    action.name,
+                                                )}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         )}
                     </>
                 )}

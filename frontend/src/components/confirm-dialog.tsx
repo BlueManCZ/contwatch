@@ -26,7 +26,7 @@ export function ConfirmDialog({
     title,
     description,
     confirmLabel,
-    variant = "destructive",
+    variant = "default",
     isPending,
     onConfirm,
 }: ConfirmDialogProps) {
@@ -44,7 +44,7 @@ export function ConfirmDialog({
                         {t("common.cancel")}
                     </Button>
                     <Button variant={variant} onClick={onConfirm} disabled={isPending}>
-                        {confirmLabel ?? t("common.delete")}
+                        {confirmLabel ?? t("common.confirm")}
                     </Button>
                 </DialogFooter>
             </DialogContent>

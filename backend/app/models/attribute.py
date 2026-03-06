@@ -22,10 +22,4 @@ class Attribute(Base):
     data_units: Mapped[list["DataUnit"]] = relationship(  # noqa: F821
         back_populates="attribute", cascade="all, delete-orphan", passive_deletes=True
     )
-    widget_tiles: Mapped[list["WidgetTile"]] = relationship(back_populates="attribute", cascade="all, delete-orphan")  # noqa: F821
-    widget_switches: Mapped[list["WidgetSwitch"]] = relationship(  # noqa: F821
-        back_populates="attribute", cascade="all, delete-orphan"
-    )
-    widget_sliders: Mapped[list["WidgetSlider"]] = relationship(  # noqa: F821
-        back_populates="attribute", cascade="all, delete-orphan"
-    )
+    widgets: Mapped[list["Widget"]] = relationship(back_populates="attribute", cascade="all, delete-orphan")  # noqa: F821

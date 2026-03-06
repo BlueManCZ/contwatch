@@ -3,6 +3,7 @@ import type { TFunction } from "i18next";
 import type { LucideIcon } from "lucide-react";
 import {
     Activity,
+    Box,
     Cable,
     Calendar,
     Clock,
@@ -155,6 +156,12 @@ function StatsPage() {
                                         <Server className="h-3.5 w-3.5" />
                                         <span className="data-value">{stats.hostname}</span>
                                     </span>
+                                    {stats.is_docker && (
+                                        <Badge variant="outline" className="gap-1 text-[10px]">
+                                            <Box className="h-3 w-3" />
+                                            Docker
+                                        </Badge>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -257,7 +264,19 @@ function StatsPage() {
                                 <StatCard
                                     icon={Server}
                                     label={t("stats.hostname")}
-                                    value={stats.hostname}
+                                    value={
+                                        stats.is_docker ? (
+                                            <span className="inline-flex items-center gap-2">
+                                                <span>{stats.hostname}</span>
+                                                <Badge variant="outline" className="gap-1 text-[10px]">
+                                                    <Box className="h-3 w-3" />
+                                                    Docker
+                                                </Badge>
+                                            </span>
+                                        ) : (
+                                            stats.hostname
+                                        )
+                                    }
                                     mono
                                 />
                                 <StatCard icon={Globe} label={t("stats.hostIp")} value={stats.host_ip} mono />

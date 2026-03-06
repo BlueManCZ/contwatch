@@ -33,6 +33,7 @@ class HandlerManager:
         self._trackers: dict[int, AttributeTracker] = {}  # attribute_id -> tracker
         self._attr_name_map: dict[int, dict[str, int]] = {}  # handler_id -> {name: attribute_id}
         self._last_messages: dict[int, dict] = {}  # handler_id -> last linearized message
+        self._raw_last_changed: dict[int, dict[str, datetime.datetime]] = {}  # handler_id -> {key: timestamp}
         self._last_active: dict[int, datetime.datetime] = {}  # handler_id -> last message time
         self._last_connected_state: dict[int, bool] = {}  # handler_id -> last known connected flag
         self._last_indicators: dict[int, list[dict]] = {}  # handler_id -> last indicators
@@ -167,8 +168,18 @@ class HandlerManager:
     async def _process_message(self, handler_id: int, raw_message: dict) -> None:
         """Linearize message and distribute to attribute trackers."""
         flat = linearize(raw_message)
+        now = datetime.datetime.now(datetime.UTC)
+        # Track per-key last-changed timestamps and emit for unregistered keys
+        prev = self._last_messages.get(handler_id, {})
+        changed_keys: dict[str, datetime.datetime] = {}
+        if prev:
+            for key, val in flat.items():
+                if prev.get(key) != val:
+                    changed_keys[key] = now
+            if changed_keys:
+                self._raw_last_changed.setdefault(handler_id, {}).update(changed_keys)
         self._last_messages[handler_id] = flat
-        self._last_active[handler_id] = datetime.datetime.now(datetime.UTC)
+        self._last_active[handler_id] = now
 
         # Extract and emit status indicators
         handler = self._handlers.get(handler_id)
@@ -191,6 +202,18 @@ class HandlerManager:
                 )
 
         name_map = self._attr_name_map.get(handler_id, {})
+
+        # Emit socket events for all changed raw keys
+        for key, ts in changed_keys.items():
+            await sio.emit(
+                "handler_data_value",
+                {
+                    "handler_id": handler_id,
+                    "key": key,
+                    "value": flat[key],
+                    "last_changed": ts.isoformat(),
+                },
+            )
         if not name_map:
             return
 
@@ -318,6 +341,7 @@ class HandlerManager:
         self._handlers.pop(handler_id, None)
         self._last_active.pop(handler_id, None)
         self._last_messages.pop(handler_id, None)
+        self._raw_last_changed.pop(handler_id, None)
         self._last_indicators.pop(handler_id, None)
         # Remove trackers for this handler's attributes
         attr_names = self._attr_name_map.pop(handler_id, {})
@@ -587,9 +611,11 @@ class HandlerManager:
         """Return the last linearized raw message for a handler."""
         return self._last_messages.get(handler_id, {})
 
-    def get_handler_data_value(self, handler_id: int, key: str):
-        """Read a raw value from a handler's last linearized message."""
-        return self._last_messages.get(handler_id, {}).get(key)
+    def get_handler_data_value(self, handler_id: int, key: str) -> dict:
+        """Read a raw value + last_changed from a handler's last linearized message."""
+        value = self._last_messages.get(handler_id, {}).get(key)
+        last_changed = self._raw_last_changed.get(handler_id, {}).get(key)
+        return {"value": value, "last_changed": last_changed}
 
     def get_all_data_keys(self) -> list[dict]:
         """Return linearized keys as structured dicts with value, label, and group."""

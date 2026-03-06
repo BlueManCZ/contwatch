@@ -6,11 +6,8 @@ from app.models.handler import Handler
 from app.models.logging_message import LoggingMessage
 from app.models.refresh_token import RefreshToken
 from app.models.settings import Settings
-from app.models.unit import Unit
 from app.models.user import User
-from app.models.widget_slider import WidgetSlider
-from app.models.widget_switch import WidgetSwitch
-from app.models.widget_tile import WidgetTile
+from app.models.widget import Widget
 
 __all__ = [
     "Action",
@@ -21,9 +18,6 @@ __all__ = [
     "LoggingMessage",
     "RefreshToken",
     "Settings",
-    "Unit",
     "User",
-    "WidgetSlider",
-    "WidgetSwitch",
-    "WidgetTile",
+    "Widget",
 ]

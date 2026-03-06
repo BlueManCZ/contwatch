@@ -12,5 +12,5 @@ class HandlerDataReader(AbstractNode):
         handler_id = self.get_input("handler_id")
         key = self.get_input("key")
         if handler_id is not None and key and self.manager:
-            return self.manager.get_handler_data_value(int(handler_id), key)
+            return self.manager.get_handler_data_value(int(handler_id), key)["value"]
         return None

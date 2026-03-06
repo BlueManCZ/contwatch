@@ -4,24 +4,21 @@ import { LayoutGrid } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import type { DashboardSlider, DashboardSwitch, DashboardTile } from "@/api/generated/contWatchAPI.schemas";
+import type { DashboardWidget } from "@/api/generated/contWatchAPI.schemas";
 import {
-    getListSlidersApiWidgetsSlidersGetQueryKey,
-    getListSwitchesApiWidgetsSwitchesGetQueryKey,
-    getListTilesApiWidgetsTilesGetQueryKey,
+    getDashboardApiWidgetsDashboardGetQueryKey,
     useDashboardApiWidgetsDashboardGet,
-    useDeleteSliderApiWidgetsSlidersSliderIdDelete,
-    useDeleteSwitchApiWidgetsSwitchesSwitchIdDelete,
-    useDeleteTileApiWidgetsTilesTileIdDelete,
+    useDeleteWidgetApiWidgetsWidgetIdDelete,
+    useReorderWidgetsApiWidgetsReorderPost,
 } from "@/api/generated/widgets/widgets";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { EditSliderDialog } from "@/components/dashboard/edit-slider-dialog";
-import { EditSwitchDialog } from "@/components/dashboard/edit-switch-dialog";
-import { EditTileDialog } from "@/components/dashboard/edit-tile-dialog";
+import { EditWidgetDialog } from "@/components/dashboard/edit-widget-dialog";
+import { WidgetButton } from "@/components/dashboard/widget-button";
 import { WidgetSlider } from "@/components/dashboard/widget-slider";
 import { WidgetSwitch } from "@/components/dashboard/widget-switch";
 import { WidgetTile } from "@/components/dashboard/widget-tile";
 import { WidgetWizard } from "@/components/dashboard/widget-wizard";
+import { SortableList } from "@/components/handlers/sortable-list";
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageContent, PageHeader } from "@/components/layout/page-header";
 import { getWidgetStatus } from "@/lib/widget-status";
@@ -31,31 +28,61 @@ export function DashboardGrid() {
     const { t } = useTranslation();
     const queryClient = useQueryClient();
     const { data } = useDashboardApiWidgetsDashboardGet();
-    const deleteTile = useDeleteTileApiWidgetsTilesTileIdDelete();
-    const deleteSwitch = useDeleteSwitchApiWidgetsSwitchesSwitchIdDelete();
-    const deleteSlider = useDeleteSliderApiWidgetsSlidersSliderIdDelete();
+    const deleteWidget = useDeleteWidgetApiWidgetsWidgetIdDelete();
+    const reorderWidgets = useReorderWidgetsApiWidgetsReorderPost();
     const navigate = useNavigate();
-    const [editingTile, setEditingTile] = useState<DashboardTile | null>(null);
-    const [editingSwitch, setEditingSwitch] = useState<DashboardSwitch | null>(null);
-    const [editingSlider, setEditingSlider] = useState<DashboardSlider | null>(null);
-    const [pendingDelete, setPendingDelete] = useState<{
-        type: "tile" | "switch" | "slider";
-        id: number;
-    } | null>(null);
+    const [editing, setEditing] = useState<DashboardWidget | null>(null);
+    const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
     const handlerStatuses = useHandlerStatusStore((s) => s.statuses);
 
-    const statusOf = (handlerId: number, apiRunning?: boolean, apiConnected?: boolean) =>
-        getWidgetStatus(handlerStatuses[handlerId], apiRunning, apiConnected);
+    const statusOf = (w: DashboardWidget) =>
+        getWidgetStatus(
+            w.handler_id ? handlerStatuses[w.handler_id] : undefined,
+            w.handler_running,
+            w.handler_connected,
+        );
 
-    const tiles = data?.data?.tiles ?? [];
-    const switches = data?.data?.switches ?? [];
-    const sliders = data?.data?.sliders ?? [];
-    const isEmpty = tiles.length === 0 && switches.length === 0 && sliders.length === 0;
+    const widgets = data?.data ?? [];
+    const isEmpty = widgets.length === 0;
+
+    function renderWidget(w: DashboardWidget) {
+        const status = statusOf(w);
+        const common = {
+            key: w.id,
+            onEdit: () => setEditing(w),
+            onRemove: () => setPendingDeleteId(w.id),
+        };
+
+        switch (w.type) {
+            case "tile":
+                return (
+                    <WidgetTile
+                        {...common}
+                        widget={w}
+                        status={status}
+                        onClick={() =>
+                            navigate({
+                                to: "/analytics",
+                                search: { attributes: String(w.attribute_id) },
+                            })
+                        }
+                    />
+                );
+            case "switch":
+                return <WidgetSwitch {...common} widget={w} status={status} />;
+            case "slider":
+                return <WidgetSlider {...common} widget={w} status={status} />;
+            case "button":
+                return <WidgetButton {...common} widget={w} status={status} />;
+            default:
+                return null;
+        }
+    }
 
     return (
         <>
             <PageHeader title={t("dashboard.title")} actions={<WidgetWizard />} />
-            <PageContent className="space-y-5">
+            <PageContent>
                 {isEmpty ? (
                     <EmptyState
                         icon={LayoutGrid}
@@ -64,153 +91,63 @@ export function DashboardGrid() {
                         action={<WidgetWizard />}
                     />
                 ) : (
-                    <>
-                        {/* Monitoring section */}
-                        {tiles.length > 0 && (
-                            <section>
-                                <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
-                                    {t("nav.monitoring")}
-                                </h2>
-                                <div className="grid gap-3 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                    {tiles.map((tile) => (
-                                        <WidgetTile
-                                            key={tile.id}
-                                            tile={tile}
-                                            status={statusOf(
-                                                tile.handler_id,
-                                                tile.handler_running,
-                                                tile.handler_connected,
-                                            )}
-                                            onEdit={() => setEditingTile(tile)}
-                                            onRemove={() => setPendingDelete({ type: "tile", id: tile.id })}
-                                            onClick={() =>
-                                                navigate({
-                                                    to: "/analytics",
-                                                    search: { attributes: String(tile.attribute_id) },
-                                                })
-                                            }
-                                        />
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-
-                        {/* Controls section */}
-                        {(switches.length > 0 || sliders.length > 0) && (
-                            <section>
-                                <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
-                                    {t("nav.controls")}
-                                </h2>
-                                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                    {switches.map((sw) => (
-                                        <WidgetSwitch
-                                            key={`sw-${sw.id}`}
-                                            switch_={sw}
-                                            status={statusOf(
-                                                sw.handler_id,
-                                                sw.handler_running,
-                                                sw.handler_connected,
-                                            )}
-                                            onEdit={() => setEditingSwitch(sw)}
-                                            onRemove={() => setPendingDelete({ type: "switch", id: sw.id })}
-                                        />
-                                    ))}
-                                    {sliders.map((sl) => (
-                                        <WidgetSlider
-                                            key={`sl-${sl.id}`}
-                                            slider={sl}
-                                            status={statusOf(
-                                                sl.handler_id,
-                                                sl.handler_running,
-                                                sl.handler_connected,
-                                            )}
-                                            onEdit={() => setEditingSlider(sl)}
-                                            onRemove={() => setPendingDelete({ type: "slider", id: sl.id })}
-                                        />
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-                    </>
-                )}
-
-                {editingTile && (
-                    <EditTileDialog
-                        tile={editingTile}
-                        open={!!editingTile}
-                        onOpenChange={(open) => {
-                            if (!open) setEditingTile(null);
+                    <SortableList
+                        items={widgets}
+                        multiColumn
+                        onLongPress={(w) => setEditing(w)}
+                        onReorder={(reordered) => {
+                            const items = reordered.map((w, i) => ({ id: w.id, order: i }));
+                            reorderWidgets.mutate(
+                                { data: { items } },
+                                {
+                                    onSuccess: () => {
+                                        queryClient.invalidateQueries({
+                                            queryKey: getDashboardApiWidgetsDashboardGetQueryKey(),
+                                        });
+                                    },
+                                },
+                            );
                         }}
-                        onRemove={() => setPendingDelete({ type: "tile", id: editingTile.id })}
+                        className="grid gap-3 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                        renderItem={(w) => renderWidget(w)}
                     />
                 )}
 
-                {editingSwitch && (
-                    <EditSwitchDialog
-                        switch_={editingSwitch}
-                        open={!!editingSwitch}
+                {editing && (
+                    <EditWidgetDialog
+                        widget={editing}
+                        open={!!editing}
                         onOpenChange={(open) => {
-                            if (!open) setEditingSwitch(null);
+                            if (!open) setEditing(null);
                         }}
-                        onRemove={() => setPendingDelete({ type: "switch", id: editingSwitch.id })}
-                    />
-                )}
-
-                {editingSlider && (
-                    <EditSliderDialog
-                        slider={editingSlider}
-                        open={!!editingSlider}
-                        onOpenChange={(open) => {
-                            if (!open) setEditingSlider(null);
-                        }}
-                        onRemove={() => setPendingDelete({ type: "slider", id: editingSlider.id })}
+                        onRemove={() => setPendingDeleteId(editing.id)}
                     />
                 )}
 
                 <ConfirmDialog
-                    open={pendingDelete !== null}
+                    open={pendingDeleteId !== null}
                     onOpenChange={(open) => {
-                        if (!open) setPendingDelete(null);
+                        if (!open) setPendingDeleteId(null);
                     }}
-                    isPending={deleteTile.isPending || deleteSwitch.isPending || deleteSlider.isPending}
+                    isPending={deleteWidget.isPending}
                     onConfirm={() => {
-                        if (!pendingDelete) return;
-                        const { type, id } = pendingDelete;
-                        const config = {
-                            tile: {
-                                mutate: deleteTile,
-                                param: { tileId: id },
-                                queryKey: getListTilesApiWidgetsTilesGetQueryKey(),
-                                toastKey: "toast.tileRemoved",
-                                clearEditing: () => setEditingTile(null),
+                        if (pendingDeleteId === null) return;
+                        deleteWidget.mutate(
+                            { widgetId: pendingDeleteId },
+                            {
+                                onSuccess: () => {
+                                    setPendingDeleteId(null);
+                                    setEditing(null);
+                                    queryClient.invalidateQueries({
+                                        queryKey: getDashboardApiWidgetsDashboardGetQueryKey(),
+                                    });
+                                    toast.success(t("toast.widgetRemoved"));
+                                },
                             },
-                            switch: {
-                                mutate: deleteSwitch,
-                                param: { switchId: id },
-                                queryKey: getListSwitchesApiWidgetsSwitchesGetQueryKey(),
-                                toastKey: "toast.switchRemoved",
-                                clearEditing: () => setEditingSwitch(null),
-                            },
-                            slider: {
-                                mutate: deleteSlider,
-                                param: { sliderId: id },
-                                queryKey: getListSlidersApiWidgetsSlidersGetQueryKey(),
-                                toastKey: "toast.sliderRemoved",
-                                clearEditing: () => setEditingSlider(null),
-                            },
-                        }[type];
-                        config.mutate.mutate(config.param as never, {
-                            onSuccess: () => {
-                                setPendingDelete(null);
-                                queryClient.invalidateQueries({ queryKey: config.queryKey });
-                                toast.success(t(config.toastKey));
-                                config.clearEditing();
-                            },
-                        });
+                        );
                     }}
-                    description={t(
-                        `confirm.remove${pendingDelete ? pendingDelete.type.charAt(0).toUpperCase() + pendingDelete.type.slice(1) : "Tile"}`,
-                    )}
+                    description={t("confirm.removeWidget")}
+                    variant="destructive"
                     confirmLabel={t("confirm.remove")}
                 />
             </PageContent>

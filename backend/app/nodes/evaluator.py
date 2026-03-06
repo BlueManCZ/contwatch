@@ -36,6 +36,6 @@ class Evaluator(AbstractNode):
             return None
 
         try:
-            return func(float(first), float(second))
+            return func(float(str(first).replace(",", ".")), float(str(second).replace(",", ".")))
         except (ValueError, TypeError):
             return None

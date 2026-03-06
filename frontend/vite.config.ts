@@ -12,7 +12,7 @@ export default defineConfig({
         },
     },
     server: {
-        allowedHosts: ['dev.smerivo.cz'],
+        allowedHosts: true,
         proxy: {
             "/api": {
                 target: "http://localhost:8000",
