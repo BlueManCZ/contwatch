@@ -1,11 +1,22 @@
-from pydantic import field_validator
+import sys
+
+from pydantic import ValidationError, computed_field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file="../.env", env_file_encoding="utf-8", extra="ignore")
 
-    database_url: str = "postgresql+asyncpg://contwatch:contwatch@localhost:5432/contwatch"
+    postgres_user: str
+    postgres_password: str
+    postgres_db: str
+    postgres_host: str = "localhost"
+    postgres_port: int = 5432
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def database_url(self) -> str:
+        return f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
 
     jwt_secret_key: str
 
@@ -30,4 +41,14 @@ class Settings(BaseSettings):
     debug: bool = False
 
 
-settings = Settings()
+try:
+    settings = Settings()
+except ValidationError as exc:
+    missing = [e["loc"][0] for e in exc.errors() if e["type"] == "missing"]
+    if missing:
+        env_vars = ", ".join(str(f).upper() for f in missing)
+        print(f"\n  ERROR: Missing required environment variables: {env_vars}", file=sys.stderr)
+        print("  Set them in your .env file or as environment variables.\n", file=sys.stderr)
+    else:
+        print(f"\n  ERROR: Invalid configuration:\n{exc}\n", file=sys.stderr)
+    raise SystemExit(3) from None

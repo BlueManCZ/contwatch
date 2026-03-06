@@ -1,6 +1,6 @@
 import datetime
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import select
 
 from app.dependencies import CurrentUser, DbSession
@@ -18,8 +18,8 @@ async def list_data_units(
     attribute_id: int | None = None,
     date_from: datetime.date | None = None,
     date_to: datetime.date | None = None,
-    tz_offset: int = Query(0, description="Browser timezone offset in minutes (JS getTimezoneOffset)"),
-    limit: int = 1000,
+    tz_offset: int = Query(0, ge=-720, le=840, description="Browser timezone offset in minutes (JS getTimezoneOffset)"),
+    limit: int = Query(1000, ge=1, le=10000),
 ):
     tz_delta = datetime.timedelta(minutes=tz_offset)
     query = select(DataUnit)
@@ -43,13 +43,15 @@ async def chart_data(
     _current_user: CurrentUser,
     attribute_ids: str = Query(..., description="Comma-separated attribute IDs"),
     date: datetime.date | None = None,
-    tz_offset: int = Query(0, description="Browser timezone offset in minutes (JS getTimezoneOffset)"),
+    tz_offset: int = Query(0, ge=-720, le=840, description="Browser timezone offset in minutes (JS getTimezoneOffset)"),
 ):
     tz_delta = datetime.timedelta(minutes=tz_offset)
     if date is None:
         date = (datetime.datetime.now(datetime.UTC) - tz_delta).date()
 
     ids = [int(x) for x in attribute_ids.split(",") if x.strip()]
+    if len(ids) > 100:
+        raise HTTPException(status_code=400, detail="Too many attribute IDs (max 100)")
 
     # Day boundaries adjusted for client timezone
     day_start = datetime.datetime.combine(date, datetime.time.min, tzinfo=datetime.UTC) + tz_delta

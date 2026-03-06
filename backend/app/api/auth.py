@@ -53,6 +53,7 @@ _LOCKOUT_DURATION = timedelta(minutes=15)
 # always runs and timing is constant regardless of username validity.
 _DUMMY_HASH = "$2b$12$LJ3m4ys3Lg2HEkGFGOoiGe1IkmGCELmBU9a3MIBf4FPAzoJuvkPVe"
 
+_CREDENTIALS_MSG = "Invalid credentials. If you've had multiple failed attempts, please wait before trying again."
 _TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
 
 
@@ -80,22 +81,21 @@ async def login(body: LoginRequest, request: Request, response: Response, db: Db
     user = result.scalar_one_or_none()
 
     # Check account lockout before password verification
-    if user and user.locked_until and user.locked_until > datetime.now(UTC):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account temporarily locked")
+    locked = user and user.locked_until and user.locked_until > datetime.now(UTC)
 
-    # Always run verify_password to equalize timing regardless of whether user exists
+    # Always run verify_password to equalize timing regardless of whether user exists or is locked
     password_ok = (
         verify_password(body.password, user.hashed_password) if user else verify_password(body.password, _DUMMY_HASH)
     )
 
-    if not user or not password_ok or not user.is_active:
-        # Increment failed attempts if user exists and password was wrong (not inactive)
-        if user and not password_ok:
+    if locked or not user or not password_ok or not user.is_active:
+        # Increment failed attempts if user exists, not locked, and password was wrong (not inactive)
+        if user and not locked and not password_ok:
             user.failed_login_attempts += 1
             if user.failed_login_attempts >= _MAX_FAILED_ATTEMPTS:
                 user.locked_until = datetime.now(UTC) + _LOCKOUT_DURATION
             await db.commit()
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=_CREDENTIALS_MSG)
 
     # Reset lockout state on successful login
     user.failed_login_attempts = 0
@@ -204,8 +204,12 @@ async def update_user(user_id: int, body: UserUpdate, db: DbSession, current_use
 
     deactivated = "is_active" in update_data and not update_data["is_active"]
 
-    for field, value in update_data.items():
-        setattr(user, field, value)
+    if "email" in update_data:
+        user.email = update_data["email"]
+    if "role" in update_data:
+        user.role = update_data["role"]
+    if "is_active" in update_data:
+        user.is_active = update_data["is_active"]
 
     if password_changed or deactivated:
         await revoke_all_user_tokens(db, user_id)

@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/providers/auth-provider";
-import { Route } from "@/routes/login";
+import { Route, sanitizeRedirect } from "@/routes/login";
 
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
 
@@ -31,7 +31,7 @@ export function LoginForm() {
         setIsSubmitting(true);
         try {
             await login(username, password, turnstileToken);
-            await navigate({ to: redirectTo || "/" });
+            await navigate({ to: sanitizeRedirect(redirectTo) });
         } catch (err) {
             if (isAxiosError(err)) {
                 switch (err.response?.status) {

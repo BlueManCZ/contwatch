@@ -4,6 +4,10 @@ from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock
 
 os.environ["TESTING"] = "1"
+os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-that-is-at-least-32-chars-long")
+os.environ.setdefault("POSTGRES_USER", "test")
+os.environ.setdefault("POSTGRES_PASSWORD", "test")
+os.environ.setdefault("POSTGRES_DB", "test")
 
 import pytest
 from httpx import ASGITransport, AsyncClient

@@ -27,7 +27,7 @@ services:
       - "8000:8000"
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db-v2:5432/${POSTGRES_DB}
+      POSTGRES_HOST: db-v2
     device_cgroup_rules:
       - 'c 188:* rmw'   # /dev/ttyUSB*
       - 'c 166:* rmw'   # /dev/ttyACM*

@@ -312,8 +312,16 @@ async def update_handler(
         _normalize_config(update_data["options"]["config"])
     needs_restart = "options" in update_data
 
-    for field, value in update_data.items():
-        setattr(handler, field, value)
+    if "type" in update_data:
+        handler.type = update_data["type"]
+    if "label" in update_data:
+        handler.label = update_data["label"]
+    if "options" in update_data:
+        handler.options = update_data["options"]
+    if "enabled" in update_data:
+        handler.enabled = update_data["enabled"]
+    if "confirm_actions" in update_data:
+        handler.confirm_actions = update_data["confirm_actions"]
 
     await db.commit()
     await db.refresh(handler, attribute_names=["attributes", "actions"])

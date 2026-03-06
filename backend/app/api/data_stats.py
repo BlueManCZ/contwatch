@@ -1,6 +1,6 @@
 import datetime
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import text
 
 from app.dependencies import CurrentUser, DbSession
@@ -20,6 +20,8 @@ async def list_data_stats(
         date = datetime.datetime.now(datetime.UTC).date()
 
     ids = [int(x) for x in attribute_ids.split(",") if x.strip()]
+    if len(ids) > 100:
+        raise HTTPException(status_code=400, detail="Too many attribute IDs (max 100)")
 
     # Query the continuous aggregate view
     result = await db.execute(
