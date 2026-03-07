@@ -1,0 +1,217 @@
+from __future__ import annotations
+
+import asyncio
+import contextlib
+import logging
+import time
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, ClassVar, TypedDict
+
+if TYPE_CHECKING:
+    import httpx
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class KnownAttribute:
+    name: str
+    label: str | None = None
+    unit: str | None = None
+    icon: str | None = None
+    rounding: int | None = None
+
+
+@dataclass(frozen=True)
+class ActionParam:
+    key: str
+    label: str
+    type: str = "number"
+    min: float | None = None
+    max: float | None = None
+    step: float | None = None
+    unit: str | None = None
+    default: float | None = None
+
+
+@dataclass(frozen=True)
+class KnownAction:
+    name: str
+    message: str
+    params: tuple[ActionParam, ...] = ()
+
+
+@dataclass(frozen=True)
+class Indicator:
+    icon: str  # lucide icon name, e.g. "wifi", "battery-low"
+    color: str  # "success" | "warning" | "destructive" | "muted"
+    tooltip_key: str  # i18n key, e.g. "indicators.wifi"
+    tooltip_params: dict[str, str] | None = None  # e.g. {"rssi": "-80"}
+
+
+@dataclass(frozen=True)
+class KnownControl:
+    type: str  # "switch" or "slider"
+    key: str
+    label: str
+    icon: str | None = None
+    state_attribute: str = ""
+    state_compare: str | None = None
+    action_on: str | None = None
+    action_off: str | None = None
+    action: str | None = None
+    param_key: str | None = None
+    min: float = 0
+    max: float = 100
+    step: float = 1
+    unit: str | None = None
+
+
+class _ConfigFieldOptional(TypedDict, total=False):
+    choices: list[dict[str, str]] | None  # [{"value": ..., "label": ...}]
+    row: int | None
+
+
+class ConfigField(_ConfigFieldOptional):
+    """Typed dict for handler config_fields entries."""
+
+    key: str
+    type: str
+    label: str
+    default: Any
+
+
+class AbstractHandler(ABC):
+    """Base class for all IoT data handlers.
+
+    Subclasses must set class-level attributes (handler_type, handler_name, etc.)
+    and implement the async run() method.
+    """
+
+    handler_type: ClassVar[str] = ""
+    handler_name: ClassVar[str] = "Unknown"
+    handler_icon: ClassVar[str] = "default"
+    handler_category: ClassVar[str] = ""
+    config_fields: ClassVar[list[ConfigField]] = []
+    known_attributes: ClassVar[list[KnownAttribute]] = []
+    known_actions: ClassVar[list[KnownAction]] = []
+    known_controls: ClassVar[list[KnownControl]] = []
+    probe_priority: ClassVar[int] = 0
+
+    @classmethod
+    def describe(cls, options: dict) -> str:
+        """Return a short human-readable description for a handler instance."""
+        return cls.handler_name
+
+    @classmethod
+    async def probe(cls, config: dict, client: httpx.AsyncClient | None = None) -> bool:
+        """Attempt to detect this handler type from the given config. Returns True if detected."""
+        return False
+
+    def __init__(self, handler_id: int, options: dict):
+        self.handler_id = handler_id
+        self.options = options or {}
+        self._task: asyncio.Task | None = None
+        self._active = False
+        self._connected = False
+        self._queue: asyncio.Queue[dict] = asyncio.Queue()
+
+    # --- Lifecycle ---
+
+    def start(self) -> None:
+        if self._task and not self._task.done():
+            return
+        self._active = True
+        self._task = asyncio.create_task(self._run_wrapper())
+        logger.info("Handler %s (%s) started", self.handler_id, self.handler_type)
+
+    async def stop(self) -> None:
+        self._active = False
+        if self._task and not self._task.done():
+            self._task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await self._task
+        self._task = None
+        self._connected = False
+        logger.info("Handler %s (%s) stopped", self.handler_id, self.handler_type)
+
+    async def _run_wrapper(self) -> None:
+        try:
+            await self.run()
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("Handler %s (%s) crashed", self.handler_id, self.handler_type)
+        finally:
+            self._active = False
+            self._connected = False
+
+    @abstractmethod
+    async def run(self) -> None: ...
+
+    # --- State ---
+
+    @property
+    def is_active(self) -> bool:
+        return self._active
+
+    @property
+    def is_connected(self) -> bool:
+        return self._connected
+
+    # --- Message queue ---
+
+    def add_message(self, message: dict) -> None:
+        self._queue.put_nowait(message)
+
+    def has_messages(self) -> bool:
+        return not self._queue.empty()
+
+    def get_message(self) -> dict | None:
+        try:
+            return self._queue.get_nowait()
+        except asyncio.QueueEmpty:
+            return None
+
+    # --- Action execution ---
+
+    async def execute_action(self, message: str) -> bool:
+        """Execute an action. message is a JSON string. Returns success."""
+        logger.warning("Handler %s (%s) does not support actions", self.handler_id, self.handler_type)
+        return False
+
+    def extract_indicators(self, data: dict) -> list[Indicator]:
+        """Override to extract status indicators from raw device data."""
+        return []
+
+    def disconnected_indicators(self) -> list[Indicator]:
+        """Override to provide indicators shown when the handler loses connection."""
+        return []
+
+    # --- Config helpers ---
+
+    def get_config(self) -> dict:
+        return self.options.get("config", {})
+
+    def get_config_option(self, key: str, default: Any = None) -> Any:
+        return self.get_config().get(key, default)
+
+    # --- Interval helper ---
+
+    async def wait_for_interval(self, seconds: float) -> None:
+        """Sleep until the next wall-clock-aligned interval boundary.
+
+        For a 10s interval, polls align to :00, :10, :20, etc.
+        If a poll overshoots the next boundary, skips to the following one.
+        """
+        now = time.time()
+        sleep_for = seconds - (now % seconds)
+        if sleep_for < 0.1:
+            sleep_for += seconds
+        deadline = asyncio.get_event_loop().time() + sleep_for
+        while self._active:
+            remaining = deadline - asyncio.get_event_loop().time()
+            if remaining <= 0:
+                break
+            await asyncio.sleep(min(0.5, remaining))

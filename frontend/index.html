@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <title>ContWatch</title>
+        <script>
+            // Apply theme before first paint to prevent white flash
+            try {
+                var s = JSON.parse(localStorage.getItem("contwatch-settings"));
+                var t = s && s.state && s.state.theme;
+            } catch (e) {}
+            document.documentElement.classList.add(t === "light" ? "light" : "dark");
+        </script>
+        <style>
+            /* Critical theme colors inlined to prevent FOUC */
+            html.dark { background-color: oklch(0.135 0.004 260); color: oklch(0.93 0 0) }
+            html.light, html:not(.dark) { background-color: oklch(0.975 0.002 80); color: oklch(0.145 0.008 260) }
+        </style>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <div id="root"></div>
+        <script type="module" src="/src/main.tsx"></script>
+    </body>
+</html>
