@@ -60,7 +60,8 @@
         "fullscreenPromptDescription": "Chcete zobrazit na celé obrazovce?",
         "enterFullscreen": "Celá obrazovka",
         "exitFullscreen": "Ukončit celou obrazovku",
-        "confirm": "Potvrdit"
+        "confirm": "Potvrdit",
+        "edit": "Upravit"
     },
     "controls": {
         "relay": "Relé",
@@ -154,7 +155,11 @@
         "Discharge_ON": "Vybíjení ZAP",
         "Discharge_OFF": "Vybíjení VYP",
         "Charge+Discharge_ON": "Nabíjení+vybíjení ZAP",
-        "Both_OFF": "Obojí VYP"
+        "Both_OFF": "Obojí VYP",
+        "Set_Remaining_Capacity": "Nastavit zbývající kapacitu",
+        "Balance_Odd_Cells": "Balancovat liché články",
+        "Balance_Even_Cells": "Balancovat sudé články",
+        "Balance_Stop": "Zastavit balancování"
     },
     "fields": {
         "host": "URL / IP zařízení",

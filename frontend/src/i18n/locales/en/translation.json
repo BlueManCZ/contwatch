@@ -60,7 +60,8 @@
         "fullscreenPromptDescription": "Would you like to view this in fullscreen mode?",
         "enterFullscreen": "Enter Fullscreen",
         "exitFullscreen": "Exit Fullscreen",
-        "confirm": "Confirm"
+        "confirm": "Confirm",
+        "edit": "Edit"
     },
     "controls": {
         "relay": "Relay",
@@ -154,7 +155,11 @@
         "Discharge_ON": "Discharge ON",
         "Discharge_OFF": "Discharge OFF",
         "Charge+Discharge_ON": "Charge+Discharge ON",
-        "Both_OFF": "Both OFF"
+        "Both_OFF": "Both OFF",
+        "Set_Remaining_Capacity": "Set Remaining Capacity",
+        "Balance_Odd_Cells": "Balance Odd Cells",
+        "Balance_Even_Cells": "Balance Even Cells",
+        "Balance_Stop": "Balance Stop"
     },
     "fields": {
         "host": "Device URL / IP",

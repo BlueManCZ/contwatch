@@ -247,7 +247,7 @@ export function EditWidgetDialog({ widget, open, onOpenChange, onRemove }: EditW
                                 variant="outline"
                                 size="sm"
                                 onClick={onRemove}
-                                className="text-muted-foreground hover:text-destructive-foreground cursor-pointer"
+                                className="text-muted-foreground hover:text-destructive-foreground"
                             >
                                 <Trash2 className="mr-1.5 h-3.5 w-3.5" />
                                 {t(removeKey)}

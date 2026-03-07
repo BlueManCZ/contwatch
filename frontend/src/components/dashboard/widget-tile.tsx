@@ -137,7 +137,7 @@ export function WidgetTile({ widget: tile, status = "online", onRemove, onEdit, 
                                     onEdit();
                                 }}
                                 className="h-5 w-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-                                title={t("dashboard.editTile")}
+                                title={t("common.edit")}
                             >
                                 <Pencil className="h-3 w-3" />
                             </button>
@@ -150,7 +150,7 @@ export function WidgetTile({ widget: tile, status = "online", onRemove, onEdit, 
                                     onRemove();
                                 }}
                                 className="h-5 w-5 flex items-center justify-center rounded text-muted-foreground hover:text-destructive-foreground hover:bg-destructive/10 transition-all"
-                                title={t("dashboard.removeTile")}
+                                title={t("common.delete")}
                             >
                                 <X className="h-3 w-3" />
                             </button>

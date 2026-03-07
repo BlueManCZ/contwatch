@@ -457,7 +457,7 @@ function HandlerControlsAndActions({ handler }: { handler: HandlerRead }) {
         <Button
             size="xs"
             variant="ghost"
-            className="text-muted-foreground/70 hover:text-foreground cursor-pointer -my-1"
+            className="text-muted-foreground/70 hover:text-foreground -my-1"
             onClick={() => setAddOpen(true)}
         >
             <Plus className="h-3.5 w-3.5" />
@@ -603,7 +603,7 @@ function ActionCard({
         <Button
             variant="ghost"
             size="icon"
-            className="shrink-0 cursor-pointer bg-primary/10 hover:bg-primary/20"
+            className="shrink-0 bg-primary/10 hover:bg-primary/20"
             onClick={(e) => {
                 e.stopPropagation();
                 if (!params) onExecute(action);

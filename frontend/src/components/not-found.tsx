@@ -43,7 +43,7 @@ export function NotFound() {
 
                 {/* Action */}
                 <Link to="/">
-                    <Button className="cursor-pointer">
+                    <Button>
                         <ArrowLeft className="size-4" />
                         {t("notFound.backHome")}
                     </Button>

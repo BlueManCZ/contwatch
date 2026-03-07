@@ -6,7 +6,15 @@ from typing import ClassVar
 import serial_asyncio
 from serial import SerialException
 
-from app.handlers.base import AbstractHandler, ConfigField, Indicator, KnownAction, KnownAttribute, KnownControl
+from app.handlers.base import (
+    AbstractHandler,
+    ActionParam,
+    ConfigField,
+    Indicator,
+    KnownAction,
+    KnownAttribute,
+    KnownControl,
+)
 from app.handlers.registry import register_handler_type
 
 logger = logging.getLogger(__name__)
@@ -43,28 +51,21 @@ _OFF_TEMPS = 23  # uint16 each, in decikelvin
 # Conversion constants
 _DECIKELVIN_OFFSET = 2731  # NTC readings are in 0.1K; subtract to get 0.1°C
 
-# TODO: Additional write commands to implement
-# All writes use frame format: DD 5A <register> <len> <data> <checksum_hi> <checksum_lo> 77
+# Write commands — frame format: DD 5A <register> <len> <data> <checksum_hi> <checksum_lo> 77
 # Factory mode is required before 0xE0 and 0xE2 — enter via reg 0x00, exit via reg 0x01.
-#
-# Register 0x00 — Enter factory mode (required before 0xE0/0xE2):
-#   DD 5A 00 02 56 78 <checksum> 77
-#
-# Register 0x01 — Exit factory mode:
-#   DD 5A 01 02 00 00 <checksum> 77  (exit without saving)
-#   DD 5A 01 02 28 28 <checksum> 77  (exit, save to EEPROM, reset error counts)
-#
-# Register 0xE0 — Set remaining capacity (U16, unit 10mAh):
-#   DD 5A E0 02 <hi> <lo> <checksum> 77
-#   Useful for SOC calibration.
-#
-# Register 0xE2 — Balance control (U16):
-#   DD 5A E2 02 00 01 <checksum> 77  (open odd cells)
-#   DD 5A E2 02 00 02 <checksum> 77  (open even cells)
-#   DD 5A E2 02 00 03 <checksum> 77  (close all cells)
-#   Exit factory mode to stop balancing.
-#
 # Source: https://gitlab.com/bms-tools/bms-tools/-/raw/master/JBD_REGISTER_MAP.md
+
+
+def _build_write_frame(register: int, data: bytes) -> bytes:
+    """Build a write frame: DD 5A <register> <len> <data...> <checksum_hi> <checksum_lo> 77."""
+    payload = bytes([register, len(data)]) + data
+    checksum = (0x10000 - sum(payload)) & 0xFFFF
+    return b"\xdd\x5a" + payload + checksum.to_bytes(2, "big") + b"\x77"
+
+
+_CMD_ENTER_FACTORY = _build_write_frame(0x00, b"\x56\x78")
+_CMD_EXIT_FACTORY = _build_write_frame(0x01, b"\x00\x00")
+_CMD_EXIT_FACTORY_SAVE = _build_write_frame(0x01, b"\x28\x28")
 
 
 def _uint16(data: list[int], index: int) -> int:
@@ -138,6 +139,16 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
         # Direct MOS control (full state)
         KnownAction(name="Charge+Discharge ON", message=json.dumps({"mos_state": "00"})),
         KnownAction(name="Both OFF", message=json.dumps({"mos_state": "11"})),
+        # SOC calibration
+        KnownAction(
+            name="Set Remaining Capacity",
+            message=json.dumps({"set_capacity": 0}),
+            params=(ActionParam(key="capacity", label="Capacity", unit="mAh", min=0, max=655350, step=10, default=0),),
+        ),
+        # Balance control
+        KnownAction(name="Balance Odd Cells", message=json.dumps({"balance": "odd"})),
+        KnownAction(name="Balance Even Cells", message=json.dumps({"balance": "even"})),
+        KnownAction(name="Balance Stop", message=json.dumps({"balance": "stop"})),
     ]
     known_controls: ClassVar[list[KnownControl]] = [
         KnownControl(
@@ -344,6 +355,16 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
             else:
                 return
 
+    async def _factory_mode(self, command: bytes, *, save: bool = False) -> list[int]:
+        """Enter factory mode, execute a command, and exit factory mode."""
+        await self._transact(_CMD_ENTER_FACTORY)
+        try:
+            result = await self._transact(command)
+        finally:
+            exit_cmd = _CMD_EXIT_FACTORY_SAVE if save else _CMD_EXIT_FACTORY
+            await self._transact(exit_cmd)
+        return result
+
     def _compute_mos_control_value(self, charge_on: bool, discharge_on: bool) -> int:
         """Compute the MOS control frame value from desired switch states.
 
@@ -379,6 +400,10 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
                 logger.error("Handler %s: invalid mos_state '%s'", self.handler_id, mos_state)
                 return False
             val = int(mos_state, 2)
+        elif "set_capacity" in parsed:
+            return await self._execute_set_capacity(parsed)
+        elif "balance" in parsed:
+            return await self._execute_balance(parsed)
         else:
             logger.error("Handler %s: unknown action format: %s", self.handler_id, message)
             return False
@@ -402,3 +427,34 @@ class JiabaidaBmsSerialHandler(AbstractHandler):
             self._last_discharge_mos = (v & 2) == 0
 
         return True
+
+    async def _execute_set_capacity(self, parsed: dict) -> bool:
+        """Set remaining capacity (register 0xE0) for SOC calibration."""
+        try:
+            capacity_mah = int(parsed["set_capacity"])
+            # Register value is in units of 10mAh
+            raw = capacity_mah // 10
+            if not 0 <= raw <= 0xFFFF:
+                logger.error("Handler %s: capacity %d mAh out of range", self.handler_id, capacity_mah)
+                return False
+            frame = _build_write_frame(0xE0, raw.to_bytes(2, "big"))
+            await self._factory_mode(frame, save=True)
+            return True
+        except (OSError, SerialException, TimeoutError) as e:
+            logger.warning("Handler %s: set capacity error: %s", self.handler_id, e)
+            return False
+
+    async def _execute_balance(self, parsed: dict) -> bool:
+        """Balance control (register 0xE2)."""
+        balance_map = {"odd": 0x0001, "even": 0x0002, "stop": 0x0003}
+        mode = parsed.get("balance")
+        if mode not in balance_map:
+            logger.error("Handler %s: invalid balance mode '%s'", self.handler_id, mode)
+            return False
+        try:
+            frame = _build_write_frame(0xE2, balance_map[mode].to_bytes(2, "big"))
+            await self._factory_mode(frame)
+            return True
+        except (OSError, SerialException, TimeoutError) as e:
+            logger.warning("Handler %s: balance control error: %s", self.handler_id, e)
+            return False
