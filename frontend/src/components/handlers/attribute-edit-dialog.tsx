@@ -10,6 +10,7 @@ import {
 import type { AttributeRead, AttributeUpdate } from "@/api/generated/contWatchAPI.schemas";
 import { getListHandlersApiHandlersGetQueryKey } from "@/api/generated/handlers/handlers";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { OutOfRangeDialog } from "@/components/handlers/out-of-range-dialog";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -29,7 +30,10 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
     const [icon, setIcon] = useState("");
     const [rounding, setRounding] = useState("");
     const [color, setColor] = useState("");
+    const [minValue, setMinValue] = useState("");
+    const [maxValue, setMaxValue] = useState("");
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const [outOfRangeOpen, setOutOfRangeOpen] = useState(false);
     const updateAttribute = useUpdateAttributeApiAttributesAttributeIdPatch();
     const deleteAttribute = useDeleteAttributeApiAttributesAttributeIdDelete();
 
@@ -46,6 +50,8 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
             setIcon(attribute.icon ?? "");
             setRounding(attribute.rounding != null ? String(attribute.rounding) : "");
             setColor(attribute.color ?? "");
+            setMinValue(attribute.min_value != null ? String(attribute.min_value) : "");
+            setMaxValue(attribute.max_value != null ? String(attribute.max_value) : "");
         }
     }, [attribute, t, i18n]);
 
@@ -59,12 +65,21 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
         const newIcon = icon || null;
         const newRounding = rounding !== "" ? Number.parseInt(rounding, 10) : null;
         const newColor = color || null;
+        const newMinValue = minValue !== "" ? Number.parseFloat(minValue) : null;
+        const newMaxValue = maxValue !== "" ? Number.parseFloat(maxValue) : null;
 
         if (newLabel !== (attribute.label ?? null)) data.label = newLabel;
         if (newUnit !== (attribute.unit ?? null)) data.unit = newUnit;
         if (newIcon !== (attribute.icon ?? null)) data.icon = newIcon;
         if (newRounding !== (attribute.rounding ?? null)) data.rounding = newRounding;
         if (newColor !== (attribute.color ?? null)) data.color = newColor;
+        const boundsChanged =
+            newMinValue !== (attribute.min_value ?? null) || newMaxValue !== (attribute.max_value ?? null);
+        if (newMinValue !== (attribute.min_value ?? null)) data.min_value = newMinValue;
+        if (newMaxValue !== (attribute.max_value ?? null)) data.max_value = newMaxValue;
+
+        const hasBoundsAfterSave =
+            (newMinValue ?? attribute.min_value) != null || (newMaxValue ?? attribute.max_value) != null;
 
         updateAttribute.mutate(
             { attributeId: attribute.id, data },
@@ -72,8 +87,12 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
                 onSuccess: () => {
                     queryClient.invalidateQueries({ queryKey: getListAttributesApiAttributesGetQueryKey() });
                     queryClient.invalidateQueries({ queryKey: getListHandlersApiHandlersGetQueryKey() });
-                    onClose();
                     toast.success(t("toast.attributeUpdated"));
+                    if (boundsChanged && hasBoundsAfterSave) {
+                        setOutOfRangeOpen(true);
+                    } else {
+                        onClose();
+                    }
                 },
             },
         );
@@ -110,6 +129,26 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
                         <div className="space-y-2">
                             <Label>{t("handlers.color")}</Label>
                             <Input value={color} onChange={(e) => setColor(e.target.value)} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label>{t("handlers.minValue")}</Label>
+                                <Input
+                                    type="number"
+                                    step="any"
+                                    value={minValue}
+                                    onChange={(e) => setMinValue(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>{t("handlers.maxValue")}</Label>
+                                <Input
+                                    type="number"
+                                    step="any"
+                                    value={maxValue}
+                                    onChange={(e) => setMaxValue(e.target.value)}
+                                />
+                            </div>
                         </div>
                     </div>
                     <DialogFooter className="flex-row justify-between">
@@ -154,6 +193,16 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
                 }}
                 description={t("confirm.deleteAttribute")}
             />
+            {attribute && (
+                <OutOfRangeDialog
+                    attribute={attribute}
+                    open={outOfRangeOpen}
+                    onOpenChange={(next) => {
+                        setOutOfRangeOpen(next);
+                        if (!next) onClose();
+                    }}
+                />
+            )}
         </Dialog>
     );
 }

@@ -31,9 +31,11 @@ async def get_node_definitions(db: DbSession, _current_user: CurrentUser, manage
         for h_id, h_type, h_label in handlers
     ]
 
-    attributes_result = await db.execute(select(Attribute.id, Attribute.name, Attribute.label))
-    attributes = [(row[0], row[1], row[2]) for row in attributes_result.all()]
-    attribute_options = [{"value": str(a_id), "label": a_label or a_name} for a_id, a_name, a_label in attributes]
+    attributes_result = await db.execute(select(Attribute.id, Attribute.name, Attribute.label, Attribute.handler_id))
+    attributes = [(row[0], row[1], row[2], row[3]) for row in attributes_result.all()]
+    attribute_options = [{"value": str(a_id), "label": a_label or a_name} for a_id, a_name, a_label, _ in attributes]
+    # Build (handler_id, key) -> label lookup for data key display labels
+    attr_labels = {(a_hid, a_name): a_label for _, a_name, a_label, a_hid in attributes if a_label}
 
     actions_result = await db.execute(select(Action.id, Action.name, Action.handler_id))
     actions = [(row[0], row[1], row[2]) for row in actions_result.all()]
@@ -56,7 +58,7 @@ async def get_node_definitions(db: DbSession, _current_user: CurrentUser, manage
         "action_handler": action_handler_options,
         "attribute": attribute_options,
         "action": action_options,
-        "handler_data_key": manager.get_all_data_keys(),
+        "handler_data_key": manager.get_all_data_keys(attr_labels),
     }
 
     definitions = []

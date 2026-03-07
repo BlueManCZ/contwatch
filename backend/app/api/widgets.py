@@ -357,7 +357,16 @@ async def dashboard(db: DbSession, manager: HandlerManagerDep, _current_user: Cu
                 **(manager.get_handler_data_value(cfg_handler_id, state_key) if state_key else {}),
             )
 
-        if w.type == "tile" and attr:
+        if w.type == "sparkline" and attr:
+            common.update(
+                unit=attr.unit,
+                color=attr.color,
+                rounding=attr.rounding,
+            )
+            if not w.icon:
+                common["icon"] = attr.icon
+
+        elif w.type == "tile" and attr:
             val = values.get(attr.id, {})
             stats = daily_stats.get(attr.id, {})
             common.update(

@@ -54,6 +54,10 @@ def operator_port(name: str = "operator", label: str = "Operator") -> PortDef:
     )
 
 
+def checkbox_port(name: str, label: str) -> PortDef:
+    return PortDef(name=name, type="checkbox", label=label, control="checkbox")
+
+
 def aggregate_port(name: str = "function", label: str = "Function") -> PortDef:
     return PortDef(
         name=name,

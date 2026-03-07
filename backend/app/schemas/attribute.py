@@ -1,7 +1,7 @@
 import datetime
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.schemas.common import OrmBase
 
@@ -17,6 +17,8 @@ class AttributeRead(OrmBase, BaseModel):
     order: int | None = None
     rounding: int | None = None
     color: str | None = None
+    min_value: float | None = None
+    max_value: float | None = None
 
 
 class AttributeCreate(BaseModel):
@@ -38,6 +40,8 @@ class AttributeUpdate(BaseModel):
     order: int | None = None
     rounding: int | None = None
     color: str | None = None
+    min_value: float | None = None
+    max_value: float | None = None
 
 
 class AttributeReorderItem(BaseModel):
@@ -47,6 +51,44 @@ class AttributeReorderItem(BaseModel):
 
 class AttributeReorderRequest(BaseModel):
     items: list[AttributeReorderItem]
+
+
+class OutOfRangeDayItem(BaseModel):
+    date: datetime.date
+    count: int
+
+
+class OutOfRangeByDateAttributeBounds(BaseModel):
+    attribute_id: int
+    min_value: float | None = None
+    max_value: float | None = None
+
+
+class OutOfRangeByDateRequest(BaseModel):
+    date: datetime.date
+    tz_offset: int = Field(0, ge=-720, le=840, description="Browser timezone offset in minutes (JS getTimezoneOffset)")
+    attributes: list[OutOfRangeByDateAttributeBounds]
+
+
+class OutOfRangeByDateItem(BaseModel):
+    attribute_id: int
+    attribute_name: str
+    count: int
+
+
+class OutOfRangeByDateDeleteRequest(BaseModel):
+    date: datetime.date
+    tz_offset: int = Field(0, ge=-720, le=840, description="Browser timezone offset in minutes (JS getTimezoneOffset)")
+    attributes: list[OutOfRangeByDateAttributeBounds]
+
+
+class OutOfRangeDeleteRequest(BaseModel):
+    dates: list[datetime.date]
+    tz_offset: int = Field(0, ge=-720, le=840, description="Browser timezone offset in minutes (JS getTimezoneOffset)")
+
+
+class OutOfRangeDeleteResult(BaseModel):
+    deleted: int
 
 
 class AttributeValue(BaseModel):

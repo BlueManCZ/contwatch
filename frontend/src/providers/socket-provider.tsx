@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { io } from "socket.io-client";
+import { io, type Socket } from "socket.io-client";
 import { getAccessToken } from "@/api/axios-instance";
 import type { AttributeValue } from "@/api/generated/contWatchAPI.schemas";
 import { getAllHandlerStatusesApiHandlersStatusesGetQueryKey } from "@/api/generated/handlers/handlers";
@@ -9,14 +9,17 @@ import { type HandlerDataValue, useHandlerDataValuesStore } from "@/stores/handl
 import { type Indicator, useHandlerIndicatorStore } from "@/stores/handler-indicators";
 import { useHandlerStatusStore } from "@/stores/handler-status";
 import { useLiveValuesStore } from "@/stores/live-values";
+import { type DisplayValue, edgeKey, useWorkflowDisplayStore } from "@/stores/workflow-display";
 
-export function useSocketMutationInvalidation() {
+let socketInstance: Socket | null = null;
+
+export function getSocketInstance(): Socket | null {
+    return socketInstance;
+}
+
+export function useSocketConnection() {
     const queryClient = useQueryClient();
     const { isAuthenticated } = useAuth();
-    const setAttributeValue = useLiveValuesStore((s) => s.setAttributeValue);
-    const setHandlerDataValue = useHandlerDataValuesStore((s) => s.set);
-    const setHandlerStatus = useHandlerStatusStore((s) => s.setStatus);
-    const setIndicators = useHandlerIndicatorStore((s) => s.setIndicators);
 
     useEffect(() => {
         if (!isAuthenticated) return;
@@ -28,9 +31,9 @@ export function useSocketMutationInvalidation() {
             path: "/socket.io",
             auth: { token },
         });
+        socketInstance = socket;
 
         socket.on("connect", () => {
-            // Invalidate handler statuses query so the seed hook re-fetches
             queryClient.invalidateQueries({
                 queryKey: getAllHandlerStatusesApiHandlersStatusesGetQueryKey(),
             });
@@ -45,12 +48,16 @@ export function useSocketMutationInvalidation() {
             });
         });
 
+        // Use getState() to avoid subscribing the component to store updates.
+        // This prevents high-frequency socket events from triggering re-renders
+        // in the layout component, which would cause scroll restoration to flood
+        // history.replaceState() and hit the browser rate limit.
         socket.on("attribute_value", (data: AttributeValue) => {
-            setAttributeValue(data);
+            useLiveValuesStore.getState().setAttributeValue(data);
         });
 
         socket.on("handler_data_value", (data: HandlerDataValue) => {
-            setHandlerDataValue(data);
+            useHandlerDataValuesStore.getState().set(data);
         });
 
         socket.on(
@@ -61,7 +68,7 @@ export function useSocketMutationInvalidation() {
                 connected: boolean;
                 last_active?: string | null;
             }) => {
-                setHandlerStatus(data.handler_id, {
+                useHandlerStatusStore.getState().setStatus(data.handler_id, {
                     running: data.running,
                     connected: data.connected,
                     last_active: data.last_active ?? null,
@@ -70,18 +77,43 @@ export function useSocketMutationInvalidation() {
         );
 
         socket.on("handler_indicators", (data: { handler_id: number; indicators: Indicator[] }) => {
-            setIndicators(data.handler_id, data.indicators);
+            useHandlerIndicatorStore.getState().setIndicators(data.handler_id, data.indicators);
         });
 
+        socket.on("workflow_display", (data: { node_id: string } & DisplayValue) => {
+            useWorkflowDisplayStore.getState().set(data.node_id, { value: data.value, type: data.type });
+        });
+
+        socket.on(
+            "workflow_edge_value",
+            (data: {
+                source: string;
+                source_handle: string;
+                target: string;
+                target_handle: string;
+                value: string;
+                type: string;
+            }) => {
+                useWorkflowDisplayStore
+                    .getState()
+                    .setEdgeValue(edgeKey(data.source, data.source_handle, data.target, data.target_handle), {
+                        value: data.value,
+                        type: data.type,
+                    });
+            },
+        );
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === "visible" && !socket.connected) {
+                socket.connect();
+            }
+        };
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
         return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            socketInstance = null;
             socket.disconnect();
         };
-    }, [
-        isAuthenticated,
-        queryClient,
-        setAttributeValue,
-        setHandlerDataValue,
-        setHandlerStatus,
-        setIndicators,
-    ]);
+    }, [isAuthenticated, queryClient]);
 }

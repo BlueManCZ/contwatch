@@ -22,7 +22,7 @@ const LANGUAGES = [
 function SettingsPage() {
     const { t } = useTranslation();
     const { user } = useAuth();
-    const { locale, setLocale } = useSettingsStore();
+    const { locale, setLocale, theme, setTheme } = useSettingsStore();
     const isAdmin = user?.role === "admin";
 
     return (
@@ -30,7 +30,7 @@ function SettingsPage() {
             <PageHeader title={t("nav.settings")} />
             <PageContent className="space-y-6">
                 <Card className="!py-0 !gap-0">
-                    <CardContent className="px-4 py-4">
+                    <CardContent className="px-4 py-4 space-y-4">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div>
                                 <Label className="text-sm">{t("settings.language")}</Label>
@@ -54,6 +54,37 @@ function SettingsPage() {
                                         {lang.label}
                                     </ToggleGroupItem>
                                 ))}
+                            </ToggleGroup>
+                        </div>
+                        <Separator />
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <Label className="text-sm">{t("settings.theme")}</Label>
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                    {t("settings.themeDescription")}
+                                </p>
+                            </div>
+                            <ToggleGroup
+                                variant="outline"
+                                spacing={1}
+                                className="w-full sm:w-auto"
+                                value={[theme]}
+                                onValueChange={(values) =>
+                                    values.length > 0 && setTheme(values[0] as "dark" | "light")
+                                }
+                            >
+                                <ToggleGroupItem
+                                    value="light"
+                                    className="flex-1 sm:flex-initial rounded-md px-3 text-xs"
+                                >
+                                    {t("settings.themeLight")}
+                                </ToggleGroupItem>
+                                <ToggleGroupItem
+                                    value="dark"
+                                    className="flex-1 sm:flex-initial rounded-md px-3 text-xs"
+                                >
+                                    {t("settings.themeDark")}
+                                </ToggleGroupItem>
                             </ToggleGroup>
                         </div>
                     </CardContent>

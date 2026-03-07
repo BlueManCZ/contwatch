@@ -51,6 +51,8 @@
         "add": "Přidat",
         "close": "Zavřít",
         "loading": "Načítání...",
+        "date": "Datum",
+        "count": "Počet",
         "noData": "Žádná data",
         "yes": "Ano",
         "no": "Ne",
@@ -173,6 +175,7 @@
         "selectType": "Vyberte typ zařízení",
         "type": "Typ",
         "status": "Stav",
+        "attribute": "Atribut",
         "attributes": "Atributy",
         "attributeCount_one": "{{count}} atribut",
         "attributeCount_few": "{{count}} atributy",
@@ -196,7 +199,18 @@
         "editConfig": "Upravit konfiguraci",
         "icon": "Ikona",
         "rounding": "Zaokrouhlení",
+        "minValue": "Min. hodnota",
+        "maxValue": "Max. hodnota",
         "color": "Barva",
+        "outOfRangeTitle": "Data mimo rozsah",
+        "outOfRangeNone": "Žádné hodnoty mimo rozsah nebyly nalezeny.",
+        "outOfRangeDescription": "Následující dny obsahují hodnoty mimo nastavené meze:",
+        "outOfRangeDeleteSelected_one": "Smazat {{count}} hodnotu",
+        "outOfRangeDeleteSelected_few": "Smazat {{count}} hodnoty",
+        "outOfRangeDeleteSelected_other": "Smazat {{count}} hodnot",
+        "outOfRangeDeleted_one": "Smazána {{count}} hodnota mimo rozsah.",
+        "outOfRangeDeleted_few": "Smazány {{count}} hodnoty mimo rozsah.",
+        "outOfRangeDeleted_other": "Smazáno {{count}} hodnot mimo rozsah.",
         "advancedSetup": "Pokročilé",
         "actions": "Akce",
         "noActions": "Žádné akce nejsou definovány.",
@@ -260,7 +274,13 @@
         "editButton": "Upravit tlačítko",
         "removeButton": "Odebrat tlačítko",
         "button": "Tlačítko",
-        "iconName": "Ikona"
+        "iconName": "Ikona",
+        "addSparkline": "Sparkline",
+        "editSparkline": "Upravit sparkline",
+        "removeSparkline": "Odebrat sparkline",
+        "sparklineDays_one": "{{count}} den",
+        "sparklineDays_few": "{{count}} dny",
+        "sparklineDays_other": "{{count}} dní"
     },
     "actions": {
         "message": "Zpráva",
@@ -278,19 +298,16 @@
         "saving": "Ukládání...",
         "saved": "Uloženo",
         "error": "Nepodařilo se uložit workflow",
+        "edgeDebug": "Ladění hran",
         "cycleDetected": "Ve workflow byla detekována smyčka — zkontrolujte zvýrazněný uzel",
         "nodes": {
             "handler_listener": {
                 "label": "Naslouchač zařízení",
-                "description": "Spustí se při příjmu dat z zařízení"
-            },
-            "attribute_reader_listener": {
-                "label": "Naslouchač atributu",
-                "description": "Spustí se při změně hodnoty atributu a poskytne hodnotu"
+                "description": "Vyvolá událost při příjmu dat ze zařízení"
             },
             "attribute_reader": {
                 "label": "Čtečka atributu",
-                "description": "Přečte aktuální hodnotu atributu"
+                "description": "Přečte aktuální hodnotu atributu a volitelně vyvolá událost při změně"
             },
             "handler_data_reader": {
                 "label": "Čtečka dat zařízení",
@@ -304,6 +321,11 @@
             },
             "negation": { "label": "Negace", "description": "Invertuje booleovskou hodnotu" },
             "logger": { "label": "Logger", "description": "Zaloguje hodnotu pro ladění" },
+            "display": {
+                "label": "Zobrazení",
+                "description": "Zobrazí aktuální hodnotu a její typ (průchozí)",
+                "noValue": "Zatím žádná hodnota"
+            },
             "action_performer": { "label": "Spouštěč akce", "description": "Spustí akci na zařízení" }
         },
         "ports": {
@@ -318,7 +340,8 @@
             "function": "Funkce",
             "true_event": "Pravda",
             "false_event": "Nepravda",
-            "action_id": "Akce"
+            "action_id": "Akce",
+            "switch": "Přepínač"
         }
     },
     "chart": {
@@ -328,7 +351,8 @@
         "previousDay": "Předchozí den",
         "nextDay": "Další den",
         "openInAnalytics": "Otevřít v Analytice",
-        "beginAtZero": "Začít osu Y od nuly"
+        "beginAtZero": "Začít osu Y od nuly",
+        "dismissTooltip": "Zavřít popisek"
     },
     "inspector": {
         "title": "Analytika",
@@ -336,7 +360,17 @@
         "noAttributes": "Žádné atributy nevybrány.",
         "noAttributesDescription": "Vyberte atributy pro zobrazení jejich historických dat.",
         "attributeSelector": "Výběr atributů",
-        "clearAll": "Vymazat vše"
+        "clearAll": "Vymazat vše",
+        "dailyView": "Denní statistiky",
+        "intradayView": "Denní graf",
+        "lastNDays_one": "Posledních {{count}} den",
+        "lastNDays_few": "Posledních {{count}} dny",
+        "lastNDays_other": "Posledních {{count}} dní",
+        "previousPeriod": "Předchozí období",
+        "nextPeriod": "Další období",
+        "checkOutOfRange": "Zkontrolovat hodnoty mimo rozsah",
+        "outOfRangeDateTitle": "Data mimo rozsah — {{date}}",
+        "outOfRangeDateDescription": "Následující atributy obsahují v tento den hodnoty mimo nastavené meze:"
     },
     "logs": {
         "title": "Logy",
@@ -473,7 +507,11 @@
     },
     "settings": {
         "language": "Jazyk",
-        "languageDescription": "Zvolte jazyk rozhraní."
+        "languageDescription": "Zvolte jazyk rozhraní.",
+        "theme": "Motiv",
+        "themeDescription": "Zvolte barevné schéma rozhraní.",
+        "themeDark": "Tmavý",
+        "themeLight": "Světlý"
     },
     "confirm": {
         "title": "Jste si jisti?",

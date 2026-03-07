@@ -55,7 +55,14 @@ class HandlerManager:
                 # Register trackers for all enabled attributes
                 for attr in db_handler.attributes:
                     if attr.enabled:
-                        self._register_tracker(attr.id, db_handler.id, attr.name, rounding=attr.rounding)
+                        self._register_tracker(
+                            attr.id,
+                            db_handler.id,
+                            attr.name,
+                            rounding=attr.rounding,
+                            min_value=attr.min_value,
+                            max_value=attr.max_value,
+                        )
                 # Only create runtime instances for enabled handlers
                 if db_handler.enabled:
                     self._create_handler_instance(db_handler)
@@ -293,8 +300,18 @@ class HandlerManager:
         self._handlers[db_handler.id] = instance
         return instance
 
-    def _register_tracker(self, attribute_id: int, handler_id: int, name: str, rounding: int | None = None) -> None:
-        self._trackers[attribute_id] = AttributeTracker(attribute_id, handler_id, rounding=rounding)
+    def _register_tracker(
+        self,
+        attribute_id: int,
+        handler_id: int,
+        name: str,
+        rounding: int | None = None,
+        min_value: float | None = None,
+        max_value: float | None = None,
+    ) -> None:
+        self._trackers[attribute_id] = AttributeTracker(
+            attribute_id, handler_id, rounding=rounding, min_value=min_value, max_value=max_value
+        )
         if handler_id not in self._attr_name_map:
             self._attr_name_map[handler_id] = {}
         self._attr_name_map[handler_id][name] = attribute_id
@@ -317,7 +334,14 @@ class HandlerManager:
                 registered_attr_ids = []
                 for attr in db_handler.attributes:
                     if attr.enabled:
-                        self._register_tracker(attr.id, db_handler.id, attr.name, rounding=attr.rounding)
+                        self._register_tracker(
+                            attr.id,
+                            db_handler.id,
+                            attr.name,
+                            rounding=attr.rounding,
+                            min_value=attr.min_value,
+                            max_value=attr.max_value,
+                        )
                         registered_attr_ids.append(attr.id)
                 await self._seed_last_values(registered_attr_ids)
                 await self._seed_daily_stats(registered_attr_ids)
@@ -617,12 +641,14 @@ class HandlerManager:
         last_changed = self._raw_last_changed.get(handler_id, {}).get(key)
         return {"value": value, "last_changed": last_changed}
 
-    def get_all_data_keys(self) -> list[dict]:
-        """Return linearized keys as structured dicts with value, label, and group."""
+    def get_all_data_keys(self, attribute_labels: dict[tuple[int, str], str] | None = None) -> list[dict]:
+        """Return linearized keys as structured dicts with value, label, group, and display_label."""
+        labels = attribute_labels or {}
         keys: list[dict] = []
         for handler_id, flat in sorted(self._last_messages.items()):
             for key in sorted(flat):
-                keys.append({"value": key, "label": key, "group": str(handler_id)})
+                display = labels.get((handler_id, key), "")
+                keys.append({"value": key, "label": key, "group": str(handler_id), "display_label": display})
         return keys
 
     def get_attribute_value(self, attribute_id: int) -> dict | None:
@@ -639,7 +665,14 @@ class HandlerManager:
 
     async def register_attribute(self, attribute: Attribute) -> None:
         """Register a new attribute for tracking."""
-        self._register_tracker(attribute.id, attribute.handler_id, attribute.name, rounding=attribute.rounding)
+        self._register_tracker(
+            attribute.id,
+            attribute.handler_id,
+            attribute.name,
+            rounding=attribute.rounding,
+            min_value=attribute.min_value,
+            max_value=attribute.max_value,
+        )
 
     async def unregister_attribute(self, handler_id: int, name: str) -> None:
         name_map = self._attr_name_map.get(handler_id, {})

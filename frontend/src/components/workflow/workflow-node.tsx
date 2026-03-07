@@ -1,10 +1,15 @@
 import { Handle, type Node, type NodeProps, Position, useNodeConnections, useReactFlow } from "@xyflow/react";
 import { X } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import { createContext, useCallback, useContext, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { NodeDefinition, PortDefinition } from "@/api/generated/contWatchAPI.schemas";
+import { useWorkflowDisplayStore } from "@/stores/workflow-display";
 import { TreeSelectControl } from "./tree-select-control";
 import { PORT_COLORS } from "./types";
+
+const NodeDefinitionsContext = createContext<Map<string, NodeDefinition>>(new Map());
+
+export const NodeDefinitionsProvider = NodeDefinitionsContext.Provider;
 
 type WorkflowNodeData = Record<string, string | undefined> & { _label?: string };
 
@@ -102,7 +107,9 @@ function ControlPort({
 
     return (
         <div>
-            <span className="text-[10px] text-muted-foreground mb-1 block px-3">{label}</span>
+            {port.control !== "checkbox" && (
+                <span className="text-[10px] text-muted-foreground mb-1 block px-3">{label}</span>
+            )}
             <div className="relative flex items-center px-3 gap-1">
                 {isConnectable && <PortHandle port={port} type="target" label={label} />}
                 {isConnected && (
@@ -112,7 +119,17 @@ function ControlPort({
                         <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243z" />
                     </svg>
                 )}
-                {port.control === "tree-select" ? (
+                {port.control === "checkbox" ? (
+                    <label className="nodrag flex items-center gap-1.5 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            className="accent-primary cursor-pointer"
+                            checked={value === "true"}
+                            onChange={(e) => onChange(dataKey, e.target.checked ? "true" : "false")}
+                        />
+                        <span className="text-xs text-card-foreground">{label}</span>
+                    </label>
+                ) : port.control === "tree-select" ? (
                     <TreeSelectControl
                         options={port.options ?? []}
                         value={value}
@@ -143,19 +160,23 @@ function ControlPort({
     );
 }
 
-export function createWorkflowNode(definition: NodeDefinition) {
+export function createWorkflowNode(nodeType: string) {
     function WorkflowNodeComponent({ id, data, selected }: NodeProps<Node<WorkflowNodeData>>) {
+        const definitionsMap = useContext(NodeDefinitionsContext);
+        const definition = definitionsMap.get(nodeType);
         const { updateNodeData, deleteElements } = useReactFlow();
         const { t } = useTranslation();
+        const isDisplay = nodeType === "display";
+        const displayValue = useWorkflowDisplayStore((s) => (isDisplay ? s.values[id] : undefined));
+
+        const inputPorts = definition?.input_ports ?? [];
+        const outputPorts = definition?.output_ports ?? [];
 
         const portLabel = (port: PortDefinition) => t(`workflow.ports.${port.name}`, port.label);
-
-        const inputPorts = definition.input_ports ?? [];
 
         const handleChange = useCallback(
             (key: string, value: string) => {
                 const update: Record<string, string> = { [key]: value };
-                // When handler changes, clear dependent filtered ports
                 if (key === "handler_id") {
                     for (const p of inputPorts) {
                         if (p.control === "tree-select" || p.name === "action_id") {
@@ -167,11 +188,11 @@ export function createWorkflowNode(definition: NodeDefinition) {
             },
             [id, updateNodeData, inputPorts],
         );
-        const outputPorts = definition.output_ports ?? [];
+
         const inputPortsWithControl = inputPorts.filter((p) => p.control);
         const inputPortsWithoutControl = inputPorts.filter((p) => !p.control);
 
-        const nodeLabel = data._label || t(`workflow.nodes.${definition.type}.label`, definition.label);
+        const nodeLabel = data._label || t(`workflow.nodes.${nodeType}.label`, definition?.label ?? nodeType);
 
         return (
             <div
@@ -217,6 +238,29 @@ export function createWorkflowNode(definition: NodeDefinition) {
                     </div>
                 )}
 
+                {/* Display value (Display node only) */}
+                {isDisplay && (
+                    <div className="mx-3 my-2 rounded-md border bg-muted/40 px-3 py-2">
+                        {displayValue ? (
+                            <div className="flex items-baseline gap-2">
+                                <span
+                                    className="text-base font-semibold font-mono truncate"
+                                    title={displayValue.value}
+                                >
+                                    {displayValue.value}
+                                </span>
+                                <span className="text-[11px] text-muted-foreground shrink-0">
+                                    {displayValue.type}
+                                </span>
+                            </div>
+                        ) : (
+                            <div className="text-xs text-muted-foreground italic">
+                                {t("workflow.nodes.display.noValue", "No value yet")}
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* Output ports */}
                 {outputPorts.map((port) => (
                     <div key={port.name} className="relative flex items-center justify-end py-1.5 px-3">
@@ -230,6 +274,6 @@ export function createWorkflowNode(definition: NodeDefinition) {
         );
     }
 
-    WorkflowNodeComponent.displayName = `WorkflowNode(${definition.type})`;
+    WorkflowNodeComponent.displayName = `WorkflowNode(${nodeType})`;
     return WorkflowNodeComponent;
 }

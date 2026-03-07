@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import type { PortOption } from "@/api/generated/contWatchAPI.schemas";
 import {
     DropdownMenu,
@@ -13,6 +14,7 @@ import {
 interface TreeNode {
     label: string;
     value: string;
+    displayLabel: string;
     children: TreeNode[];
 }
 
@@ -27,13 +29,14 @@ function buildTree(options: PortOption[]): TreeNode[] {
             const segment = segments[i];
             let existing = level.find((n) => n.label === segment);
             if (!existing) {
-                existing = { label: segment, value: option.value, children: [] };
+                existing = { label: segment, value: option.value, displayLabel: "", children: [] };
                 level.push(existing);
             }
             if (i < segments.length - 1) {
                 level = existing.children;
             } else {
                 existing.value = option.value;
+                existing.displayLabel = option.display_label ?? "";
             }
         }
     }
@@ -42,6 +45,18 @@ function buildTree(options: PortOption[]): TreeNode[] {
 }
 
 function TreeMenuItems({ nodes, onSelect }: { nodes: TreeNode[]; onSelect: (value: string) => void }) {
+    const { t, i18n } = useTranslation();
+
+    function localizeLeaf(node: TreeNode): string {
+        if (node.displayLabel) return `${node.displayLabel} (${node.label})`;
+        const i18nKey = `knownAttributes.${node.value.replace(/[/:]/g, "_")}`;
+        if (i18n.exists(i18nKey)) {
+            const localized = String(t(i18nKey));
+            if (localized !== node.label) return `${localized} (${node.label})`;
+        }
+        return node.label;
+    }
+
     return (
         <>
             {nodes.map((node) => {
@@ -52,7 +67,7 @@ function TreeMenuItems({ nodes, onSelect }: { nodes: TreeNode[]; onSelect: (valu
                             className="text-xs font-mono"
                             onClick={() => onSelect(node.value)}
                         >
-                            {node.label}
+                            {localizeLeaf(node)}
                         </DropdownMenuItem>
                     );
                 }
@@ -84,11 +99,20 @@ export function TreeSelectControl({
     disabled?: boolean;
     filterPrefix?: string;
 }) {
+    const { t, i18n } = useTranslation();
     const filtered = useMemo(() => {
         if (!filterPrefix) return options;
         return options.filter((o) => o.group === filterPrefix);
     }, [options, filterPrefix]);
     const tree = useMemo(() => buildTree(filtered), [filtered]);
+
+    const displayValue = useMemo(() => {
+        if (!value) return "—";
+        const match = filtered.find((o) => o.value === value);
+        if (match?.display_label) return match.display_label;
+        const i18nKey = `knownAttributes.${value.replace(/[/:]/g, "_")}`;
+        return i18n.exists(i18nKey) ? String(t(i18nKey)) : value;
+    }, [value, filtered, t, i18n]);
 
     return (
         <DropdownMenu>
@@ -105,7 +129,7 @@ export function TreeSelectControl({
                             value=""
                             onChange={() => {}}
                         >
-                            <option value="">{value || "—"}</option>
+                            <option value="">{displayValue}</option>
                         </select>
                     </button>
                 }

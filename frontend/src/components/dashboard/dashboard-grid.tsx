@@ -15,6 +15,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { EditWidgetDialog } from "@/components/dashboard/edit-widget-dialog";
 import { WidgetButton } from "@/components/dashboard/widget-button";
 import { WidgetSlider } from "@/components/dashboard/widget-slider";
+import { WidgetSparkline } from "@/components/dashboard/widget-sparkline";
 import { WidgetSwitch } from "@/components/dashboard/widget-switch";
 import { WidgetTile } from "@/components/dashboard/widget-tile";
 import { WidgetWizard } from "@/components/dashboard/widget-wizard";
@@ -74,6 +75,23 @@ export function DashboardGrid() {
                 return <WidgetSlider {...common} widget={w} status={status} />;
             case "button":
                 return <WidgetButton {...common} widget={w} status={status} />;
+            case "sparkline":
+                return (
+                    <WidgetSparkline
+                        {...common}
+                        widget={w}
+                        status={status}
+                        onClick={() =>
+                            navigate({
+                                to: "/analytics",
+                                search: {
+                                    attributes: String(w.attribute_id),
+                                    view: "daily",
+                                },
+                            })
+                        }
+                    />
+                );
             default:
                 return null;
         }

@@ -17,7 +17,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import { useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
-import { AlertCircle, Check, Circle, Loader2, Maximize, Minimize, Trash2 } from "lucide-react";
+import { AlertCircle, Bug, Check, Circle, Loader2, Trash2 } from "lucide-react";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -29,20 +29,18 @@ import {
     useSaveWorkflowApiActionsWorkflowPut,
 } from "@/api/generated/workflow/workflow";
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+    FloatingButton,
+    FloatingToolbar,
+    FullscreenButton,
+    FullscreenPrompt,
+} from "@/components/floating-controls";
 import { useFullscreen } from "@/hooks/use-fullscreen";
+import { getSocketInstance } from "@/providers/socket-provider";
+import { useWorkflowDisplayStore } from "@/stores/workflow-display";
 import { DeletableEdge } from "./deletable-edge";
 import { createConnectionValidator } from "./edge-validation";
 import { PORT_COLORS } from "./types";
-import { createWorkflowNode } from "./workflow-node";
+import { createWorkflowNode, NodeDefinitionsProvider } from "./workflow-node";
 
 const EMPTY_DEFINITIONS: NodeDefinition[] = [];
 const EDGE_TYPES: EdgeTypes = { default: DeletableEdge };
@@ -93,8 +91,8 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
     > | null>(null);
 
     const queryClient = useQueryClient();
-    const { data: defsResponse } = useGetNodeDefinitionsApiActionsWorkflowNodesGet();
-    const { data: workflowResponse } = useGetWorkflowApiActionsWorkflowGet();
+    const { data: defsResponse, isLoading: defsLoading } = useGetNodeDefinitionsApiActionsWorkflowNodesGet();
+    const { data: workflowResponse, isLoading: workflowLoading } = useGetWorkflowApiActionsWorkflowGet();
     const saveMutation = useSaveWorkflowApiActionsWorkflowPut({
         mutation: { meta: { skipGlobalErrorToast: true } },
     });
@@ -103,6 +101,14 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
 
     const { isFullscreen, showPrompt, setShowPrompt, toggleFullscreen, enterFullscreen } =
         useFullscreen(reactFlowWrapper);
+
+    const edgeDebug = useWorkflowDisplayStore((s) => s.edgeDebug);
+    const setEdgeDebug = useWorkflowDisplayStore((s) => s.setEdgeDebug);
+    const toggleEdgeDebug = useCallback(() => {
+        const next = !edgeDebug;
+        setEdgeDebug(next);
+        getSocketInstance()?.emit("workflow_edge_debug", { enabled: next });
+    }, [edgeDebug, setEdgeDebug]);
 
     useEffect(() => {
         if (saveMutation.isPending) {
@@ -136,13 +142,14 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
         return map;
     }, [definitions]);
 
+    const nodeTypeKeys = definitions.map((d) => d.type).join(",");
     const nodeTypes = useMemo(() => {
         const types: NodeTypes = {};
-        for (const def of definitions) {
-            types[def.type] = createWorkflowNode(def);
+        for (const key of nodeTypeKeys.split(",")) {
+            if (key) types[key] = createWorkflowNode(key);
         }
         return types;
-    }, [definitions]);
+    }, [nodeTypeKeys]);
 
     const getEdgeStyle = useCallback(
         (sourceNodeType: string, sourceHandle: string | null | undefined) => {
@@ -532,6 +539,14 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
         };
     }, [flushSave]);
 
+    if (defsLoading || workflowLoading) {
+        return (
+            <div className="flex h-full items-center justify-center" ref={reactFlowWrapper}>
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+        );
+    }
+
     return (
         <div className="relative h-full touch-none bg-background" ref={reactFlowWrapper}>
             {saveStatus !== "idle" && (
@@ -551,42 +566,43 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
                     </span>
                 </div>
             )}
-            <button
-                type="button"
-                className="absolute top-2 right-2 z-10 flex cursor-pointer items-center justify-center rounded-full border bg-card/80 backdrop-blur-sm p-2 shadow-sm"
-                onClick={toggleFullscreen}
-                title={isFullscreen ? t("common.exitFullscreen") : t("common.enterFullscreen")}
-            >
-                {isFullscreen ? (
-                    <Minimize className="h-4 w-4 text-muted-foreground" />
-                ) : (
-                    <Maximize className="h-4 w-4 text-muted-foreground" />
-                )}
-            </button>
-            <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={wrappedOnNodesChange}
-                onEdgesChange={wrappedOnEdgesChange}
-                onConnect={wrappedOnConnect}
-                onConnectStart={onConnectStart}
-                onConnectEnd={onConnectEnd}
-                onPaneClick={dismissNodePicker}
-                onPaneContextMenu={onPaneContextMenu}
-                onInit={setReactFlowInstance as (instance: unknown) => void}
-                onDrop={onDrop}
-                onDragOver={onDragOver}
-                nodeTypes={nodeTypes}
-                edgeTypes={EDGE_TYPES}
-                isValidConnection={isValidConnection}
-                deleteKeyCode={["Backspace", "Delete"]}
-                fitView
-                proOptions={{ hideAttribution: true }}
-            >
-                <Background gap={20} size={1} />
-                <Controls />
-                <MobileNodeActions />
-            </ReactFlow>
+            <FloatingToolbar className="sm:right-2 gap-1.5">
+                <FloatingButton
+                    active={edgeDebug}
+                    className={edgeDebug ? "bg-primary/20 border-primary/50" : undefined}
+                    onClick={toggleEdgeDebug}
+                    title={t("workflow.edgeDebug", "Edge debug")}
+                >
+                    <Bug className={`h-4 w-4 ${edgeDebug ? "text-primary" : "text-muted-foreground"}`} />
+                </FloatingButton>
+                <FullscreenButton isFullscreen={isFullscreen} onClick={toggleFullscreen} />
+            </FloatingToolbar>
+            <NodeDefinitionsProvider value={definitionsMap}>
+                <ReactFlow
+                    nodes={nodes}
+                    edges={edges}
+                    onNodesChange={wrappedOnNodesChange}
+                    onEdgesChange={wrappedOnEdgesChange}
+                    onConnect={wrappedOnConnect}
+                    onConnectStart={onConnectStart}
+                    onConnectEnd={onConnectEnd}
+                    onPaneClick={dismissNodePicker}
+                    onPaneContextMenu={onPaneContextMenu}
+                    onInit={setReactFlowInstance as (instance: unknown) => void}
+                    onDrop={onDrop}
+                    onDragOver={onDragOver}
+                    nodeTypes={nodeTypes}
+                    edgeTypes={EDGE_TYPES}
+                    isValidConnection={isValidConnection}
+                    deleteKeyCode={["Backspace", "Delete"]}
+                    fitView
+                    proOptions={{ hideAttribution: true }}
+                >
+                    <Background gap={20} size={1} />
+                    <Controls />
+                    <MobileNodeActions />
+                </ReactFlow>
+            </NodeDefinitionsProvider>
             {nodePicker && nodePickerItems.length > 0 && (
                 <div
                     className="absolute z-20 w-72 rounded-lg border bg-card shadow-lg overflow-hidden animate-in fade-in zoom-in-95 duration-100"
@@ -611,27 +627,14 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
                     </div>
                 </div>
             )}
-            <AlertDialog open={showPrompt} onOpenChange={setShowPrompt}>
-                <AlertDialogContent size="sm">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>{t("common.fullscreenPromptTitle")}</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            {t("common.fullscreenPromptDescription")}
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={() => {
-                                setShowPrompt(false);
-                                enterFullscreen();
-                            }}
-                        >
-                            {t("common.enterFullscreen")}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <FullscreenPrompt
+                open={showPrompt}
+                onOpenChange={setShowPrompt}
+                onConfirm={() => {
+                    setShowPrompt(false);
+                    enterFullscreen();
+                }}
+            />
         </div>
     );
 });

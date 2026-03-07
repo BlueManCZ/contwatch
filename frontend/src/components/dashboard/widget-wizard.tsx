@@ -101,7 +101,7 @@ export function WidgetWizard({ open: controlledOpen, onOpenChange }: WidgetWizar
                     }
                 />
             )}
-            <DialogContent className="sm:max-w-lg">
+            <DialogContent className="sm:max-w-lg max-h-[85dvh] overflow-y-auto">
                 {step === "device" && (
                     <DeviceStep onSelect={handleDeviceSelect} onManual={() => setStep("manual")} />
                 )}
@@ -630,10 +630,11 @@ function WidgetStep({ handler, onBack, onClose }: WidgetStepProps) {
 
 /* ─── Step 3: Manual Setup ──────────────────────────────────────── */
 
-type ManualWidgetType = "tile" | "switch" | "slider" | "button";
+type ManualWidgetType = "tile" | "switch" | "slider" | "button" | "sparkline";
 
 const WIDGET_TYPE_OPTIONS: { type: ManualWidgetType; icon: typeof LayoutGrid; labelKey: string }[] = [
     { type: "tile", icon: LayoutGrid, labelKey: "dashboard.addTile" },
+    { type: "sparkline", icon: Activity, labelKey: "dashboard.addSparkline" },
     { type: "switch", icon: ToggleLeft, labelKey: "dashboard.addSwitch" },
     { type: "slider", icon: SlidersHorizontal, labelKey: "dashboard.addSlider" },
     { type: "button", icon: Play, labelKey: "dashboard.addButton" },
@@ -772,7 +773,7 @@ function ManualStep({
     function canSubmit() {
         if (widgetType === "button") return !!buttonActionId;
         if (!handlerId) return false;
-        if (widgetType === "tile") return !!tileAttrId;
+        if (widgetType === "tile" || widgetType === "sparkline") return !!tileAttrId;
         if (widgetType === "switch") return !!switchAttrId;
         return !!sliderAttrId && !!sliderActionId && !!paramKey;
     }
@@ -784,7 +785,7 @@ function ManualStep({
         const config: Record<string, unknown> = {};
         let attributeId: number | undefined;
 
-        if (widgetType === "tile") {
+        if (widgetType === "tile" || widgetType === "sparkline") {
             attributeId = Number(tileAttrId);
         } else if (widgetType === "switch") {
             attributeId = Number(switchAttrId);
@@ -883,8 +884,8 @@ function ManualStep({
                             </Select>
                         </div>
 
-                        {/* Tile attribute */}
-                        {widgetType === "tile" && (
+                        {/* Tile / Sparkline attribute */}
+                        {(widgetType === "tile" || widgetType === "sparkline") && (
                             <div className="space-y-2 flex-1 min-w-0">
                                 <Label>{t("dashboard.selectAttribute")}</Label>
                                 <Select

@@ -143,7 +143,7 @@ function HandlerInfo({
         ? formatDistanceToNow(new Date(status.last_active), {
               addSuffix: true,
               locale: dateFnsLocales[i18n.language],
-          })
+          }).replace(/^(about|přibližně) /i, "")
         : null;
 
     return (

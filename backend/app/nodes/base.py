@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import re
 from dataclasses import asdict
 from typing import TYPE_CHECKING, ClassVar
@@ -20,6 +21,7 @@ class AbstractNode:
     description: ClassVar[str] = ""
     input_ports: ClassVar[tuple[PortDef, ...]] = ()
     output_ports: ClassVar[tuple[PortDef, ...]] = ()
+    edge_debug: ClassVar[bool] = False
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -39,13 +41,43 @@ class AbstractNode:
         self.session_factory = session_factory
         self.input_connections: dict[str, list[AbstractNode]] = {}
         self.output_connections: dict[str, list[AbstractNode]] = {}
+        self.edge_sources: dict[str, tuple[str, str]] = {}
 
     def get_input(self, port_name: str):
         """Get value: from connected node's evaluate(), or from self.data[port_name]."""
         conns = self.input_connections.get(port_name)
         if conns:
-            return conns[0].evaluate()
+            value = conns[0].evaluate()
+            if AbstractNode.edge_debug:
+                edge_info = self.edge_sources.get(port_name)
+                if edge_info:
+                    self._emit_edge_value(edge_info, port_name, value)
+            return value
         return self.data.get(port_name)
+
+    def _emit_edge_value(
+        self,
+        edge_info: tuple[str, str],
+        target_handle: str,
+        value: object,
+    ) -> None:
+        from app.socketio_app import sio
+
+        source_id, source_handle = edge_info
+        type_name = type(value).__name__ if value is not None else "NoneType"
+        asyncio.get_running_loop().create_task(
+            sio.emit(
+                "workflow_edge_value",
+                {
+                    "source": source_id,
+                    "source_handle": source_handle,
+                    "target": self.node_id,
+                    "target_handle": target_handle,
+                    "value": str(value),
+                    "type": type_name,
+                },
+            )
+        )
 
     async def execute(self) -> None:
         """Execute this node's action (event-driven nodes)."""

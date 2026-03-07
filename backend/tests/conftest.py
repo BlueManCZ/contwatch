@@ -1,7 +1,7 @@
 import asyncio
 import os
 from collections.abc import AsyncGenerator
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 os.environ["TESTING"] = "1"
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-that-is-at-least-32-chars-long")
@@ -58,6 +58,7 @@ async def client() -> AsyncGenerator[AsyncClient]:
     mock_manager = AsyncMock()
     mock_manager.get_handler_status.return_value = {"running": False, "connected": False}
     mock_manager.get_available_attributes.return_value = []
+    mock_manager.get_tracker = MagicMock(return_value=None)
     app.state.handler_manager = mock_manager
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac

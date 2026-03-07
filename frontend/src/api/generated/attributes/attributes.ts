@@ -29,8 +29,15 @@ import type {
   AttributeReorderRequest,
   AttributeUpdate,
   AttributeValue,
+  CheckOutOfRangeApiAttributesAttributeIdOutOfRangeGetParams,
   HTTPValidationError,
-  ListAttributesApiAttributesGetParams
+  ListAttributesApiAttributesGetParams,
+  OutOfRangeByDateDeleteRequest,
+  OutOfRangeByDateItem,
+  OutOfRangeByDateRequest,
+  OutOfRangeDayItem,
+  OutOfRangeDeleteRequest,
+  OutOfRangeDeleteResult
 } from '../contWatchAPI.schemas';
 
 import { axiosInstance } from '../../axios-instance';
@@ -453,6 +460,184 @@ export const useReorderAttributesApiAttributesReorderPut = <TError = HTTPValidat
       return useMutation(getReorderAttributesApiAttributesReorderPutMutationOptions(options), queryClient);
     }
     /**
+ * @summary Check Out Of Range By Date
+ */
+export type checkOutOfRangeByDateApiAttributesOutOfRangeByDatePostResponse200 = {
+  data: OutOfRangeByDateItem[]
+  status: 200
+}
+
+export type checkOutOfRangeByDateApiAttributesOutOfRangeByDatePostResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type checkOutOfRangeByDateApiAttributesOutOfRangeByDatePostResponseSuccess = (checkOutOfRangeByDateApiAttributesOutOfRangeByDatePostResponse200) & {
+  headers: Headers;
+};
+export type checkOutOfRangeByDateApiAttributesOutOfRangeByDatePostResponseError = (checkOutOfRangeByDateApiAttributesOutOfRangeByDatePostResponse422) & {
+  headers: Headers;
+};
+
+export type checkOutOfRangeByDateApiAttributesOutOfRangeByDatePostResponse = (checkOutOfRangeByDateApiAttributesOutOfRangeByDatePostResponseSuccess | checkOutOfRangeByDateApiAttributesOutOfRangeByDatePostResponseError)
+
+export const getCheckOutOfRangeByDateApiAttributesOutOfRangeByDatePostUrl = () => {
+
+
+  
+
+  return `/api/attributes/out-of-range-by-date`
+}
+
+export const checkOutOfRangeByDateApiAttributesOutOfRangeByDatePost = async (outOfRangeByDateRequest: OutOfRangeByDateRequest, options?: RequestInit): Promise<checkOutOfRangeByDateApiAttributesOutOfRangeByDatePostResponse> => {
+  
+  return axiosInstance<checkOutOfRangeByDateApiAttributesOutOfRangeByDatePostResponse>(getCheckOutOfRangeByDateApiAttributesOutOfRangeByDatePostUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      outOfRangeByDateRequest,)
+  }
+);}
+  
+
+
+
+export const getCheckOutOfRangeByDateApiAttributesOutOfRangeByDatePostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof checkOutOfRangeByDateApiAttributesOutOfRangeByDatePost>>, TError,{data: OutOfRangeByDateRequest}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof checkOutOfRangeByDateApiAttributesOutOfRangeByDatePost>>, TError,{data: OutOfRangeByDateRequest}, TContext> => {
+
+const mutationKey = ['checkOutOfRangeByDateApiAttributesOutOfRangeByDatePost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof checkOutOfRangeByDateApiAttributesOutOfRangeByDatePost>>, {data: OutOfRangeByDateRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  checkOutOfRangeByDateApiAttributesOutOfRangeByDatePost(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CheckOutOfRangeByDateApiAttributesOutOfRangeByDatePostMutationResult = NonNullable<Awaited<ReturnType<typeof checkOutOfRangeByDateApiAttributesOutOfRangeByDatePost>>>
+    export type CheckOutOfRangeByDateApiAttributesOutOfRangeByDatePostMutationBody = OutOfRangeByDateRequest
+    export type CheckOutOfRangeByDateApiAttributesOutOfRangeByDatePostMutationError = HTTPValidationError
+
+    /**
+ * @summary Check Out Of Range By Date
+ */
+export const useCheckOutOfRangeByDateApiAttributesOutOfRangeByDatePost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof checkOutOfRangeByDateApiAttributesOutOfRangeByDatePost>>, TError,{data: OutOfRangeByDateRequest}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof checkOutOfRangeByDateApiAttributesOutOfRangeByDatePost>>,
+        TError,
+        {data: OutOfRangeByDateRequest},
+        TContext
+      > => {
+      return useMutation(getCheckOutOfRangeByDateApiAttributesOutOfRangeByDatePostMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Delete Out Of Range By Date
+ */
+export type deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDeleteResponse200 = {
+  data: OutOfRangeDeleteResult
+  status: 200
+}
+
+export type deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDeleteResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDeleteResponseSuccess = (deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDeleteResponse200) & {
+  headers: Headers;
+};
+export type deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDeleteResponseError = (deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDeleteResponse422) & {
+  headers: Headers;
+};
+
+export type deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDeleteResponse = (deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDeleteResponseSuccess | deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDeleteResponseError)
+
+export const getDeleteOutOfRangeByDateApiAttributesOutOfRangeByDateDeleteUrl = () => {
+
+
+  
+
+  return `/api/attributes/out-of-range-by-date`
+}
+
+export const deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDelete = async (outOfRangeByDateDeleteRequest: OutOfRangeByDateDeleteRequest, options?: RequestInit): Promise<deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDeleteResponse> => {
+  
+  return axiosInstance<deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDeleteResponse>(getDeleteOutOfRangeByDateApiAttributesOutOfRangeByDateDeleteUrl(),
+  {      
+    ...options,
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      outOfRangeByDateDeleteRequest,)
+  }
+);}
+  
+
+
+
+export const getDeleteOutOfRangeByDateApiAttributesOutOfRangeByDateDeleteMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDelete>>, TError,{data: OutOfRangeByDateDeleteRequest}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDelete>>, TError,{data: OutOfRangeByDateDeleteRequest}, TContext> => {
+
+const mutationKey = ['deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDelete'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDelete>>, {data: OutOfRangeByDateDeleteRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDelete(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteOutOfRangeByDateApiAttributesOutOfRangeByDateDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDelete>>>
+    export type DeleteOutOfRangeByDateApiAttributesOutOfRangeByDateDeleteMutationBody = OutOfRangeByDateDeleteRequest
+    export type DeleteOutOfRangeByDateApiAttributesOutOfRangeByDateDeleteMutationError = HTTPValidationError
+
+    /**
+ * @summary Delete Out Of Range By Date
+ */
+export const useDeleteOutOfRangeByDateApiAttributesOutOfRangeByDateDelete = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDelete>>, TError,{data: OutOfRangeByDateDeleteRequest}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteOutOfRangeByDateApiAttributesOutOfRangeByDateDelete>>,
+        TError,
+        {data: OutOfRangeByDateDeleteRequest},
+        TContext
+      > => {
+      return useMutation(getDeleteOutOfRangeByDateApiAttributesOutOfRangeByDateDeleteMutationOptions(options), queryClient);
+    }
+    /**
  * @summary Get Attribute
  */
 export type getAttributeApiAttributesAttributeIdGetResponse200 = {
@@ -864,3 +1049,226 @@ export function useGetAttributeValueApiAttributesAttributeIdValueGet<TData = Awa
 
 
 
+/**
+ * @summary Check Out Of Range
+ */
+export type checkOutOfRangeApiAttributesAttributeIdOutOfRangeGetResponse200 = {
+  data: OutOfRangeDayItem[]
+  status: 200
+}
+
+export type checkOutOfRangeApiAttributesAttributeIdOutOfRangeGetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type checkOutOfRangeApiAttributesAttributeIdOutOfRangeGetResponseSuccess = (checkOutOfRangeApiAttributesAttributeIdOutOfRangeGetResponse200) & {
+  headers: Headers;
+};
+export type checkOutOfRangeApiAttributesAttributeIdOutOfRangeGetResponseError = (checkOutOfRangeApiAttributesAttributeIdOutOfRangeGetResponse422) & {
+  headers: Headers;
+};
+
+export type checkOutOfRangeApiAttributesAttributeIdOutOfRangeGetResponse = (checkOutOfRangeApiAttributesAttributeIdOutOfRangeGetResponseSuccess | checkOutOfRangeApiAttributesAttributeIdOutOfRangeGetResponseError)
+
+export const getCheckOutOfRangeApiAttributesAttributeIdOutOfRangeGetUrl = (attributeId: number,
+    params?: CheckOutOfRangeApiAttributesAttributeIdOutOfRangeGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/attributes/${attributeId}/out-of-range?${stringifiedParams}` : `/api/attributes/${attributeId}/out-of-range`
+}
+
+export const checkOutOfRangeApiAttributesAttributeIdOutOfRangeGet = async (attributeId: number,
+    params?: CheckOutOfRangeApiAttributesAttributeIdOutOfRangeGetParams, options?: RequestInit): Promise<checkOutOfRangeApiAttributesAttributeIdOutOfRangeGetResponse> => {
+  
+  return axiosInstance<checkOutOfRangeApiAttributesAttributeIdOutOfRangeGetResponse>(getCheckOutOfRangeApiAttributesAttributeIdOutOfRangeGetUrl(attributeId,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getCheckOutOfRangeApiAttributesAttributeIdOutOfRangeGetQueryKey = (attributeId: number,
+    params?: CheckOutOfRangeApiAttributesAttributeIdOutOfRangeGetParams,) => {
+    return [
+    `/api/attributes/${attributeId}/out-of-range`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+    
+export const getCheckOutOfRangeApiAttributesAttributeIdOutOfRangeGetQueryOptions = <TData = Awaited<ReturnType<typeof checkOutOfRangeApiAttributesAttributeIdOutOfRangeGet>>, TError = HTTPValidationError>(attributeId: number,
+    params?: CheckOutOfRangeApiAttributesAttributeIdOutOfRangeGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof checkOutOfRangeApiAttributesAttributeIdOutOfRangeGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCheckOutOfRangeApiAttributesAttributeIdOutOfRangeGetQueryKey(attributeId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof checkOutOfRangeApiAttributesAttributeIdOutOfRangeGet>>> = ({ signal }) => checkOutOfRangeApiAttributesAttributeIdOutOfRangeGet(attributeId,params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(attributeId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof checkOutOfRangeApiAttributesAttributeIdOutOfRangeGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type CheckOutOfRangeApiAttributesAttributeIdOutOfRangeGetQueryResult = NonNullable<Awaited<ReturnType<typeof checkOutOfRangeApiAttributesAttributeIdOutOfRangeGet>>>
+export type CheckOutOfRangeApiAttributesAttributeIdOutOfRangeGetQueryError = HTTPValidationError
+
+
+export function useCheckOutOfRangeApiAttributesAttributeIdOutOfRangeGet<TData = Awaited<ReturnType<typeof checkOutOfRangeApiAttributesAttributeIdOutOfRangeGet>>, TError = HTTPValidationError>(
+ attributeId: number,
+    params: undefined |  CheckOutOfRangeApiAttributesAttributeIdOutOfRangeGetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof checkOutOfRangeApiAttributesAttributeIdOutOfRangeGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof checkOutOfRangeApiAttributesAttributeIdOutOfRangeGet>>,
+          TError,
+          Awaited<ReturnType<typeof checkOutOfRangeApiAttributesAttributeIdOutOfRangeGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCheckOutOfRangeApiAttributesAttributeIdOutOfRangeGet<TData = Awaited<ReturnType<typeof checkOutOfRangeApiAttributesAttributeIdOutOfRangeGet>>, TError = HTTPValidationError>(
+ attributeId: number,
+    params?: CheckOutOfRangeApiAttributesAttributeIdOutOfRangeGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof checkOutOfRangeApiAttributesAttributeIdOutOfRangeGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof checkOutOfRangeApiAttributesAttributeIdOutOfRangeGet>>,
+          TError,
+          Awaited<ReturnType<typeof checkOutOfRangeApiAttributesAttributeIdOutOfRangeGet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCheckOutOfRangeApiAttributesAttributeIdOutOfRangeGet<TData = Awaited<ReturnType<typeof checkOutOfRangeApiAttributesAttributeIdOutOfRangeGet>>, TError = HTTPValidationError>(
+ attributeId: number,
+    params?: CheckOutOfRangeApiAttributesAttributeIdOutOfRangeGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof checkOutOfRangeApiAttributesAttributeIdOutOfRangeGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Check Out Of Range
+ */
+
+export function useCheckOutOfRangeApiAttributesAttributeIdOutOfRangeGet<TData = Awaited<ReturnType<typeof checkOutOfRangeApiAttributesAttributeIdOutOfRangeGet>>, TError = HTTPValidationError>(
+ attributeId: number,
+    params?: CheckOutOfRangeApiAttributesAttributeIdOutOfRangeGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof checkOutOfRangeApiAttributesAttributeIdOutOfRangeGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getCheckOutOfRangeApiAttributesAttributeIdOutOfRangeGetQueryOptions(attributeId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * @summary Delete Out Of Range
+ */
+export type deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDeleteResponse200 = {
+  data: OutOfRangeDeleteResult
+  status: 200
+}
+
+export type deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDeleteResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDeleteResponseSuccess = (deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDeleteResponse200) & {
+  headers: Headers;
+};
+export type deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDeleteResponseError = (deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDeleteResponse422) & {
+  headers: Headers;
+};
+
+export type deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDeleteResponse = (deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDeleteResponseSuccess | deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDeleteResponseError)
+
+export const getDeleteOutOfRangeApiAttributesAttributeIdOutOfRangeDeleteUrl = (attributeId: number,) => {
+
+
+  
+
+  return `/api/attributes/${attributeId}/out-of-range`
+}
+
+export const deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDelete = async (attributeId: number,
+    outOfRangeDeleteRequest: OutOfRangeDeleteRequest, options?: RequestInit): Promise<deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDeleteResponse> => {
+  
+  return axiosInstance<deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDeleteResponse>(getDeleteOutOfRangeApiAttributesAttributeIdOutOfRangeDeleteUrl(attributeId),
+  {      
+    ...options,
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      outOfRangeDeleteRequest,)
+  }
+);}
+  
+
+
+
+export const getDeleteOutOfRangeApiAttributesAttributeIdOutOfRangeDeleteMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDelete>>, TError,{attributeId: number;data: OutOfRangeDeleteRequest}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDelete>>, TError,{attributeId: number;data: OutOfRangeDeleteRequest}, TContext> => {
+
+const mutationKey = ['deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDelete'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDelete>>, {attributeId: number;data: OutOfRangeDeleteRequest}> = (props) => {
+          const {attributeId,data} = props ?? {};
+
+          return  deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDelete(attributeId,data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteOutOfRangeApiAttributesAttributeIdOutOfRangeDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDelete>>>
+    export type DeleteOutOfRangeApiAttributesAttributeIdOutOfRangeDeleteMutationBody = OutOfRangeDeleteRequest
+    export type DeleteOutOfRangeApiAttributesAttributeIdOutOfRangeDeleteMutationError = HTTPValidationError
+
+    /**
+ * @summary Delete Out Of Range
+ */
+export const useDeleteOutOfRangeApiAttributesAttributeIdOutOfRangeDelete = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDelete>>, TError,{attributeId: number;data: OutOfRangeDeleteRequest}, TContext>, request?: SecondParameter<typeof axiosInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteOutOfRangeApiAttributesAttributeIdOutOfRangeDelete>>,
+        TError,
+        {attributeId: number;data: OutOfRangeDeleteRequest},
+        TContext
+      > => {
+      return useMutation(getDeleteOutOfRangeApiAttributesAttributeIdOutOfRangeDeleteMutationOptions(options), queryClient);
+    }
+    

@@ -5,6 +5,7 @@ class PortOption(BaseModel):
     value: str
     label: str
     group: str = ""
+    display_label: str = ""
 
 
 class PortDefinition(BaseModel):

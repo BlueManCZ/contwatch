@@ -56,6 +56,8 @@ export interface AttributeRead {
   order?: number | null;
   rounding?: number | null;
   color?: string | null;
+  min_value?: number | null;
+  max_value?: number | null;
 }
 
 export interface AttributeReorderItem {
@@ -74,6 +76,8 @@ export interface AttributeUpdate {
   order?: number | null;
   rounding?: number | null;
   color?: string | null;
+  min_value?: number | null;
+  max_value?: number | null;
 }
 
 export interface AttributeValue {
@@ -333,6 +337,7 @@ export interface PortOption {
   value: string;
   label: string;
   group?: string;
+  display_label?: string;
 }
 
 export interface PortDefinition {
@@ -351,6 +356,59 @@ export interface NodeDefinition {
   description: string;
   input_ports: PortDefinition[];
   output_ports: PortDefinition[];
+}
+
+export interface OutOfRangeByDateAttributeBounds {
+  attribute_id: number;
+  min_value?: number | null;
+  max_value?: number | null;
+}
+
+export interface OutOfRangeByDateDeleteRequest {
+  date: string;
+  /**
+   * Browser timezone offset in minutes (JS getTimezoneOffset)
+   * @minimum -720
+   * @maximum 840
+   */
+  tz_offset?: number;
+  attributes: OutOfRangeByDateAttributeBounds[];
+}
+
+export interface OutOfRangeByDateItem {
+  attribute_id: number;
+  attribute_name: string;
+  count: number;
+}
+
+export interface OutOfRangeByDateRequest {
+  date: string;
+  /**
+   * Browser timezone offset in minutes (JS getTimezoneOffset)
+   * @minimum -720
+   * @maximum 840
+   */
+  tz_offset?: number;
+  attributes: OutOfRangeByDateAttributeBounds[];
+}
+
+export interface OutOfRangeDayItem {
+  date: string;
+  count: number;
+}
+
+export interface OutOfRangeDeleteRequest {
+  dates: string[];
+  /**
+   * Browser timezone offset in minutes (JS getTimezoneOffset)
+   * @minimum -720
+   * @maximum 840
+   */
+  tz_offset?: number;
+}
+
+export interface OutOfRangeDeleteResult {
+  deleted: number;
 }
 
 export type ProbeRequestConfig = { [key: string]: unknown };
@@ -480,6 +538,7 @@ export const WidgetCreateType = {
   switch: 'switch',
   slider: 'slider',
   button: 'button',
+  sparkline: 'sparkline',
 } as const;
 
 export type WidgetCreateConfig = { [key: string]: unknown };
@@ -554,14 +613,29 @@ export type ListAttributesApiAttributesGetParams = {
 handler_id?: number | null;
 };
 
+export type CheckOutOfRangeApiAttributesAttributeIdOutOfRangeGetParams = {
+/**
+ * Browser timezone offset in minutes (JS getTimezoneOffset)
+ * @minimum -720
+ * @maximum 840
+ */
+tz_offset?: number;
+};
+
 export type ListDataUnitsApiDataUnitsGetParams = {
 attribute_id?: number | null;
 date_from?: string | null;
 date_to?: string | null;
 /**
  * Browser timezone offset in minutes (JS getTimezoneOffset)
+ * @minimum -720
+ * @maximum 840
  */
 tz_offset?: number;
+/**
+ * @minimum 1
+ * @maximum 10000
+ */
 limit?: number;
 };
 
@@ -573,6 +647,8 @@ attribute_ids: string;
 date?: string | null;
 /**
  * Browser timezone offset in minutes (JS getTimezoneOffset)
+ * @minimum -720
+ * @maximum 840
  */
 tz_offset?: number;
 };
@@ -583,6 +659,8 @@ export type ListDataStatsApiDataStatsGetParams = {
  */
 attribute_ids: string;
 date?: string | null;
+date_from?: string | null;
+date_to?: string | null;
 };
 
 export type ListLogsApiLogsGetParams = {

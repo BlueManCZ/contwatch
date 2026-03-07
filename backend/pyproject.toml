@@ -49,4 +49,6 @@ filterwarnings = [
     "error",
     # Test JWT secret is intentionally short; suppress PyJWT warning in tests
     "ignore:The HMAC key is.*:jwt.warnings.InsecureKeyLengthWarning",
+    # Python 3.12+ deprecated the default sqlite3 date/datetime adapters; suppress until aiosqlite adapts
+    "ignore:The default .* adapter is deprecated:DeprecationWarning",
 ]

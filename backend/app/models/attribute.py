@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -17,6 +17,8 @@ class Attribute(Base):
     order: Mapped[int | None] = mapped_column(Integer, nullable=True)
     rounding: Mapped[int | None] = mapped_column(Integer, nullable=True)
     color: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    min_value: Mapped[float | None] = mapped_column(Float, nullable=True)
+    max_value: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     handler: Mapped["Handler"] = relationship(back_populates="attributes")  # noqa: F821
     data_units: Mapped[list["DataUnit"]] = relationship(  # noqa: F821

@@ -51,6 +51,8 @@
         "add": "Add",
         "close": "Close",
         "loading": "Loading...",
+        "date": "Date",
+        "count": "Count",
         "noData": "No data",
         "yes": "Yes",
         "no": "No",
@@ -173,6 +175,7 @@
         "selectType": "Select handler type",
         "type": "Type",
         "status": "Status",
+        "attribute": "Attribute",
         "attributes": "Attributes",
         "attributeCount_one": "{{count}} attribute",
         "attributeCount_other": "{{count}} attributes",
@@ -195,7 +198,16 @@
         "editConfig": "Edit Configuration",
         "icon": "Icon",
         "rounding": "Rounding",
+        "minValue": "Min value",
+        "maxValue": "Max value",
         "color": "Color",
+        "outOfRangeTitle": "Out-of-range data",
+        "outOfRangeNone": "No out-of-range values found.",
+        "outOfRangeDescription": "The following days contain values outside the configured bounds:",
+        "outOfRangeDeleteSelected_one": "Delete {{count}} value",
+        "outOfRangeDeleteSelected_other": "Delete {{count}} values",
+        "outOfRangeDeleted_one": "Deleted {{count}} out-of-range value.",
+        "outOfRangeDeleted_other": "Deleted {{count}} out-of-range values.",
         "advancedSetup": "Advanced",
         "actions": "Actions",
         "noActions": "No actions defined.",
@@ -259,7 +271,12 @@
         "editButton": "Edit Button",
         "removeButton": "Remove Button",
         "button": "Button",
-        "iconName": "Icon"
+        "iconName": "Icon",
+        "addSparkline": "Sparkline",
+        "editSparkline": "Edit Sparkline",
+        "removeSparkline": "Remove Sparkline",
+        "sparklineDays_one": "{{count}} day",
+        "sparklineDays_other": "{{count}} days"
     },
     "actions": {
         "message": "Message",
@@ -277,19 +294,16 @@
         "saving": "Saving...",
         "saved": "Saved",
         "error": "Failed to save workflow",
+        "edgeDebug": "Edge debug",
         "cycleDetected": "Cycle detected in workflow — check the highlighted node",
         "nodes": {
             "handler_listener": {
                 "label": "Handler Listener",
                 "description": "Triggers when a handler receives data"
             },
-            "attribute_reader_listener": {
-                "label": "Attribute Listener",
-                "description": "Triggers when an attribute value changes and provides the value"
-            },
             "attribute_reader": {
                 "label": "Attribute Reader",
-                "description": "Reads the current value of an attribute"
+                "description": "Reads the current value of an attribute and optionally triggers on change"
             },
             "handler_data_reader": {
                 "label": "Handler Data Reader",
@@ -306,6 +320,11 @@
             },
             "negation": { "label": "Negation", "description": "Inverts a boolean value" },
             "logger": { "label": "Logger", "description": "Logs a value for debugging" },
+            "display": {
+                "label": "Display",
+                "description": "Displays the current value and its type (pass-through)",
+                "noValue": "No value yet"
+            },
             "action_performer": {
                 "label": "Action Performer",
                 "description": "Executes an action on a handler"
@@ -323,7 +342,8 @@
             "function": "Function",
             "true_event": "True",
             "false_event": "False",
-            "action_id": "Action"
+            "action_id": "Action",
+            "switch": "Switch"
         }
     },
     "chart": {
@@ -333,7 +353,8 @@
         "previousDay": "Previous Day",
         "nextDay": "Next Day",
         "openInAnalytics": "Open in Analytics",
-        "beginAtZero": "Begin Y axis at zero"
+        "beginAtZero": "Begin Y axis at zero",
+        "dismissTooltip": "Dismiss tooltip"
     },
     "inspector": {
         "title": "Analytics",
@@ -341,7 +362,16 @@
         "noAttributes": "No attributes selected.",
         "noAttributesDescription": "Select attributes to view their historical data.",
         "attributeSelector": "Attribute Selector",
-        "clearAll": "Clear All"
+        "clearAll": "Clear All",
+        "dailyView": "Daily stats",
+        "intradayView": "Intraday chart",
+        "lastNDays_one": "Last {{count}} day",
+        "lastNDays_other": "Last {{count}} days",
+        "previousPeriod": "Previous period",
+        "nextPeriod": "Next period",
+        "checkOutOfRange": "Check for out-of-range values",
+        "outOfRangeDateTitle": "Out-of-range data — {{date}}",
+        "outOfRangeDateDescription": "The following attributes have values outside their configured bounds on this day:"
     },
     "logs": {
         "title": "Logs",
@@ -472,7 +502,11 @@
     },
     "settings": {
         "language": "Language",
-        "languageDescription": "Choose the display language for the interface."
+        "languageDescription": "Choose the display language for the interface.",
+        "theme": "Theme",
+        "themeDescription": "Choose the color scheme for the interface.",
+        "themeDark": "Dark",
+        "themeLight": "Light"
     },
     "confirm": {
         "title": "Are you sure?",

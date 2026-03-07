@@ -83,9 +83,11 @@ class NodeGraph:
             source_node.output_connections.setdefault(source_handle, []).append(target_node)
             # Input connection: target_node.input_connections[target_handle] -> source_node
             target_node.input_connections.setdefault(target_handle, []).append(source_node)
+            # Edge source metadata for debug display
+            target_node.edge_sources[target_handle] = (source_id, source_handle)
 
         # Index listener nodes by their configured ID
-        from app.nodes.attribute_reader_listener import AttributeReaderListener
+        from app.nodes.attribute_reader import AttributeReader
         from app.nodes.handler_listener import HandlerListener
 
         for node in self._nodes.values():
@@ -93,7 +95,7 @@ class NodeGraph:
                 handler_id = node.data.get("handler_id")
                 if handler_id is not None:
                     self._handler_listeners.setdefault(int(handler_id), []).append(node)
-            elif isinstance(node, AttributeReaderListener):
+            elif isinstance(node, AttributeReader):
                 attr_id = node.data.get("attribute_id")
                 if attr_id is not None:
                     self._attribute_listeners.setdefault(int(attr_id), []).append(node)

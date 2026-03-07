@@ -39,3 +39,12 @@ async def connect(sid, environ, auth):
 async def disconnect(sid):
     logger.info("Socket.IO client disconnected: %s", sid)
     await sio.emit("mutate", {"entity": "system"})
+
+
+@sio.event
+async def workflow_edge_debug(sid, data):
+    from app.nodes.base import AbstractNode
+
+    enabled = bool(data.get("enabled")) if isinstance(data, dict) else False
+    AbstractNode.edge_debug = enabled
+    logger.info("Workflow edge debug %s by %s", "enabled" if enabled else "disabled", sid)

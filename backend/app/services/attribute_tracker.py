@@ -24,10 +24,19 @@ class AttributeTracker:
     The DB-persisted stats are handled by a TimescaleDB continuous aggregate.
     """
 
-    def __init__(self, attribute_id: int, handler_id: int, rounding: int | None = None):
+    def __init__(
+        self,
+        attribute_id: int,
+        handler_id: int,
+        rounding: int | None = None,
+        min_value: float | None = None,
+        max_value: float | None = None,
+    ):
         self.attribute_id = attribute_id
         self.handler_id = handler_id
         self.rounding = rounding
+        self.min_value = min_value
+        self.max_value = max_value
         self._current_value: Any = None
         self._last_changed: datetime.datetime | None = None
         self._last_value_save_skipped: bool = False
@@ -97,6 +106,13 @@ class AttributeTracker:
         value = self._try_numeric(raw_value)
         if self.rounding is not None and isinstance(value, (int, float)) and not isinstance(value, bool):
             value = round(value, self.rounding)
+
+        # Reject values outside configured bounds
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            if self.min_value is not None and value < self.min_value:
+                return ProcessResult()
+            if self.max_value is not None and value > self.max_value:
+                return ProcessResult()
 
         result = ProcessResult()
 

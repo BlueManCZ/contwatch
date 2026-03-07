@@ -56,7 +56,11 @@ export function EditWidgetDialog({ widget, open, onOpenChange, onRemove }: EditW
     );
     const [icon, setIcon] = useState(widget.icon ?? "");
 
-    const needsAttribute = widget.type === "tile" || widget.type === "switch" || widget.type === "slider";
+    const needsAttribute =
+        widget.type === "tile" ||
+        widget.type === "sparkline" ||
+        widget.type === "switch" ||
+        widget.type === "slider";
 
     function canSubmit() {
         if (needsAttribute && !selectedAttrId) return false;
@@ -110,6 +114,7 @@ export function EditWidgetDialog({ widget, open, onOpenChange, onRemove }: EditW
     const titleKey =
         {
             tile: "dashboard.editTile",
+            sparkline: "dashboard.editSparkline",
             switch: "dashboard.editSwitch",
             slider: "dashboard.editSlider",
             button: "dashboard.editButton",
@@ -118,6 +123,7 @@ export function EditWidgetDialog({ widget, open, onOpenChange, onRemove }: EditW
     const removeKey =
         {
             tile: "dashboard.removeTile",
+            sparkline: "dashboard.removeSparkline",
             switch: "dashboard.removeSwitch",
             slider: "dashboard.removeSlider",
             button: "dashboard.removeButton",

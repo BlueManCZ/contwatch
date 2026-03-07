@@ -38,4 +38,6 @@ class Evaluator(AbstractNode):
         try:
             return func(float(str(first).replace(",", ".")), float(str(second).replace(",", ".")))
         except (ValueError, TypeError):
+            if operator_str in ("==", "<>"):
+                return func(first, second)
             return None

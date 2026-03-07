@@ -42,6 +42,7 @@ export function HandlerList() {
     const reorderHandlers = useReorderHandlersApiHandlersReorderPut();
     const [selectedHandlerId, setSelectedHandlerId] = useState<number | null>(null);
     const [detailOpen, setDetailOpen] = useState(false);
+    const [editingAttribute, setEditingAttribute] = useState<AttributeRead | null>(null);
     const isMobile = useIsMobile();
 
     const handlers = (data?.data ?? []) as HandlerRead[];
@@ -91,12 +92,14 @@ export function HandlerList() {
                                     handler={handler}
                                     icon={typeIconMap.get(handler.type)}
                                     typeName={typeNameMap.get(handler.type)}
+                                    onEditAttribute={setEditingAttribute}
                                 />
                             )}
                         />
                     </div>
                 )}
                 <HandlerDetail handler={selectedHandler} open={detailOpen} onOpenChange={setDetailOpen} />
+                <AttributeEditDialog attribute={editingAttribute} onClose={() => setEditingAttribute(null)} />
             </PageContent>
         </>
     );
@@ -106,10 +109,12 @@ function HandlerCard({
     handler,
     icon,
     typeName,
+    onEditAttribute,
 }: {
     handler: HandlerRead;
     icon: string | undefined;
     typeName: string | undefined;
+    onEditAttribute: (attr: AttributeRead) => void;
 }) {
     const { t, i18n } = useTranslation();
     const queryClient = useQueryClient();
@@ -117,7 +122,6 @@ function HandlerCard({
     const reorder = useReorderAttributesApiAttributesReorderPut();
     const values = useLiveValuesStore((s) => s.values);
     const indicators = useHandlerIndicatorStore((s) => s.indicators[handler.id]);
-    const [editingAttribute, setEditingAttribute] = useState<AttributeRead | null>(null);
 
     const isRunning = status?.running ?? false;
     const isConnected = status?.connected ?? false;
@@ -127,7 +131,7 @@ function HandlerCard({
             ? formatDistanceToNow(new Date(status.last_active), {
                   addSuffix: true,
                   locale: dateFnsLocales[i18n.language],
-              })
+              }).replace(/^(about|přibližně) /i, "")
             : null;
 
     const label = handler.label || typeName || handler.type;
@@ -172,75 +176,71 @@ function HandlerCard({
           : t("handlers.disconnected");
 
     return (
-        <>
-            <Card className="py-0 transition-all duration-200 hover:shadow-md cursor-pointer">
-                <CardContent className={cn("px-4 py-2", attrs.length > 0 && "pb-0")}>
-                    <div className="flex items-center gap-3 min-w-0">
-                        <span className="relative flex shrink-0 h-9 w-9 -ml-2 items-center justify-center rounded-full border border-border/60 bg-background/50">
-                            {aura && (
-                                <span
-                                    className={cn(
-                                        "absolute inset-0 m-auto h-5 w-5 rounded-full",
-                                        aura.bg,
-                                        aura.anim,
-                                    )}
-                                />
-                            )}
-                            <SafeIcon
-                                name={icon}
-                                className={cn("relative h-5 w-5", statusColor)}
-                                fallback={<Cable className={cn("relative h-5 w-5", statusColor)} />}
-                            />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                                <h3 className="font-semibold text-sm truncate">{label}</h3>
-                                {isRunning &&
-                                    indicators?.map((ind) => (
-                                        <span
-                                            key={ind.icon}
-                                            title={t(ind.tooltip_key, ind.tooltip_params ?? {})}
-                                        >
-                                            <SafeIcon
-                                                name={ind.icon}
-                                                className={cn(
-                                                    "h-3.5 w-3.5 shrink-0",
-                                                    INDICATOR_COLOR[ind.color],
-                                                )}
-                                            />
-                                        </span>
-                                    ))}
-                            </div>
-                            <div className="flex items-center gap-2 mt-0.5 min-w-0">
-                                <p className="text-xs text-muted-foreground data-value truncate">
-                                    {handler.description}
-                                </p>
-                                {(!isRunning || !isConnected) && (
-                                    <span className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground shrink-0">
-                                        <span className={cn("h-1.5 w-1.5 rounded-full", statusDotColor)} />
-                                        {statusLabel}
-                                        {lastActiveText && (
-                                            <span className="text-muted-foreground/60">{lastActiveText}</span>
-                                        )}
-                                    </span>
+        <Card className="py-0 transition-all duration-200 hover:shadow-md cursor-pointer">
+            <CardContent className={cn("px-4 py-2", attrs.length > 0 && "pb-0")}>
+                <div className="flex items-center gap-3 min-w-0">
+                    <span className="relative flex shrink-0 h-9 w-9 -ml-2 items-center justify-center rounded-full border border-border/60 bg-background/50">
+                        {aura && (
+                            <span
+                                className={cn(
+                                    "absolute inset-0 m-auto h-5 w-5 rounded-full",
+                                    aura.bg,
+                                    aura.anim,
                                 )}
-                            </div>
+                            />
+                        )}
+                        <SafeIcon
+                            name={icon}
+                            className={cn("relative h-5 w-5", statusColor)}
+                            fallback={<Cable className={cn("relative h-5 w-5", statusColor)} />}
+                        />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-sm truncate">{label}</h3>
+                            {isRunning &&
+                                indicators?.map((ind) => (
+                                    <span key={ind.icon} title={t(ind.tooltip_key, ind.tooltip_params ?? {})}>
+                                        <SafeIcon
+                                            name={ind.icon}
+                                            className={cn("h-3.5 w-3.5 shrink-0", INDICATOR_COLOR[ind.color])}
+                                        />
+                                    </span>
+                                ))}
+                            {(!isRunning || !isConnected) && (
+                                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground shrink-0 ml-auto">
+                                    <span className={cn("h-1.5 w-1.5 rounded-full", statusDotColor)} />
+                                    {statusLabel}
+                                </span>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5 min-w-0">
+                            <p className="text-sm text-muted-foreground data-value truncate">
+                                {handler.description}
+                            </p>
+                            {lastActiveText && (
+                                <span className="text-xs text-muted-foreground/60 shrink-0 ml-auto">
+                                    {lastActiveText}
+                                </span>
+                            )}
                         </div>
                     </div>
-                    {attrs.length > 0 && (
-                        <div className="mt-2 -mx-4 border-t border-border/50">
-                            <SortableList
-                                items={attrs}
-                                onReorder={handleReorder}
-                                onLongPress={(attr) => setEditingAttribute(attr)}
-                                renderItem={(attr) => <AttributeRow attr={attr} liveVal={values[attr.id]} />}
-                            />
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-            <AttributeEditDialog attribute={editingAttribute} onClose={() => setEditingAttribute(null)} />
-        </>
+                </div>
+                {attrs.length > 0 && (
+                    <div
+                        className="mt-2 -mx-4 border-t border-border/50"
+                        onPointerDown={(e) => e.stopPropagation()}
+                    >
+                        <SortableList
+                            items={attrs}
+                            onReorder={handleReorder}
+                            onLongPress={(attr) => onEditAttribute(attr)}
+                            renderItem={(attr) => <AttributeRow attr={attr} liveVal={values[attr.id]} />}
+                        />
+                    </div>
+                )}
+            </CardContent>
+        </Card>
     );
 }
 
@@ -273,13 +273,13 @@ function AttributeRow({ attr, liveVal }: { attr: AttributeRead; liveVal: Attribu
         >
             <SafeIcon
                 name={attr.icon}
-                className="h-3.5 w-3.5 text-muted-foreground shrink-0"
-                fallback={<Activity className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />}
+                className="h-4 w-4 text-muted-foreground shrink-0"
+                fallback={<Activity className="h-4 w-4 text-muted-foreground/40 shrink-0" />}
             />
 
             <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-medium truncate">{localizedLabel || attr.name}</span>
+                    <span className="text-sm font-medium truncate">{localizedLabel || attr.name}</span>
                     {!isBooleanValue && trend > 0 && <TrendingUp className="h-3 w-3 text-success shrink-0" />}
                     {!isBooleanValue && trend < 0 && (
                         <TrendingDown className="h-3 w-3 text-destructive-foreground shrink-0" />
@@ -291,7 +291,7 @@ function AttributeRow({ attr, liveVal }: { attr: AttributeRead; liveVal: Attribu
                             <History
                                 className={`h-3 w-3 ${booleanOn ? "text-info" : "text-destructive-foreground"}`}
                             />
-                            <span className="text-[10px] text-muted-foreground tabular-nums">
+                            <span className="text-xs text-muted-foreground tabular-nums">
                                 {new Date(liveVal.last_changed).toLocaleTimeString([], {
                                     hour: "2-digit",
                                     minute: "2-digit",
@@ -300,20 +300,20 @@ function AttributeRow({ attr, liveVal }: { attr: AttributeRead; liveVal: Attribu
                         </div>
                     )
                 ) : !liveVal || liveVal.stats_stale ? (
-                    <span className="text-[10px] text-muted-foreground/60 mt-0.5">
+                    <span className="text-xs text-muted-foreground/60 mt-0.5">
                         {t("handlers.statsStale")}
                     </span>
                 ) : (
                     (liveVal?.daily_min != null || liveVal?.daily_max != null) && (
                         <div className="flex items-center gap-2 mt-0.5">
                             {liveVal?.daily_min != null && (
-                                <span className="text-[10px] text-muted-foreground tabular-nums">
+                                <span className="text-xs text-muted-foreground tabular-nums">
                                     <span className="text-info">&#8595;</span>{" "}
                                     {formatStat(liveVal.daily_min, attr.unit, attr.rounding)}
                                 </span>
                             )}
                             {liveVal?.daily_max != null && (
-                                <span className="text-[10px] text-muted-foreground tabular-nums">
+                                <span className="text-xs text-muted-foreground tabular-nums">
                                     <span className="text-destructive-foreground">&#8593;</span>{" "}
                                     {formatStat(liveVal.daily_max, attr.unit, attr.rounding)}
                                 </span>
@@ -324,8 +324,8 @@ function AttributeRow({ attr, liveVal }: { attr: AttributeRead; liveVal: Attribu
             </div>
 
             <div className="flex items-baseline gap-1 shrink-0">
-                <span className="text-sm font-semibold tabular-nums">{displayValue}</span>
-                {displayUnit && <span className="text-xs text-muted-foreground">{displayUnit}</span>}
+                <span className="text-base font-semibold tabular-nums">{displayValue}</span>
+                {displayUnit && <span className="text-sm text-muted-foreground">{displayUnit}</span>}
             </div>
         </button>
     );

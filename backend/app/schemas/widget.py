@@ -7,7 +7,7 @@ from app.schemas.common import OrmBase
 
 
 class WidgetCreate(BaseModel):
-    type: Literal["tile", "switch", "slider", "button"]
+    type: Literal["tile", "switch", "slider", "button", "sparkline"]
     name: str | None = None
     icon: str | None = None
     attribute_id: int | None = None
