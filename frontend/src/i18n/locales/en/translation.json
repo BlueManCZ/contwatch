@@ -307,6 +307,16 @@
         "saved": "Saved",
         "error": "Failed to save workflow",
         "edgeDebug": "Edge debug",
+        "multiSelect": "Multi-select",
+        "align": {
+            "left": "Align left",
+            "right": "Align right",
+            "top": "Align top",
+            "bottom": "Align bottom",
+            "distributeH": "Distribute horizontally",
+            "distributeV": "Distribute vertically",
+            "grid": "Arrange into grid"
+        },
         "cycleDetected": "Cycle detected in workflow — check the highlighted node",
         "nodes": {
             "handler_listener": {

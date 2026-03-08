@@ -311,6 +311,16 @@
         "saved": "Uloženo",
         "error": "Nepodařilo se uložit workflow",
         "edgeDebug": "Ladění hran",
+        "multiSelect": "Vícenásobný výběr",
+        "align": {
+            "left": "Zarovnat vlevo",
+            "right": "Zarovnat vpravo",
+            "top": "Zarovnat nahoru",
+            "bottom": "Zarovnat dolů",
+            "distributeH": "Rozložit vodorovně",
+            "distributeV": "Rozložit svisle",
+            "grid": "Uspořádat do mřížky"
+        },
         "cycleDetected": "Ve workflow byla detekována smyčka — zkontrolujte zvýrazněný uzel",
         "nodes": {
             "handler_listener": {

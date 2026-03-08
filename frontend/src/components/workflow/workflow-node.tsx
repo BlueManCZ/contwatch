@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import { createContext, useCallback, useContext, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { NodeDefinition, PortDefinition } from "@/api/generated/contWatchAPI.schemas";
-import { useWorkflowDisplayStore } from "@/stores/workflow-display";
+import { useWorkflowStore } from "@/stores/workflow-store";
 import { TreeSelectControl } from "./tree-select-control";
 import { PORT_COLORS } from "./types";
 
@@ -243,7 +243,7 @@ export function createWorkflowNode(nodeType: string) {
         const { updateNodeData, deleteElements } = useReactFlow();
         const { t } = useTranslation();
         const isDisplay = nodeType === "display";
-        const displayValue = useWorkflowDisplayStore((s) => (isDisplay ? s.values[id] : undefined));
+        const displayValue = useWorkflowStore((s) => (isDisplay ? s.values[id] : undefined));
 
         const inputPorts = definition?.input_ports ?? [];
         const outputPorts = definition?.output_ports ?? [];
