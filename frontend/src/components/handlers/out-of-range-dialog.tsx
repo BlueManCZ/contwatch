@@ -24,13 +24,11 @@ export function OutOfRangeDialog({ attribute, open, onOpenChange }: OutOfRangeDi
     const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
     const tzOffset = useMemo(() => new Date().getTimezoneOffset(), []);
 
-    const hasBounds = attribute.min_value != null || attribute.max_value != null;
-
     const { data, isLoading } = useCheckOutOfRangeApiAttributesAttributeIdOutOfRangeGet(
         attribute.id,
         { tz_offset: tzOffset },
         {
-            query: { enabled: open && hasBounds },
+            query: { enabled: open },
         },
     );
 

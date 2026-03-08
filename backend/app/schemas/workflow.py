@@ -16,6 +16,7 @@ class PortDefinition(BaseModel):
     control: str = ""
     options: list[PortOption] = []
     data_key: str = ""
+    dynamic: bool = False
 
 
 class NodeDefinition(BaseModel):

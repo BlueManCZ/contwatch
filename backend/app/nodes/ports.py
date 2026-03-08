@@ -10,6 +10,7 @@ class PortDef:
     control: str = ""  # "text", "number", "select", or "" for no control
     options: tuple = ()  # static select options; () means dynamic (populated by API)
     data_key: str = ""  # key in flat node data; defaults to name
+    dynamic: bool = False  # when True, frontend renders auto-growing numbered instances
 
     def __post_init__(self):
         if not self.data_key:

@@ -161,6 +161,13 @@
         "Balance_Even_Cells": "Balancovat sudé články",
         "Balance_Stop": "Zastavit balancování"
     },
+    "aggregateFunctions": {
+        "Minimum": "Minimum",
+        "Maximum": "Maximum",
+        "Summation": "Součet",
+        "Average": "Průměr",
+        "Median": "Medián"
+    },
     "fields": {
         "host": "URL / IP zařízení",
         "port": "Sériový port",
@@ -331,7 +338,9 @@
                 "description": "Zobrazí aktuální hodnotu a její typ (průchozí)",
                 "noValue": "Zatím žádná hodnota"
             },
-            "action_performer": { "label": "Spouštěč akce", "description": "Spustí akci na zařízení" }
+            "action_performer": { "label": "Spouštěč akce", "description": "Spustí akci na zařízení" },
+            "sub_workflow_input": { "label": "Vstup", "description": "Vstupní bod sub-workflow" },
+            "sub_workflow_output": { "label": "Výstup", "description": "Výstupní bod sub-workflow" }
         },
         "ports": {
             "event": "Událost",
@@ -346,8 +355,23 @@
             "true_event": "Pravda",
             "false_event": "Nepravda",
             "action_id": "Akce",
-            "switch": "Přepínač"
+            "switch": "Přepínač",
+            "name": "Název",
+            "input": "Vstup",
+            "output": "Výstup"
         }
+    },
+    "subWorkflows": {
+        "title": "Sub-Workflows",
+        "create": "Vytvořit Sub-Workflow",
+        "edit": "Upravit Sub-Workflow",
+        "name": "Název",
+        "namePlaceholder": "Zadejte název sub-workflow",
+        "description": "Popis",
+        "descriptionPlaceholder": "Volitelný popis",
+        "deleteConfirm": "Toto trvale smaže sub-workflow \"{{name}}\".",
+        "empty": "Zatím žádné sub-workflows. Vytvořte jeden pro začátek.",
+        "mainWorkflow": "Hlavní Workflow"
     },
     "chart": {
         "title": "Graf",

@@ -161,6 +161,13 @@
         "Balance_Even_Cells": "Balance Even Cells",
         "Balance_Stop": "Balance Stop"
     },
+    "aggregateFunctions": {
+        "Minimum": "Minimum",
+        "Maximum": "Maximum",
+        "Summation": "Summation",
+        "Average": "Average",
+        "Median": "Median"
+    },
     "fields": {
         "host": "Device URL / IP",
         "port": "Serial port",
@@ -333,6 +340,14 @@
             "action_performer": {
                 "label": "Action Performer",
                 "description": "Executes an action on a handler"
+            },
+            "sub_workflow_input": {
+                "label": "Input",
+                "description": "Entry point for sub-workflow inputs"
+            },
+            "sub_workflow_output": {
+                "label": "Output",
+                "description": "Exit point for sub-workflow outputs"
             }
         },
         "ports": {
@@ -348,8 +363,23 @@
             "true_event": "True",
             "false_event": "False",
             "action_id": "Action",
-            "switch": "Switch"
+            "switch": "Switch",
+            "name": "Name",
+            "input": "Input",
+            "output": "Output"
         }
+    },
+    "subWorkflows": {
+        "title": "Sub-Workflows",
+        "create": "Create Sub-Workflow",
+        "edit": "Edit Sub-Workflow",
+        "name": "Name",
+        "namePlaceholder": "Enter sub-workflow name",
+        "description": "Description",
+        "descriptionPlaceholder": "Optional description",
+        "deleteConfirm": "This will permanently delete the sub-workflow \"{{name}}\".",
+        "empty": "No sub-workflows yet. Create one to get started.",
+        "mainWorkflow": "Main Workflow"
     },
     "chart": {
         "title": "Chart",

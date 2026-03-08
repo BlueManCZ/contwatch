@@ -47,11 +47,11 @@ class AbstractNode:
         """Get value: from connected node's evaluate(), or from self.data[port_name]."""
         conns = self.input_connections.get(port_name)
         if conns:
-            value = conns[0].evaluate()
-            if AbstractNode.edge_debug:
-                edge_info = self.edge_sources.get(port_name)
-                if edge_info:
-                    self._emit_edge_value(edge_info, port_name, value)
+            edge_info = self.edge_sources.get(port_name)
+            source_handle = edge_info[1] if edge_info else None
+            value = conns[0].evaluate(source_handle)
+            if AbstractNode.edge_debug and edge_info:
+                self._emit_edge_value(edge_info, port_name, value)
             return value
         return self.data.get(port_name)
 
@@ -83,8 +83,12 @@ class AbstractNode:
         """Execute this node's action (event-driven nodes)."""
         raise NotImplementedError
 
-    def evaluate(self):
-        """Evaluate this node's value (data-pull nodes)."""
+    def evaluate(self, source_handle: str | None = None):
+        """Evaluate this node's value (data-pull nodes).
+
+        Args:
+            source_handle: The output port being pulled, for multi-output nodes.
+        """
         raise NotImplementedError
 
     @classmethod

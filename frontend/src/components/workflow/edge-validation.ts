@@ -1,13 +1,26 @@
 import type { IsValidConnection } from "@xyflow/react";
-import type { NodeDefinition } from "@/api/generated/contWatchAPI.schemas";
+import type { NodeDefinition, PortDefinition } from "@/api/generated/contWatchAPI.schemas";
 
 /**
- * Creates a connection validator that only allows same-type port connections
- * (event<->event, value<->value, etc.)
+ * Find a port definition by handle name, supporting dynamic ports
+ * (e.g. "value_0" matches a port named "value" with dynamic=true).
+ */
+function findPort(ports: PortDefinition[], handle: string): PortDefinition | undefined {
+    const direct = ports.find((p) => p.name === handle);
+    if (direct) return direct;
+    const baseName = handle.replace(/_\d+$/, "");
+    return ports.find((p) => p.name === baseName && p.dynamic);
+}
+
+/**
+ * Creates a connection validator that:
+ * 1. Only allows same-type port connections (event↔event, value↔value, etc.)
+ * 2. Rejects multiple connections to value input ports (single-connection limit)
  */
 export function createConnectionValidator(
     definitions: Map<string, NodeDefinition>,
     getNodes: () => { id: string; type?: string }[],
+    getEdges: () => { target: string; targetHandle?: string | null }[],
 ): IsValidConnection {
     return (connection) => {
         const nodes = getNodes();
@@ -21,11 +34,22 @@ export function createConnectionValidator(
 
         if (!sourceDef || !targetDef) return false;
 
-        const sourcePort = (sourceDef.output_ports ?? []).find((p) => p.name === connection.sourceHandle);
-        const targetPort = (targetDef.input_ports ?? []).find((p) => p.name === connection.targetHandle);
+        const sourcePort = findPort(sourceDef.output_ports ?? [], connection.sourceHandle ?? "");
+        const targetPort = findPort(targetDef.input_ports ?? [], connection.targetHandle ?? "");
 
         if (!sourcePort || !targetPort) return false;
 
-        return sourcePort.type === targetPort.type;
+        if (sourcePort.type !== targetPort.type) return false;
+
+        // Value input ports: single connection only
+        if (targetPort.type === "value") {
+            const edges = getEdges();
+            const alreadyConnected = edges.some(
+                (e) => e.target === connection.target && e.targetHandle === connection.targetHandle,
+            );
+            if (alreadyConnected) return false;
+        }
+
+        return true;
     };
 }
