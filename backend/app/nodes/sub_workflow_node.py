@@ -68,6 +68,11 @@ class SubWorkflowNode(AbstractNode):
             port_name = input_node.data.get("name", "")
             if not port_name:
                 continue
+            # Only bind data inputs — skip event-only inputs whose upstream
+            # nodes don't produce a value (they are handled in execute()).
+            has_value_connection = bool(input_node.output_connections.get("value"))
+            if not has_value_connection:
+                continue
             # Pull value from our input connection matching this port name
             value = self.get_input(port_name)
             input_node.set_binding(value)
