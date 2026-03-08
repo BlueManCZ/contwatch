@@ -33,6 +33,7 @@ class SubWorkflowNode(AbstractNode):
         super().__init__(node_id, data, manager=manager, session_factory=session_factory)
         self._sub_workflow_registry = sub_workflow_registry or {}
         self._sub_workflow_id = sub_workflow_id
+        self._triggered_port: str | None = None
 
     def _get_sub_workflow_data(self) -> dict | None:
         if self._sub_workflow_id is None:
@@ -97,6 +98,9 @@ class SubWorkflowNode(AbstractNode):
         return None
 
     async def execute(self) -> None:
+        triggered = self._triggered_port
+        self._triggered_port = None
+
         try:
             _, input_nodes, output_nodes = self._build_sub_graph()
         except RuntimeError:
@@ -105,10 +109,10 @@ class SubWorkflowNode(AbstractNode):
 
         self._bind_inputs(input_nodes)
 
-        # Execute all input nodes that have event connections from the parent
+        # Execute only the input node matching the triggered port
         for input_node in input_nodes:
             port_name = input_node.data.get("name", "")
-            if port_name and port_name in self.input_connections:
+            if port_name and port_name == triggered:
                 await input_node.execute()
 
         # Propagate output events to our downstream connections

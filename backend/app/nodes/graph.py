@@ -36,6 +36,27 @@ class PortTypeMismatchError(Exception):
         self.node_id = node_id
 
 
+class _SubWorkflowPortProxy:
+    """Proxy that sets the triggered port before executing a SubWorkflowNode.
+
+    Placed in upstream nodes' output_connections so SubWorkflowNode.execute()
+    knows which input port caused the invocation.
+    """
+
+    __slots__ = ("node", "port")
+
+    def __init__(self, node: AbstractNode, port: str):
+        self.node = node
+        self.port = port
+
+    async def execute(self) -> None:
+        from app.nodes.sub_workflow_node import SubWorkflowNode
+
+        if isinstance(self.node, SubWorkflowNode):
+            self.node._triggered_port = self.port
+        await self.node.execute()
+
+
 class NodeGraph:
     """Builds and executes a workflow graph from ReactFlow-compatible JSON."""
 
@@ -121,6 +142,8 @@ class NodeGraph:
             self._nodes[node_id] = node
 
         # Wire connections from edges
+        from app.nodes.sub_workflow_node import SubWorkflowNode
+
         for edge in edges_data:
             source_id = edge.get("source")
             target_id = edge.get("target")
@@ -134,7 +157,13 @@ class NodeGraph:
                 continue
 
             # Output connection: source_node.output_connections[source_handle] -> target_node
-            source_node.output_connections.setdefault(source_handle, []).append(target_node)
+            # For SubWorkflowNode targets, wrap in a proxy so execute() knows which port triggered.
+            exec_target = (
+                _SubWorkflowPortProxy(target_node, target_handle)
+                if isinstance(target_node, SubWorkflowNode) and target_handle
+                else target_node
+            )
+            source_node.output_connections.setdefault(source_handle, []).append(exec_target)
             # Input connection: target_node.input_connections[target_handle] -> source_node
             target_node.input_connections.setdefault(target_handle, []).append(source_node)
             # Edge source metadata for debug display
