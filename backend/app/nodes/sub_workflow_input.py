@@ -8,7 +8,10 @@ class SubWorkflowInput(AbstractNode):
     label = "Input"
     description = "Entry point for sub-workflow — exposes an input port"
     input_ports = (PortDef(name="name", type="text", label="Name", control="text"),)
-    output_ports = (PortDef(name="output", type="value", label="Output", color="blue"),)
+    output_ports = (
+        PortDef(name="event", type="event", label="Event", color="yellow"),
+        PortDef(name="value", type="value", label="Value", color="blue"),
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -23,5 +26,5 @@ class SubWorkflowInput(AbstractNode):
 
     async def execute(self) -> None:
         """Propagate event to connected nodes."""
-        for node in self.output_connections.get("output", []):
+        for node in self.output_connections.get("event", []):
             await node.execute()

@@ -308,6 +308,8 @@
         "error": "Failed to save workflow",
         "edgeDebug": "Edge debug",
         "multiSelect": "Multi-select",
+        "deleteNodeConfirm_one": "Delete this node?",
+        "deleteNodeConfirm_other": "Delete {{count}} nodes?",
         "align": {
             "left": "Align left",
             "right": "Align right",

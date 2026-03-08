@@ -1,6 +1,6 @@
 import { Handle, type Node, type NodeProps, Position, useNodeConnections, useReactFlow } from "@xyflow/react";
 import { X } from "lucide-react";
-import { createContext, useCallback, useContext, useMemo } from "react";
+import { createContext, type ReactNode, useCallback, useContext, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { NodeDefinition, PortDefinition } from "@/api/generated/contWatchAPI.schemas";
 import { useWorkflowStore } from "@/stores/workflow-store";
@@ -41,6 +41,35 @@ function PortHandle({
             }}
         />
     );
+}
+
+/**
+ * Hides a port when its exclusive sibling port is connected.
+ * Used for SubWorkflowInput/Output where event and value ports are mutually exclusive.
+ */
+function ExclusivePortGuard({
+    portName,
+    siblingName,
+    handleType,
+    children,
+}: {
+    portName: string;
+    siblingName: string;
+    handleType: "source" | "target";
+    children: ReactNode;
+}) {
+    const ownConnections = useNodeConnections({ handleType, handleId: portName });
+    const siblingConnections = useNodeConnections({ handleType, handleId: siblingName });
+
+    if (siblingConnections.length > 0 && ownConnections.length === 0) return null;
+    return <>{children}</>;
+}
+
+/** Returns the exclusive sibling name if port is part of an event/value pair in the list. */
+function getExclusiveSibling(port: PortDefinition, ports: PortDefinition[]): string | null {
+    const sibling = port.name === "event" ? "value" : port.name === "value" ? "event" : null;
+    if (sibling && ports.some((p) => p.name === sibling)) return sibling;
+    return null;
 }
 
 function FilteredSelect({
@@ -288,12 +317,28 @@ export function createWorkflowNode(nodeType: string) {
                 </div>
 
                 {/* Handle-only input ports */}
-                {inputPortsWithoutControl.map((port) => (
-                    <div key={port.name} className="relative flex items-center py-1.5 px-3">
-                        <PortHandle port={port} type="target" label={portLabel(port)} />
-                        <span className="text-[10px] text-muted-foreground">{portLabel(port)}</span>
-                    </div>
-                ))}
+                {inputPortsWithoutControl.map((port) => {
+                    const sibling = getExclusiveSibling(port, inputPortsWithoutControl);
+                    const content = (
+                        <div key={port.name} className="relative flex items-center py-1.5 px-3">
+                            <PortHandle port={port} type="target" label={portLabel(port)} />
+                            <span className="text-[10px] text-muted-foreground">{portLabel(port)}</span>
+                        </div>
+                    );
+                    if (sibling) {
+                        return (
+                            <ExclusivePortGuard
+                                key={port.name}
+                                portName={port.name}
+                                siblingName={sibling}
+                                handleType="target"
+                            >
+                                {content}
+                            </ExclusivePortGuard>
+                        );
+                    }
+                    return content;
+                })}
 
                 {/* Controls section */}
                 {inputPortsWithControl.length > 0 && (
@@ -354,12 +399,28 @@ export function createWorkflowNode(nodeType: string) {
                 )}
 
                 {/* Output ports */}
-                {outputPorts.map((port) => (
-                    <div key={port.name} className="relative flex items-center justify-end py-1.5 px-3">
-                        <span className="text-[10px] text-muted-foreground">{portLabel(port)}</span>
-                        <PortHandle port={port} type="source" label={portLabel(port)} />
-                    </div>
-                ))}
+                {outputPorts.map((port) => {
+                    const sibling = getExclusiveSibling(port, outputPorts);
+                    const content = (
+                        <div key={port.name} className="relative flex items-center justify-end py-1.5 px-3">
+                            <span className="text-[10px] text-muted-foreground">{portLabel(port)}</span>
+                            <PortHandle port={port} type="source" label={portLabel(port)} />
+                        </div>
+                    );
+                    if (sibling) {
+                        return (
+                            <ExclusivePortGuard
+                                key={port.name}
+                                portName={port.name}
+                                siblingName={sibling}
+                                handleType="source"
+                            >
+                                {content}
+                            </ExclusivePortGuard>
+                        );
+                    }
+                    return content;
+                })}
 
                 {outputPorts.length > 0 && <div className="h-1" />}
             </div>

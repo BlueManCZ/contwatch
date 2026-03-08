@@ -48,6 +48,7 @@ import {
     useGetWorkflowApiActionsWorkflowGet,
     useSaveWorkflowApiActionsWorkflowPut,
 } from "@/api/generated/workflow/workflow";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
     FloatingButton,
     FloatingToolbar,
@@ -70,6 +71,7 @@ import { DeletableEdge } from "./deletable-edge";
 import { createConnectionValidator } from "./edge-validation";
 import { PORT_COLORS } from "./types";
 import { useTouchMultiSelect } from "./use-touch-multi-select";
+import { useWorkflowClipboard } from "./use-workflow-clipboard";
 import { createWorkflowNode, NodeDefinitionsProvider } from "./workflow-node";
 
 const EMPTY_DEFINITIONS: NodeDefinition[] = [];
@@ -461,6 +463,7 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef, WorkflowEditorProps>
     const touchReportChange = useCallback(() => {
         if (readyRef.current) changeCountRef.current++;
     }, []);
+
     const { multiSelectActive, exitMultiSelect } = useTouchMultiSelect(
         reactFlowWrapper,
         setNodes,
@@ -473,6 +476,16 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef, WorkflowEditorProps>
     const edgesRef = useRef(edges);
     nodesRef.current = nodes;
     edgesRef.current = edges;
+
+    const { pushUndo, setPastePosition } = useWorkflowClipboard({
+        nodesRef,
+        edgesRef,
+        setNodes,
+        setEdges,
+        readyRef,
+        changeCountRef,
+        containerRef: reactFlowWrapper,
+    });
 
     const onSaveError = useCallback(
         (error: unknown) => {
@@ -553,37 +566,55 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef, WorkflowEditorProps>
         if (saveStatus === "error") setSaveStatus("unsaved");
     }, [setNodes, saveStatus]);
 
+    const draggingRef = useRef(false);
+
     const wrappedOnNodesChange: typeof onNodesChange = useCallback(
         (changes) => {
+            if (readyRef.current) {
+                const hasRemove = changes.some((c) => c.type === "remove");
+                const hasDragStart = changes.some((c) => c.type === "position" && c.dragging);
+                const hasDragEnd = changes.some((c) => c.type === "position" && !c.dragging);
+
+                if (hasRemove) pushUndo();
+                if (hasDragStart && !draggingRef.current) {
+                    draggingRef.current = true;
+                    pushUndo();
+                }
+                if (hasDragEnd) draggingRef.current = false;
+            }
             onNodesChange(changes);
             if (readyRef.current) {
                 changeCountRef.current++;
                 clearErrorNodes();
             }
         },
-        [onNodesChange, clearErrorNodes],
+        [onNodesChange, clearErrorNodes, pushUndo],
     );
 
     const wrappedOnEdgesChange: typeof onEdgesChange = useCallback(
         (changes) => {
+            if (readyRef.current && changes.some((c) => c.type === "remove")) {
+                pushUndo();
+            }
             onEdgesChange(changes);
             if (readyRef.current) {
                 changeCountRef.current++;
                 clearErrorNodes();
             }
         },
-        [onEdgesChange, clearErrorNodes],
+        [onEdgesChange, clearErrorNodes, pushUndo],
     );
 
     const wrappedOnConnect = useCallback(
         (connection: Connection) => {
             connectionMadeRef.current = true;
+            pushUndo();
             const sourceNode = nodesRef.current.find((n) => n.id === connection.source);
             const style = getEdgeStyle(sourceNode?.type ?? "", connection.sourceHandle);
             setEdges((eds) => addEdge({ ...connection, style }, eds));
             if (readyRef.current) changeCountRef.current++;
         },
-        [setEdges, getEdgeStyle],
+        [setEdges, getEdgeStyle, pushUndo],
     );
 
     // --- Node picker (connection-drop & right-click) ---
@@ -726,11 +757,24 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef, WorkflowEditorProps>
 
     const pickerJustOpenedRef = useRef(false);
 
-    const dismissNodePicker = useCallback(() => {
-        if (pickerJustOpenedRef.current) return;
-        setNodePicker(null);
-        if (multiSelectActive) exitMultiSelect();
-    }, [multiSelectActive, exitMultiSelect]);
+    const dismissNodePicker = useCallback(
+        (event: React.MouseEvent) => {
+            if (pickerJustOpenedRef.current) return;
+            setNodePicker(null);
+            if (multiSelectActive) exitMultiSelect();
+            reactFlowWrapper.current?.focus();
+
+            if (reactFlowInstance) {
+                setPastePosition(
+                    reactFlowInstance.screenToFlowPosition({
+                        x: event.clientX,
+                        y: event.clientY,
+                    }),
+                );
+            }
+        },
+        [multiSelectActive, exitMultiSelect, reactFlowInstance, setPastePosition],
+    );
 
     const onPaneContextMenu = useCallback(
         (event: MouseEvent | React.MouseEvent) => {
@@ -768,6 +812,34 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef, WorkflowEditorProps>
         },
         [setNodes],
     );
+
+    // Delete confirmation dialog
+    const deleteResolverRef = useRef<((ok: boolean) => void) | null>(null);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [deleteConfirmCount, setDeleteConfirmCount] = useState(0);
+
+    const onBeforeDelete = useCallback(async ({ nodes: delNodes }: { nodes: Node[]; edges: Edge[] }) => {
+        if (delNodes.length === 0) return true; // edge-only deletion, no confirm needed
+        setDeleteConfirmCount(delNodes.length);
+        setDeleteConfirmOpen(true);
+        return new Promise<boolean>((resolve) => {
+            deleteResolverRef.current = resolve;
+        });
+    }, []);
+
+    const handleDeleteConfirm = useCallback(() => {
+        deleteResolverRef.current?.(true);
+        deleteResolverRef.current = null;
+        setDeleteConfirmOpen(false);
+    }, []);
+
+    const handleDeleteCancel = useCallback((open: boolean) => {
+        if (!open) {
+            deleteResolverRef.current?.(false);
+            deleteResolverRef.current = null;
+            setDeleteConfirmOpen(false);
+        }
+    }, []);
 
     // Double-click on sub-workflow nodes to drill in
     const onNodeDoubleClick = useCallback(
@@ -812,7 +884,11 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef, WorkflowEditorProps>
     }
 
     return (
-        <div className="relative h-full touch-none bg-background" ref={reactFlowWrapper}>
+        <div
+            className="relative h-full touch-none bg-background outline-none"
+            ref={reactFlowWrapper}
+            tabIndex={-1}
+        >
             {saveStatus !== "idle" && (
                 <div
                     className={`absolute top-2 left-2 z-10 flex items-center gap-1.5 rounded-full bg-card/80 backdrop-blur-sm border px-2.5 py-1 shadow-sm transition-opacity duration-300 ${saveStatus === "saved" ? "opacity-80" : ""}`}
@@ -859,6 +935,7 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef, WorkflowEditorProps>
                     nodeTypes={nodeTypes}
                     edgeTypes={EDGE_TYPES}
                     isValidConnection={isValidConnection}
+                    onBeforeDelete={onBeforeDelete}
                     deleteKeyCode={["Backspace", "Delete"]}
                     minZoom={MIN_ZOOM}
                     maxZoom={MAX_ZOOM}
@@ -915,6 +992,13 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef, WorkflowEditorProps>
                     setShowPrompt(false);
                     enterFullscreen();
                 }}
+            />
+            <ConfirmDialog
+                open={deleteConfirmOpen}
+                onOpenChange={handleDeleteCancel}
+                onConfirm={handleDeleteConfirm}
+                description={t("workflow.deleteNodeConfirm", { count: deleteConfirmCount })}
+                variant="destructive"
             />
         </div>
     );

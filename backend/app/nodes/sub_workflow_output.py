@@ -9,7 +9,8 @@ class SubWorkflowOutput(AbstractNode):
     description = "Exit point for sub-workflow — collects an output value"
     input_ports = (
         PortDef(name="name", type="text", label="Name", control="text"),
-        PortDef(name="input", type="value", label="Input", color="blue"),
+        PortDef(name="event", type="event", label="Event", color="yellow"),
+        PortDef(name="value", type="value", label="Value", color="blue"),
     )
     output_ports = ()
 
@@ -18,7 +19,7 @@ class SubWorkflowOutput(AbstractNode):
         self._event_fired = False
 
     def evaluate(self, source_handle: str | None = None):
-        return self.get_input("input")
+        return self.get_input("value")
 
     async def execute(self) -> None:
         self._event_fired = True

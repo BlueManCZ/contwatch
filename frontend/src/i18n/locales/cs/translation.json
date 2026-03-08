@@ -312,6 +312,9 @@
         "error": "Nepodařilo se uložit workflow",
         "edgeDebug": "Ladění hran",
         "multiSelect": "Vícenásobný výběr",
+        "deleteNodeConfirm_one": "Smazat tento uzel?",
+        "deleteNodeConfirm_few": "Smazat {{count}} uzly?",
+        "deleteNodeConfirm_other": "Smazat {{count}} uzlů?",
         "align": {
             "left": "Zarovnat vlevo",
             "right": "Zarovnat vpravo",
