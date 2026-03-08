@@ -79,6 +79,13 @@ class AbstractNode:
             )
         )
 
+    def get_state(self) -> dict | None:
+        """Return serializable runtime state to preserve across graph rebuilds."""
+        return None
+
+    def restore_state(self, state: dict) -> None:
+        """Restore runtime state from a previous graph instance."""
+
     async def execute(self) -> None:
         """Execute this node's action (event-driven nodes)."""
         raise NotImplementedError

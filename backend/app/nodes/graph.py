@@ -61,6 +61,22 @@ class NodeGraph:
     def nodes(self) -> dict[str, AbstractNode]:
         return self._nodes
 
+    def collect_node_state(self) -> dict[str, dict]:
+        """Collect runtime state from all nodes that have state to preserve."""
+        state: dict[str, dict] = {}
+        for node_id, node in self._nodes.items():
+            node_state = node.get_state()
+            if node_state is not None:
+                state[node_id] = node_state
+        return state
+
+    def restore_node_state(self, state: dict[str, dict]) -> None:
+        """Restore runtime state to nodes that exist in both old and new graph."""
+        for node_id, node_state in state.items():
+            node = self._nodes.get(node_id)
+            if node is not None:
+                node.restore_state(node_state)
+
     def _build(self, data: dict) -> None:
         nodes_data = data.get("nodes", [])
         edges_data = data.get("edges", [])

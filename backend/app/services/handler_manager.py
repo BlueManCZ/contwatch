@@ -274,6 +274,10 @@ class HandlerManager:
 
     def install_workflow(self, graph: NodeGraph) -> None:
         """Install a previously built workflow graph as the active graph."""
+        if self._workflow_graph is not None:
+            state = self._workflow_graph.collect_node_state()
+            if state:
+                graph.restore_node_state(state)
         self._workflow_graph = graph
         logger.info("Workflow graph installed")
 
