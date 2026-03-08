@@ -290,15 +290,12 @@ def derive_sub_workflow_ports(
     """Derive input/output port definitions from SubWorkflowInput/Output nodes.
 
     Returns (input_ports, output_ports) where each port is
-    {"name": str, "type": "event"|"value"} derived from connected edge types.
+    {"name": str, "type": "event"|"value"} derived from connected handle names.
     Only connected nodes are included.
     """
     if edges_data is None:
         edges_data = graph_data.get("edges", [])
     nodes_data = graph_data.get("nodes", [])
-
-    # Map node_id -> node data
-    node_map = {n["id"]: n for n in nodes_data}
 
     input_ports = []
     output_ports = []
@@ -312,71 +309,43 @@ def derive_sub_workflow_ports(
             continue
 
         if node_type == "sub_workflow_input":
-            # Find edges where this node is the source
-            port_type = _infer_port_type_from_edges(node_id, "source", edges_data, node_map)
+            port_type = _detect_port_type(node_id, "source", edges_data)
             if port_type:
                 input_ports.append({"name": name, "type": port_type})
 
         elif node_type == "sub_workflow_output":
-            # Find edges where this node is the target
-            port_type = _infer_port_type_from_edges(node_id, "target", edges_data, node_map)
+            port_type = _detect_port_type(node_id, "target", edges_data)
             if port_type:
                 output_ports.append({"name": name, "type": port_type})
 
     return input_ports, output_ports
 
 
-def _infer_port_type_from_edges(
+_HANDLE_TO_PORT_TYPE: dict[str, str] = {
+    "event": "event",
+    "value": "value",
+}
+
+
+def _detect_port_type(
     node_id: str,
     role: str,  # "source" or "target"
     edges_data: list[dict],
-    node_map: dict[str, dict],
 ) -> str | None:
-    """Infer port type (event/value) from what the Input/Output node is connected to.
+    """Detect port type from the handle names used on a SubWorkflowInput/Output node.
 
     Returns None if not connected, raises PortTypeMismatchError if mixed types.
     """
-    from app.nodes import NODES_MAP
-
+    handle_key = f"{role}Handle"
     inferred: set[str] = set()
 
     for edge in edges_data:
         if edge.get(role) != node_id:
             continue
-
-        # The other side of the connection
-        other_role = "target" if role == "source" else "source"
-        other_id = edge.get(other_role)
-        other_handle = edge.get(f"{other_role}Handle", "")
-        other_node_data = node_map.get(other_id)
-
-        if not other_node_data:
-            continue
-
-        other_type = other_node_data.get("type", "")
-
-        # Look up port definition from the other node's class
-        # Handle sub_workflow_{id} types
-        if _SUB_WORKFLOW_TYPE_RE.match(other_type):
-            # Can't determine port type from dynamic sub-workflow nodes statically
-            # Default to value
-            inferred.add("value")
-            continue
-
-        cls = NODES_MAP.get(other_type)
-        if not cls:
-            continue
-
-        # Find the port definition matching the handle
-        ports = cls.input_ports if other_role == "target" else cls.output_ports
-        for port_def in ports:
-            if port_def.name == other_handle:
-                # Map port type to event or value
-                if port_def.type == "event":
-                    inferred.add("event")
-                else:
-                    inferred.add("value")
-                break
+        handle = edge.get(handle_key, "")
+        port_type = _HANDLE_TO_PORT_TYPE.get(handle)
+        if port_type:
+            inferred.add(port_type)
 
     if not inferred:
         return None
