@@ -7,6 +7,8 @@ import { useWorkflowDisplayStore } from "@/stores/workflow-display";
 import { TreeSelectControl } from "./tree-select-control";
 import { PORT_COLORS } from "./types";
 
+const DYNAMIC_PORT_MIN = 2;
+
 const NodeDefinitionsContext = createContext<Map<string, NodeDefinition>>(new Map());
 
 export const NodeDefinitionsProvider = NodeDefinitionsContext.Provider;
@@ -64,6 +66,7 @@ function FilteredSelect({
     const localizeLabel = useCallback(
         (label: string) => {
             if (port.type === "action") return t(`knownActions.${label.replaceAll(" ", "_")}`, label);
+            if (port.type === "aggregate") return t(`aggregateFunctions.${label}`, label);
             return label;
         },
         [port.type, t],
@@ -160,6 +163,79 @@ function ControlPort({
     );
 }
 
+/**
+ * Renders auto-growing numbered instances of a dynamic port template.
+ * Shows at least DYNAMIC_PORT_MIN ports. Appends a new port when all are connected or have values.
+ */
+function DynamicPorts({
+    templatePort,
+    nodeData,
+    onChange,
+    portLabel,
+}: {
+    templatePort: PortDefinition;
+    nodeData: WorkflowNodeData;
+    onChange: (key: string, value: string) => void;
+    portLabel: (port: PortDefinition) => string;
+}) {
+    const connections = useNodeConnections({ handleType: "target" });
+    const baseName = templatePort.name;
+    const pattern = new RegExp(`^${baseName}_(\\d+)$`);
+
+    let maxUsedIndex = -1;
+
+    for (const conn of connections) {
+        const match = conn.targetHandle?.match(pattern);
+        if (match) maxUsedIndex = Math.max(maxUsedIndex, Number.parseInt(match[1], 10));
+    }
+
+    for (const [key, val] of Object.entries(nodeData)) {
+        if (!val || key.startsWith("_")) continue;
+        const match = key.match(pattern);
+        if (match) maxUsedIndex = Math.max(maxUsedIndex, Number.parseInt(match[1], 10));
+    }
+
+    const portCount = Math.max(DYNAMIC_PORT_MIN, maxUsedIndex + 2);
+
+    const hasControl = !!templatePort.control;
+
+    return (
+        <>
+            {Array.from({ length: portCount }, (_, i) => {
+                const instancePort: PortDefinition = {
+                    ...templatePort,
+                    name: `${baseName}_${i}`,
+                    data_key: `${baseName}_${i}`,
+                    label: `${templatePort.label} ${i + 1}`,
+                };
+                const dataKey = instancePort.data_key || instancePort.name;
+                const label = portLabel(instancePort);
+
+                if (hasControl) {
+                    return (
+                        <ControlPort
+                            key={instancePort.name}
+                            port={instancePort}
+                            dataKey={dataKey}
+                            value={nodeData[dataKey] ?? ""}
+                            onChange={onChange}
+                            nodeData={nodeData}
+                            label={label}
+                        />
+                    );
+                }
+
+                return (
+                    <div key={instancePort.name} className="relative flex items-center py-1.5 px-3">
+                        <PortHandle port={instancePort} type="target" label={label} />
+                        <span className="text-[10px] text-muted-foreground">{label}</span>
+                    </div>
+                );
+            })}
+        </>
+    );
+}
+
 export function createWorkflowNode(nodeType: string) {
     function WorkflowNodeComponent({ id, data, selected }: NodeProps<Node<WorkflowNodeData>>) {
         const definitionsMap = useContext(NodeDefinitionsContext);
@@ -189,8 +265,9 @@ export function createWorkflowNode(nodeType: string) {
             [id, updateNodeData, inputPorts],
         );
 
-        const inputPortsWithControl = inputPorts.filter((p) => p.control);
-        const inputPortsWithoutControl = inputPorts.filter((p) => !p.control);
+        const dynamicInputPorts = inputPorts.filter((p) => p.dynamic);
+        const inputPortsWithControl = inputPorts.filter((p) => p.control && !p.dynamic);
+        const inputPortsWithoutControl = inputPorts.filter((p) => !p.control && !p.dynamic);
 
         const nodeLabel = data._label || t(`workflow.nodes.${nodeType}.label`, definition?.label ?? nodeType);
 
@@ -235,6 +312,21 @@ export function createWorkflowNode(nodeType: string) {
                                 />
                             );
                         })}
+                    </div>
+                )}
+
+                {/* Dynamic ports (auto-growing) */}
+                {dynamicInputPorts.length > 0 && (
+                    <div className={dynamicInputPorts.some((p) => p.control) ? "space-y-3 py-2" : ""}>
+                        {dynamicInputPorts.map((port) => (
+                            <DynamicPorts
+                                key={port.name}
+                                templatePort={port}
+                                nodeData={data}
+                                onChange={handleChange}
+                                portLabel={portLabel}
+                            />
+                        ))}
                     </div>
                 )}
 

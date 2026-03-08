@@ -8,7 +8,7 @@ class Negation(AbstractNode):
     input_ports = (value_port(),)
     output_ports = (value_port(),)
 
-    def evaluate(self):
+    def evaluate(self, source_handle: str | None = None):
         value = self.get_input("value")
         if value is None:
             return True

@@ -8,7 +8,7 @@ class HandlerDataReader(AbstractNode):
     input_ports = (handler_port(), handler_data_key_port())
     output_ports = (value_port(),)
 
-    def evaluate(self):
+    def evaluate(self, source_handle: str | None = None):
         handler_id = self.get_input("handler_id")
         key = self.get_input("key")
         if handler_id is not None and key and self.manager:

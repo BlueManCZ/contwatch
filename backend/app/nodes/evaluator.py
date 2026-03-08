@@ -23,7 +23,7 @@ class Evaluator(AbstractNode):
     )
     output_ports = (value_port(),)
 
-    def evaluate(self):
+    def evaluate(self, source_handle: str | None = None):
         first = self.get_input("first_value")
         operator_str = self.get_input("operator")
         second = self.get_input("second_value")

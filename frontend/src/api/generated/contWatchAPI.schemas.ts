@@ -348,6 +348,7 @@ export interface PortDefinition {
   control?: string;
   options?: PortOption[];
   data_key?: string;
+  dynamic?: boolean;
 }
 
 export interface NodeDefinition {
@@ -474,6 +475,56 @@ export interface SliderSetRequest {
   value: number;
 }
 
+export interface SubWorkflowCreate {
+  name: string;
+  description?: string;
+}
+
+export type WorkflowNodePosition = { [key: string]: unknown };
+
+export type WorkflowNodeData = { [key: string]: unknown };
+
+export interface WorkflowNode {
+  id: string;
+  type: string;
+  position: WorkflowNodePosition;
+  data?: WorkflowNodeData;
+}
+
+export interface WorkflowEdge {
+  id: string;
+  source: string;
+  target: string;
+  sourceHandle?: string;
+  targetHandle?: string;
+}
+
+export interface WorkflowData {
+  nodes?: WorkflowNode[];
+  edges?: WorkflowEdge[];
+}
+
+export interface SubWorkflowRead {
+  id: number;
+  name: string;
+  description: string;
+  graph?: WorkflowData | null;
+  user_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SubWorkflowSummary {
+  id: number;
+  name: string;
+  description: string;
+}
+
+export interface SubWorkflowUpdate {
+  name?: string | null;
+  description?: string | null;
+}
+
 export interface SwitchToggleRequest {
   value: boolean;
 }
@@ -581,30 +632,6 @@ export interface WidgetUpdate {
   config?: WidgetUpdateConfig;
 }
 
-export type WorkflowNodePosition = { [key: string]: unknown };
-
-export type WorkflowNodeData = { [key: string]: unknown };
-
-export interface WorkflowNode {
-  id: string;
-  type: string;
-  position: WorkflowNodePosition;
-  data?: WorkflowNodeData;
-}
-
-export interface WorkflowEdge {
-  id: string;
-  source: string;
-  target: string;
-  sourceHandle?: string;
-  targetHandle?: string;
-}
-
-export interface WorkflowData {
-  nodes?: WorkflowNode[];
-  edges?: WorkflowEdge[];
-}
-
 export type AllHandlerStatusesApiHandlersStatusesGet200 = {[key: string]: HandlerStatus};
 
 export type LastRawMessageApiHandlersHandlerIdLastGet200 = { [key: string]: unknown };
@@ -661,6 +688,10 @@ attribute_ids: string;
 date?: string | null;
 date_from?: string | null;
 date_to?: string | null;
+};
+
+export type GetNodeDefinitionsApiActionsWorkflowNodesGetParams = {
+context?: string;
 };
 
 export type ListLogsApiLogsGetParams = {

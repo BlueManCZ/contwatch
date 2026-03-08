@@ -15,6 +15,14 @@ class Condition(AbstractNode):
         super().__init__(*args, **kwargs)
         self._last_branch: str | None = None
 
+    def get_state(self) -> dict | None:
+        if self._last_branch is not None:
+            return {"last_branch": self._last_branch}
+        return None
+
+    def restore_state(self, state: dict) -> None:
+        self._last_branch = state.get("last_branch")
+
     async def execute(self) -> None:
         value = self.get_input("value")
 

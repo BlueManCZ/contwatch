@@ -23,6 +23,12 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { NodeDefinition, WorkflowData } from "@/api/generated/contWatchAPI.schemas";
 import {
+    getGetSubWorkflowApiSubWorkflowsSubWorkflowIdGetQueryKey,
+    useGetSubWorkflowApiSubWorkflowsSubWorkflowIdGet,
+    useSaveSubWorkflowGraphApiSubWorkflowsSubWorkflowIdGraphPut,
+} from "@/api/generated/sub-workflows/sub-workflows";
+import {
+    getGetNodeDefinitionsApiActionsWorkflowNodesGetQueryKey,
     getGetWorkflowApiActionsWorkflowGetQueryKey,
     useGetNodeDefinitionsApiActionsWorkflowNodesGet,
     useGetWorkflowApiActionsWorkflowGet,
@@ -49,6 +55,8 @@ let nodeIdCounter = 0;
 function nextNodeId() {
     return `node_${Date.now()}_${nodeIdCounter++}`;
 }
+
+const SUB_WORKFLOW_TYPE_RE = /^sub_workflow_(\d+)$/;
 
 function MobileNodeActions() {
     const { t } = useTranslation();
@@ -83,19 +91,61 @@ export interface WorkflowEditorRef {
     addNode: (type: string) => void;
 }
 
-export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEditor(_, ref) {
+export interface WorkflowEditorProps {
+    subWorkflowId?: number | null;
+}
+
+export const WorkflowEditor = forwardRef<WorkflowEditorRef, WorkflowEditorProps>(function WorkflowEditor(
+    { subWorkflowId = null },
+    ref,
+) {
     const { t } = useTranslation();
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
     const [reactFlowInstance, setReactFlowInstance] = useState<ReturnType<
         typeof import("@xyflow/react").useReactFlow
     > | null>(null);
 
+    const isSubWorkflow = subWorkflowId != null;
+    const context = isSubWorkflow ? "sub_workflow" : "main";
+
     const queryClient = useQueryClient();
-    const { data: defsResponse, isLoading: defsLoading } = useGetNodeDefinitionsApiActionsWorkflowNodesGet();
-    const { data: workflowResponse, isLoading: workflowLoading } = useGetWorkflowApiActionsWorkflowGet();
-    const saveMutation = useSaveWorkflowApiActionsWorkflowPut({
+
+    // Node definitions (context-aware)
+    const { data: defsResponse, isLoading: defsLoading } = useGetNodeDefinitionsApiActionsWorkflowNodesGet({
+        context,
+    });
+
+    // Main workflow data
+    const { data: mainWorkflowResponse, isLoading: mainWorkflowLoading } =
+        useGetWorkflowApiActionsWorkflowGet({
+            query: { enabled: !isSubWorkflow },
+        });
+
+    // Sub-workflow data
+    const { data: subWorkflowResponse, isLoading: subWorkflowLoading } =
+        useGetSubWorkflowApiSubWorkflowsSubWorkflowIdGet(subWorkflowId ?? 0, {
+            query: { enabled: isSubWorkflow },
+        });
+
+    const workflowLoading = isSubWorkflow ? subWorkflowLoading : mainWorkflowLoading;
+
+    // Extract graph data from whichever source is active
+    const savedWorkflow = useMemo(() => {
+        if (isSubWorkflow) {
+            const swData = subWorkflowResponse?.data as { graph?: WorkflowData } | undefined;
+            return swData?.graph ?? ({ nodes: [], edges: [] } as WorkflowData);
+        }
+        return mainWorkflowResponse?.data as WorkflowData | undefined;
+    }, [isSubWorkflow, subWorkflowResponse, mainWorkflowResponse]);
+
+    // Save mutations
+    const mainSaveMutation = useSaveWorkflowApiActionsWorkflowPut({
         mutation: { meta: { skipGlobalErrorToast: true } },
     });
+    const subSaveMutation = useSaveSubWorkflowGraphApiSubWorkflowsSubWorkflowIdGraphPut({
+        mutation: { meta: { skipGlobalErrorToast: true } },
+    });
+    const saveMutation = isSubWorkflow ? subSaveMutation : mainSaveMutation;
 
     const [saveStatus, setSaveStatus] = useState<"idle" | "unsaved" | "saving" | "saved" | "error">("idle");
 
@@ -104,6 +154,7 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
 
     const edgeDebug = useWorkflowDisplayStore((s) => s.edgeDebug);
     const setEdgeDebug = useWorkflowDisplayStore((s) => s.setEdgeDebug);
+    const pushBreadcrumb = useWorkflowDisplayStore((s) => s.pushBreadcrumb);
     const toggleEdgeDebug = useCallback(() => {
         const next = !edgeDebug;
         setEdgeDebug(next);
@@ -128,11 +179,23 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
         () => (defsResponse?.data as NodeDefinition[] | undefined) ?? EMPTY_DEFINITIONS,
         [defsResponse?.data],
     );
-    const savedWorkflow = workflowResponse?.data as WorkflowData | undefined;
 
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
     const [loaded, setLoaded] = useState(false);
+
+    // Reset loaded state when switching between workflows
+    const prevIdRef = useRef(subWorkflowId);
+    useEffect(() => {
+        if (prevIdRef.current !== subWorkflowId) {
+            prevIdRef.current = subWorkflowId;
+            setLoaded(false);
+            readyRef.current = false;
+            changeCountRef.current = 0;
+            lastSavedCountRef.current = 0;
+            setSaveStatus("idle");
+        }
+    }, [subWorkflowId]);
 
     const definitionsMap = useMemo(() => {
         const map = new Map<string, NodeDefinition>();
@@ -176,12 +239,20 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
 
         const loadedEdges: Edge[] = (savedWorkflow.edges ?? []).map((e) => {
             const sourceNode = loadedNodes.find((n) => n.id === e.source);
+            let targetHandle = e.targetHandle ?? undefined;
+
+            // Migrate legacy aggregator "value" handle to "value_0"
+            const targetNode = loadedNodes.find((n) => n.id === e.target);
+            if (targetNode?.type === "aggregator" && targetHandle === "value") {
+                targetHandle = "value_0";
+            }
+
             return {
                 id: e.id,
                 source: e.source,
                 target: e.target,
                 sourceHandle: e.sourceHandle ?? undefined,
-                targetHandle: e.targetHandle ?? undefined,
+                targetHandle,
                 style: getEdgeStyle(sourceNode?.type ?? "", e.sourceHandle),
             };
         });
@@ -200,9 +271,10 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
     }, [savedWorkflow, definitions, loaded, setNodes, setEdges, getEdgeStyle]);
 
     const getNodes = useCallback(() => nodes, [nodes]);
+    const getEdges = useCallback(() => edges, [edges]);
     const isValidConnection = useMemo(
-        () => createConnectionValidator(definitionsMap, getNodes),
-        [definitionsMap, getNodes],
+        () => createConnectionValidator(definitionsMap, getNodes, getEdges),
+        [definitionsMap, getNodes, getEdges],
     );
 
     const addNodeAtPosition = useCallback(
@@ -264,6 +336,23 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
     nodesRef.current = nodes;
     edgesRef.current = edges;
 
+    const onSaveError = useCallback(
+        (error: unknown) => {
+            const axiosError = error as AxiosError<{ detail?: { node_id?: string; message?: string } }>;
+            const nodeId = axiosError?.response?.data?.detail?.node_id;
+            if (nodeId) {
+                setNodes((nds) =>
+                    nds.map((n) => (n.id === nodeId ? { ...n, data: { ...n.data, _error: true } } : n)),
+                );
+                toast.error(t("workflow.cycleDetected"));
+            } else {
+                const message = axiosError?.response?.data?.detail?.message;
+                toast.error(message ?? t("workflow.error"));
+            }
+        },
+        [setNodes, t],
+    );
+
     const flushSave = useCallback(() => {
         if (changeCountRef.current === lastSavedCountRef.current) return;
         lastSavedCountRef.current = changeCountRef.current;
@@ -283,29 +372,39 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
                 targetHandle: e.targetHandle ?? "",
             })),
         };
-        saveMutateRef.current(
-            { data: workflowData },
-            {
-                onSuccess: (response) => {
-                    queryClient.setQueryData(getGetWorkflowApiActionsWorkflowGetQueryKey(), response);
+
+        if (isSubWorkflow && subWorkflowId != null) {
+            (saveMutateRef.current as typeof subSaveMutation.mutate)(
+                { subWorkflowId, data: workflowData },
+                {
+                    onSuccess: () => {
+                        queryClient.invalidateQueries({
+                            queryKey: getGetSubWorkflowApiSubWorkflowsSubWorkflowIdGetQueryKey(subWorkflowId),
+                        });
+                        // Node definitions may change (port types derived from connections)
+                        queryClient.invalidateQueries({
+                            queryKey: getGetNodeDefinitionsApiActionsWorkflowNodesGetQueryKey(),
+                        });
+                    },
+                    onError: (error) => {
+                        onSaveError(error);
+                    },
                 },
-                onError: (error) => {
-                    const axiosError = error as AxiosError<{ detail?: { node_id?: string } }>;
-                    const nodeId = axiosError?.response?.data?.detail?.node_id;
-                    if (nodeId) {
-                        setNodes((nds) =>
-                            nds.map((n) =>
-                                n.id === nodeId ? { ...n, data: { ...n.data, _error: true } } : n,
-                            ),
-                        );
-                        toast.error(t("workflow.cycleDetected"));
-                    } else {
-                        toast.error(t("workflow.error"));
-                    }
+            );
+        } else {
+            (saveMutateRef.current as typeof mainSaveMutation.mutate)(
+                { data: workflowData },
+                {
+                    onSuccess: (response) => {
+                        queryClient.setQueryData(getGetWorkflowApiActionsWorkflowGetQueryKey(), response);
+                    },
+                    onError: (error) => {
+                        onSaveError(error);
+                    },
                 },
-            },
-        );
-    }, [queryClient, setNodes, t]);
+            );
+        }
+    }, [isSubWorkflow, subWorkflowId, queryClient, onSaveError]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const clearErrorNodes = useCallback(() => {
         if (nodesRef.current.some((n) => n.data._error)) {
@@ -520,6 +619,21 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
         [reactFlowInstance],
     );
 
+    // Double-click on sub-workflow nodes to drill in
+    const onNodeDoubleClick = useCallback(
+        (_: React.MouseEvent, node: Node) => {
+            const match = node.type?.match(SUB_WORKFLOW_TYPE_RE);
+            if (!match) return;
+            const swId = Number.parseInt(match[1], 10);
+            const def = definitionsMap.get(node.type ?? "");
+            pushBreadcrumb({
+                subWorkflowId: swId,
+                label: def?.label ?? `Sub-Workflow ${swId}`,
+            });
+        },
+        [definitionsMap, pushBreadcrumb],
+    );
+
     // biome-ignore lint/correctness/useExhaustiveDependencies: nodes and edges trigger the debounced save intentionally
     useEffect(() => {
         if (!readyRef.current) return;
@@ -588,6 +702,7 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef>(function WorkflowEdi
                     onConnectEnd={onConnectEnd}
                     onPaneClick={dismissNodePicker}
                     onPaneContextMenu={onPaneContextMenu}
+                    onNodeDoubleClick={onNodeDoubleClick}
                     onInit={setReactFlowInstance as (instance: unknown) => void}
                     onDrop={onDrop}
                     onDragOver={onDragOver}

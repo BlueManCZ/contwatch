@@ -24,6 +24,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  GetNodeDefinitionsApiActionsWorkflowNodesGetParams,
   HTTPValidationError,
   NodeDefinition,
   WorkflowData
@@ -38,6 +39,9 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
  * Return all node type definitions with dynamic select options populated.
+
+Args:
+    context: "main" for the main workflow editor, "sub_workflow" for sub-workflow editing.
  * @summary Get Node Definitions
  */
 export type getNodeDefinitionsApiActionsWorkflowNodesGetResponse200 = {
@@ -45,24 +49,38 @@ export type getNodeDefinitionsApiActionsWorkflowNodesGetResponse200 = {
   status: 200
 }
 
+export type getNodeDefinitionsApiActionsWorkflowNodesGetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
 export type getNodeDefinitionsApiActionsWorkflowNodesGetResponseSuccess = (getNodeDefinitionsApiActionsWorkflowNodesGetResponse200) & {
   headers: Headers;
 };
-;
+export type getNodeDefinitionsApiActionsWorkflowNodesGetResponseError = (getNodeDefinitionsApiActionsWorkflowNodesGetResponse422) & {
+  headers: Headers;
+};
 
-export type getNodeDefinitionsApiActionsWorkflowNodesGetResponse = (getNodeDefinitionsApiActionsWorkflowNodesGetResponseSuccess)
+export type getNodeDefinitionsApiActionsWorkflowNodesGetResponse = (getNodeDefinitionsApiActionsWorkflowNodesGetResponseSuccess | getNodeDefinitionsApiActionsWorkflowNodesGetResponseError)
 
-export const getGetNodeDefinitionsApiActionsWorkflowNodesGetUrl = () => {
+export const getGetNodeDefinitionsApiActionsWorkflowNodesGetUrl = (params?: GetNodeDefinitionsApiActionsWorkflowNodesGetParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
 
-  
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/actions/workflow/nodes`
+  return stringifiedParams.length > 0 ? `/api/actions/workflow/nodes?${stringifiedParams}` : `/api/actions/workflow/nodes`
 }
 
-export const getNodeDefinitionsApiActionsWorkflowNodesGet = async ( options?: RequestInit): Promise<getNodeDefinitionsApiActionsWorkflowNodesGetResponse> => {
+export const getNodeDefinitionsApiActionsWorkflowNodesGet = async (params?: GetNodeDefinitionsApiActionsWorkflowNodesGetParams, options?: RequestInit): Promise<getNodeDefinitionsApiActionsWorkflowNodesGetResponse> => {
   
-  return axiosInstance<getNodeDefinitionsApiActionsWorkflowNodesGetResponse>(getGetNodeDefinitionsApiActionsWorkflowNodesGetUrl(),
+  return axiosInstance<getNodeDefinitionsApiActionsWorkflowNodesGetResponse>(getGetNodeDefinitionsApiActionsWorkflowNodesGetUrl(params),
   {      
     ...options,
     method: 'GET'
@@ -75,23 +93,23 @@ export const getNodeDefinitionsApiActionsWorkflowNodesGet = async ( options?: Re
 
 
 
-export const getGetNodeDefinitionsApiActionsWorkflowNodesGetQueryKey = () => {
+export const getGetNodeDefinitionsApiActionsWorkflowNodesGetQueryKey = (params?: GetNodeDefinitionsApiActionsWorkflowNodesGetParams,) => {
     return [
-    `/api/actions/workflow/nodes`
+    `/api/actions/workflow/nodes`, ...(params ? [params] : [])
     ] as const;
     }
 
     
-export const getGetNodeDefinitionsApiActionsWorkflowNodesGetQueryOptions = <TData = Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+export const getGetNodeDefinitionsApiActionsWorkflowNodesGetQueryOptions = <TData = Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError = HTTPValidationError>(params?: GetNodeDefinitionsApiActionsWorkflowNodesGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetNodeDefinitionsApiActionsWorkflowNodesGetQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetNodeDefinitionsApiActionsWorkflowNodesGetQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>> = ({ signal }) => getNodeDefinitionsApiActionsWorkflowNodesGet({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>> = ({ signal }) => getNodeDefinitionsApiActionsWorkflowNodesGet(params, { signal, ...requestOptions });
 
       
 
@@ -101,11 +119,11 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetNodeDefinitionsApiActionsWorkflowNodesGetQueryResult = NonNullable<Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>>
-export type GetNodeDefinitionsApiActionsWorkflowNodesGetQueryError = unknown
+export type GetNodeDefinitionsApiActionsWorkflowNodesGetQueryError = HTTPValidationError
 
 
-export function useGetNodeDefinitionsApiActionsWorkflowNodesGet<TData = Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError, TData>> & Pick<
+export function useGetNodeDefinitionsApiActionsWorkflowNodesGet<TData = Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError = HTTPValidationError>(
+ params: undefined |  GetNodeDefinitionsApiActionsWorkflowNodesGetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>,
           TError,
@@ -114,8 +132,8 @@ export function useGetNodeDefinitionsApiActionsWorkflowNodesGet<TData = Awaited<
       >, request?: SecondParameter<typeof axiosInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetNodeDefinitionsApiActionsWorkflowNodesGet<TData = Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError, TData>> & Pick<
+export function useGetNodeDefinitionsApiActionsWorkflowNodesGet<TData = Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError = HTTPValidationError>(
+ params?: GetNodeDefinitionsApiActionsWorkflowNodesGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>,
           TError,
@@ -124,20 +142,20 @@ export function useGetNodeDefinitionsApiActionsWorkflowNodesGet<TData = Awaited<
       >, request?: SecondParameter<typeof axiosInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetNodeDefinitionsApiActionsWorkflowNodesGet<TData = Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+export function useGetNodeDefinitionsApiActionsWorkflowNodesGet<TData = Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError = HTTPValidationError>(
+ params?: GetNodeDefinitionsApiActionsWorkflowNodesGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get Node Definitions
  */
 
-export function useGetNodeDefinitionsApiActionsWorkflowNodesGet<TData = Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
+export function useGetNodeDefinitionsApiActionsWorkflowNodesGet<TData = Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError = HTTPValidationError>(
+ params?: GetNodeDefinitionsApiActionsWorkflowNodesGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNodeDefinitionsApiActionsWorkflowNodesGet>>, TError, TData>>, request?: SecondParameter<typeof axiosInstance>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetNodeDefinitionsApiActionsWorkflowNodesGetQueryOptions(options)
+  const queryOptions = getGetNodeDefinitionsApiActionsWorkflowNodesGetQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

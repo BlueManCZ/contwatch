@@ -31,7 +31,7 @@ class Display(AbstractNode):
         for node in self.output_connections.get("event", []):
             await node.execute()
 
-    def evaluate(self):
+    def evaluate(self, source_handle: str | None = None):
         value = self.get_input("value")
         self._emit_display(value)
         return value

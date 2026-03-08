@@ -12,7 +12,7 @@ class AttributeReader(AbstractNode):
         for node in self.output_connections.get("event", []):
             await node.execute()
 
-    def evaluate(self):
+    def evaluate(self, source_handle: str | None = None):
         attr_id = self.data.get("attribute_id")
         if attr_id is not None and self.manager:
             result = self.manager.get_attribute_value(int(attr_id))

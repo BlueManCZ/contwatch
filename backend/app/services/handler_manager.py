@@ -79,16 +79,9 @@ class HandlerManager:
         self._processor_task = asyncio.create_task(self._message_processor())
         logger.info("HandlerManager started with %d handlers", len(self._handlers))
 
-        # Load saved workflow graph
+        # Load saved workflow graph (with sub-workflows)
         async with self._session_factory() as session:
-            result = await session.execute(select(Settings).limit(1))
-            settings = result.scalar_one_or_none()
-            if settings and settings.actions_node_map:
-                try:
-                    graph = self.build_workflow(settings.actions_node_map)
-                    self.install_workflow(graph)
-                except Exception:
-                    logger.exception("Failed to load saved workflow graph")
+            await self.rebuild_workflow(session)
 
     async def shutdown(self) -> None:
         """Stop all handlers and the message processor."""
@@ -262,18 +255,76 @@ class HandlerManager:
 
     # --- Workflow graph ---
 
-    def build_workflow(self, data: dict) -> NodeGraph:
+    def build_workflow(
+        self,
+        data: dict,
+        sub_workflow_registry: dict[int, dict] | None = None,
+    ) -> NodeGraph:
         """Build a workflow graph from ReactFlow JSON without installing it.
 
         Use this for validation. The returned graph can be installed via
         :meth:`install_workflow`.
         """
-        return NodeGraph(data, manager=self, session_factory=self._session_factory)
+        return NodeGraph(
+            data,
+            manager=self,
+            session_factory=self._session_factory,
+            sub_workflow_registry=sub_workflow_registry or {},
+        )
 
     def install_workflow(self, graph: NodeGraph) -> None:
         """Install a previously built workflow graph as the active graph."""
+        if self._workflow_graph is not None:
+            state = self._workflow_graph.collect_node_state()
+            if state:
+                graph.restore_node_state(state)
         self._workflow_graph = graph
         logger.info("Workflow graph installed")
+
+    async def rebuild_workflow(self, session: AsyncSession) -> None:
+        """Reload sub-workflows and main workflow from DB and rebuild the graph."""
+        from app.models.sub_workflow import SubWorkflow
+
+        # Load all sub-workflows into registry
+        sw_result = await session.execute(select(SubWorkflow))
+        registry: dict[int, dict] = {}
+        for sw in sw_result.scalars().all():
+            registry[sw.id] = {"name": sw.name, "graph": sw.graph}
+
+        # Load main workflow
+        result = await session.execute(select(Settings).limit(1))
+        settings = result.scalar_one_or_none()
+        if settings and settings.actions_node_map:
+            try:
+                graph = self.build_workflow(settings.actions_node_map, sub_workflow_registry=registry)
+                self.install_workflow(graph)
+            except Exception:
+                logger.exception("Failed to load saved workflow graph")
+        else:
+            self._workflow_graph = None
+
+    def validate_sub_workflow_graph(
+        self,
+        sub_workflow_id: int,
+        graph_data: dict,
+        registry: dict[int, dict] | None = None,
+    ) -> None:
+        """Validate a sub-workflow graph (cycle detection + recursion check)."""
+        from app.nodes.graph import NodeGraph, detect_sub_workflow_recursion
+
+        # Build sub-graph to validate internally (cycles, unknown nodes)
+        NodeGraph(
+            graph_data,
+            manager=self,
+            session_factory=self._session_factory,
+            sub_workflow_registry=registry or {},
+            is_sub_workflow=True,
+        )
+
+        # Check for cross-graph recursion: temporarily inject this graph into the registry
+        check_registry = dict(registry) if registry else {}
+        check_registry[sub_workflow_id] = {"name": "", "graph": graph_data}
+        detect_sub_workflow_recursion(check_registry)
 
     async def _execute_handler_listeners(self, handler_id: int) -> None:
         if self._workflow_graph:
