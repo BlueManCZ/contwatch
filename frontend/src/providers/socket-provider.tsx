@@ -9,7 +9,7 @@ import { type HandlerDataValue, useHandlerDataValuesStore } from "@/stores/handl
 import { type Indicator, useHandlerIndicatorStore } from "@/stores/handler-indicators";
 import { useHandlerStatusStore } from "@/stores/handler-status";
 import { useLiveValuesStore } from "@/stores/live-values";
-import { type DisplayValue, edgeKey, useWorkflowDisplayStore } from "@/stores/workflow-display";
+import { type DisplayValue, edgeKey, useWorkflowStore } from "@/stores/workflow-store";
 
 let socketInstance: Socket | null = null;
 
@@ -81,7 +81,7 @@ export function useSocketConnection() {
         });
 
         socket.on("workflow_display", (data: { node_id: string } & DisplayValue) => {
-            useWorkflowDisplayStore.getState().set(data.node_id, { value: data.value, type: data.type });
+            useWorkflowStore.getState().set(data.node_id, { value: data.value, type: data.type });
         });
 
         socket.on(
@@ -94,7 +94,7 @@ export function useSocketConnection() {
                 value: string;
                 type: string;
             }) => {
-                useWorkflowDisplayStore
+                useWorkflowStore
                     .getState()
                     .setEdgeValue(edgeKey(data.source, data.source_handle, data.target, data.target_handle), {
                         value: data.value,

@@ -1,6 +1,6 @@
 import { BaseEdge, EdgeLabelRenderer, type EdgeProps, getBezierPath, useReactFlow } from "@xyflow/react";
 import { X } from "lucide-react";
-import { type EdgeKey, edgeKey, useWorkflowDisplayStore } from "@/stores/workflow-display";
+import { type EdgeKey, edgeKey, useWorkflowStore } from "@/stores/workflow-store";
 
 export function DeletableEdge({
     id,
@@ -28,8 +28,8 @@ export function DeletableEdge({
     });
 
     const key: EdgeKey = edgeKey(source, sourceHandleId ?? "", target, targetHandleId ?? "");
-    const edgeDebug = useWorkflowDisplayStore((s) => s.edgeDebug);
-    const displayValue = useWorkflowDisplayStore((s) => (edgeDebug ? s.edgeValues[key] : undefined));
+    const edgeDebug = useWorkflowStore((s) => s.edgeDebug);
+    const displayValue = useWorkflowStore((s) => (edgeDebug ? s.edgeValues[key] : undefined));
 
     return (
         <>

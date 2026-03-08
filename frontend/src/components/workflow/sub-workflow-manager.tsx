@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { useWorkflowDisplayStore } from "@/stores/workflow-display";
+import { useWorkflowStore } from "@/stores/workflow-store";
 
 interface SubWorkflowFormState {
     name: string;
@@ -95,7 +95,7 @@ export function SubWorkflowManager() {
     const { data: listResponse } = useListSubWorkflowsApiSubWorkflowsGet();
     const subWorkflows = (listResponse?.data ?? []) as SubWorkflowSummary[];
 
-    const pushBreadcrumb = useWorkflowDisplayStore((s) => s.pushBreadcrumb);
+    const openSubWorkflow = useWorkflowStore((s) => s.openSubWorkflow);
 
     const createMutation = useCreateSubWorkflowApiSubWorkflowsPost();
     const updateMutation = useUpdateSubWorkflowApiSubWorkflowsSubWorkflowIdPatch();
@@ -157,7 +157,7 @@ export function SubWorkflowManager() {
     }
 
     function handleOpen(sw: SubWorkflowSummary) {
-        pushBreadcrumb({ subWorkflowId: sw.id, label: sw.name });
+        openSubWorkflow({ subWorkflowId: sw.id, label: sw.name });
         setSheetOpen(false);
     }
 

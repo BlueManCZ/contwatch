@@ -1,9 +1,9 @@
 import { ChevronRight } from "lucide-react";
-import { useWorkflowDisplayStore } from "@/stores/workflow-display";
+import { useWorkflowStore } from "@/stores/workflow-store";
 
 export function WorkflowBreadcrumbs() {
-    const breadcrumbs = useWorkflowDisplayStore((s) => s.breadcrumbs);
-    const popToBreadcrumb = useWorkflowDisplayStore((s) => s.popToBreadcrumb);
+    const breadcrumbs = useWorkflowStore((s) => s.breadcrumbs);
+    const popToBreadcrumb = useWorkflowStore((s) => s.popToBreadcrumb);
 
     if (breadcrumbs.length <= 1) return null;
 

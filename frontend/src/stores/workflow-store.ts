@@ -16,6 +16,17 @@ export interface BreadcrumbEntry {
     label: string;
 }
 
+function syncSwToUrl(breadcrumbs: BreadcrumbEntry[]) {
+    const swId = breadcrumbs[breadcrumbs.length - 1]?.subWorkflowId;
+    const url = new URL(window.location.href);
+    if (swId != null) {
+        url.searchParams.set("sw", String(swId));
+    } else {
+        url.searchParams.delete("sw");
+    }
+    window.history.replaceState(window.history.state, "", url);
+}
+
 interface WorkflowDisplayState {
     values: Record<string, DisplayValue>;
     edgeValues: Record<EdgeKey, DisplayValue>;
@@ -26,9 +37,10 @@ interface WorkflowDisplayState {
     setEdgeDebug: (enabled: boolean) => void;
     pushBreadcrumb: (entry: BreadcrumbEntry) => void;
     popToBreadcrumb: (index: number) => void;
+    openSubWorkflow: (entry: BreadcrumbEntry) => void;
 }
 
-export const useWorkflowDisplayStore = create<WorkflowDisplayState>()((set) => ({
+export const useWorkflowStore = create<WorkflowDisplayState>()((set) => ({
     values: {},
     edgeValues: {},
     edgeDebug: false,
@@ -44,13 +56,22 @@ export const useWorkflowDisplayStore = create<WorkflowDisplayState>()((set) => (
     setEdgeDebug: (enabled) => set({ edgeDebug: enabled }),
     pushBreadcrumb: (entry) =>
         set((state) => {
-            // Don't push if already at this sub-workflow
             const current = state.breadcrumbs[state.breadcrumbs.length - 1];
             if (current?.subWorkflowId === entry.subWorkflowId) return state;
-            return { breadcrumbs: [...state.breadcrumbs, entry] };
+            const breadcrumbs = [...state.breadcrumbs, entry];
+            syncSwToUrl(breadcrumbs);
+            return { breadcrumbs };
         }),
     popToBreadcrumb: (index) =>
-        set((state) => ({
-            breadcrumbs: state.breadcrumbs.slice(0, index + 1),
-        })),
+        set((state) => {
+            const breadcrumbs = state.breadcrumbs.slice(0, index + 1);
+            syncSwToUrl(breadcrumbs);
+            return { breadcrumbs };
+        }),
+    openSubWorkflow: (entry) =>
+        set((state) => {
+            const breadcrumbs = [state.breadcrumbs[0], entry];
+            syncSwToUrl(breadcrumbs);
+            return { breadcrumbs };
+        }),
 }));

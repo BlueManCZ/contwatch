@@ -17,7 +17,21 @@ import {
 import "@xyflow/react/dist/style.css";
 import { useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
-import { AlertCircle, Bug, Check, Circle, Loader2, Trash2 } from "lucide-react";
+import {
+    AlertCircle,
+    AlignEndHorizontal,
+    AlignEndVertical,
+    AlignHorizontalSpaceBetween,
+    AlignStartHorizontal,
+    AlignStartVertical,
+    AlignVerticalSpaceBetween,
+    Bug,
+    Check,
+    Circle,
+    LayoutGrid,
+    Loader2,
+    Trash2,
+} from "lucide-react";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -42,14 +56,27 @@ import {
 } from "@/components/floating-controls";
 import { useFullscreen } from "@/hooks/use-fullscreen";
 import { getSocketInstance } from "@/providers/socket-provider";
-import { useWorkflowDisplayStore } from "@/stores/workflow-display";
+import { useWorkflowStore } from "@/stores/workflow-store";
+import {
+    alignBottom,
+    alignLeft,
+    alignRight,
+    alignTop,
+    arrangeGrid,
+    distributeHorizontally,
+    distributeVertically,
+} from "./align-actions";
 import { DeletableEdge } from "./deletable-edge";
 import { createConnectionValidator } from "./edge-validation";
 import { PORT_COLORS } from "./types";
+import { useTouchMultiSelect } from "./use-touch-multi-select";
 import { createWorkflowNode, NodeDefinitionsProvider } from "./workflow-node";
 
 const EMPTY_DEFINITIONS: NodeDefinition[] = [];
 const EDGE_TYPES: EdgeTypes = { default: DeletableEdge };
+const MIN_ZOOM = 0.3;
+const MAX_ZOOM = 2;
+const ZOOM_LIMITS = { min: MIN_ZOOM, max: MAX_ZOOM };
 
 let nodeIdCounter = 0;
 function nextNodeId() {
@@ -58,31 +85,128 @@ function nextNodeId() {
 
 const SUB_WORKFLOW_TYPE_RE = /^sub_workflow_(\d+)$/;
 
-function MobileNodeActions() {
+function SelectionActions({
+    onAlign,
+    multiSelectActive,
+    onExitMultiSelect,
+}: {
+    onAlign: (action: (nodes: Node[], ids: Set<string>) => Node[]) => void;
+    multiSelectActive?: boolean;
+    onExitMultiSelect?: () => void;
+}) {
     const { t } = useTranslation();
     const { deleteElements } = useReactFlow();
-    const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
+    const [selectedCount, setSelectedCount] = useState(0);
+    const selectedIdsRef = useRef<string[]>([]);
 
     const onChange = useCallback(({ nodes }: { nodes: Node[] }) => {
-        setSelectedNodeIds(nodes.map((n) => n.id));
+        selectedIdsRef.current = nodes.map((n) => n.id);
+        setSelectedCount(nodes.length);
     }, []);
 
     useOnSelectionChange({ onChange });
 
-    if (selectedNodeIds.length === 0) return null;
+    if (selectedCount === 0 && !multiSelectActive) return null;
+
+    const iconBtn =
+        "flex cursor-pointer items-center justify-center rounded-md p-1.5 transition-colors hover:bg-accent";
 
     return (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 md:hidden animate-in fade-in slide-in-from-bottom-2 duration-150">
-            <button
-                type="button"
-                className="flex cursor-pointer items-center gap-2 rounded-full border bg-card px-4 py-2.5 shadow-lg active:scale-95 transition-transform"
-                onClick={() => {
-                    deleteElements({ nodes: selectedNodeIds.map((id) => ({ id })) });
-                }}
-            >
-                <Trash2 className="h-4 w-4 text-destructive" />
-                <span className="text-sm font-medium">{t("common.delete")}</span>
-            </button>
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 animate-in fade-in slide-in-from-bottom-2 duration-150">
+            {multiSelectActive && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 whitespace-nowrap text-[11px] font-medium text-primary">
+                    {t("workflow.multiSelect", "Multi-select")}
+                    {selectedCount > 0 && ` (${selectedCount})`}
+                </div>
+            )}
+            <div className="flex items-center gap-1 rounded-full border bg-card/90 backdrop-blur-sm px-3 py-1.5 shadow-lg">
+                {selectedCount >= 2 && (
+                    <>
+                        <button
+                            type="button"
+                            className={iconBtn}
+                            title={t("workflow.align.left")}
+                            onClick={() => onAlign(alignLeft)}
+                        >
+                            <AlignStartVertical className="h-4 w-4" />
+                        </button>
+                        <button
+                            type="button"
+                            className={iconBtn}
+                            title={t("workflow.align.right")}
+                            onClick={() => onAlign(alignRight)}
+                        >
+                            <AlignEndVertical className="h-4 w-4" />
+                        </button>
+                        <button
+                            type="button"
+                            className={iconBtn}
+                            title={t("workflow.align.top")}
+                            onClick={() => onAlign(alignTop)}
+                        >
+                            <AlignStartHorizontal className="h-4 w-4" />
+                        </button>
+                        <button
+                            type="button"
+                            className={iconBtn}
+                            title={t("workflow.align.bottom")}
+                            onClick={() => onAlign(alignBottom)}
+                        >
+                            <AlignEndHorizontal className="h-4 w-4" />
+                        </button>
+                        <div className="mx-0.5 h-4 w-px bg-border" />
+                        <button
+                            type="button"
+                            className={iconBtn}
+                            title={t("workflow.align.distributeH")}
+                            onClick={() => onAlign(distributeHorizontally)}
+                        >
+                            <AlignHorizontalSpaceBetween className="h-4 w-4" />
+                        </button>
+                        <button
+                            type="button"
+                            className={iconBtn}
+                            title={t("workflow.align.distributeV")}
+                            onClick={() => onAlign(distributeVertically)}
+                        >
+                            <AlignVerticalSpaceBetween className="h-4 w-4" />
+                        </button>
+                        <div className="mx-0.5 h-4 w-px bg-border" />
+                        <button
+                            type="button"
+                            className={iconBtn}
+                            title={t("workflow.align.grid")}
+                            onClick={() => onAlign(arrangeGrid)}
+                        >
+                            <LayoutGrid className="h-4 w-4" />
+                        </button>
+                        <div className="mx-0.5 h-4 w-px bg-border" />
+                    </>
+                )}
+                {selectedCount > 0 && (
+                    <button
+                        type="button"
+                        className={`${iconBtn} text-destructive`}
+                        title={t("common.delete")}
+                        onClick={() => {
+                            deleteElements({ nodes: selectedIdsRef.current.map((id) => ({ id })) });
+                            onExitMultiSelect?.();
+                        }}
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </button>
+                )}
+                {multiSelectActive && (
+                    <button
+                        type="button"
+                        className={`${iconBtn} text-xs text-muted-foreground`}
+                        title={t("common.done", "Done")}
+                        onClick={onExitMultiSelect}
+                    >
+                        <Check className="h-4 w-4" />
+                    </button>
+                )}
+            </div>
         </div>
     );
 }
@@ -129,11 +253,14 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef, WorkflowEditorProps>
 
     const workflowLoading = isSubWorkflow ? subWorkflowLoading : mainWorkflowLoading;
 
-    // Extract graph data from whichever source is active
+    // Extract graph data from whichever source is active.
+    // Return undefined while still loading to prevent the load effect from
+    // firing with empty data before the real response arrives.
     const savedWorkflow = useMemo(() => {
         if (isSubWorkflow) {
-            const swData = subWorkflowResponse?.data as { graph?: WorkflowData } | undefined;
-            return swData?.graph ?? ({ nodes: [], edges: [] } as WorkflowData);
+            if (!subWorkflowResponse?.data) return undefined;
+            const swData = subWorkflowResponse.data as { graph?: WorkflowData };
+            return swData.graph ?? ({ nodes: [], edges: [] } as WorkflowData);
         }
         return mainWorkflowResponse?.data as WorkflowData | undefined;
     }, [isSubWorkflow, subWorkflowResponse, mainWorkflowResponse]);
@@ -152,9 +279,9 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef, WorkflowEditorProps>
     const { isFullscreen, showPrompt, setShowPrompt, toggleFullscreen, enterFullscreen } =
         useFullscreen(reactFlowWrapper);
 
-    const edgeDebug = useWorkflowDisplayStore((s) => s.edgeDebug);
-    const setEdgeDebug = useWorkflowDisplayStore((s) => s.setEdgeDebug);
-    const pushBreadcrumb = useWorkflowDisplayStore((s) => s.pushBreadcrumb);
+    const edgeDebug = useWorkflowStore((s) => s.edgeDebug);
+    const setEdgeDebug = useWorkflowStore((s) => s.setEdgeDebug);
+    const pushBreadcrumb = useWorkflowStore((s) => s.pushBreadcrumb);
     const toggleEdgeDebug = useCallback(() => {
         const next = !edgeDebug;
         setEdgeDebug(next);
@@ -330,6 +457,17 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef, WorkflowEditorProps>
     const changeCountRef = useRef(0);
     const lastSavedCountRef = useRef(0);
     const readyRef = useRef(false);
+
+    const touchReportChange = useCallback(() => {
+        if (readyRef.current) changeCountRef.current++;
+    }, []);
+    const { multiSelectActive, exitMultiSelect } = useTouchMultiSelect(
+        reactFlowWrapper,
+        setNodes,
+        reactFlowInstance,
+        touchReportChange,
+        ZOOM_LIMITS,
+    );
 
     const nodesRef = useRef(nodes);
     const edgesRef = useRef(edges);
@@ -591,7 +729,8 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef, WorkflowEditorProps>
     const dismissNodePicker = useCallback(() => {
         if (pickerJustOpenedRef.current) return;
         setNodePicker(null);
-    }, []);
+        if (multiSelectActive) exitMultiSelect();
+    }, [multiSelectActive, exitMultiSelect]);
 
     const onPaneContextMenu = useCallback(
         (event: MouseEvent | React.MouseEvent) => {
@@ -617,6 +756,17 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef, WorkflowEditorProps>
             });
         },
         [reactFlowInstance],
+    );
+
+    // Alignment actions for selected nodes
+    const handleAlign = useCallback(
+        (action: (allNodes: Node[], selectedIds: Set<string>) => Node[]) => {
+            const selectedIds = new Set(nodesRef.current.filter((n) => n.selected).map((n) => n.id));
+            if (selectedIds.size < 2) return;
+            setNodes((nds) => action(nds, selectedIds));
+            if (readyRef.current) changeCountRef.current++;
+        },
+        [setNodes],
     );
 
     // Double-click on sub-workflow nodes to drill in
@@ -710,16 +860,32 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef, WorkflowEditorProps>
                     edgeTypes={EDGE_TYPES}
                     isValidConnection={isValidConnection}
                     deleteKeyCode={["Backspace", "Delete"]}
+                    minZoom={MIN_ZOOM}
+                    maxZoom={MAX_ZOOM}
                     fitView
                     proOptions={{ hideAttribution: true }}
                 >
                     <Background gap={20} size={1} />
                     <Controls />
-                    <MobileNodeActions />
+                    <SelectionActions
+                        onAlign={handleAlign}
+                        multiSelectActive={multiSelectActive}
+                        onExitMultiSelect={exitMultiSelect}
+                    />
                 </ReactFlow>
             </NodeDefinitionsProvider>
             {nodePicker && nodePickerItems.length > 0 && (
                 <div
+                    ref={(el) => {
+                        if (!el) return;
+                        const parent = el.offsetParent as HTMLElement | null;
+                        if (!parent) return;
+                        const pw = parent.clientWidth;
+                        const ph = parent.clientHeight;
+                        const pad = 8;
+                        el.style.left = `${Math.min(nodePicker.pickerPosition.x, Math.max(pad, pw - el.offsetWidth - pad))}px`;
+                        el.style.top = `${Math.min(nodePicker.pickerPosition.y, Math.max(pad, ph - el.offsetHeight - pad))}px`;
+                    }}
                     className="absolute z-20 w-72 rounded-lg border bg-card shadow-lg overflow-hidden animate-in fade-in zoom-in-95 duration-100"
                     style={{ left: nodePicker.pickerPosition.x, top: nodePicker.pickerPosition.y }}
                 >
