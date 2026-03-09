@@ -7,7 +7,6 @@ derive_sub_workflow_ports, _detect_port_type.
 import pytest
 
 from app.nodes.graph import (
-    CycleDetectedError,
     PortTypeMismatchError,
     SubWorkflowRecursionError,
     _detect_port_type,
@@ -16,7 +15,6 @@ from app.nodes.graph import (
     derive_sub_workflow_ports,
     detect_sub_workflow_recursion,
 )
-
 
 # ---------------------------------------------------------------------------
 # _find_cycle
@@ -266,7 +264,7 @@ class TestDeriveSubWorkflowPorts:
             nodes=[{"id": "n1", "type": "sub_workflow_input", "data": {"name": "unused"}}],
             edges=[],
         )
-        inputs, outputs = derive_sub_workflow_ports(graph)
+        inputs, _outputs = derive_sub_workflow_ports(graph)
         assert inputs == []
 
     def test_unnamed_input_excluded(self):
@@ -274,7 +272,7 @@ class TestDeriveSubWorkflowPorts:
             nodes=[{"id": "n1", "type": "sub_workflow_input", "data": {"name": ""}}],
             edges=[{"source": "n1", "sourceHandle": "event", "target": "n2", "targetHandle": "event"}],
         )
-        inputs, outputs = derive_sub_workflow_ports(graph)
+        inputs, _outputs = derive_sub_workflow_ports(graph)
         assert inputs == []
 
     def test_no_name_key_excluded(self):
@@ -282,7 +280,7 @@ class TestDeriveSubWorkflowPorts:
             nodes=[{"id": "n1", "type": "sub_workflow_input", "data": {}}],
             edges=[{"source": "n1", "sourceHandle": "event", "target": "n2", "targetHandle": "event"}],
         )
-        inputs, outputs = derive_sub_workflow_ports(graph)
+        inputs, _outputs = derive_sub_workflow_ports(graph)
         assert inputs == []
 
     def test_regular_nodes_ignored(self):
@@ -304,7 +302,7 @@ class TestDeriveSubWorkflowPorts:
         )
         # But we pass edges explicitly
         explicit_edges = [{"source": "n1", "sourceHandle": "value", "target": "n2", "targetHandle": "value"}]
-        inputs, outputs = derive_sub_workflow_ports(graph, edges_data=explicit_edges)
+        inputs, _outputs = derive_sub_workflow_ports(graph, edges_data=explicit_edges)
         assert inputs == [{"name": "in", "type": "value"}]
 
     def test_mixed_types_raises(self):

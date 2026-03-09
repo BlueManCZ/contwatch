@@ -425,12 +425,12 @@ class TestRounding:
 
     def test_rounding_not_applied_to_bool(self):
         tracker = AttributeTracker(1, 1, rounding=0)
-        result = tracker.process_value(True)
+        tracker.process_value(True)
         assert tracker.current_value is True  # not rounded to 1.0
 
     def test_rounding_not_applied_to_string(self):
         tracker = AttributeTracker(1, 1, rounding=0)
-        result = tracker.process_value("hello")
+        tracker.process_value("hello")
         assert tracker.current_value == "hello"
 
 
