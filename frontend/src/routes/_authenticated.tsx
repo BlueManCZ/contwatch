@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/app-layout";
+import { RouteError } from "@/components/route-error";
 import { useSeedHandlerStatuses } from "@/hooks/use-seed-handler-statuses";
 import { useSeedLiveValues } from "@/hooks/use-seed-live-values";
 import { useSocketConnection } from "@/providers/socket-provider";
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/_authenticated")({
         }
     },
     component: AuthenticatedLayout,
+    errorComponent: RouteError,
 });
 
 function AuthenticatedLayout() {

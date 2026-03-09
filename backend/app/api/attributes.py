@@ -1,7 +1,7 @@
 import datetime
 import logging
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Query, status
 from sqlalchemy import select, text
 
 from app.dependencies import CurrentUser, DbSession, HandlerManagerDep
@@ -19,7 +19,8 @@ from app.schemas.attribute import (
     OutOfRangeDeleteRequest,
     OutOfRangeDeleteResult,
 )
-from app.socketio_app import sio
+from app.socketio_app import emit_mutate
+from app.utils.db import get_or_404
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/attributes", tags=["attributes"])
@@ -46,9 +47,10 @@ async def _refresh_daily_stats(dates: list[datetime.date], tz_offset: int = 0) -
             await conn.execution_options(isolation_level="AUTOCOMMIT")
             await conn.execute(
                 text(
-                    f"CALL refresh_continuous_aggregate('daily_stats', "
-                    f"'{start.isoformat()}'::timestamptz, '{end.isoformat()}'::timestamptz)"
-                )
+                    "CALL refresh_continuous_aggregate('daily_stats', "
+                    ":start::timestamptz, :end::timestamptz)"
+                ),
+                {"start": start.isoformat(), "end": end.isoformat()},
             )
     except Exception:
         logger.warning("Could not refresh daily_stats continuous aggregate", exc_info=True)
@@ -109,8 +111,7 @@ async def reorder_attributes(body: AttributeReorderRequest, db: DbSession, _curr
         if attr := attrs_by_id.get(item.id):
             attr.order = item.order
     await db.commit()
-    await sio.emit("mutate", {"entity": "attributes"})
-    await sio.emit("mutate", {"entity": "handlers"})
+    await emit_mutate("attributes", "handlers")
 
 
 def _date_range(date: datetime.date, tz_offset: int = 0) -> dict:
@@ -134,7 +135,6 @@ async def _count_out_of_range_by_date(
     tz_offset: int = 0,
 ) -> list[OutOfRangeByDateItem]:
     """Count out-of-range values per attribute for a single date using caller-supplied bounds."""
-    date_params = _date_range(date, tz_offset)
     items = []
     for bounds in body_attributes:
         attr = db_attributes.get(bounds.attribute_id)
@@ -143,17 +143,10 @@ async def _count_out_of_range_by_date(
         if bounds.min_value is None and bounds.max_value is None:
             continue
 
-        range_condition = _build_data_range_condition(bounds.min_value, bounds.max_value)
-        count_result = await db.execute(
-            text(
-                "SELECT count(*) FROM data_units "
-                "WHERE attribute_id = :attr_id "
-                f"AND timestamp >= :date_start AND timestamp < :date_end AND ({range_condition})"
-            ),
-            {"attr_id": bounds.attribute_id, **date_params, "min_val": bounds.min_value, "max_val": bounds.max_value},
+        count = await _count_data_out_of_range(
+            db, bounds.attribute_id, date, bounds.min_value, bounds.max_value, tz_offset
         )
-        count = count_result.scalar()
-        if count and count > 0:
+        if count > 0:
             items.append(OutOfRangeByDateItem(attribute_id=attr.id, attribute_name=attr.name, count=count))
     return items
 
@@ -179,7 +172,6 @@ async def delete_out_of_range_by_date(body: OutOfRangeByDateDeleteRequest, db: D
     result = await db.execute(select(Attribute).where(Attribute.id.in_(ids)))
     db_attributes = {a.id: a for a in result.scalars()}
 
-    date_params = _date_range(body.date, body.tz_offset)
     total_deleted = 0
     for bounds in body.attributes:
         if bounds.attribute_id not in db_attributes:
@@ -187,21 +179,9 @@ async def delete_out_of_range_by_date(body: OutOfRangeByDateDeleteRequest, db: D
         if bounds.min_value is None and bounds.max_value is None:
             continue
 
-        range_condition = _build_data_range_condition(bounds.min_value, bounds.max_value)
-        delete_result = await db.execute(
-            text(
-                "DELETE FROM data_units "
-                "WHERE attribute_id = :attr_id "
-                f"AND timestamp >= :date_start AND timestamp < :date_end AND ({range_condition})"
-            ),
-            {
-                "attr_id": bounds.attribute_id,
-                **date_params,
-                "min_val": bounds.min_value,
-                "max_val": bounds.max_value,
-            },
+        total_deleted += await _delete_data_out_of_range(
+            db, bounds.attribute_id, body.date, bounds.min_value, bounds.max_value, body.tz_offset
         )
-        total_deleted += delete_result.rowcount
 
     await db.commit()
     if total_deleted > 0:
@@ -211,11 +191,7 @@ async def delete_out_of_range_by_date(body: OutOfRangeByDateDeleteRequest, db: D
 
 @router.get("/{attribute_id}", response_model=AttributeRead)
 async def get_attribute(attribute_id: int, db: DbSession, _current_user: CurrentUser):
-    result = await db.execute(select(Attribute).where(Attribute.id == attribute_id))
-    attribute = result.scalar_one_or_none()
-    if not attribute:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Attribute not found")
-    return attribute
+    return await get_or_404(db, Attribute, attribute_id)
 
 
 @router.get("/{attribute_id}/value", response_model=AttributeValue | None)
@@ -235,35 +211,25 @@ async def create_attribute(
     await db.commit()
     await db.refresh(attribute)
     await manager.register_attribute(attribute)
-    await sio.emit("mutate", {"entity": "attributes"})
-    await sio.emit("mutate", {"entity": "handlers"})
-    await sio.emit("mutate", {"entity": "widgets"})
+    await emit_mutate("attributes", "handlers", "widgets")
     return attribute
 
 
 @router.delete("/{attribute_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_attribute(attribute_id: int, db: DbSession, manager: HandlerManagerDep, _current_user: CurrentUser):
-    result = await db.execute(select(Attribute).where(Attribute.id == attribute_id))
-    attribute = result.scalar_one_or_none()
-    if not attribute:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Attribute not found")
+    attribute = await get_or_404(db, Attribute, attribute_id)
 
     await manager.unregister_attribute(attribute.handler_id, attribute.name)
     await db.delete(attribute)
     await db.commit()
-    await sio.emit("mutate", {"entity": "attributes"})
-    await sio.emit("mutate", {"entity": "handlers"})
-    await sio.emit("mutate", {"entity": "widgets"})
+    await emit_mutate("attributes", "handlers", "widgets")
 
 
 @router.patch("/{attribute_id}", response_model=AttributeRead)
 async def update_attribute(
     attribute_id: int, body: AttributeUpdate, db: DbSession, manager: HandlerManagerDep, _current_user: CurrentUser
 ):
-    result = await db.execute(select(Attribute).where(Attribute.id == attribute_id))
-    attribute = result.scalar_one_or_none()
-    if not attribute:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Attribute not found")
+    attribute = await get_or_404(db, Attribute, attribute_id)
 
     for field, value in body.model_dump(exclude_unset=True).items():
         setattr(attribute, field, value)
@@ -278,30 +244,66 @@ async def update_attribute(
         tracker.min_value = attribute.min_value
         tracker.max_value = attribute.max_value
 
-    await sio.emit("mutate", {"entity": "attributes"})
-    await sio.emit("mutate", {"entity": "handlers"})
-    await sio.emit("mutate", {"entity": "widgets"})
+    await emit_mutate("attributes", "handlers", "widgets")
     return attribute
 
 
-def _build_data_range_condition(min_value: float | None, max_value: float | None) -> str:
-    """Build SQL condition for out-of-range values in data_units."""
+def _build_range_condition(
+    min_value: float | None, max_value: float | None, min_col: str = "value", max_col: str = "value"
+) -> str:
+    """Build SQL condition for out-of-range values.
+
+    For data_units: min_col="value", max_col="value" (default).
+    For daily_stats: min_col="min_value", max_col="max_value".
+    """
     parts = []
     if min_value is not None:
-        parts.append("value < :min_val")
+        parts.append(f"{min_col} < :min_val")
     if max_value is not None:
-        parts.append("value > :max_val")
+        parts.append(f"{max_col} > :max_val")
     return " OR ".join(parts)
 
 
-def _build_stats_range_condition(min_value: float | None, max_value: float | None) -> str:
-    """Build SQL condition for daily_stats rows that may contain out-of-range values."""
-    parts = []
-    if min_value is not None:
-        parts.append("min_value < :min_val")
-    if max_value is not None:
-        parts.append("max_value > :max_val")
-    return " OR ".join(parts)
+async def _count_data_out_of_range(
+    db: DbSession,
+    attr_id: int,
+    date: datetime.date,
+    min_value: float | None,
+    max_value: float | None,
+    tz_offset: int = 0,
+) -> int:
+    """Count out-of-range data_units for an attribute on a single date."""
+    condition = _build_range_condition(min_value, max_value)
+    result = await db.execute(
+        text(
+            "SELECT count(*) FROM data_units "
+            "WHERE attribute_id = :attr_id "
+            f"AND timestamp >= :date_start AND timestamp < :date_end AND ({condition})"
+        ),
+        {"attr_id": attr_id, **_date_range(date, tz_offset), "min_val": min_value, "max_val": max_value},
+    )
+    return result.scalar() or 0
+
+
+async def _delete_data_out_of_range(
+    db: DbSession,
+    attr_id: int,
+    date: datetime.date,
+    min_value: float | None,
+    max_value: float | None,
+    tz_offset: int = 0,
+) -> int:
+    """Delete out-of-range data_units for an attribute on a single date."""
+    condition = _build_range_condition(min_value, max_value)
+    result = await db.execute(
+        text(
+            "DELETE FROM data_units "
+            "WHERE attribute_id = :attr_id "
+            f"AND timestamp >= :date_start AND timestamp < :date_end AND ({condition})"
+        ),
+        {"attr_id": attr_id, **_date_range(date, tz_offset), "min_val": min_value, "max_val": max_value},
+    )
+    return result.rowcount
 
 
 @router.get("/{attribute_id}/out-of-range", response_model=list[OutOfRangeDayItem])
@@ -311,16 +313,13 @@ async def check_out_of_range(
     _current_user: CurrentUser,
     tz_offset: int = Query(0, ge=-720, le=840, description="Browser timezone offset in minutes (JS getTimezoneOffset)"),
 ):
-    result = await db.execute(select(Attribute).where(Attribute.id == attribute_id))
-    attribute = result.scalar_one_or_none()
-    if not attribute:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Attribute not found")
+    attribute = await get_or_404(db, Attribute, attribute_id)
 
     if attribute.min_value is None and attribute.max_value is None:
         return []
 
     # Step 1: Find candidate days from daily_stats aggregate
-    stats_condition = _build_stats_range_condition(attribute.min_value, attribute.max_value)
+    stats_condition = _build_range_condition(attribute.min_value, attribute.max_value, "min_value", "max_value")
     stats_result = await db.execute(
         text(
             "SELECT bucket::date AS date FROM daily_stats "
@@ -345,20 +344,12 @@ async def check_out_of_range(
             candidate_dates.add(d - datetime.timedelta(days=1))
 
     # Step 2: Count exact violations per candidate day (one tight-range query per day for chunk exclusion)
-    range_condition = _build_data_range_condition(attribute.min_value, attribute.max_value)
     results = []
     for date in sorted(candidate_dates):
-        date_params = _date_range(date, tz_offset)
-        count_result = await db.execute(
-            text(
-                "SELECT count(*) FROM data_units "
-                "WHERE attribute_id = :attr_id "
-                f"AND timestamp >= :date_start AND timestamp < :date_end AND ({range_condition})"
-            ),
-            {"attr_id": attribute_id, **date_params, "min_val": attribute.min_value, "max_val": attribute.max_value},
+        count = await _count_data_out_of_range(
+            db, attribute_id, date, attribute.min_value, attribute.max_value, tz_offset
         )
-        count = count_result.scalar()
-        if count and count > 0:
+        if count > 0:
             results.append(OutOfRangeDayItem(date=date, count=count))
     return results
 
@@ -367,10 +358,7 @@ async def check_out_of_range(
 async def delete_out_of_range(
     attribute_id: int, body: OutOfRangeDeleteRequest, db: DbSession, _current_user: CurrentUser
 ):
-    result = await db.execute(select(Attribute).where(Attribute.id == attribute_id))
-    attribute = result.scalar_one_or_none()
-    if not attribute:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Attribute not found")
+    attribute = await get_or_404(db, Attribute, attribute_id)
 
     if attribute.min_value is None and attribute.max_value is None:
         return OutOfRangeDeleteResult(deleted=0)
@@ -378,19 +366,11 @@ async def delete_out_of_range(
     if not body.dates:
         return OutOfRangeDeleteResult(deleted=0)
 
-    range_condition = _build_data_range_condition(attribute.min_value, attribute.max_value)
     total_deleted = 0
     for date in body.dates:
-        date_params = _date_range(date, body.tz_offset)
-        delete_result = await db.execute(
-            text(
-                "DELETE FROM data_units "
-                "WHERE attribute_id = :attr_id "
-                f"AND timestamp >= :date_start AND timestamp < :date_end AND ({range_condition})"
-            ),
-            {"attr_id": attribute_id, **date_params, "min_val": attribute.min_value, "max_val": attribute.max_value},
+        total_deleted += await _delete_data_out_of_range(
+            db, attribute_id, date, attribute.min_value, attribute.max_value, body.tz_offset
         )
-        total_deleted += delete_result.rowcount
     await db.commit()
     if total_deleted > 0:
         await _refresh_daily_stats(body.dates, body.tz_offset)

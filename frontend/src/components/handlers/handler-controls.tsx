@@ -8,6 +8,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { SafeIcon } from "@/components/safe-icon";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { boldName, cn } from "@/lib/utils";
 import { useLiveValuesStore } from "@/stores/live-values";
 
@@ -67,7 +68,7 @@ function ControlSwitch({
     const executeAction = useExecuteActionApiActionsActionIdExecutePost({
         mutation: { meta: { skipGlobalErrorToast: true } },
     });
-    const [pendingChecked, setPendingChecked] = useState<boolean | null>(null);
+    const toggleConfirm = useConfirmDialog<boolean>();
     const liveValue = useLiveValuesStore((s) =>
         control.attribute_id ? s.values[control.attribute_id] : undefined,
     );
@@ -89,7 +90,7 @@ function ControlSwitch({
         executeAction.mutate(
             { actionId, data: null },
             {
-                onSettled: () => setPendingChecked(null),
+                onSettled: () => toggleConfirm.close(),
                 onSuccess: () => toast.success(boldName(t, "toast.actionExecuted", actionName ?? "")),
                 onError: () => toast.error(boldName(t, "toast.actionFailed", actionName ?? "")),
             },
@@ -98,7 +99,7 @@ function ControlSwitch({
 
     function handleToggle(checked: boolean) {
         if (confirmActions) {
-            setPendingChecked(checked);
+            toggleConfirm.open(checked);
         } else {
             doToggle(checked);
         }
@@ -152,13 +153,14 @@ function ControlSwitch({
                 )}
             </button>
             <ConfirmDialog
-                open={pendingChecked !== null}
-                onOpenChange={(open) => !open && setPendingChecked(null)}
+                {...toggleConfirm.dialogProps}
                 onConfirm={() => {
-                    if (pendingChecked !== null) doToggle(pendingChecked);
+                    if (toggleConfirm.pending !== null) doToggle(toggleConfirm.pending);
                 }}
                 description={t("confirm.executeAction", {
-                    action: localizeAction(pendingChecked ? control.action_on_name : control.action_off_name),
+                    action: localizeAction(
+                        toggleConfirm.pending ? control.action_on_name : control.action_off_name,
+                    ),
                     device: handlerLabel,
                 })}
             />

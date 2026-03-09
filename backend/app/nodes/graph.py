@@ -57,6 +57,34 @@ class _SubWorkflowPortProxy:
         await self.node.execute()
 
 
+def _find_cycle(adj: dict[str, list[str]], start_nodes: set[str]) -> str | None:
+    """Iterative DFS cycle detection. Returns the node key involved in a cycle, or None."""
+    visited: set[str] = set()
+    in_stack: set[str] = set()
+
+    for start in start_nodes:
+        if start in visited:
+            continue
+        stack: list[tuple[str, int]] = [(start, 0)]
+        while stack:
+            key, idx = stack[-1]
+            if idx == 0:
+                visited.add(key)
+                in_stack.add(key)
+            neighbors = adj.get(key, [])
+            if idx < len(neighbors):
+                stack[-1] = (key, idx + 1)
+                neighbor = neighbors[idx]
+                if neighbor in in_stack:
+                    return neighbor
+                if neighbor not in visited:
+                    stack.append((neighbor, 0))
+            else:
+                in_stack.discard(key)
+                stack.pop()
+    return None
+
+
 class NodeGraph:
     """Builds and executes a workflow graph from ReactFlow-compatible JSON."""
 
@@ -204,29 +232,9 @@ class NodeGraph:
             if source and target and source in self._nodes and target in self._nodes:
                 adj.setdefault(source, []).append(target)
 
-        visited: set[str] = set()
-        in_stack: set[str] = set()
-
-        for start in self._nodes:
-            if start in visited:
-                continue
-            stack: list[tuple[str, int]] = [(start, 0)]
-            while stack:
-                node_id, idx = stack[-1]
-                if idx == 0:
-                    visited.add(node_id)
-                    in_stack.add(node_id)
-                neighbors = adj.get(node_id, [])
-                if idx < len(neighbors):
-                    stack[-1] = (node_id, idx + 1)
-                    neighbor = neighbors[idx]
-                    if neighbor in in_stack:
-                        raise CycleDetectedError(f"Cycle detected involving node '{neighbor}'", node_id=neighbor)
-                    if neighbor not in visited:
-                        stack.append((neighbor, 0))
-                else:
-                    in_stack.discard(node_id)
-                    stack.pop()
+        cycle_node = _find_cycle(adj, set(self._nodes))
+        if cycle_node is not None:
+            raise CycleDetectedError(f"Cycle detected involving node '{cycle_node}'", node_id=cycle_node)
 
     async def execute_handler_listeners(self, handler_id: int) -> None:
         """Execute all HandlerListener nodes matching the given handler_id."""
@@ -276,29 +284,9 @@ def detect_sub_workflow_recursion(
     for targets in adj.values():
         all_keys.update(targets)
 
-    visited: set[str] = set()
-    in_stack: set[str] = set()
-
-    for start in all_keys:
-        if start in visited:
-            continue
-        stack: list[tuple[str, int]] = [(start, 0)]
-        while stack:
-            key, idx = stack[-1]
-            if idx == 0:
-                visited.add(key)
-                in_stack.add(key)
-            neighbors = adj.get(key, [])
-            if idx < len(neighbors):
-                stack[-1] = (key, idx + 1)
-                neighbor = neighbors[idx]
-                if neighbor in in_stack:
-                    raise SubWorkflowRecursionError(f"Recursive sub-workflow reference detected: {neighbor}")
-                if neighbor not in visited:
-                    stack.append((neighbor, 0))
-            else:
-                in_stack.discard(key)
-                stack.pop()
+    cycle_node = _find_cycle(adj, all_keys)
+    if cycle_node is not None:
+        raise SubWorkflowRecursionError(f"Recursive sub-workflow reference detected: {cycle_node}")
 
 
 def _extract_sub_workflow_refs(graph_data: dict) -> list[int]:

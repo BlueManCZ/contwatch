@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { localizeAttributeLabel } from "@/lib/localize-attribute";
 
 interface AttributeEditDialogProps {
@@ -32,7 +33,7 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
     const [color, setColor] = useState("");
     const [minValue, setMinValue] = useState("");
     const [maxValue, setMaxValue] = useState("");
-    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const deleteConfirm = useConfirmDialog();
     const [outOfRangeOpen, setOutOfRangeOpen] = useState(false);
     const updateAttribute = useUpdateAttributeApiAttributesAttributeIdPatch();
     const deleteAttribute = useDeleteAttributeApiAttributesAttributeIdDelete();
@@ -156,7 +157,7 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
                             type="button"
                             variant="destructive"
                             disabled={deleteAttribute.isPending}
-                            onClick={() => setConfirmDeleteOpen(true)}
+                            onClick={() => deleteConfirm.open()}
                         >
                             {t("common.delete")}
                         </Button>
@@ -167,8 +168,7 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
                 </form>
             </DialogContent>
             <ConfirmDialog
-                open={confirmDeleteOpen}
-                onOpenChange={setConfirmDeleteOpen}
+                {...deleteConfirm.dialogProps}
                 variant="destructive"
                 confirmLabel={t("common.delete")}
                 isPending={deleteAttribute.isPending}
@@ -178,7 +178,7 @@ export function AttributeEditDialog({ attribute, onClose }: AttributeEditDialogP
                         { attributeId: attribute.id },
                         {
                             onSuccess: () => {
-                                setConfirmDeleteOpen(false);
+                                deleteConfirm.close();
                                 queryClient.invalidateQueries({
                                     queryKey: getListAttributesApiAttributesGetQueryKey(),
                                 });

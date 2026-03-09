@@ -18,8 +18,9 @@ from app.schemas.widget import (
     WidgetReorderRequest,
     WidgetUpdate,
 )
-from app.socketio_app import sio
+from app.socketio_app import emit_mutate
 from app.utils.action_params import merge_params
+from app.utils.db import get_or_404
 
 router = APIRouter(prefix="/widgets", tags=["widgets"])
 
@@ -50,16 +51,13 @@ async def create_widget(body: WidgetCreate, db: DbSession, _current_user: Curren
     db.add(widget)
     await db.commit()
     await db.refresh(widget)
-    await sio.emit("mutate", {"entity": "widgets"})
+    await emit_mutate("widgets")
     return widget
 
 
 @router.patch("/{widget_id}", response_model=WidgetRead)
 async def update_widget(widget_id: int, body: WidgetUpdate, db: DbSession, _current_user: CurrentUser):
-    result = await db.execute(select(Widget).where(Widget.id == widget_id))
-    widget = result.scalar_one_or_none()
-    if not widget:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Widget not found")
+    widget = await get_or_404(db, Widget, widget_id)
     widget.name = body.name
     widget.icon = body.icon
     if body.attribute_id is not None:
@@ -68,19 +66,16 @@ async def update_widget(widget_id: int, body: WidgetUpdate, db: DbSession, _curr
         widget.config = body.config
     await db.commit()
     await db.refresh(widget)
-    await sio.emit("mutate", {"entity": "widgets"})
+    await emit_mutate("widgets")
     return widget
 
 
 @router.delete("/{widget_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_widget(widget_id: int, db: DbSession, _current_user: CurrentUser):
-    result = await db.execute(select(Widget).where(Widget.id == widget_id))
-    widget = result.scalar_one_or_none()
-    if not widget:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Widget not found")
+    widget = await get_or_404(db, Widget, widget_id)
     await db.delete(widget)
     await db.commit()
-    await sio.emit("mutate", {"entity": "widgets"})
+    await emit_mutate("widgets")
 
 
 @router.post("/reorder")
@@ -93,7 +88,7 @@ async def reorder_widgets(body: WidgetReorderRequest, db: DbSession, _current_us
         update(Widget).where(Widget.id.in_(ids)).values(order=case(order_map, value=Widget.id, else_=Widget.order))
     )
     await db.commit()
-    await sio.emit("mutate", {"entity": "widgets"})
+    await emit_mutate("widgets")
     return {"ok": True}
 
 
@@ -108,9 +103,8 @@ async def toggle_switch(
     manager: HandlerManagerDep,
     _current_user: CurrentUser,
 ):
-    result = await db.execute(select(Widget).where(Widget.id == widget_id))
-    widget = result.scalar_one_or_none()
-    if not widget or widget.type != "switch":
+    widget = await get_or_404(db, Widget, widget_id)
+    if widget.type != "switch":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Switch widget not found")
 
     config = widget.config
@@ -142,9 +136,8 @@ async def set_slider(
     manager: HandlerManagerDep,
     _current_user: CurrentUser,
 ):
-    result = await db.execute(select(Widget).where(Widget.id == widget_id))
-    widget = result.scalar_one_or_none()
-    if not widget or widget.type != "slider":
+    widget = await get_or_404(db, Widget, widget_id)
+    if widget.type != "slider":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Slider widget not found")
 
     config = widget.config
@@ -175,9 +168,8 @@ async def execute_button(
     manager: HandlerManagerDep,
     _current_user: CurrentUser,
 ):
-    result = await db.execute(select(Widget).where(Widget.id == widget_id))
-    widget = result.scalar_one_or_none()
-    if not widget or widget.type != "button":
+    widget = await get_or_404(db, Widget, widget_id)
+    if widget.type != "button":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Button widget not found")
 
     config = widget.config
@@ -205,14 +197,12 @@ async def execute_button(
 
 @router.post("/from-control", response_model=WidgetRead, status_code=status.HTTP_201_CREATED)
 async def create_widget_from_control(body: CreateWidgetFromControlRequest, db: DbSession, _current_user: CurrentUser):
-    result = await db.execute(
-        select(Handler)
-        .where(Handler.id == body.handler_id)
-        .options(selectinload(Handler.attributes), selectinload(Handler.actions))
+    handler = await get_or_404(
+        db,
+        Handler,
+        body.handler_id,
+        options=[selectinload(Handler.attributes), selectinload(Handler.actions)],
     )
-    handler = result.scalar_one_or_none()
-    if not handler:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Handler not found")
 
     cls = get_handler_class(handler.type)
     if not cls:
@@ -271,7 +261,7 @@ async def create_widget_from_control(body: CreateWidgetFromControlRequest, db: D
     db.add(widget)
     await db.commit()
     await db.refresh(widget)
-    await sio.emit("mutate", {"entity": "widgets"})
+    await emit_mutate("widgets")
     return widget
 
 

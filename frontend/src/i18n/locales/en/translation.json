@@ -570,6 +570,11 @@
         "registerAttributeTitle": "Register attribute",
         "registerAttribute": "Register \"{{name}}\" as a tracked attribute?"
     },
+    "error": {
+        "title": "Something went wrong",
+        "description": "An unexpected error occurred. You can try again or go back to the dashboard.",
+        "retry": "Try again"
+    },
     "notFound": {
         "title": "Page not found",
         "description": "The page you're looking for doesn't exist or has been moved.",

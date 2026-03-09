@@ -97,7 +97,7 @@ export function AttributeChart({ attributeIds, date, onOutOfRangeClick }: Attrib
     }, []);
 
     const [themeColors, setThemeColors] = useState(() => resolveThemeColors());
-    // biome-ignore lint/correctness/useExhaustiveDependencies: theme triggers CSS variable re-read
+    // biome-ignore lint/correctness/useExhaustiveDependencies: theme is an intentional trigger — when it changes, CSS variables update and we re-read them via resolveThemeColors()
     useEffect(() => {
         setThemeColors(resolveThemeColors());
     }, [theme]);

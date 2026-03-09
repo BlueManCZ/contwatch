@@ -4,7 +4,7 @@ import logging
 from app.models.logging_message import LoggingMessage
 from app.nodes.base import AbstractNode
 from app.nodes.ports import event_port, value_port
-from app.socketio_app import sio
+from app.socketio_app import emit_mutate
 
 logger = logging.getLogger(__name__)
 
@@ -30,4 +30,4 @@ class Logger(AbstractNode):
             async with self.session_factory() as session:
                 session.add(record)
                 await session.commit()
-            await sio.emit("mutate", {"entity": "logs"})
+            await emit_mutate("logs")

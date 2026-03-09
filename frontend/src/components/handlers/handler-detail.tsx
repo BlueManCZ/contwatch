@@ -22,6 +22,7 @@ import type {
     ResolvedControl,
 } from "@/api/generated/contWatchAPI.schemas";
 import {
+    getListHandlersApiHandlersGetQueryKey,
     useAvailableAttributesApiHandlersHandlerIdAvailableAttributesGet,
     useDeleteHandlerApiHandlersHandlerIdDelete,
     useHandlerControlsApiHandlersHandlerIdControlsGet,
@@ -34,6 +35,8 @@ import { SafeIcon } from "@/components/safe-icon";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
+import { useOptimisticReorder } from "@/hooks/use-optimistic-reorder";
 import { dateFnsLocales } from "@/lib/date-locale";
 import { formatValue } from "@/lib/format-value";
 import { localizeAttributeLabel } from "@/lib/localize-attribute";
@@ -105,7 +108,8 @@ function HandlerInfo({
     onClose: () => void;
 }) {
     const { t, i18n } = useTranslation();
-    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const queryClient = useQueryClient();
+    const deleteConfirm = useConfirmDialog();
     const status = useHandlerStatusStore((s) => s.statuses[handler.id]);
     const { data: typesData } = useListHandlerTypesApiHandlersTypesGet();
     const startHandler = useStartHandlerApiHandlersHandlerIdStartPost();
@@ -222,7 +226,14 @@ function HandlerInfo({
                             onClick={() =>
                                 stopHandler.mutate(
                                     { handlerId: handler.id },
-                                    { onSuccess: () => toast.success(t("toast.handlerStopped")) },
+                                    {
+                                        onSuccess: () => {
+                                            queryClient.invalidateQueries({
+                                                queryKey: getListHandlersApiHandlersGetQueryKey(),
+                                            });
+                                            toast.success(t("toast.handlerStopped"));
+                                        },
+                                    },
                                 )
                             }
                             disabled={stopHandler.isPending}
@@ -238,7 +249,14 @@ function HandlerInfo({
                             onClick={() =>
                                 startHandler.mutate(
                                     { handlerId: handler.id },
-                                    { onSuccess: () => toast.success(t("toast.handlerStarted")) },
+                                    {
+                                        onSuccess: () => {
+                                            queryClient.invalidateQueries({
+                                                queryKey: getListHandlersApiHandlersGetQueryKey(),
+                                            });
+                                            toast.success(t("toast.handlerStarted"));
+                                        },
+                                    },
                                 )
                             }
                             disabled={startHandler.isPending}
@@ -252,7 +270,7 @@ function HandlerInfo({
                     <button
                         type="button"
                         className="flex flex-1 items-center justify-center gap-1.5 py-3 sm:py-2 text-xs text-muted-foreground hover:text-destructive-foreground hover:bg-destructive/10 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-default"
-                        onClick={() => setConfirmDeleteOpen(true)}
+                        onClick={() => deleteConfirm.open()}
                         disabled={deleteHandler.isPending}
                         title={t("common.delete")}
                     >
@@ -262,8 +280,7 @@ function HandlerInfo({
                 </div>
             </div>
             <ConfirmDialog
-                open={confirmDeleteOpen}
-                onOpenChange={setConfirmDeleteOpen}
+                {...deleteConfirm.dialogProps}
                 variant="destructive"
                 confirmLabel={t("common.delete")}
                 isPending={deleteHandler.isPending}
@@ -272,7 +289,10 @@ function HandlerInfo({
                         { handlerId: handler.id },
                         {
                             onSuccess: () => {
-                                setConfirmDeleteOpen(false);
+                                queryClient.invalidateQueries({
+                                    queryKey: getListHandlersApiHandlersGetQueryKey(),
+                                });
+                                deleteConfirm.close();
                                 toast.success(t("toast.handlerDeleted"));
                                 onClose();
                             },
@@ -287,26 +307,16 @@ function HandlerInfo({
 
 function RegisteredAttributes({ handler }: { handler: HandlerRead }) {
     const { t } = useTranslation();
-    const queryClient = useQueryClient();
     const params = { handler_id: handler.id };
     const { data: attrsData } = useListAttributesApiAttributesGet(params);
     const reorder = useReorderAttributesApiAttributesReorderPut();
     const values = useLiveValuesStore((s) => s.values);
     const attrs = (attrsData?.data ?? []) as AttributeRead[];
     const [editingAttribute, setEditingAttribute] = useState<AttributeRead | null>(null);
-
-    function handleReorder(reordered: AttributeRead[]) {
-        const items = reordered.map((a, i) => ({ id: a.id, order: i }));
-        const queryKey = getListAttributesApiAttributesGetQueryKey(params);
-
-        queryClient.cancelQueries({ queryKey });
-        queryClient.setQueryData(queryKey, (old: unknown) => {
-            if (!old || typeof old !== "object" || !("data" in old)) return old;
-            return { ...old, data: reordered.map((a, i) => ({ ...a, order: i })) };
-        });
-
-        reorder.mutate({ data: { items } });
-    }
+    const handleReorder = useOptimisticReorder<AttributeRead>(
+        getListAttributesApiAttributesGetQueryKey(params),
+        reorder.mutate,
+    );
 
     return (
         <div>
@@ -371,7 +381,7 @@ function AvailableAttributes({ handler }: { handler: HandlerRead }) {
         query: { refetchInterval: 5000 },
     });
     const createAttribute = useCreateAttributeApiAttributesPost();
-    const [confirmName, setConfirmName] = useState<string | null>(null);
+    const addConfirm = useConfirmDialog<string>();
 
     const raw = availData?.data;
     const items = Array.isArray(raw) ? raw : [];
@@ -381,7 +391,7 @@ function AvailableAttributes({ handler }: { handler: HandlerRead }) {
             { data: { name, handler_id: handler.id, enabled: true } },
             {
                 onSuccess: () => {
-                    setConfirmName(null);
+                    addConfirm.close();
                     queryClient.invalidateQueries({ queryKey: getListAttributesApiAttributesGetQueryKey() });
                     toast.success(t("toast.attributeAdded"));
                 },
@@ -391,7 +401,7 @@ function AvailableAttributes({ handler }: { handler: HandlerRead }) {
 
     if (items.length === 0) return null;
 
-    const confirmItem = items.find((i) => i.name === confirmName);
+    const confirmItem = items.find((i) => i.name === addConfirm.pending);
     const confirmLabel = confirmItem
         ? localizeAttributeLabel(confirmItem.name, confirmItem.label, t, i18n)
         : "";
@@ -408,7 +418,7 @@ function AvailableAttributes({ handler }: { handler: HandlerRead }) {
                             type="button"
                             key={item.name}
                             className="flex w-full items-center justify-between gap-3 py-2.5 px-3 hover:bg-accent/30 transition-colors cursor-pointer text-left"
-                            onClick={() => setConfirmName(item.name)}
+                            onClick={() => addConfirm.open(item.name)}
                         >
                             <div className="min-w-0 flex-1">
                                 <p className="text-xs truncate">{displayLabel}</p>
@@ -431,9 +441,8 @@ function AvailableAttributes({ handler }: { handler: HandlerRead }) {
                 })}
             </div>
             <ConfirmDialog
-                open={confirmName !== null}
-                onOpenChange={(open) => !open && setConfirmName(null)}
-                onConfirm={() => confirmName && handleAdd(confirmName)}
+                {...addConfirm.dialogProps}
+                onConfirm={() => addConfirm.pending && handleAdd(addConfirm.pending)}
                 title={t("confirm.registerAttributeTitle")}
                 description={t("confirm.registerAttribute", { name: confirmLabel })}
                 confirmLabel={t("common.add")}
@@ -508,7 +517,7 @@ function HandlerActions({
     const { t } = useTranslation();
     const actions = (handler.actions ?? []) as ActionRead[];
     const [editingAction, setEditingAction] = useState<ActionRead | null>(null);
-    const [pendingAction, setPendingAction] = useState<ActionRead | null>(null);
+    const executeConfirm = useConfirmDialog<ActionRead>();
     const executeAction = useExecuteActionApiActionsActionIdExecutePost({
         mutation: { meta: { skipGlobalErrorToast: true } },
     });
@@ -527,7 +536,7 @@ function HandlerActions({
         executeAction.mutate(
             { actionId: action.id, data: null },
             {
-                onSettled: () => setPendingAction(null),
+                onSettled: () => executeConfirm.close(),
                 onSuccess: () => toast.success(boldName(t, "toast.actionExecuted", name)),
                 onError: () => toast.error(boldName(t, "toast.actionFailed", name)),
             },
@@ -536,7 +545,7 @@ function HandlerActions({
 
     function handleExecute(action: ActionRead) {
         if (handler.confirm_actions) {
-            setPendingAction(action);
+            executeConfirm.open(action);
         } else {
             doExecute(action);
         }
@@ -566,14 +575,16 @@ function HandlerActions({
             )}
             <ActionEditDialog action={editingAction} onClose={() => setEditingAction(null)} />
             <ConfirmDialog
-                open={pendingAction !== null}
-                onOpenChange={(open) => !open && setPendingAction(null)}
+                {...executeConfirm.dialogProps}
                 onConfirm={() => {
-                    if (pendingAction) doExecute(pendingAction);
+                    if (executeConfirm.pending) doExecute(executeConfirm.pending);
                 }}
                 description={t("confirm.executeAction", {
-                    action: pendingAction
-                        ? t(`knownActions.${pendingAction.name.replaceAll(" ", "_")}`, pendingAction.name)
+                    action: executeConfirm.pending
+                        ? t(
+                              `knownActions.${executeConfirm.pending.name.replaceAll(" ", "_")}`,
+                              executeConfirm.pending.name,
+                          )
                         : "",
                     device: handler.label || handler.description || handler.type,
                 })}

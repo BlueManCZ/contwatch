@@ -18,7 +18,7 @@ from app.models.logging_message import LoggingMessage
 from app.models.settings import Settings
 from app.nodes.graph import NodeGraph
 from app.services.attribute_tracker import AttributeTracker
-from app.socketio_app import sio
+from app.socketio_app import emit_mutate, sio
 from app.utils.linearize import linearize
 
 logger = logging.getLogger(__name__)
@@ -400,7 +400,7 @@ class HandlerManager:
 
         self._last_connected_state[handler_id] = False
         await sio.emit("handler_status", self._status_payload(handler_id, running=True, connected=False))
-        await sio.emit("mutate", {"entity": "handlers"})
+        await emit_mutate("handlers")
 
     async def stop_handler(self, handler_id: int) -> None:
         handler = self._handlers.get(handler_id)
@@ -408,7 +408,7 @@ class HandlerManager:
             await handler.stop()
             self._last_connected_state.pop(handler_id, None)
             await sio.emit("handler_status", self._status_payload(handler_id, running=False, connected=False))
-            await sio.emit("mutate", {"entity": "handlers"})
+            await emit_mutate("handlers")
 
     async def remove_handler(self, handler_id: int) -> None:
         """Stop a handler and remove all its in-memory state (trackers, name map, etc.)."""
@@ -444,7 +444,7 @@ class HandlerManager:
 
         self._last_connected_state[handler_id] = False
         await sio.emit("handler_status", self._status_payload(handler_id, running=True, connected=False))
-        await sio.emit("mutate", {"entity": "handlers"})
+        await emit_mutate("handlers")
 
     # --- Action execution ---
 
@@ -526,9 +526,9 @@ class HandlerManager:
             async with self._session_factory() as session:
                 session.add(record)
                 await session.commit()
-            await sio.emit("mutate", {"entity": "logs"})
+            await emit_mutate("logs")
         except Exception:
-            logger.debug("Failed to persist action log", exc_info=True)
+            logger.warning("Failed to persist action log", exc_info=True)
 
     # --- Value & stats seeding ---
 
@@ -552,7 +552,7 @@ class HandlerManager:
                 )
                 rows = result.mappings().all()
         except Exception:
-            logger.debug("Could not seed last values from data_units, skipping")
+            logger.debug("Could not seed last values from data_units, skipping", exc_info=True)
             return
 
         for row in rows:
@@ -574,7 +574,7 @@ class HandlerManager:
                 await conn.execute(text("CALL refresh_continuous_aggregate('daily_stats', NULL, NULL)"))
             logger.info("Refreshed daily_stats continuous aggregate")
         except Exception:
-            logger.debug("Could not refresh daily_stats continuous aggregate, skipping")
+            logger.debug("Could not refresh daily_stats continuous aggregate, skipping", exc_info=True)
 
     async def _seed_daily_stats(self, attr_ids: list[int] | None = None) -> None:
         """Refresh the continuous aggregate, then seed today's stats into trackers."""
@@ -602,7 +602,7 @@ class HandlerManager:
                         tracker.seed_stats(date=today, min_val=row["min_value"], max_val=row["max_value"])
         except Exception:
             # Continuous aggregate may not exist (e.g. tests with SQLite)
-            logger.debug("Could not query daily_stats continuous aggregate, skipping seed")
+            logger.debug("Could not query daily_stats continuous aggregate, skipping seed", exc_info=True)
 
     def get_daily_stats(self) -> dict[int, dict[str, float | None]]:
         """Return daily stats for all tracked attributes {attr_id: {min, max, stale}}."""

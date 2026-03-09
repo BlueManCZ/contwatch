@@ -555,7 +555,7 @@ export const WorkflowEditor = forwardRef<WorkflowEditorRef, WorkflowEditorProps>
                 },
             );
         }
-    }, [isSubWorkflow, subWorkflowId, queryClient, onSaveError]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [isSubWorkflow, subWorkflowId, queryClient, onSaveError]);
 
     const clearErrorNodes = useCallback(() => {
         if (nodesRef.current.some((n) => n.data._error)) {

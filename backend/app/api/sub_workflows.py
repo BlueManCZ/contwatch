@@ -12,7 +12,8 @@ from app.schemas.sub_workflow import (
     SubWorkflowUpdate,
 )
 from app.schemas.workflow import WorkflowData
-from app.socketio_app import sio
+from app.socketio_app import emit_mutate
+from app.utils.db import get_or_404
 
 logger = logging.getLogger(__name__)
 
@@ -27,11 +28,7 @@ async def list_sub_workflows(db: DbSession, _current_user: CurrentUser):
 
 @router.get("/{sub_workflow_id}", response_model=SubWorkflowRead)
 async def get_sub_workflow(sub_workflow_id: int, db: DbSession, _current_user: CurrentUser):
-    result = await db.execute(select(SubWorkflow).where(SubWorkflow.id == sub_workflow_id))
-    sw = result.scalar_one_or_none()
-    if not sw:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sub-workflow not found")
-    return sw
+    return await get_or_404(db, SubWorkflow, sub_workflow_id, detail="Sub-workflow not found")
 
 
 @router.post("/", response_model=SubWorkflowRead, status_code=status.HTTP_201_CREATED)
@@ -40,21 +37,18 @@ async def create_sub_workflow(body: SubWorkflowCreate, db: DbSession, current_us
     db.add(sw)
     await db.commit()
     await db.refresh(sw)
-    await sio.emit("mutate", {"entity": "sub_workflows"})
+    await emit_mutate("sub_workflows")
     return sw
 
 
 @router.patch("/{sub_workflow_id}", response_model=SubWorkflowRead)
 async def update_sub_workflow(sub_workflow_id: int, body: SubWorkflowUpdate, db: DbSession, _current_user: CurrentUser):
-    result = await db.execute(select(SubWorkflow).where(SubWorkflow.id == sub_workflow_id))
-    sw = result.scalar_one_or_none()
-    if not sw:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sub-workflow not found")
+    sw = await get_or_404(db, SubWorkflow, sub_workflow_id, detail="Sub-workflow not found")
     for field, value in body.model_dump(exclude_unset=True).items():
         setattr(sw, field, value)
     await db.commit()
     await db.refresh(sw)
-    await sio.emit("mutate", {"entity": "sub_workflows"})
+    await emit_mutate("sub_workflows")
     return sw
 
 
@@ -66,10 +60,7 @@ async def save_sub_workflow_graph(
     _current_user: CurrentUser,
     manager: HandlerManagerDep,
 ):
-    result = await db.execute(select(SubWorkflow).where(SubWorkflow.id == sub_workflow_id))
-    sw = result.scalar_one_or_none()
-    if not sw:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sub-workflow not found")
+    sw = await get_or_404(db, SubWorkflow, sub_workflow_id, detail="Sub-workflow not found")
 
     graph_dict = body.model_dump(by_alias=True)
 
@@ -102,8 +93,7 @@ async def save_sub_workflow_graph(
     # Rebuild the main workflow so it picks up updated sub-workflow graphs
     await manager.rebuild_workflow(db)
 
-    await sio.emit("mutate", {"entity": "sub_workflows"})
-    await sio.emit("mutate", {"entity": "workflow"})
+    await emit_mutate("sub_workflows", "workflow")
     logger.info("Sub-workflow %d graph saved", sub_workflow_id)
     return graph_dict
 
@@ -112,10 +102,7 @@ async def save_sub_workflow_graph(
 async def delete_sub_workflow(
     sub_workflow_id: int, db: DbSession, _current_user: CurrentUser, manager: HandlerManagerDep
 ):
-    result = await db.execute(select(SubWorkflow).where(SubWorkflow.id == sub_workflow_id))
-    sw = result.scalar_one_or_none()
-    if not sw:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sub-workflow not found")
+    sw = await get_or_404(db, SubWorkflow, sub_workflow_id, detail="Sub-workflow not found")
 
     # Check if any workflow or other sub-workflow references this one
     refs = await _find_references(db, sub_workflow_id)
@@ -130,8 +117,7 @@ async def delete_sub_workflow(
 
     await manager.rebuild_workflow(db)
 
-    await sio.emit("mutate", {"entity": "sub_workflows"})
-    await sio.emit("mutate", {"entity": "workflow"})
+    await emit_mutate("sub_workflows", "workflow")
 
 
 async def _find_references(db: DbSession, sub_workflow_id: int) -> list[str]:

@@ -34,12 +34,6 @@ export function QueryProvider({ children }: { children: ReactNode }) {
                     },
                 },
                 mutationCache: new MutationCache({
-                    onSuccess: () => {
-                        // Invalidate all queries on any mutation success.
-                        // Only currently observed (mounted) queries refetch;
-                        // unobserved ones just get marked stale for next use.
-                        queryClient.invalidateQueries();
-                    },
                     onError: (error, _variables, _context, mutation) => {
                         // Skip global toast when the mutation handles errors locally
                         if (mutation.meta?.skipGlobalErrorToast) return;

@@ -9,8 +9,8 @@ class Attribute(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(150), index=True)
-    handler_id: Mapped[int] = mapped_column(ForeignKey("handlers.id"))
-    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    handler_id: Mapped[int] = mapped_column(ForeignKey("handlers.id"), index=True)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     unit: Mapped[str | None] = mapped_column(String(50), nullable=True)
     label: Mapped[str | None] = mapped_column(String(150), nullable=True)
     icon: Mapped[str | None] = mapped_column(String(100), nullable=True)

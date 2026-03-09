@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useAuth } from "@/providers/auth-provider";
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -39,7 +40,7 @@ export function UserManagement() {
     const { data } = useListUsersApiAuthUsersGet();
     const deleteUser = useDeleteUserApiAuthUsersUserIdDelete();
     const [editingUser, setEditingUser] = useState<UserRead | null>(null);
-    const [pendingDeleteUser, setPendingDeleteUser] = useState<UserRead | null>(null);
+    const deleteConfirm = useConfirmDialog<UserRead>();
 
     const users = (data?.data ?? []) as UserRead[];
 
@@ -88,7 +89,7 @@ export function UserManagement() {
                                 <Button
                                     variant="ghost"
                                     size="icon-xs"
-                                    onClick={() => setPendingDeleteUser(user)}
+                                    onClick={() => deleteConfirm.open(user)}
                                     disabled={currentUser?.id === user.id}
                                     title={
                                         currentUser?.id === user.id
@@ -107,20 +108,17 @@ export function UserManagement() {
 
             <EditUserDialog user={editingUser} onClose={() => setEditingUser(null)} />
             <ConfirmDialog
-                open={pendingDeleteUser !== null}
-                onOpenChange={(open) => {
-                    if (!open) setPendingDeleteUser(null);
-                }}
+                {...deleteConfirm.dialogProps}
                 variant="destructive"
                 confirmLabel={t("common.delete")}
                 isPending={deleteUser.isPending}
                 onConfirm={() => {
-                    if (!pendingDeleteUser) return;
+                    if (!deleteConfirm.pending) return;
                     deleteUser.mutate(
-                        { userId: pendingDeleteUser.id },
+                        { userId: deleteConfirm.pending.id },
                         {
                             onSuccess: () => {
-                                setPendingDeleteUser(null);
+                                deleteConfirm.close();
                                 queryClient.invalidateQueries({
                                     queryKey: getListUsersApiAuthUsersGetQueryKey(),
                                 });

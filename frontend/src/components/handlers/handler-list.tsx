@@ -26,6 +26,7 @@ import { PageContent, PageHeader } from "@/components/layout/page-header";
 import { SafeIcon } from "@/components/safe-icon";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useOptimisticReorder } from "@/hooks/use-optimistic-reorder";
 import { dateFnsLocales } from "@/lib/date-locale";
 import { formatStat, formatValue } from "@/lib/format-value";
 import { localizeAttributeLabel } from "@/lib/localize-attribute";
@@ -36,7 +37,6 @@ import { useLiveValuesStore } from "@/stores/live-values";
 
 export function HandlerList() {
     const { t } = useTranslation();
-    const queryClient = useQueryClient();
     const { data } = useListHandlersApiHandlersGet();
     const { data: typesData } = useListHandlerTypesApiHandlersTypesGet();
     const reorderHandlers = useReorderHandlersApiHandlersReorderPut();
@@ -44,28 +44,16 @@ export function HandlerList() {
     const [detailOpen, setDetailOpen] = useState(false);
     const [editingAttribute, setEditingAttribute] = useState<AttributeRead | null>(null);
     const isMobile = useIsMobile();
+    const handleHandlerReorder = useOptimisticReorder<HandlerRead>(
+        getListHandlersApiHandlersGetQueryKey(),
+        reorderHandlers.mutate,
+    );
 
     const handlers = (data?.data ?? []) as HandlerRead[];
     const handlerTypes = (typesData?.data ?? []) as HandlerTypeInfo[];
     const typeIconMap = new Map(handlerTypes.map((ht) => [ht.type, ht.icon]));
     const typeNameMap = new Map(handlerTypes.map((ht) => [ht.type, ht.name]));
     const selectedHandler = handlers.find((h) => h.id === selectedHandlerId) ?? null;
-
-    function handleHandlerReorder(reordered: HandlerRead[]) {
-        const items = reordered.map((h, i) => ({ id: h.id, order: i }));
-        const queryKey = getListHandlersApiHandlersGetQueryKey();
-
-        queryClient.cancelQueries({ queryKey });
-        queryClient.setQueryData(queryKey, (old: unknown) => {
-            if (!old || typeof old !== "object" || !("data" in old)) return old;
-            return {
-                ...old,
-                data: reordered.map((h, i) => ({ ...h, order: i })),
-            };
-        });
-
-        reorderHandlers.mutate({ data: { items } });
-    }
 
     return (
         <>
