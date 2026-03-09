@@ -46,10 +46,7 @@ async def _refresh_daily_stats(dates: list[datetime.date], tz_offset: int = 0) -
         async with engine.connect() as conn:
             await conn.execution_options(isolation_level="AUTOCOMMIT")
             await conn.execute(
-                text(
-                    "CALL refresh_continuous_aggregate('daily_stats', "
-                    ":start::timestamptz, :end::timestamptz)"
-                ),
+                text("CALL refresh_continuous_aggregate('daily_stats', :start::timestamptz, :end::timestamptz)"),
                 {"start": start.isoformat(), "end": end.isoformat()},
             )
     except Exception:
