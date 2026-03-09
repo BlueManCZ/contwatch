@@ -1,12 +1,13 @@
-import { History, Pencil, X } from "lucide-react";
-import { useState } from "react";
+import { History } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { DashboardWidget } from "@/api/generated/contWatchAPI.schemas";
 import { useToggleSwitchApiWidgetsWidgetIdTogglePost } from "@/api/generated/widgets/widgets";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { WidgetOverlayActions } from "@/components/dashboard/widget-overlay-actions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { localizeAttributeLabel } from "@/lib/localize-attribute";
 import { boldName } from "@/lib/utils";
 import type { WidgetStatus } from "@/lib/widget-status";
@@ -33,7 +34,7 @@ export function WidgetSwitch({ widget: switch_, status = "online", onRemove, onE
     const toggle = useToggleSwitchApiWidgetsWidgetIdTogglePost({
         mutation: { meta: { skipGlobalErrorToast: true } },
     });
-    const [confirmOpen, setConfirmOpen] = useState(false);
+    const toggleConfirm = useConfirmDialog();
 
     const currentValue = liveVal?.value ?? rawVal?.value ?? switch_.value;
 
@@ -55,7 +56,7 @@ export function WidgetSwitch({ widget: switch_, status = "online", onRemove, onE
         toggle.mutate(
             { widgetId: switch_.id, data: { value: !isOn } },
             {
-                onSettled: () => setConfirmOpen(false),
+                onSettled: () => toggleConfirm.close(),
                 onSuccess: () => name && toast.success(boldName(t, "toast.actionExecuted", name)),
                 onError: () => toast.error(boldName(t, "toast.actionFailed", name ?? "")),
             },
@@ -64,7 +65,7 @@ export function WidgetSwitch({ widget: switch_, status = "online", onRemove, onE
 
     function handleToggle() {
         if (switch_.confirm_actions) {
-            setConfirmOpen(true);
+            toggleConfirm.open();
         } else {
             doToggle();
         }
@@ -134,39 +135,9 @@ export function WidgetSwitch({ widget: switch_, status = "online", onRemove, onE
                 </div>
             </CardContent>
 
-            {(onEdit || onRemove) && (
-                <div className="absolute top-2 right-2 hidden md:flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all">
-                    {onEdit && (
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit();
-                            }}
-                            className="h-5 w-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-                            title={t("common.edit")}
-                        >
-                            <Pencil className="h-3 w-3" />
-                        </button>
-                    )}
-                    {onRemove && (
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onRemove();
-                            }}
-                            className="h-5 w-5 flex items-center justify-center rounded text-muted-foreground hover:text-destructive-foreground hover:bg-destructive/10 transition-all"
-                            title={t("common.delete")}
-                        >
-                            <X className="h-3 w-3" />
-                        </button>
-                    )}
-                </div>
-            )}
+            <WidgetOverlayActions onEdit={onEdit} onRemove={onRemove} />
             <ConfirmDialog
-                open={confirmOpen}
-                onOpenChange={setConfirmOpen}
+                {...toggleConfirm.dialogProps}
                 onConfirm={doToggle}
                 description={t("confirm.executeAction", {
                     action: (() => {

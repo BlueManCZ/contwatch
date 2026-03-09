@@ -570,6 +570,11 @@
         "registerAttributeTitle": "Registrovat atribut",
         "registerAttribute": "Registrovat \"{{name}}\" jako sledovaný atribut?"
     },
+    "error": {
+        "title": "Něco se pokazilo",
+        "description": "Došlo k neočekávané chybě. Můžete to zkusit znovu nebo se vrátit na přehled.",
+        "retry": "Zkusit znovu"
+    },
     "notFound": {
         "title": "Stránka nenalezena",
         "description": "Stránka, kterou hledáte, neexistuje nebo byla přesunuta.",

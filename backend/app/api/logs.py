@@ -6,7 +6,7 @@ from sqlalchemy import delete, select
 from app.dependencies import CurrentUser, DbSession
 from app.models.logging_message import LoggingMessage
 from app.schemas.logging_message import LoggingMessageRead
-from app.socketio_app import sio
+from app.socketio_app import emit_mutate
 
 router = APIRouter(prefix="/logs", tags=["logs"])
 
@@ -44,4 +44,4 @@ async def list_logs(
 async def clear_logs(db: DbSession, _current_user: CurrentUser):
     await db.execute(delete(LoggingMessage))
     await db.commit()
-    await sio.emit("mutate", {"entity": "logs"})
+    await emit_mutate("logs")

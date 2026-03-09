@@ -13,6 +13,12 @@ logger = logging.getLogger(__name__)
 sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins=[])
 
 
+async def emit_mutate(*entities: str) -> None:
+    """Emit mutation invalidation events for one or more entity types."""
+    for entity in entities:
+        await sio.emit("mutate", {"entity": entity})
+
+
 @sio.event
 async def connect(sid, environ, auth):
     token = auth.get("token") if auth else None
@@ -32,13 +38,13 @@ async def connect(sid, environ, auth):
 
     await sio.save_session(sid, {"user_id": user_id})
     logger.info("Socket.IO client connected: %s (user_id=%s)", sid, user_id)
-    await sio.emit("mutate", {"entity": "system"})
+    await emit_mutate("system")
 
 
 @sio.event
 async def disconnect(sid):
     logger.info("Socket.IO client disconnected: %s", sid)
-    await sio.emit("mutate", {"entity": "system"})
+    await emit_mutate("system")
 
 
 @sio.event

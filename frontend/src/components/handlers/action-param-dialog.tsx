@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { boldName } from "@/lib/utils";
 import { useLiveValuesStore } from "@/stores/live-values";
 
@@ -77,7 +78,7 @@ export function ActionParamPopover({ action, params, handler, children }: Action
         }
     }, [open, paramAttrIds, params]);
 
-    const [confirmOpen, setConfirmOpen] = useState(false);
+    const executeConfirm = useConfirmDialog();
     const localizedName = t(`knownActions.${action.name.replaceAll(" ", "_")}`, action.name);
 
     function doExecute() {
@@ -96,7 +97,7 @@ export function ActionParamPopover({ action, params, handler, children }: Action
     function handleSubmit() {
         if (handler.confirm_actions) {
             setOpen(false);
-            setConfirmOpen(true);
+            executeConfirm.open();
         } else {
             doExecute();
         }
@@ -177,8 +178,7 @@ export function ActionParamPopover({ action, params, handler, children }: Action
                 </PopoverContent>
             </Popover>
             <ConfirmDialog
-                open={confirmOpen}
-                onOpenChange={setConfirmOpen}
+                {...executeConfirm.dialogProps}
                 onConfirm={doExecute}
                 description={t("confirm.executeAction", {
                     action: localizedName,

@@ -36,7 +36,8 @@ from app.schemas.handler import (
     SerialPortInfo,
     SetupRequest,
 )
-from app.socketio_app import sio
+from app.socketio_app import emit_mutate
+from app.utils.db import get_or_404
 from app.utils.linearize import linearize
 
 logger = logging.getLogger(__name__)
@@ -258,8 +259,7 @@ async def setup_handler(body: SetupRequest, db: DbSession, manager: HandlerManag
 
     await db.commit()
     await manager.start_handler(handler.id)
-    await sio.emit("mutate", {"entity": "handlers"})
-    await sio.emit("mutate", {"entity": "actions"})
+    await emit_mutate("handlers", "actions")
     return _to_handler_read(handler)
 
 
@@ -272,7 +272,7 @@ async def reorder_handlers(body: HandlerReorderRequest, db: DbSession, _current_
         if handler := handlers_by_id.get(item.id):
             handler.order = item.order
     await db.commit()
-    await sio.emit("mutate", {"entity": "handlers"})
+    await emit_mutate("handlers")
 
 
 @router.post("/", response_model=HandlerRead, status_code=status.HTTP_201_CREATED)
@@ -285,16 +285,13 @@ async def create_handler(body: HandlerCreate, db: DbSession, manager: HandlerMan
     await db.refresh(handler, attribute_names=["attributes", "actions"])
     await db.commit()
     await manager.start_handler(handler.id)
-    await sio.emit("mutate", {"entity": "handlers"})
+    await emit_mutate("handlers")
     return _to_handler_read(handler)
 
 
 @router.get("/{handler_id}", response_model=HandlerRead)
 async def get_handler(handler_id: int, db: DbSession, _current_user: CurrentUser):
-    result = await db.execute(select(Handler).where(Handler.id == handler_id).options(*_HANDLER_LOAD_OPTIONS))
-    handler = result.scalar_one_or_none()
-    if not handler:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Handler not found")
+    handler = await get_or_404(db, Handler, handler_id, options=_HANDLER_LOAD_OPTIONS)
     return _to_handler_read(handler)
 
 
@@ -302,10 +299,7 @@ async def get_handler(handler_id: int, db: DbSession, _current_user: CurrentUser
 async def update_handler(
     handler_id: int, body: HandlerUpdate, db: DbSession, manager: HandlerManagerDep, _current_user: CurrentUser
 ):
-    result = await db.execute(select(Handler).where(Handler.id == handler_id).options(*_HANDLER_LOAD_OPTIONS))
-    handler = result.scalar_one_or_none()
-    if not handler:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Handler not found")
+    handler = await get_or_404(db, Handler, handler_id, options=_HANDLER_LOAD_OPTIONS)
 
     update_data = body.model_dump(exclude_unset=True)
     if "options" in update_data and "config" in update_data["options"]:
@@ -325,7 +319,7 @@ async def update_handler(
 
     await db.commit()
     await db.refresh(handler, attribute_names=["attributes", "actions"])
-    await sio.emit("mutate", {"entity": "handlers"})
+    await emit_mutate("handlers")
 
     if needs_restart:
         await manager.restart_handler(handler_id)
@@ -335,41 +329,31 @@ async def update_handler(
 
 @router.delete("/{handler_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_handler(handler_id: int, db: DbSession, manager: HandlerManagerDep, _current_user: CurrentUser):
-    result = await db.execute(select(Handler).where(Handler.id == handler_id))
-    handler = result.scalar_one_or_none()
-    if not handler:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Handler not found")
+    handler = await get_or_404(db, Handler, handler_id)
 
     await manager.remove_handler(handler_id)
     await db.delete(handler)
     await db.commit()
-    await sio.emit("mutate", {"entity": "handlers"})
-    await sio.emit("mutate", {"entity": "actions"})
+    await emit_mutate("handlers", "actions")
 
 
 @router.post("/{handler_id}/start", status_code=status.HTTP_200_OK)
 async def start_handler(handler_id: int, db: DbSession, manager: HandlerManagerDep, _current_user: CurrentUser):
-    result = await db.execute(select(Handler).where(Handler.id == handler_id))
-    handler = result.scalar_one_or_none()
-    if not handler:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Handler not found")
+    handler = await get_or_404(db, Handler, handler_id)
     handler.enabled = True
     await db.commit()
     await manager.start_handler(handler_id)
-    await sio.emit("mutate", {"entity": "handlers"})
+    await emit_mutate("handlers")
     return {"ok": True}
 
 
 @router.post("/{handler_id}/stop", status_code=status.HTTP_200_OK)
 async def stop_handler(handler_id: int, db: DbSession, manager: HandlerManagerDep, _current_user: CurrentUser):
-    result = await db.execute(select(Handler).where(Handler.id == handler_id))
-    handler = result.scalar_one_or_none()
-    if not handler:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Handler not found")
+    handler = await get_or_404(db, Handler, handler_id)
     handler.enabled = False
     await db.commit()
     await manager.stop_handler(handler_id)
-    await sio.emit("mutate", {"entity": "handlers"})
+    await emit_mutate("handlers")
     return {"ok": True}
 
 
@@ -390,10 +374,7 @@ async def available_attributes(handler_id: int, manager: HandlerManagerDep, _cur
 
 @router.get("/{handler_id}/controls", response_model=list[ResolvedControl])
 async def handler_controls(handler_id: int, db: DbSession, manager: HandlerManagerDep, _current_user: CurrentUser):
-    result = await db.execute(select(Handler).where(Handler.id == handler_id).options(*_HANDLER_LOAD_OPTIONS))
-    handler = result.scalar_one_or_none()
-    if not handler:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Handler not found")
+    handler = await get_or_404(db, Handler, handler_id, options=_HANDLER_LOAD_OPTIONS)
 
     cls = get_handler_class(handler.type)
     if not cls or not cls.known_controls:

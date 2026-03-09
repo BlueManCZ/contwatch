@@ -1,12 +1,13 @@
-import { Pencil, Play, X } from "lucide-react";
-import { useState } from "react";
+import { Play } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { DashboardWidget } from "@/api/generated/contWatchAPI.schemas";
 import { useExecuteButtonApiWidgetsWidgetIdExecutePost } from "@/api/generated/widgets/widgets";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { WidgetOverlayActions } from "@/components/dashboard/widget-overlay-actions";
 import { SafeIcon } from "@/components/safe-icon";
 import { Card, CardContent } from "@/components/ui/card";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { boldName } from "@/lib/utils";
 import type { WidgetStatus } from "@/lib/widget-status";
 
@@ -22,7 +23,7 @@ export function WidgetButton({ widget, status = "online", onRemove, onEdit }: Wi
     const execute = useExecuteButtonApiWidgetsWidgetIdExecutePost({
         mutation: { meta: { skipGlobalErrorToast: true } },
     });
-    const [confirmOpen, setConfirmOpen] = useState(false);
+    const executeConfirm = useConfirmDialog();
 
     const actionName = widget.action_name
         ? t(`knownActions.${widget.action_name.replaceAll(" ", "_")}`, widget.action_name)
@@ -33,7 +34,7 @@ export function WidgetButton({ widget, status = "online", onRemove, onEdit }: Wi
         execute.mutate(
             { widgetId: widget.id, data: {} },
             {
-                onSettled: () => setConfirmOpen(false),
+                onSettled: () => executeConfirm.close(),
                 onSuccess: () => actionName && toast.success(boldName(t, "toast.actionExecuted", actionName)),
                 onError: () => toast.error(boldName(t, "toast.actionFailed", actionName ?? "")),
             },
@@ -42,7 +43,7 @@ export function WidgetButton({ widget, status = "online", onRemove, onEdit }: Wi
 
     function handleClick() {
         if (widget.confirm_actions) {
-            setConfirmOpen(true);
+            executeConfirm.open();
         } else {
             doExecute();
         }
@@ -79,40 +80,10 @@ export function WidgetButton({ widget, status = "online", onRemove, onEdit }: Wi
                 </div>
             </CardContent>
 
-            {(onEdit || onRemove) && (
-                <div className="absolute top-2 right-2 hidden md:flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all">
-                    {onEdit && (
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit();
-                            }}
-                            className="h-5 w-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer"
-                            title={t("common.edit")}
-                        >
-                            <Pencil className="h-3 w-3" />
-                        </button>
-                    )}
-                    {onRemove && (
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onRemove();
-                            }}
-                            className="h-5 w-5 flex items-center justify-center rounded text-muted-foreground hover:text-destructive-foreground hover:bg-destructive/10 transition-all cursor-pointer"
-                            title={t("common.delete")}
-                        >
-                            <X className="h-3 w-3" />
-                        </button>
-                    )}
-                </div>
-            )}
+            <WidgetOverlayActions onEdit={onEdit} onRemove={onRemove} />
 
             <ConfirmDialog
-                open={confirmOpen}
-                onOpenChange={setConfirmOpen}
+                {...executeConfirm.dialogProps}
                 onConfirm={doExecute}
                 description={t("confirm.executeAction", {
                     action: actionName ?? "",

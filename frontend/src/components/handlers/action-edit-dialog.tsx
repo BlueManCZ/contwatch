@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { ActionMessageEditor } from "./action-message-editor";
 
 interface ActionEditDialogProps {
@@ -25,7 +26,7 @@ export function ActionEditDialog({ action, onClose }: ActionEditDialogProps) {
     const queryClient = useQueryClient();
     const [name, setName] = useState("");
     const [message, setMessage] = useState("");
-    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const deleteConfirm = useConfirmDialog();
     const updateAction = useUpdateActionApiActionsActionIdPatch();
     const deleteAction = useDeleteActionApiActionsActionIdDelete();
 
@@ -83,7 +84,7 @@ export function ActionEditDialog({ action, onClose }: ActionEditDialogProps) {
                             type="button"
                             variant="destructive"
                             disabled={deleteAction.isPending}
-                            onClick={() => setConfirmDeleteOpen(true)}
+                            onClick={() => deleteConfirm.open()}
                         >
                             {t("common.delete")}
                         </Button>
@@ -94,8 +95,7 @@ export function ActionEditDialog({ action, onClose }: ActionEditDialogProps) {
                 </form>
             </DialogContent>
             <ConfirmDialog
-                open={confirmDeleteOpen}
-                onOpenChange={setConfirmDeleteOpen}
+                {...deleteConfirm.dialogProps}
                 variant="destructive"
                 confirmLabel={t("common.delete")}
                 isPending={deleteAction.isPending}
@@ -105,7 +105,7 @@ export function ActionEditDialog({ action, onClose }: ActionEditDialogProps) {
                         { actionId: action.id },
                         {
                             onSuccess: () => {
-                                setConfirmDeleteOpen(false);
+                                deleteConfirm.close();
                                 queryClient.invalidateQueries({
                                     queryKey: getListHandlersApiHandlersGetQueryKey(),
                                 });

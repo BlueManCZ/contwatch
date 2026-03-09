@@ -22,6 +22,8 @@ import { WidgetWizard } from "@/components/dashboard/widget-wizard";
 import { SortableList } from "@/components/handlers/sortable-list";
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageContent, PageHeader } from "@/components/layout/page-header";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
+import { useOptimisticReorder } from "@/hooks/use-optimistic-reorder";
 import { getWidgetStatus } from "@/lib/widget-status";
 import { useHandlerStatusStore } from "@/stores/handler-status";
 
@@ -31,9 +33,13 @@ export function DashboardGrid() {
     const { data } = useDashboardApiWidgetsDashboardGet();
     const deleteWidget = useDeleteWidgetApiWidgetsWidgetIdDelete();
     const reorderWidgets = useReorderWidgetsApiWidgetsReorderPost();
+    const handleReorder = useOptimisticReorder<DashboardWidget>(
+        getDashboardApiWidgetsDashboardGetQueryKey(),
+        reorderWidgets.mutate,
+    );
     const navigate = useNavigate();
     const [editing, setEditing] = useState<DashboardWidget | null>(null);
-    const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+    const deleteConfirm = useConfirmDialog<number>();
     const handlerStatuses = useHandlerStatusStore((s) => s.statuses);
 
     const statusOf = (w: DashboardWidget) =>
@@ -51,7 +57,7 @@ export function DashboardGrid() {
         const common = {
             key: w.id,
             onEdit: () => setEditing(w),
-            onRemove: () => setPendingDeleteId(w.id),
+            onRemove: () => deleteConfirm.open(w.id),
         };
 
         switch (w.type) {
@@ -113,19 +119,7 @@ export function DashboardGrid() {
                         items={widgets}
                         multiColumn
                         onLongPress={(w) => setEditing(w)}
-                        onReorder={(reordered) => {
-                            const items = reordered.map((w, i) => ({ id: w.id, order: i }));
-                            reorderWidgets.mutate(
-                                { data: { items } },
-                                {
-                                    onSuccess: () => {
-                                        queryClient.invalidateQueries({
-                                            queryKey: getDashboardApiWidgetsDashboardGetQueryKey(),
-                                        });
-                                    },
-                                },
-                            );
-                        }}
+                        onReorder={handleReorder}
                         className="grid gap-3 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                         renderItem={(w) => renderWidget(w)}
                     />
@@ -138,23 +132,20 @@ export function DashboardGrid() {
                         onOpenChange={(open) => {
                             if (!open) setEditing(null);
                         }}
-                        onRemove={() => setPendingDeleteId(editing.id)}
+                        onRemove={() => deleteConfirm.open(editing.id)}
                     />
                 )}
 
                 <ConfirmDialog
-                    open={pendingDeleteId !== null}
-                    onOpenChange={(open) => {
-                        if (!open) setPendingDeleteId(null);
-                    }}
+                    {...deleteConfirm.dialogProps}
                     isPending={deleteWidget.isPending}
                     onConfirm={() => {
-                        if (pendingDeleteId === null) return;
+                        if (deleteConfirm.pending === null) return;
                         deleteWidget.mutate(
-                            { widgetId: pendingDeleteId },
+                            { widgetId: deleteConfirm.pending },
                             {
                                 onSuccess: () => {
-                                    setPendingDeleteId(null);
+                                    deleteConfirm.close();
                                     setEditing(null);
                                     queryClient.invalidateQueries({
                                         queryKey: getDashboardApiWidgetsDashboardGetQueryKey(),

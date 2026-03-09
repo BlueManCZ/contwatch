@@ -17,7 +17,8 @@ from app.services.auth import (
     revoke_refresh_token,
     rotate_refresh_token,
 )
-from app.socketio_app import sio
+from app.socketio_app import emit_mutate
+from app.utils.db import get_or_404
 from app.utils.security import hash_password, verify_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -179,7 +180,7 @@ async def create_user(body: UserCreate, db: DbSession, current_user: CurrentUser
     db.add(user)
     await db.commit()
     await db.refresh(user)
-    await sio.emit("mutate", {"entity": "auth"})
+    await emit_mutate("auth")
     return user
 
 
@@ -188,10 +189,7 @@ async def update_user(user_id: int, body: UserUpdate, db: DbSession, current_use
     if current_user.role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin only")
 
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    user = await get_or_404(db, User, user_id)
 
     update_data = body.model_dump(exclude_unset=True)
 
@@ -216,7 +214,7 @@ async def update_user(user_id: int, body: UserUpdate, db: DbSession, current_use
 
     await db.commit()
     await db.refresh(user)
-    await sio.emit("mutate", {"entity": "auth"})
+    await emit_mutate("auth")
     return user
 
 
@@ -228,12 +226,9 @@ async def delete_user(user_id: int, db: DbSession, current_user: CurrentUser):
     if current_user.id == user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot delete yourself")
 
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    user = await get_or_404(db, User, user_id)
 
     await revoke_all_user_tokens(db, user_id)
     await db.delete(user)
     await db.commit()
-    await sio.emit("mutate", {"entity": "auth"})
+    await emit_mutate("auth")

@@ -47,6 +47,10 @@
 - Fix all issues, including pre-existing ones unrelated to your changes. The codebase must always be warning-free.
 - **Do not suppress lint warnings with ignore comments by default.** Always try to fix the issue properly first. Only add a suppress comment when the lint rule genuinely does not apply and a proper fix would be worse (e.g. less readable, wrong behavior). Include a clear justification in the comment.
 
+## Audits
+
+- **When fixing an item from any audit in `audits/`**, always mark it as fixed in the audit file (strikethrough title, add ✅ FIXED, add a note with what was done).
+
 ## Bug Fixes
 
 - **When fixing a bug, always search the entire codebase for the same pattern** before considering the fix done. Proactively find and fix all similar occurrences.
