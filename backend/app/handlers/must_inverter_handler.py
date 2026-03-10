@@ -149,11 +149,11 @@ def _read_all_data(instrument: minimalmodbus.Instrument) -> dict:
         "battery_voltage": _reg(instrument, 15206) / 10,
         "current": _reg(instrument, 15207) / 10,
         "power": _reg(instrument, 15208),
-        "radiator_temp": _signed(_reg(instrument, 15210)),
-        "external_temp": _signed(_reg(instrument, 15211)),
+        "radiator_temp": _signed(_reg(instrument, 15209)),
+        "external_temp": _signed(_reg(instrument, 15210)),
         "_error": _reg(instrument, 15213),
         "_warning": _reg(instrument, 15214),
-        "accumulated_energy": _reg(instrument, 15216) * 1000 + _reg(instrument, 15217) / 10,
+        "accumulated_energy": _reg(instrument, 15217) * 1000 + _reg(instrument, 15218) / 10,
     }
 
     # --- Inverter ---
@@ -173,14 +173,14 @@ def _read_all_data(instrument: minimalmodbus.Instrument) -> dict:
         "load_percent": _reg(instrument, 25216),
         "frequency": _reg(instrument, 25225) / 100,
         "grid_frequency": _reg(instrument, 25226) / 100,
-        "inverter_dc_temp": _signed(_reg(instrument, 25234)),
-        "inverter_ac_temp": _signed(_reg(instrument, 25235)),
-        "transformer_temp": _signed(_reg(instrument, 25236)),
+        "inverter_ac_temp": _signed(_reg(instrument, 25233)),
+        "transformer_temp": _signed(_reg(instrument, 25234)),
+        "inverter_dc_temp": _signed(_reg(instrument, 25235)),
         "_error1": _reg(instrument, 25261),
         "_error2": _reg(instrument, 25262),
         "_warning": _reg(instrument, 25265),
-        "battery_current": _signed(_reg(instrument, 25273)) / 10,
-        "battery_power": _signed(_reg(instrument, 25274)),
+        "battery_power": _signed(_reg(instrument, 25273)),
+        "battery_current": _signed(_reg(instrument, 25274)),
     }
 
     return {"charger": charger, "inverter": inverter}
