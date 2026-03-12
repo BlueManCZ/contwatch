@@ -1,6 +1,14 @@
-import { Handle, type Node, type NodeProps, Position, useNodeConnections, useReactFlow } from "@xyflow/react";
+import {
+    Handle,
+    type Node,
+    type NodeProps,
+    Position,
+    useNodeConnections,
+    useReactFlow,
+    useUpdateNodeInternals,
+} from "@xyflow/react";
 import { X } from "lucide-react";
-import { createContext, type ReactNode, useCallback, useContext, useMemo } from "react";
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { NodeDefinition, PortDefinition } from "@/api/generated/contWatchAPI.schemas";
 import { useWorkflowStore } from "@/stores/workflow-store";
@@ -274,8 +282,19 @@ export function createWorkflowNode(nodeType: string) {
         const isDisplay = nodeType === "display";
         const displayValue = useWorkflowStore((s) => (isDisplay ? s.values[id] : undefined));
 
+        const updateNodeInternals = useUpdateNodeInternals();
         const inputPorts = definition?.input_ports ?? [];
         const outputPorts = definition?.output_ports ?? [];
+
+        // Recompute handle positions when port order changes (e.g. sub-workflow port reorder).
+        // Only fire when ports actually change from a previously known value (skip initial mount).
+        const portFingerprint = `${inputPorts.map((p) => p.name).join(",")}|${outputPorts.map((p) => p.name).join(",")}`;
+        const prevPortsRef = useRef(portFingerprint);
+        useEffect(() => {
+            if (prevPortsRef.current === portFingerprint) return;
+            prevPortsRef.current = portFingerprint;
+            updateNodeInternals(id);
+        }, [id, portFingerprint, updateNodeInternals]);
 
         const portLabel = (port: PortDefinition) => t(`workflow.ports.${port.name}`, port.label);
 
