@@ -314,8 +314,10 @@ def derive_sub_workflow_ports(
         edges_data = graph_data.get("edges", [])
     nodes_data = graph_data.get("nodes", [])
 
-    input_ports = []
-    output_ports = []
+    # Collect input/output candidates, then sort by Y-position so the port
+    # order on the SubWorkflowNode matches the visual layout in the editor.
+    input_candidates: list[tuple[float, dict]] = []
+    output_candidates: list[tuple[float, dict]] = []
 
     for node_data in nodes_data:
         node_type = node_data.get("type", "")
@@ -325,17 +327,22 @@ def derive_sub_workflow_ports(
         if not name:
             continue
 
+        y_pos = node_data.get("position", {}).get("y", 0)
+
         if node_type == "sub_workflow_input":
             port_type = _detect_port_type(node_id, "source", edges_data)
             if port_type:
-                input_ports.append({"name": name, "type": port_type})
+                input_candidates.append((y_pos, {"name": name, "type": port_type}))
 
         elif node_type == "sub_workflow_output":
             port_type = _detect_port_type(node_id, "target", edges_data)
             if port_type:
-                output_ports.append({"name": name, "type": port_type})
+                output_candidates.append((y_pos, {"name": name, "type": port_type}))
 
-    return input_ports, output_ports
+    input_candidates.sort(key=lambda c: c[0])
+    output_candidates.sort(key=lambda c: c[0])
+
+    return [p for _, p in input_candidates], [p for _, p in output_candidates]
 
 
 _HANDLE_TO_PORT_TYPE: dict[str, str] = {

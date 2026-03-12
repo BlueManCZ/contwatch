@@ -305,6 +305,50 @@ class TestDeriveSubWorkflowPorts:
         inputs, _outputs = derive_sub_workflow_ports(graph, edges_data=explicit_edges)
         assert inputs == [{"name": "in", "type": "value"}]
 
+    def test_ports_sorted_by_y_position(self):
+        """Input/output ports should be ordered by the Y-position of their nodes,
+        matching the visual layout in the sub-workflow editor."""
+        graph = _make_graph(
+            nodes=[
+                # Array order: B first, A second — but A has lower Y (visually above B)
+                {
+                    "id": "in_b",
+                    "type": "sub_workflow_input",
+                    "data": {"name": "B"},
+                    "position": {"x": 0, "y": 200},
+                },
+                {
+                    "id": "in_a",
+                    "type": "sub_workflow_input",
+                    "data": {"name": "A"},
+                    "position": {"x": 0, "y": 50},
+                },
+                {
+                    "id": "out_y",
+                    "type": "sub_workflow_output",
+                    "data": {"name": "Y"},
+                    "position": {"x": 400, "y": 300},
+                },
+                {
+                    "id": "out_x",
+                    "type": "sub_workflow_output",
+                    "data": {"name": "X"},
+                    "position": {"x": 400, "y": 100},
+                },
+            ],
+            edges=[
+                {"source": "in_b", "sourceHandle": "event", "target": "n2", "targetHandle": "event"},
+                {"source": "in_a", "sourceHandle": "event", "target": "n3", "targetHandle": "event"},
+                {"source": "n4", "sourceHandle": "value", "target": "out_y", "targetHandle": "value"},
+                {"source": "n5", "sourceHandle": "value", "target": "out_x", "targetHandle": "value"},
+            ],
+        )
+        inputs, outputs = derive_sub_workflow_ports(graph)
+        # A (y=50) should come before B (y=200)
+        assert [p["name"] for p in inputs] == ["A", "B"]
+        # X (y=100) should come before Y (y=300)
+        assert [p["name"] for p in outputs] == ["X", "Y"]
+
     def test_mixed_types_raises(self):
         graph = _make_graph(
             nodes=[{"id": "n1", "type": "sub_workflow_input", "data": {"name": "bad"}}],
