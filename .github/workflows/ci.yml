@@ -35,6 +35,7 @@ jobs:
         run: uv run ruff check .
 
       - name: Audit dependencies
+        if: github.actor != 'dependabot[bot]'
         run: uv run pip-audit
 
       - name: Test
@@ -70,6 +71,7 @@ jobs:
         run: pnpm typecheck
 
       - name: Audit dependencies
+        if: github.actor != 'dependabot[bot]'
         run: pnpm audit --prod
 
       - name: Build
