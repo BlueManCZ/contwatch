@@ -1827,8 +1827,8 @@ packages:
     peerDependencies:
       seroval: ^1.0
 
-  seroval@1.5.0:
-    resolution: {integrity: sha512-OE4cvmJ1uSPrKorFIH9/w/Qwuvi/IMcGbv5RKgcJ/zjA/IohDLU6SVaxFN9FwajbP7nsX0dQqMDes1whk3y+yw==}
+  seroval@1.6.9:
+    resolution: {integrity: sha512-UeEzHwAK+yl0YLbsvROV1t5yMYEwZZ0CfKYxDvUgS2fO9Vxdf8djqVIB+OuVpuawRNPqw68LE1Du/GMsW2ZPqA==}
     engines: {node: '>=10'}
 
   shebang-command@2.0.0:
@@ -2831,8 +2831,8 @@ snapshots:
       '@tanstack/history': 1.161.4
       '@tanstack/store': 0.9.1
       cookie-es: 2.0.0
-      seroval: 1.5.0
-      seroval-plugins: 1.5.0(seroval@1.5.0)
+      seroval: 1.6.9
+      seroval-plugins: 1.5.0(seroval@1.6.9)
       tiny-invariant: 1.3.3
       tiny-warning: 1.0.3
 
@@ -3763,11 +3763,11 @@ snapshots:
 
   semver@6.3.1: {}
 
-  seroval-plugins@1.5.0(seroval@1.5.0):
+  seroval-plugins@1.5.0(seroval@1.6.9):
     dependencies:
-      seroval: 1.5.0
+      seroval: 1.6.9
 
-  seroval@1.5.0: {}
+  seroval@1.6.9: {}
 
   shebang-command@2.0.0:
     dependencies:
